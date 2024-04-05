@@ -183,9 +183,3 @@ class BaseInput:
     def make_fused(self, with_output: OutputId | int = 0):
         self.fused = IOFusion(output_id=OutputId(with_output))
         return self
-
-    def __repr__(self):
-        return str(self.to_dict())
-
-    def __iter__(self):
-        yield from self.to_dict().items()

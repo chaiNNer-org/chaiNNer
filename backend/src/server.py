@@ -474,8 +474,24 @@ async def import_packages(
 
         if len(import_errors) > 0:
             logger.warning(f"Failed to import {len(import_errors)} modules:")
+
+            by_error: dict[str, list[api.LoadErrorInfo]] = {}
             for e in import_errors:
-                logger.warning(f"{e.error}  ->  {e.module}")
+                key = str(e.error)
+                if key not in by_error:
+                    by_error[key] = []
+                by_error[key].append(e)
+
+            for error in sorted(by_error.keys()):
+                modules = [e.module for e in by_error[error]]
+                if len(modules) == 1:
+                    logger.warning(f"{error}  ->  {modules[0]}")
+                else:
+                    count = len(modules)
+                    if count > 3:
+                        modules = modules[:2] + [f"and {count - 2} more ..."]
+                    l = "\n".join("  ->  " + m for m in modules)
+                    logger.warning(f"{error}  ->  {count} modules ...\n{l}")
 
         if config.error_on_failed_node:
             raise ValueError("Error importing nodes")

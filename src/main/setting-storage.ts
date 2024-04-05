@@ -19,6 +19,11 @@ export const readSettings = (): ChainnerSettings => {
 
     // legacy settings
     const storagePath = path.join(getRootDirSync(), 'settings');
+    if (!existsSync(storagePath)) {
+        // neither settings.json nor old settings exist, so this is a fresh install
+        return { ...defaultSettings };
+    }
+
     const storage = new LocalStorage(storagePath);
     const partialSettings = migrateOldStorageSettings({
         keys: Array.from({ length: storage.length }, (_, i) => storage.key(i)),
