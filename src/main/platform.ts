@@ -27,12 +27,12 @@ export const getIsPortableSync = lazy((): boolean => {
     return isPortable;
 });
 
-export const getRootDirSync = lazy((): string => {
+export const getRootDir = lazy((): string => {
     const isPortable = getIsPortableSync();
     const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
     return rootDir;
 });
 
 export const getLogsFolder = lazy((): string => {
-    return path.join(getRootDirSync(), 'logs');
+    return path.join(getRootDir(), 'logs');
 });

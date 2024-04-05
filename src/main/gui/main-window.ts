@@ -14,7 +14,7 @@ import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getRootDirSync } from '../platform';
+import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
@@ -28,7 +28,7 @@ const registerEventHandlerPreSetup = (
     settings: ChainnerSettings
 ) => {
     ipcMain.handle('get-app-version', () => version);
-    ipcMain.handle('get-appdata', () => getRootDirSync());
+    ipcMain.handle('get-appdata', () => getRootDir());
     ipcMain.handle('refresh-nodes', () => args.refresh);
 
     // settings
@@ -368,7 +368,7 @@ const createBackend = async (
         token,
         settings.useSystemPython,
         settings.systemPythonLocation,
-        getRootDirSync(),
+        getRootDir(),
         args.remoteBackend
     );
 };
