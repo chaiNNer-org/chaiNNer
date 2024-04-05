@@ -47,26 +47,25 @@ class _WorkerProcess:
         self._stop_event = threading.Event()
 
         # Create a separate thread to read and print the output of the subprocess
-        self.t1 = threading.Thread(
+        self._reader_thread = threading.Thread(
             target=self._read_output,
             daemon=True,
             name="output reader",
         )
-        self.t1.daemon = True
-        self.t1.start()
+        self._reader_thread.daemon = True
+        self._reader_thread.start()
 
     def close(self):
         logger.info("Closing worker process...")
         self._stop_event.set()
-        if hasattr(self, "_process"):
+        if self._process is not None:
             self._process.terminate()
             self._process.kill()
-            del self._process
-        if hasattr(self, "t1"):
-            del self.t1
+            self._process = None
+            self._reader_thread = None
 
     def _read_output(self):
-        if self._process.stdout is None:
+        if self._process is None or self._process.stdout is None:
             return
         for line in iter(self._process.stdout):
             if self._stop_event.is_set():
