@@ -8,23 +8,15 @@ import {
     UnlockIcon,
 } from '@chakra-ui/icons';
 import {
-    Button,
-    ButtonGroup,
     HStack,
     Input,
+    InputGroup,
+    InputRightElement,
     MenuDivider,
     MenuItem,
     MenuList,
-    Popover,
-    PopoverBody,
-    PopoverCloseButton,
-    PopoverContent,
-    PopoverFooter,
-    PopoverHeader,
-    PopoverTrigger,
     Spacer,
     Text,
-    useDisclosure,
 } from '@chakra-ui/react';
 import { useRef, useState } from 'react';
 import { BiRename } from 'react-icons/bi';
@@ -64,7 +56,7 @@ export const useNodeMenu = (
 
     const resetMenuParentRef = useRef<HTMLButtonElement>(null);
 
-    const { isOpen, onToggle, onClose } = useDisclosure();
+    const [isRenaming, setIsRenaming] = useState(false);
     const [tempName, setTempName] = useState(state.nickname);
 
     return useContextMenu(() => (
@@ -169,54 +161,55 @@ export const useNodeMenu = (
                 </MenuItem>
             )}
 
-            <Popover
-                returnFocusOnClose
-                closeOnBlur={false}
-                isOpen={isOpen}
-                placement="bottom"
-                onClose={onClose}
-            >
-                <PopoverTrigger>
-                    <MenuItem
-                        closeOnSelect={false}
-                        icon={<BiRename />}
+            {isRenaming ? (
+                <InputGroup
+                    borderRadius={0}
+                    maxWidth="full"
+                >
+                    <Input
+                        maxWidth="full"
+                        placeholder={state.schema.name}
+                        value={tempName}
+                        width="auto"
+                        onBlur={() => {
+                            setIsRenaming(false);
+                        }}
+                        onChange={(e) => setTempName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                setIsRenaming(false);
+                                state.setNickname(tempName);
+                            }
+                        }}
+                    />
+                    <InputRightElement
+                        _hover={{ color: 'var(--fg-000)' }}
+                        style={{
+                            color: 'var(--fg-300)',
+                            cursor: 'pointer',
+                            display: tempName ? undefined : 'none',
+                            fontSize: '66%',
+                        }}
                         onClick={() => {
-                            onToggle();
+                            setTempName(undefined);
+                            state.setNickname(undefined);
+                            setIsRenaming(false);
                         }}
                     >
-                        Rename
-                    </MenuItem>
-                </PopoverTrigger>
-                <PopoverContent>
-                    <PopoverHeader fontWeight="semibold">Rename Node</PopoverHeader>
-                    <PopoverCloseButton />
-                    <PopoverBody>
-                        <Input onChange={(e) => setTempName(e.target.value)} />
-                    </PopoverBody>
-                    <PopoverFooter
-                        display="flex"
-                        justifyContent="flex-end"
-                    >
-                        <ButtonGroup size="sm">
-                            <Button
-                                variant="outline"
-                                onClick={onClose}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                colorScheme="blue"
-                                onClick={() => {
-                                    state.setNickname(tempName);
-                                    onClose();
-                                }}
-                            >
-                                Submit
-                            </Button>
-                        </ButtonGroup>
-                    </PopoverFooter>
-                </PopoverContent>
-            </Popover>
+                        <CloseIcon />
+                    </InputRightElement>
+                </InputGroup>
+            ) : (
+                <MenuItem
+                    closeOnSelect={false}
+                    icon={<BiRename />}
+                    onClick={() => {
+                        setIsRenaming(true);
+                    }}
+                >
+                    Rename
+                </MenuItem>
+            )}
 
             <MenuItem
                 icon={<DeleteIcon />}
