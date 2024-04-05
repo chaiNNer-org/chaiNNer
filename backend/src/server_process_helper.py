@@ -62,7 +62,8 @@ class _WorkerProcess:
             self._process.terminate()
             self._process.kill()
             del self._process
-        del self.t1
+        if hasattr(self, "t1"):
+            del self.t1
 
     def _read_output(self):
         if self._process.stdout is None:
