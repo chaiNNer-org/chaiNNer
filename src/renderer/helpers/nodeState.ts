@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
     InputData,
@@ -79,8 +79,6 @@ export interface NodeState {
     readonly testCondition: TestFn;
     readonly nickname: string | undefined;
     readonly setNickname: (nickname: string | undefined) => void;
-    readonly isRenaming: boolean;
-    readonly setIsRenaming: Dispatch<SetStateAction<boolean>>;
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
@@ -160,8 +158,6 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         [inputData, schema, type]
     );
 
-    const [isRenaming, setIsRenaming] = useState(false);
-
     return useMemoObject<NodeState>({
         id,
         schemaId,
@@ -183,7 +179,5 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         testCondition,
         nickname,
         setNickname,
-        isRenaming,
-        setIsRenaming,
     });
 };

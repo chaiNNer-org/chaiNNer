@@ -81,7 +81,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
     const targetRef = useRef<HTMLDivElement>(null);
 
     const disabled = useDisabled(data);
-    const menu = useNodeMenu(data, disabled);
+    const menu = useNodeMenu(data, nodeState, disabled);
 
     const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
