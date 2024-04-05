@@ -92,9 +92,8 @@ export const handleSquirrel = (): boolean => {
             default:
                 break;
         }
-    } catch {
-        // since this is all optional work, we can ignore any errors
-        // errors are especially irrelevant when the app is being uninstalled
+    } catch (e) {
+        log.error(e);
     }
 
     return true;
