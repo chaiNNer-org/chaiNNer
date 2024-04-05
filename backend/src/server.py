@@ -4,13 +4,18 @@ import asyncio
 import gc
 import importlib
 import logging
+import os
+import signal
 import sys
+import threading
+import time
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from json import dumps as stringify
 from typing import TypedDict
 
+import psutil
 from sanic import Sanic
 from sanic.log import access_logger, logger
 from sanic.request import Request
@@ -98,6 +103,24 @@ async def nodes_available():
 
 
 access_logger.addFilter(SSEFilter())
+
+# Create thread to check if the parent is dead, and if so kill this process
+def _check_parent():
+    while True:
+        logger.info(os.getppid())
+        # check if parent is dead
+        parent_proc = psutil.Process(os.getppid()).pid
+        if parent_proc == 1:
+            sys.exit(0)
+
+        if os.getppid() == 1:
+            os.kill(os.getpid(), signal.SIGTERM)
+            sys.exit(0)
+        time.sleep(1)
+t1 = threading.Thread(target=_check_parent)
+t1.daemon = True
+t1.start()
+
 
 
 @app.route("/nodes")

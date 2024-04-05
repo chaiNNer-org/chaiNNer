@@ -45,23 +45,32 @@ class _WorkerProcess:
             encoding="utf-8",
         )
         self._stop_event = threading.Event()
+        logger.info("PID: %s", self._process.pid)
 
         # Create a separate thread to read and print the output of the subprocess
-        threading.Thread(
+        self.t1 = threading.Thread(
             target=self._read_output,
             daemon=True,
             name="output reader",
-        ).start()
+        )
+        self.t1.daemon = True
+        self.t1.start()
+
+    def __exit__(self):
+        return self.close()
 
     def close(self):
+        logger.info("Closing worker process...")
         self._stop_event.set()
         self._process.terminate()
         self._process.kill()
+        del self._process
+        # del self.t1
 
     def _read_output(self):
         if self._process.stdout is None:
             return
-        for line in self._process.stdout:
+        for line in iter(self._process.stdout):
             if self._stop_event.is_set():
                 break
             stripped_line = line.rstrip()
@@ -94,6 +103,9 @@ class WorkerServer:
         self._session = None
         self._is_ready = False
         self._is_checking_ready = False
+
+    def __exit__(self):
+        return self.stop()
 
     async def start(self, flags: Iterable[str] = []):
         logger.info(f"Starting worker process on port {self._port}...")

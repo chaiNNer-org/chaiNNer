@@ -105,6 +105,10 @@ export class OwnedBackendProcess implements BaseBackendProcess {
         this.errorListeners.push(listener);
     }
 
+    clearErrorListeners() {
+        this.errorListeners = [];
+    }
+
     private setNewProcess(process: ChildProcessWithoutNullStreams): void {
         this.process = process;
 
@@ -147,12 +151,16 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             return;
         }
 
-        if (this.process.kill()) {
-            this.process = undefined;
-            log.info('Successfully killed backend.');
-        } else {
-            throw new Error('Unable to the backend process. Kill returned false.');
-        }
+        fetch(`${this.url}/shutdown`, { method: 'POST' })
+            .then(() => {
+                if (this.process?.kill()) {
+                    this.process = undefined;
+                    log.info('Successfully killed backend.');
+                }
+            })
+            .catch((error) => {
+                throw error;
+            });
     }
 
     /**

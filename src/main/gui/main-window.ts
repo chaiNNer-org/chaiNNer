@@ -257,7 +257,10 @@ const registerEventHandlerPostSetup = (
             app.exit(1);
         });
 
-        app.on('before-quit', () => backend.tryKill());
+        app.on('before-quit', () => {
+            backend.clearErrorListeners();
+            return backend.tryKill();
+        });
     }
 
     ipcMain.handle('restart-backend', () => {
