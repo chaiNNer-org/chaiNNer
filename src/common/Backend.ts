@@ -255,6 +255,10 @@ export class Backend {
             package: pkg.id,
         });
     }
+
+    shutdown(): Promise<void> {
+        return this.fetchJson('/shutdown', 'POST');
+    }
 }
 
 const backendCache = new Map<string, Backend>();
