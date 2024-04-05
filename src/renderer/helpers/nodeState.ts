@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { Dispatch, SetStateAction, useMemo, useState } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
     InputData,
@@ -77,13 +77,23 @@ export interface NodeState {
     readonly iteratedOutputs: ReadonlySet<OutputId>;
     readonly type: TypeInfo;
     readonly testCondition: TestFn;
+    readonly nickname: string | undefined;
+    readonly setNickname: (nickname: string | undefined) => void;
+    readonly isRenaming: boolean;
+    readonly setIsRenaming: Dispatch<SetStateAction<boolean>>;
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
-    const { setNodeInputValue, setNodeInputHeight, setNodeOutputHeight, setNodeWidth } =
-        useContext(GlobalContext);
+    const {
+        setNodeInputValue,
+        setNodeInputHeight,
+        setNodeOutputHeight,
+        setNodeWidth,
+        setNodeNickname,
+    } = useContext(GlobalContext);
 
-    const { id, inputData, inputHeight, outputHeight, isLocked, schemaId, nodeWidth } = data;
+    const { id, inputData, inputHeight, outputHeight, isLocked, schemaId, nodeWidth, nickname } =
+        data;
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
@@ -97,6 +107,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
     );
 
     const setWidth = useMemo(() => setNodeWidth.bind(null, id), [id, setNodeWidth]);
+    const setNickname = useMemo(() => setNodeNickname.bind(null, id), [id, setNodeNickname]);
 
     const { schemata } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
@@ -149,6 +160,8 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         [inputData, schema, type]
     );
 
+    const [isRenaming, setIsRenaming] = useState(false);
+
     return useMemoObject<NodeState>({
         id,
         schemaId,
@@ -168,5 +181,9 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         iteratedOutputs,
         type,
         testCondition,
+        nickname,
+        setNickname,
+        isRenaming,
+        setIsRenaming,
     });
 };

@@ -7,8 +7,27 @@ import {
     RepeatIcon,
     UnlockIcon,
 } from '@chakra-ui/icons';
-import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
-import { useRef } from 'react';
+import {
+    Button,
+    ButtonGroup,
+    HStack,
+    Input,
+    MenuDivider,
+    MenuItem,
+    MenuList,
+    Popover,
+    PopoverBody,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverFooter,
+    PopoverHeader,
+    PopoverTrigger,
+    Spacer,
+    Text,
+    useDisclosure,
+} from '@chakra-ui/react';
+import { useRef, useState } from 'react';
+import { BiRename } from 'react-icons/bi';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useReactFlow } from 'reactflow';
@@ -17,6 +36,7 @@ import { EdgeData, NodeData } from '../../common/common-types';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 import { copyToClipboard } from '../helpers/copyAndPaste';
+import { NodeState } from '../helpers/nodeState';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 import { UseDisabled } from './useDisabled';
 
@@ -29,6 +49,7 @@ export interface UseNodeMenuOptions {
 
 export const useNodeMenu = (
     data: NodeData,
+    state: NodeState,
     useDisabled: UseDisabled,
     { canLock = true, reload }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
@@ -42,6 +63,9 @@ export const useNodeMenu = (
     const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const resetMenuParentRef = useRef<HTMLButtonElement>(null);
+
+    const { isOpen, onToggle, onClose } = useDisclosure();
+    const [tempName, setTempName] = useState(state.nickname);
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -144,6 +168,55 @@ export const useNodeMenu = (
                     Refresh Preview
                 </MenuItem>
             )}
+
+            <Popover
+                returnFocusOnClose
+                closeOnBlur={false}
+                isOpen={isOpen}
+                placement="bottom"
+                onClose={onClose}
+            >
+                <PopoverTrigger>
+                    <MenuItem
+                        closeOnSelect={false}
+                        icon={<BiRename />}
+                        onClick={() => {
+                            onToggle();
+                        }}
+                    >
+                        Rename
+                    </MenuItem>
+                </PopoverTrigger>
+                <PopoverContent>
+                    <PopoverHeader fontWeight="semibold">Rename Node</PopoverHeader>
+                    <PopoverCloseButton />
+                    <PopoverBody>
+                        <Input onChange={(e) => setTempName(e.target.value)} />
+                    </PopoverBody>
+                    <PopoverFooter
+                        display="flex"
+                        justifyContent="flex-end"
+                    >
+                        <ButtonGroup size="sm">
+                            <Button
+                                variant="outline"
+                                onClick={onClose}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                colorScheme="blue"
+                                onClick={() => {
+                                    state.setNickname(tempName);
+                                    onClose();
+                                }}
+                            >
+                                Submit
+                            </Button>
+                        </ButtonGroup>
+                    </PopoverFooter>
+                </PopoverContent>
+            </Popover>
 
             <MenuItem
                 icon={<DeleteIcon />}

@@ -214,7 +214,7 @@ export const NodeHeader = memo(
                                     verticalAlign="middle"
                                     whiteSpace="nowrap"
                                 >
-                                    {nodeState.schema.name}
+                                    {nodeState.nickname ?? nodeState.schema.name}
                                 </Heading>
                                 {isCollapsed && nodeState.schema.keyInfo && (
                                     <KeyInfoLabel nodeState={nodeState} />
