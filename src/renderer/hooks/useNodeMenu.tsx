@@ -1,4 +1,5 @@
 import {
+    CheckIcon,
     ChevronRightIcon,
     CloseIcon,
     CopyIcon,
@@ -8,7 +9,9 @@ import {
     UnlockIcon,
 } from '@chakra-ui/icons';
 import {
+    Divider,
     HStack,
+    IconButton,
     Input,
     InputGroup,
     InputRightElement,
@@ -17,8 +20,9 @@ import {
     MenuList,
     Spacer,
     Text,
+    VStack,
 } from '@chakra-ui/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BiRename } from 'react-icons/bi';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
@@ -58,6 +62,10 @@ export const useNodeMenu = (
 
     const [isRenaming, setIsRenaming] = useState(false);
     const [tempName, setTempName] = useState(state.nickname);
+
+    useEffect(() => {
+        setTempName(state.nickname);
+    }, [state.nickname]);
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -183,20 +191,41 @@ export const useNodeMenu = (
                         }}
                     />
                     <InputRightElement
-                        _hover={{ color: 'var(--fg-000)' }}
-                        style={{
-                            color: 'var(--fg-300)',
-                            cursor: 'pointer',
-                            display: tempName ? undefined : 'none',
-                            fontSize: '66%',
-                        }}
-                        onClick={() => {
-                            setTempName(undefined);
-                            state.setNickname(undefined);
-                            setIsRenaming(false);
-                        }}
+                        m={0}
+                        overflow="hidden"
+                        p={0}
                     >
-                        <CloseIcon />
+                        <VStack
+                            gap={0}
+                            h="full"
+                            overflow="hidden"
+                        >
+                            <IconButton
+                                aria-label="Submit"
+                                borderRadius={0}
+                                borderTopRightRadius="lg"
+                                h="50%"
+                                icon={<CheckIcon boxSize={2} />}
+                                variant="solid"
+                                onClick={() => {
+                                    state.setNickname(tempName);
+                                    setIsRenaming(false);
+                                }}
+                            />
+                            <Divider />
+                            <IconButton
+                                aria-label="Cancel"
+                                borderBottomRightRadius="lg"
+                                borderRadius={0}
+                                h="50%"
+                                icon={<CloseIcon boxSize={2} />}
+                                variant="solid"
+                                onClick={() => {
+                                    setIsRenaming(false);
+                                    setTempName(undefined);
+                                }}
+                            />
+                        </VStack>
                     </InputRightElement>
                 </InputGroup>
             ) : (
