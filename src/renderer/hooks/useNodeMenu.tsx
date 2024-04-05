@@ -7,16 +7,7 @@ import {
     RepeatIcon,
     UnlockIcon,
 } from '@chakra-ui/icons';
-import {
-    HStack,
-    Input,
-    InputGroup,
-    MenuDivider,
-    MenuItem,
-    MenuList,
-    Spacer,
-    Text,
-} from '@chakra-ui/react';
+import { HStack, Input, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useRef, useState } from 'react';
 import { BiRename } from 'react-icons/bi';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
@@ -160,64 +151,19 @@ export const useNodeMenu = (
             )}
 
             {isRenaming ? (
-                <InputGroup
-                    borderRadius={0}
+                <Input
                     maxWidth="full"
-                >
-                    <Input
-                        maxWidth="full"
-                        placeholder={state.schema.name}
-                        value={state.nickname || ''}
-                        width="auto"
-                        // onBlur={() => {
-                        //     setIsRenaming(false);
-                        // }}
-                        onChange={(e) => state.setNickname(e.target.value || undefined)}
-                        onKeyDown={(e) => {
-                            e.stopPropagation();
-                            if (e.key === 'Enter' || e.key === 'Escape') {
-                                setIsRenaming(false);
-                            }
-                        }}
-                    />
-                    {/* <InputRightElement
-                        m={0}
-                        overflow="hidden"
-                        p={0}
-                    >
-                        <VStack
-                            gap={0}
-                            h="full"
-                            overflow="hidden"
-                        >
-                            <IconButton
-                                aria-label="Submit"
-                                borderRadius={0}
-                                borderTopRightRadius="lg"
-                                h="50%"
-                                icon={<CheckIcon boxSize={2} />}
-                                variant="solid"
-                                onClick={() => {
-                                    state.setNickname(tempName);
-                                    setIsRenaming(false);
-                                }}
-                            />
-                            <Divider />
-                            <IconButton
-                                aria-label="Cancel"
-                                borderBottomRightRadius="lg"
-                                borderRadius={0}
-                                h="50%"
-                                icon={<CloseIcon boxSize={2} />}
-                                variant="solid"
-                                onClick={() => {
-                                    setIsRenaming(false);
-                                    setTempName(state.nickname);
-                                }}
-                            />
-                        </VStack>
-                    </InputRightElement> */}
-                </InputGroup>
+                    placeholder={state.schema.name}
+                    value={state.nickname || ''}
+                    width="auto"
+                    onChange={(e) => state.setNickname(e.target.value || undefined)}
+                    onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter' || e.key === 'Escape') {
+                            setIsRenaming(false);
+                        }
+                    }}
+                />
             ) : (
                 <MenuItem
                     closeOnSelect={false}
