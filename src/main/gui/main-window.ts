@@ -14,7 +14,7 @@ import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getRootDirSync } from '../platform';
+import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
@@ -28,7 +28,7 @@ const registerEventHandlerPreSetup = (
     settings: ChainnerSettings
 ) => {
     ipcMain.handle('get-app-version', () => version);
-    ipcMain.handle('get-appdata', () => getRootDirSync());
+    ipcMain.handle('get-appdata', () => getRootDir());
     ipcMain.handle('refresh-nodes', () => args.refresh);
 
     // settings
@@ -257,12 +257,15 @@ const registerEventHandlerPostSetup = (
             app.exit(1);
         });
 
-        app.on('before-quit', () => backend.tryKill());
+        app.on('before-quit', () => {
+            backend.clearErrorListeners();
+            backend.tryKill().catch(log.error);
+        });
     }
 
-    ipcMain.handle('restart-backend', () => {
+    ipcMain.handle('restart-backend', async () => {
         if (backend.owned) {
-            backend.restart();
+            await backend.restart();
         } else {
             log.warn('Tried to restart non-owned backend');
         }
@@ -281,10 +284,14 @@ const registerEventHandlerPostSetup = (
 
     const restartChainner = (): void => {
         if (backend.owned) {
-            backend.tryKill();
+            backend
+                .tryKill()
+                .finally(() => {
+                    app.relaunch();
+                    app.exit();
+                })
+                .catch(log.error);
         }
-        app.relaunch();
-        app.exit();
     };
 
     ipcMain.on('reboot-after-save', () => {
@@ -361,7 +368,7 @@ const createBackend = async (
         token,
         settings.useSystemPython,
         settings.systemPythonLocation,
-        getRootDirSync(),
+        getRootDir(),
         args.remoteBackend
     );
 };

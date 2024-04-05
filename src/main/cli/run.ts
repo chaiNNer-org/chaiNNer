@@ -21,7 +21,7 @@ import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getRootDirSync } from '../platform';
+import { getRootDir } from '../platform';
 import { readSettings } from '../setting-storage';
 import { Exit } from './exit';
 import type { Edge, Node } from 'reactflow';
@@ -70,7 +70,7 @@ const createBackend = async (
         token,
         settings.useSystemPython,
         settings.systemPythonLocation,
-        getRootDirSync(),
+        getRootDir(),
         args.remoteBackend
     );
 };
