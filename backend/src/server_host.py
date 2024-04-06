@@ -358,9 +358,10 @@ async def import_packages(
                 to_install.append(dep)
 
     try:
-        num_installed = await install_deps(to_install)
+        if len(to_install) > 0:
+            await worker.stop()
 
-        if num_installed > 0:
+            await install_deps(to_install)
             flags = []
             if config.error_on_failed_node:
                 flags.append("--error-on-failed-node")
@@ -368,7 +369,7 @@ async def import_packages(
             if config.close_after_start:
                 flags.append("--close-after-start")
 
-            await worker.restart(flags)
+            await worker.start(flags)
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)
         if config.close_after_start:
