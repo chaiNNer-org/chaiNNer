@@ -121,7 +121,7 @@ const useNodes = (
         queryFn: async (): Promise<BackendData> => {
             try {
                 // spin until we're no longer restarting
-                while (backendDownRef.current) {
+                while (!isBackendReady || backendDownRef.current) {
                     // eslint-disable-next-line no-await-in-loop
                     await delay(100);
                 }
@@ -304,8 +304,7 @@ export const BackendProvider = memo(
 
                     return await backend.status();
                 } catch (error) {
-                    log.error(error);
-                    throw error;
+                    return { ready: false };
                 }
             },
             cacheTime: 0,
