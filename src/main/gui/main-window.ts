@@ -59,7 +59,7 @@ const registerEventHandlerPreSetup = (
 
     // menu
     const menuData: MenuData = { openRecentRev: [] };
-    setMainMenu({ mainWindow, menuData, enabled: true });
+    setMainMenu({ mainWindow, menuData, enabled: false });
     ipcMain.on('update-open-recent-menu', (_, openRecent) => {
         menuData.openRecentRev = openRecent;
         setMainMenu({ mainWindow, menuData, enabled: true });
