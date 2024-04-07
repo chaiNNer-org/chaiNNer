@@ -14,7 +14,7 @@ import {
 } from '../../../common/common-types';
 import { checkNodeValidity } from '../../../common/nodes/checkNodeValidity';
 import { TypeState } from '../../../common/nodes/TypeState';
-import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
+import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET, noop } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
 import { NodeState, TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
@@ -98,8 +98,6 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
         [setOutputHeight]
     );
 
-    const [nodeName, setNodeName] = useState<string | undefined>(undefined);
-
     const nodeIdPrefix = 'FakeId ';
     const suffixLength = 36 - nodeIdPrefix.length;
     const nodeId =
@@ -167,8 +165,8 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
         iteratedOutputs,
         type: typeInfo,
         testCondition: testForInputConditionTypeInfo(inputData, selectedSchema, typeInfo),
-        nodeName,
-        setNodeName,
+        nodeName: undefined,
+        setNodeName: noop,
     };
 
     return (
