@@ -10,13 +10,14 @@ import {
     Text,
     VStack,
 } from '@chakra-ui/react';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { useContext } from 'use-context-selector';
 import { getKeyInfo } from '../../../common/nodes/keyInfo';
 import { Validity } from '../../../common/Validity';
 import { AlertBoxContext, AlertType } from '../../contexts/AlertBoxContext';
 import { NodeProgress } from '../../contexts/ExecutionContext';
+import { FakeNodeContext } from '../../contexts/FakeExampleContext';
 import { interpolateColor } from '../../helpers/colorTools';
 import { NodeState } from '../../helpers/nodeState';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -131,6 +132,58 @@ const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
     );
 });
 
+interface RenameInputProps {
+    name: string;
+    onChangeName: (name: string) => void;
+    onCancel: () => void;
+}
+const RenameInput = memo(({ name, onChangeName, onCancel }: RenameInputProps) => {
+    const [tempName, setTempName] = useState<string>(name);
+
+    useEffect(() => {
+        setTempName(name);
+    }, [name]);
+
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        inputRef.current?.select();
+    }, []);
+
+    return (
+        <Input
+            autoFocus
+            borderColor="transparent"
+            className="nodrag"
+            flex={1}
+            height="auto"
+            htmlSize={0}
+            lineHeight="100%"
+            my="-0.25rem"
+            px={2}
+            py="calc(0.25rem - 1px)"
+            ref={inputRef}
+            size="md"
+            textAlign="center"
+            value={tempName}
+            onBlur={() => {
+                onChangeName(tempName);
+            }}
+            onChange={(e) => {
+                setTempName(e.target.value);
+            }}
+            onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === 'Enter') {
+                    onChangeName(tempName);
+                }
+                if (e.key === 'Escape') {
+                    onCancel();
+                }
+            }}
+        />
+    );
+});
+
 interface NodeHeaderProps {
     nodeState: NodeState;
     accentColor: string;
@@ -155,6 +208,8 @@ export const NodeHeader = memo(
         isCollapsed = false,
         toggleCollapse,
     }: NodeHeaderProps) => {
+        const { isFake } = useContext(FakeNodeContext);
+
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
@@ -166,10 +221,8 @@ export const NodeHeader = memo(
         const collapsedHandleHeight = '6px';
         const minHeight = `calc(${maxConnected} * ${collapsedHandleHeight})`;
 
+        const name = nodeState.nodeName ?? nodeState.schema.name;
         const [isRenaming, setIsRenaming] = useState(false);
-        const [tempName, setTempName] = useState<string | undefined>(
-            nodeState.nodeName ?? nodeState.schema.name
-        );
 
         return (
             <VStack
@@ -185,7 +238,6 @@ export const NodeHeader = memo(
                     p={1}
                     verticalAlign="middle"
                     w="full"
-                    onDoubleClick={toggleCollapse}
                 >
                     <Center w="24px">
                         {toggleCollapse && (
@@ -199,8 +251,18 @@ export const NodeHeader = memo(
                             />
                         )}
                     </Center>
-                    <Spacer />
-                    <HStack verticalAlign="middle">
+                    {!isRenaming && <Spacer />}
+                    <HStack
+                        flex={isRenaming ? 1 : undefined}
+                        style={{ contain: isRenaming ? 'size' : undefined }}
+                        verticalAlign="middle"
+                        onDoubleClick={(event) => {
+                            event.stopPropagation();
+                            if (!isFake) {
+                                setIsRenaming(true);
+                            }
+                        }}
+                    >
                         <Center
                             alignContent="center"
                             alignItems="center"
@@ -213,64 +275,56 @@ export const NodeHeader = memo(
                                 icon={nodeState.schema.icon}
                             />
                         </Center>
-                        <Center verticalAlign="middle">
+                        {isRenaming ? (
+                            <RenameInput
+                                name={name}
+                                onCancel={() => {
+                                    setIsRenaming(false);
+                                }}
+                                onChangeName={(newName) => {
+                                    setIsRenaming(false);
+
+                                    // clean up user input
+                                    // eslint-disable-next-line no-param-reassign
+                                    newName = newName.trim().replace(/\s+/g, ' ');
+
+                                    if (
+                                        !newName ||
+                                        newName.toUpperCase() ===
+                                            nodeState.schema.name.toUpperCase()
+                                    ) {
+                                        // reset to default name
+                                        nodeState.setNodeName(undefined);
+                                    } else {
+                                        nodeState.setNodeName(newName);
+                                    }
+                                }}
+                            />
+                        ) : (
                             <HStack>
-                                {isRenaming ? (
-                                    <Input
-                                        autoFocus
-                                        className="nodrag"
-                                        size="xs"
-                                        value={tempName}
-                                        onBlur={() => {
-                                            setIsRenaming(false);
-                                            nodeState.setNodeName(tempName || undefined);
-                                            if (!tempName) setTempName(nodeState.schema.name);
-                                        }}
-                                        onChange={(e) => {
-                                            setTempName(e.target.value);
-                                        }}
-                                        onKeyDown={(e) => {
-                                            e.stopPropagation();
-                                            if (e.key === 'Enter') {
-                                                setIsRenaming(false);
-                                                nodeState.setNodeName(tempName || undefined);
-                                            } else if (e.key === 'Escape') {
-                                                setIsRenaming(false);
-                                                setTempName(
-                                                    nodeState.nodeName ?? nodeState.schema.name
-                                                );
-                                            }
-                                        }}
-                                    />
-                                ) : (
-                                    <Heading
-                                        alignContent="center"
-                                        as="h5"
-                                        fontWeight={700}
-                                        lineHeight="auto"
-                                        m={0}
-                                        opacity={isEnabled ? 1 : 0.5}
-                                        p={0}
-                                        size="sm"
-                                        textAlign="center"
-                                        textTransform="uppercase"
-                                        verticalAlign="middle"
-                                        whiteSpace="nowrap"
-                                        onDoubleClick={(event) => {
-                                            event.stopPropagation();
-                                            setIsRenaming(true);
-                                        }}
-                                    >
-                                        {nodeState.nodeName ?? nodeState.schema.name}
-                                    </Heading>
-                                )}
+                                <Heading
+                                    alignContent="center"
+                                    as="h5"
+                                    fontWeight={700}
+                                    lineHeight="auto"
+                                    m={0}
+                                    opacity={isEnabled ? 1 : 0.5}
+                                    p={0}
+                                    size="sm"
+                                    textAlign="center"
+                                    textTransform="uppercase"
+                                    verticalAlign="middle"
+                                    whiteSpace="nowrap"
+                                >
+                                    {name}
+                                </Heading>
                                 {isCollapsed && nodeState.schema.keyInfo && (
                                     <KeyInfoLabel nodeState={nodeState} />
                                 )}
                             </HStack>
-                        </Center>
+                        )}
                     </HStack>
-                    <Spacer />
+                    {!isRenaming && <Spacer />}
                     <Center w="24px">
                         {isCollapsed && (animated || !validity.isValid) && (
                             <ValidityIndicator
