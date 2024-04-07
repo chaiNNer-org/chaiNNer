@@ -22,4 +22,3 @@ declare module '*.jpeg' {
 }
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const SPLASH_SCREEN_WEBPACK_ENTRY: string;

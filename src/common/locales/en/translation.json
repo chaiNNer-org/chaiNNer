@@ -50,7 +50,6 @@
       "paste": "Paste"
     }
   },
-  "loading": "Loading...",
   "outputs": {
     "largeImage": {
       "imageNotAvailable": "Image not available."
@@ -59,7 +58,7 @@
       "modelNotAvailable": "Model data not available."
     }
   },
-  "splash": {
+  "setup": {
     "checkingFfmpeg": "Checking system environment for Ffmpeg...",
     "checkingPort": "Checking for available port...",
     "checkingPython": "Checking system environment for valid Python...",
@@ -68,7 +67,6 @@
     "extractingFfmpeg": "Extracting downloaded files...",
     "extractingPython": "Extracting downloaded files...",
     "loading": "Loading...",
-    "loadingApp": "Loading main application...",
     "startingBackend": "Starting up backend process..."
   },
   "typeTags": {

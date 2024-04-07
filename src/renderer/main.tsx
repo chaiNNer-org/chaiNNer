@@ -1,5 +1,5 @@
-import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
-import { memo, useCallback, useRef } from 'react';
+import { Box, Center, Flex, HStack, Progress, Text, VStack } from '@chakra-ui/react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EdgeTypes, NodeTypes, ReactFlowProvider } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -21,6 +21,7 @@ import { NodeDocumentationProvider } from './contexts/NodeDocumentationContext';
 import { useSettings } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
+import { ipcRenderer } from './safeIpc';
 
 const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {
     regularNode: Node,
@@ -35,7 +36,7 @@ const edgeTypes: EdgeTypes = {
 export const Main = memo(() => {
     const { t, ready } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
-    const { connectionState } = useContext(BackendContext);
+    const { connectionState, isBackendReady } = useContext(BackendContext);
     const settings = useSettings();
 
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
@@ -61,9 +62,32 @@ export const Main = memo(() => {
         )
     );
 
+    const [status, setStatus] = useState(t('setup.loading', 'Loading...'));
+    const [statusProgress, setStatusProgress] = useState<null | number>(null);
+    const [overallProgress, setOverallProgress] = useState(0);
+
+    // Register event listeners
+    useEffect(() => {
+        ipcRenderer.on('setup-progress', (event, progress) => {
+            setOverallProgress(progress.totalProgress);
+            setStatusProgress(progress.statusProgress > 0 ? progress.statusProgress : null);
+
+            if (progress.status) {
+                setStatus(progress.status);
+            }
+        });
+    }, []);
+
+    useEffect(() => {
+        ipcRenderer.send(isBackendReady ? 'enable-menu' : 'disable-menu');
+        if (isBackendReady) {
+            setOverallProgress(1);
+        }
+    }, [isBackendReady]);
+
     if (connectionState === 'failed') return null;
 
-    if (connectionState === 'connecting' || !ready) {
+    if (connectionState === 'connecting' || !ready || !isBackendReady) {
         return (
             <Box
                 h="100vh"
@@ -73,13 +97,42 @@ export const Main = memo(() => {
                     h="full"
                     w="full"
                 >
-                    <VStack>
-                        <ChaiNNerLogo
-                            percent={0}
-                            size={256}
-                        />
-                        <Text>{t('loading', 'Loading...')}</Text>
-                    </VStack>
+                    <Flex
+                        flexDirection="column"
+                        w="full"
+                    >
+                        <Center>
+                            <ChaiNNerLogo
+                                percent={overallProgress * 100}
+                                size={256}
+                            />
+                        </Center>
+                        <VStack
+                            bottom={0}
+                            position="relative"
+                            spacing={2}
+                            top={8}
+                            w="full"
+                        >
+                            <Center>
+                                <Text
+                                    color="gray.500"
+                                    textOverflow="ellipsis"
+                                >
+                                    {status}
+                                </Text>
+                            </Center>
+                            {statusProgress !== null && (
+                                <Center>
+                                    <Progress
+                                        hasStripe
+                                        value={statusProgress * 100}
+                                        w="350px"
+                                    />
+                                </Center>
+                            )}
+                        </VStack>
+                    </Flex>
                 </Center>
             </Box>
         );
