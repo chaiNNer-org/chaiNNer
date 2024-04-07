@@ -17,7 +17,6 @@ import { EdgeData, NodeData } from '../../common/common-types';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 import { copyToClipboard } from '../helpers/copyAndPaste';
-import { NodeState } from '../helpers/nodeState';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 import { UseDisabled } from './useDisabled';
 
@@ -30,7 +29,6 @@ export interface UseNodeMenuOptions {
 
 export const useNodeMenu = (
     data: NodeData,
-    state: NodeState,
     useDisabled: UseDisabled,
     { canLock = true, reload }: UseNodeMenuOptions = {}
 ): UseContextMenu => {

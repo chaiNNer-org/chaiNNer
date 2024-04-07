@@ -281,7 +281,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
-    const menu = useNodeMenu(data, nodeState, disabled, {
+    const menu = useNodeMenu(data, disabled, {
         reload: startingNode ? reload : undefined,
     });
 
