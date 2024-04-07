@@ -379,33 +379,10 @@ const createBackend = async (
     );
 };
 
-export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
-    // Create the browser window.
-    const mainWindow = new BrowserWindow({
-        width: settings.lastWindowSize.width,
-        height: settings.lastWindowSize.height,
-        backgroundColor: '#1A202C',
-        minWidth: 720,
-        minHeight: 640,
-        darkTheme: nativeTheme.shouldUseDarkColors,
-        roundedCorners: true,
-        webPreferences: {
-            webSecurity: false,
-            nodeIntegration: true,
-            nodeIntegrationInWorker: true,
-            contextIsolation: false,
-        },
-        icon: `${__dirname}/../public/icons/cross_platform/icon`,
-        show: false,
-    }) as BrowserWindowWithSafeIpc;
-
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url).catch(log.error);
-        return { action: 'deny' };
-    });
-
-    const progressController = new ProgressController();
-
+const setupProgressListeners = (
+    mainWindow: BrowserWindow,
+    progressController: ProgressController
+) => {
     let progressFinished = false;
     let lastProgress: Progress | undefined;
 
@@ -481,6 +458,36 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             app.exit(1);
         }
     });
+};
+
+export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
+    // Create the browser window.
+    const mainWindow = new BrowserWindow({
+        width: settings.lastWindowSize.width,
+        height: settings.lastWindowSize.height,
+        backgroundColor: '#1A202C',
+        minWidth: 720,
+        minHeight: 640,
+        darkTheme: nativeTheme.shouldUseDarkColors,
+        roundedCorners: true,
+        webPreferences: {
+            webSecurity: false,
+            nodeIntegration: true,
+            nodeIntegrationInWorker: true,
+            contextIsolation: false,
+        },
+        icon: `${__dirname}/../public/icons/cross_platform/icon`,
+        show: false,
+    }) as BrowserWindowWithSafeIpc;
+
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url).catch(log.error);
+        return { action: 'deny' };
+    });
+
+    const progressController = new ProgressController();
+
+    setupProgressListeners(mainWindow, progressController);
 
     try {
         registerEventHandlerPreSetup(mainWindow, args, settings);

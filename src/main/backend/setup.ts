@@ -98,8 +98,8 @@ const getPythonInfo = async (
                     token.submitProgress({
                         status:
                             stage === 'download'
-                                ? t('splash.downloadingPython', 'Downloading Integrated Python...')
-                                : t('splash.extractingPython', 'Extracting downloaded files...'),
+                                ? t('setup.downloadingPython', 'Downloading Integrated Python...')
+                                : t('setup.extractingPython', 'Extracting downloaded files...'),
                         totalProgress: stage === 'download' ? 0.3 : 0.4,
                         statusProgress: percentage / 100,
                     });
@@ -135,8 +135,8 @@ const getFfmpegInfo = async (token: ProgressToken, rootDir: string) => {
             token.submitProgress({
                 status:
                     stage === 'download'
-                        ? t('splash.downloadingFfmpeg', 'Downloading ffmpeg...')
-                        : t('splash.extractingFfmpeg', 'Extracting downloaded files...'),
+                        ? t('setup.downloadingFfmpeg', 'Downloading ffmpeg...')
+                        : t('setup.extractingFfmpeg', 'Extracting downloaded files...'),
                 totalProgress: stage === 'download' ? 0.5 : 0.6,
                 statusProgress: percentage / 100,
             });
@@ -184,25 +184,25 @@ const setupOwnedBackend = async (
     rootDir: string
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
-        status: t('splash.checkingPort', 'Checking for available port...'),
+        status: t('setup.checkingPort', 'Checking for available port...'),
         totalProgress: 0.1,
     });
     const port = await getValidPort();
 
     token.submitProgress({
-        status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
+        status: t('setup.checkingPython', 'Checking system environment for valid Python...'),
         totalProgress: 0.2,
     });
     const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation, rootDir);
 
     token.submitProgress({
-        status: t('splash.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
+        status: t('setup.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
         totalProgress: 0.5,
     });
     const ffmpegInfo = await getFfmpegInfo(token, rootDir);
 
     token.submitProgress({
-        status: t('splash.startingBackend', 'Starting up backend process...'),
+        status: t('setup.startingBackend', 'Starting up backend process...'),
         totalProgress: 0.8,
     });
     return spawnBackend(port, pythonInfo, ffmpegInfo);
@@ -215,7 +215,7 @@ const setupBorrowedBackend = async (
     log.info(`Attempting to setup backend from ${url}...`);
 
     token.submitProgress({
-        status: t('splash.startingBackend', 'Starting up backend process...'),
+        status: t('setup.startingBackend', 'Starting up backend process...'),
         totalProgress: 0.8,
     });
     return BorrowedBackendProcess.fromUrl(url);

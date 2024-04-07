@@ -62,7 +62,7 @@ export const Main = memo(() => {
         )
     );
 
-    const [status, setStatus] = useState(t('splash.loading', 'Loading...'));
+    const [status, setStatus] = useState(t('setup.loading', 'Loading...'));
     const [statusProgress, setStatusProgress] = useState<null | number>(null);
     const [overallProgress, setOverallProgress] = useState(0);
 
