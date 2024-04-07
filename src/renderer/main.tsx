@@ -122,15 +122,13 @@ export const Main = memo(() => {
                                     {status}
                                 </Text>
                             </Center>
-                            {statusProgress !== null && (
-                                <Center>
-                                    <Progress
-                                        hasStripe
-                                        value={statusProgress * 100}
-                                        w="350px"
-                                    />
-                                </Center>
-                            )}
+                            <Center opacity={statusProgress === null ? 0 : 1}>
+                                <Progress
+                                    hasStripe
+                                    value={(statusProgress ?? 0) * 100}
+                                    w="350px"
+                                />
+                            </Center>
                         </VStack>
                     </Flex>
                 </Center>
