@@ -87,12 +87,7 @@ export const Main = memo(() => {
 
     if (connectionState === 'failed') return null;
 
-    if (
-        connectionState === 'connecting' ||
-        !ready ||
-        !isBackendReady ||
-        schemata.schemata.length === 0
-    ) {
+    if (connectionState === 'connecting' || !ready || !isBackendReady) {
         return (
             <Box
                 h="100vh"
