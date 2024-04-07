@@ -18,6 +18,7 @@ import api
 from custom_types import UpdateProgressFn
 from dependencies.store import (
     DependencyInfo,
+    filter_necessary_to_install,
     install_dependencies,
     installed_packages,
     uninstall_dependencies,
@@ -346,19 +347,6 @@ async def import_packages(
     cxt: AppContext,
     update_progress_cb: UpdateProgressFn,
 ):
-    async def install_deps(dependencies: list[api.Dependency]):
-        dep_info: list[DependencyInfo] = [
-            DependencyInfo(
-                package_name=dep.pypi_name,
-                display_name=dep.display_name,
-                version=dep.version,
-                extra_index_url=dep.extra_index_url,
-            )
-            for dep in dependencies
-        ]
-        num_installed = await install_dependencies(dep_info, update_progress_cb, logger)
-        return num_installed
-
     config = cxt.config
     worker = cxt.get_worker_unmanaged()
     packages = await worker.get_packages()
@@ -383,18 +371,20 @@ async def import_packages(
                 to_install.append(dep)
 
     try:
-        if len(to_install) > 0:
+        deps_to_install = filter_necessary_to_install(deps_to_dep_info(to_install))
+
+        restart_flags: list[str] = []
+        if config.error_on_failed_node:
+            restart_flags.append("--error-on-failed-node")
+        if config.close_after_start:
+            restart_flags.append("--close-after-start")
+
+        if len(restart_flags) > 0 or len(deps_to_install) > 0:
             await worker.stop()
-
-            await install_deps(to_install)
-            flags = []
-            if config.error_on_failed_node:
-                flags.append("--error-on-failed-node")
-
-            if config.close_after_start:
-                flags.append("--close-after-start")
-
-            await worker.start(flags)
+            await install_dependencies(deps_to_install, update_progress_cb, logger)
+            await worker.start(restart_flags)
+        else:
+            logger.info("No dependencies to install. Skipping worker restart.")
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)
         if config.close_after_start:

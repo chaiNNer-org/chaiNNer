@@ -7,6 +7,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from logging import Logger
+from typing import Iterable
 
 from custom_types import UpdateProgressFn
 
@@ -55,7 +56,10 @@ def coerce_semver(version: str) -> tuple[int, int, int]:
     return (0, 0, 0)
 
 
-def get_deps_to_install(dependencies: list[DependencyInfo]):
+def filter_necessary_to_install(dependencies: Iterable[DependencyInfo]):
+    """
+    Filters out dependencies that are already installed and have the same or higher version.
+    """
     dependencies_to_install: list[DependencyInfo] = []
     for dependency in dependencies:
         version = installed_packages.get(dependency.package_name, None)
@@ -72,7 +76,7 @@ def get_deps_to_install(dependencies: list[DependencyInfo]):
 def install_dependencies_sync(
     dependencies: list[DependencyInfo],
 ):
-    dependencies_to_install = get_deps_to_install(dependencies)
+    dependencies_to_install = filter_necessary_to_install(dependencies)
     if len(dependencies_to_install) == 0:
         return 0
 
@@ -116,7 +120,7 @@ async def install_dependencies(
     if update_progress_cb is None:
         return install_dependencies_sync(dependencies)
 
-    dependencies_to_install = get_deps_to_install(dependencies)
+    dependencies_to_install = filter_necessary_to_install(dependencies)
     if len(dependencies_to_install) == 0:
         return 0
 
