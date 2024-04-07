@@ -93,7 +93,7 @@ const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
 const useNodes = (
     backend: Backend,
     backendDownRef: Readonly<MutableRefObject<boolean>>,
-    isBackendReady: boolean
+    backendReadyRef: Readonly<MutableRefObject<boolean>>
 ) => {
     const isBackendIntentionallyDown = backendDownRef.current;
 
@@ -121,7 +121,7 @@ const useNodes = (
         queryFn: async (): Promise<BackendData> => {
             try {
                 // spin until we're no longer restarting
-                while (!isBackendReady || backendDownRef.current) {
+                while (!backendReadyRef.current || backendDownRef.current) {
                     // eslint-disable-next-line no-await-in-loop
                     await delay(100);
                 }
@@ -183,7 +183,7 @@ const useNodes = (
                 return prev;
             });
         }
-    }, [nodesQuery.status, nodesQuery.data, isBackendReady, sendAlert, forgetLastErrorAlert, t]);
+    }, [nodesQuery.status, nodesQuery.data, sendAlert, forgetLastErrorAlert, t]);
 
     useEffect(() => {
         if (nodeQueryError && !isBackendIntentionallyDown) {
@@ -199,13 +199,6 @@ const useNodes = (
             });
         }
     }, [nodeQueryError, sendAlert, forgetLastErrorAlert, t, isBackendIntentionallyDown]);
-
-    useEffect(() => {
-        if (isBackendReady) {
-            // Refresh the nodes once the backend is ready
-            refreshNodes();
-        }
-    }, [isBackendReady, refreshNodes]);
 
     const scope = useMemo(() => {
         // function definitions all use the same scope, so just pick any one of them
@@ -290,8 +283,12 @@ export const BackendProvider = memo(
         const backendDownRef = useRef(false);
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
+        const backendReadyRef = useRef(false);
 
         const [isBackendReady, setIsBackendReady] = useState(false);
+        useEffect(() => {
+            backendReadyRef.current = isBackendReady;
+        }, [isBackendReady]);
         const statusQuery = useQuery({
             queryKey: ['status', backend.url],
             queryFn: async (): Promise<{ ready: boolean }> => {
@@ -325,7 +322,7 @@ export const BackendProvider = memo(
         const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
             backendDownRef,
-            isBackendReady
+            backendReadyRef
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
 
