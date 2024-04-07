@@ -83,7 +83,7 @@ export class SaveFile {
                         isDisabled: n.data.isDisabled,
                         isLocked: n.data.isLocked,
                         isCollapsed: n.data.isCollapsed,
-                        nickname: n.data.nickname,
+                        nodeName: n.data.nodeName,
                     },
                     id: n.id,
                     position: n.position,

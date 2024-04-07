@@ -1,6 +1,16 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
-import { memo, useEffect, useMemo } from 'react';
+import {
+    Box,
+    Center,
+    HStack,
+    Heading,
+    IconButton,
+    Input,
+    Spacer,
+    Text,
+    VStack,
+} from '@chakra-ui/react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { useContext } from 'use-context-selector';
 import { getKeyInfo } from '../../../common/nodes/keyInfo';
@@ -156,6 +166,11 @@ export const NodeHeader = memo(
         const collapsedHandleHeight = '6px';
         const minHeight = `calc(${maxConnected} * ${collapsedHandleHeight})`;
 
+        const [isRenaming, setIsRenaming] = useState(false);
+        const [tempName, setTempName] = useState<string | undefined>(
+            nodeState.nodeName ?? nodeState.schema.name
+        );
+
         return (
             <VStack
                 spacing={0}
@@ -200,22 +215,55 @@ export const NodeHeader = memo(
                         </Center>
                         <Center verticalAlign="middle">
                             <HStack>
-                                <Heading
-                                    alignContent="center"
-                                    as="h5"
-                                    fontWeight={700}
-                                    lineHeight="auto"
-                                    m={0}
-                                    opacity={isEnabled ? 1 : 0.5}
-                                    p={0}
-                                    size="sm"
-                                    textAlign="center"
-                                    textTransform="uppercase"
-                                    verticalAlign="middle"
-                                    whiteSpace="nowrap"
-                                >
-                                    {nodeState.nickname ?? nodeState.schema.name}
-                                </Heading>
+                                {isRenaming ? (
+                                    <Input
+                                        autoFocus
+                                        className="nodrag"
+                                        size="xs"
+                                        value={tempName}
+                                        onBlur={() => {
+                                            setIsRenaming(false);
+                                            nodeState.setNodeName(tempName || undefined);
+                                            if (!tempName) setTempName(nodeState.schema.name);
+                                        }}
+                                        onChange={(e) => {
+                                            setTempName(e.target.value);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            e.stopPropagation();
+                                            if (e.key === 'Enter') {
+                                                setIsRenaming(false);
+                                                nodeState.setNodeName(tempName || undefined);
+                                            } else if (e.key === 'Escape') {
+                                                setIsRenaming(false);
+                                                setTempName(
+                                                    nodeState.nodeName ?? nodeState.schema.name
+                                                );
+                                            }
+                                        }}
+                                    />
+                                ) : (
+                                    <Heading
+                                        alignContent="center"
+                                        as="h5"
+                                        fontWeight={700}
+                                        lineHeight="auto"
+                                        m={0}
+                                        opacity={isEnabled ? 1 : 0.5}
+                                        p={0}
+                                        size="sm"
+                                        textAlign="center"
+                                        textTransform="uppercase"
+                                        verticalAlign="middle"
+                                        whiteSpace="nowrap"
+                                        onDoubleClick={(event) => {
+                                            event.stopPropagation();
+                                            setIsRenaming(true);
+                                        }}
+                                    >
+                                        {nodeState.nodeName ?? nodeState.schema.name}
+                                    </Heading>
+                                )}
                                 {isCollapsed && nodeState.schema.keyInfo && (
                                     <KeyInfoLabel nodeState={nodeState} />
                                 )}

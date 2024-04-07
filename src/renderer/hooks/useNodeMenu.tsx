@@ -7,9 +7,8 @@ import {
     RepeatIcon,
     UnlockIcon,
 } from '@chakra-ui/icons';
-import { HStack, Input, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
-import { useRef, useState } from 'react';
-import { BiRename } from 'react-icons/bi';
+import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
+import { useRef } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useReactFlow } from 'reactflow';
@@ -45,8 +44,6 @@ export const useNodeMenu = (
     const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
     const resetMenuParentRef = useRef<HTMLButtonElement>(null);
-
-    const [isRenaming, setIsRenaming] = useState(false);
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -147,32 +144,6 @@ export const useNodeMenu = (
                     onClick={reload}
                 >
                     Refresh Preview
-                </MenuItem>
-            )}
-
-            {isRenaming ? (
-                <Input
-                    maxWidth="full"
-                    placeholder={state.schema.name}
-                    value={state.nickname || ''}
-                    width="auto"
-                    onChange={(e) => state.setNickname(e.target.value || undefined)}
-                    onKeyDown={(e) => {
-                        e.stopPropagation();
-                        if (e.key === 'Enter' || e.key === 'Escape') {
-                            setIsRenaming(false);
-                        }
-                    }}
-                />
-            ) : (
-                <MenuItem
-                    closeOnSelect={false}
-                    icon={<BiRename />}
-                    onClick={() => {
-                        setIsRenaming(true);
-                    }}
-                >
-                    Rename
                 </MenuItem>
             )}
 

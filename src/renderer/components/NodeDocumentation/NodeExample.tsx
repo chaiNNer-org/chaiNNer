@@ -98,13 +98,7 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
         [setOutputHeight]
     );
 
-    const [nickname, setNickname] = useState<string | undefined>(undefined);
-    const setSingleNickname = useCallback(
-        (value: string | undefined): void => {
-            setNickname(value);
-        },
-        [setNickname]
-    );
+    const [nodeName, setNodeName] = useState<string | undefined>(undefined);
 
     const nodeIdPrefix = 'FakeId ';
     const suffixLength = 36 - nodeIdPrefix.length;
@@ -173,8 +167,8 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
         iteratedOutputs,
         type: typeInfo,
         testCondition: testForInputConditionTypeInfo(inputData, selectedSchema, typeInfo),
-        nickname,
-        setNickname: setSingleNickname,
+        nodeName,
+        setNodeName,
     };
 
     return (

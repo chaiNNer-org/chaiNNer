@@ -77,8 +77,8 @@ export interface NodeState {
     readonly iteratedOutputs: ReadonlySet<OutputId>;
     readonly type: TypeInfo;
     readonly testCondition: TestFn;
-    readonly nickname: string | undefined;
-    readonly setNickname: (nickname: string | undefined) => void;
+    readonly nodeName: string | undefined;
+    readonly setNodeName: (nickname: string | undefined) => void;
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
@@ -87,10 +87,10 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         setNodeInputHeight,
         setNodeOutputHeight,
         setNodeWidth,
-        setNodeNickname,
+        setNodeName,
     } = useContext(GlobalContext);
 
-    const { id, inputData, inputHeight, outputHeight, isLocked, schemaId, nodeWidth, nickname } =
+    const { id, inputData, inputHeight, outputHeight, isLocked, schemaId, nodeWidth, nodeName } =
         data;
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
@@ -105,7 +105,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
     );
 
     const setWidth = useMemo(() => setNodeWidth.bind(null, id), [id, setNodeWidth]);
-    const setNickname = useMemo(() => setNodeNickname.bind(null, id), [id, setNodeNickname]);
+    const setName = useMemo(() => setNodeName.bind(null, id), [id, setNodeName]);
 
     const { schemata } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
@@ -177,7 +177,7 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         iteratedOutputs,
         type,
         testCondition,
-        nickname,
-        setNickname,
+        nodeName,
+        setNodeName: setName,
     });
 };
