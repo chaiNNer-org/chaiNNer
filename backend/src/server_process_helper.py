@@ -47,13 +47,18 @@ class _WorkerProcess:
         self._stop_event = threading.Event()
 
         # Create a separate thread to read and print the output of the subprocess
-        self._reader_thread = threading.Thread(
-            target=self._read_output,
+        self._stdout_thread = threading.Thread(
+            target=self._read_stdout,
             daemon=True,
-            name="output reader",
+            name="stdout reader",
         )
-        self._reader_thread.daemon = True
-        self._reader_thread.start()
+        self._stdout_thread.start()
+        self._stderr_thread = threading.Thread(
+            target=self._read_stderr,
+            daemon=True,
+            name="stderr reader",
+        )
+        self._stderr_thread.start()
 
     def close(self):
         logger.info("Closing worker process...")
@@ -62,9 +67,11 @@ class _WorkerProcess:
             self._process.terminate()
             self._process.kill()
             self._process = None
-            self._reader_thread = None
 
-    def _read_output(self):
+            self._stdout_thread = None
+            self._stderr_thread = None
+
+    def _read_stdout(self):
         if self._process is None or self._process.stdout is None:
             return
         for line in self._process.stdout:
@@ -89,6 +96,15 @@ class _WorkerProcess:
                     logger.info(message)
             else:
                 logger.info(f"[Worker] {stripped_line}")
+
+    def _read_stderr(self):
+        if self._process is None or self._process.stderr is None:
+            return
+        for line in self._process.stderr:
+            if self._stop_event.is_set():
+                break
+            stripped_line = line.rstrip()
+            logger.error(f"[Worker] {stripped_line}")
 
 
 class WorkerServer:
