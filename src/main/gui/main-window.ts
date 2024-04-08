@@ -492,7 +492,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
     try {
         registerEventHandlerPreSetup(mainWindow, args, settings);
         const backend = await createBackend(
-            SubProgress.slice(progressController, 0, 0.5),
+            SubProgress.slice(progressController, 0, 0.25),
             args,
             settings
         );
@@ -509,7 +509,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             mainWindow.webContents.send('backend-started');
         });
 
-        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
+        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.25, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
             if (e.data) {
                 const data = JSON.parse(e.data) as BackendEventMap['backend-status'];
