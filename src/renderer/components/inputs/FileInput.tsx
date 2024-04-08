@@ -1,3 +1,4 @@
+import { CloseIcon } from '@chakra-ui/icons';
 import {
     Icon,
     Input,
@@ -30,6 +31,7 @@ export const FileInput = memo(
     ({
         value: filePath,
         setValue: setFilePath,
+        resetValue: resetFilePath,
         input,
         inputKey,
         isConnected,
@@ -148,6 +150,14 @@ export const FileInput = memo(
                     }}
                 >
                     {t('inputs.file.copyFullFilePath', 'Copy Full File Path')}
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    icon={<CloseIcon />}
+                    isDisabled={!filePath}
+                    onClick={resetFilePath}
+                >
+                    {t('inputs.file.clear', 'Clear')}
                 </MenuItem>
                 {refactor}
             </MenuList>

@@ -30,12 +30,14 @@
   "inputs": {
     "copyInputOverrideId": "Copy Input Override Id",
     "directory": {
+      "clear": "Clear",
       "copyFullDirectoryPath": "Copy Full Directory Path",
       "openInFileExplorer": "Open in File Explorer",
       "selectDirectory": "Select a directory..."
     },
     "extractValueIntoNode": "Extract value into node",
     "file": {
+      "clear": "Clear",
       "copyFileName": "Copy File Name",
       "copyFullFilePath": "Copy Full File Path",
       "openInFileExplorer": "Open in File Explorer",
