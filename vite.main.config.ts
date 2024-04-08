@@ -24,6 +24,11 @@ export default defineConfig((env) => {
             // Load the Node.js entry.
             mainFields: ['module', 'jsnext:main', 'jsnext'],
         },
+        server: {
+            watch: {
+                ignored: ['**/translation.json'],
+            },
+        },
     };
 
     return mergeConfig(getBuildConfig(forgeEnv), config);

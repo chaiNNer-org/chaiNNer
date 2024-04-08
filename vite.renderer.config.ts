@@ -34,5 +34,10 @@ export default defineConfig((env) => {
             },
         },
         clearScreen: false,
+        server: {
+            watch: {
+                ignored: ['**/translation.json'],
+            },
+        },
     } as UserConfig;
 });
