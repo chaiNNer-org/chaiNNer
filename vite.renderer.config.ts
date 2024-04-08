@@ -22,7 +22,6 @@ export default defineConfig((env) => {
             pluginExposeRenderer(name),
             react({
                 babel: {
-                    presets: [],
                     // Your plugins run before any built-in transform (eg: Fast Refresh)
                     plugins: [
                         ...(isDevelopment
@@ -38,10 +37,6 @@ export default defineConfig((env) => {
                               ]
                             : []),
                     ],
-                    // Use .babelrc files
-                    babelrc: true,
-                    // Use babel.config.js files
-                    configFile: true,
                 },
             }),
         ],
