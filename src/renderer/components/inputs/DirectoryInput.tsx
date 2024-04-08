@@ -1,4 +1,5 @@
 import { Type, isStringLiteral } from '@chainner/navi';
+import { CloseIcon } from '@chakra-ui/icons';
 import {
     Icon,
     Input,
@@ -37,6 +38,7 @@ export const DirectoryInput = memo(
     ({
         value,
         setValue,
+        resetValue,
         isLocked,
         input,
         inputKey,
@@ -98,6 +100,14 @@ export const DirectoryInput = memo(
                     }}
                 >
                     {t('inputs.directory.copyFullDirectoryPath', 'Copy Full Directory Path')}
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    icon={<CloseIcon />}
+                    isDisabled={!value}
+                    onClick={resetValue}
+                >
+                    {t('inputs.directory.clear', 'Clear')}
                 </MenuItem>
                 {refactor}
             </MenuList>
