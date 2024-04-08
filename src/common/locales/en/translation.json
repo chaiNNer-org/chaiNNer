@@ -61,15 +61,7 @@
     }
   },
   "setup": {
-    "checkingFfmpeg": "Checking system environment for Ffmpeg...",
-    "checkingPort": "Checking for available port...",
-    "checkingPython": "Checking system environment for valid Python...",
-    "downloadingFfmpeg": "Downloading ffmpeg...",
-    "downloadingPython": "Downloading Integrated Python...",
-    "extractingFfmpeg": "Extracting downloaded files...",
-    "extractingPython": "Extracting downloaded files...",
-    "loading": "Loading...",
-    "startingBackend": "Starting up backend process..."
+    "loading": "Loading..."
   },
   "typeTags": {
     "optional": "optional"

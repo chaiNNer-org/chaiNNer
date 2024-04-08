@@ -1,6 +1,9 @@
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { pluginExposeRenderer } from './vite.base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
+
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -15,7 +18,33 @@ export default defineConfig((env) => {
         build: {
             outDir: `.vite/renderer/${name}`,
         },
-        plugins: [pluginExposeRenderer(name)],
+        plugins: [
+            pluginExposeRenderer(name),
+            react({
+                babel: {
+                    presets: [],
+                    // Your plugins run before any built-in transform (eg: Fast Refresh)
+                    plugins: [
+                        ...(isDevelopment
+                            ? [
+                                  [
+                                      'i18next-extract',
+                                      {
+                                          outputPath: './src/common/locales/{{locale}}/{{ns}}.json',
+                                          keyAsDefaultValueForDerivedKeys: true,
+                                          discardOldKeys: true,
+                                      },
+                                  ],
+                              ]
+                            : []),
+                    ],
+                    // Use .babelrc files
+                    babelrc: true,
+                    // Use babel.config.js files
+                    configFile: true,
+                },
+            }),
+        ],
         resolve: {
             preserveSymlinks: true,
             alias: {
