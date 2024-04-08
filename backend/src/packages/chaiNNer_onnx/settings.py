@@ -41,6 +41,13 @@ def get_providers():
     return providers, default
 
 
+def get_provider_label(identifier: str) -> str:
+    label = identifier.replace("ExecutionProvider", "")
+    if label.lower() == "tensorrt":
+        label = "TensorRT"
+    return label
+
+
 execution_providers, default_provider = get_providers()
 
 if not is_arm_mac:
@@ -50,7 +57,7 @@ if not is_arm_mac:
             key="execution_provider",
             description="What provider to use for ONNX.",
             options=[
-                {"label": x.replace("ExecutionProvider", ""), "value": x}
+                {"label": get_provider_label(x), "value": x}
                 for x in execution_providers
             ],
             default=default_provider,
