@@ -6,7 +6,10 @@ const IsCollapsedContext = createContext<boolean>(false);
 
 export const CollapsedNode = memo(({ children }: React.PropsWithChildren<unknown>) => {
     return (
-        <Box display="none">
+        <Box
+            display="none"
+            style={{ contain: 'strict' }}
+        >
             <IsCollapsedContext.Provider value>{children}</IsCollapsedContext.Provider>
         </Box>
     );
