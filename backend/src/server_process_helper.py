@@ -72,11 +72,16 @@ class _WorkerProcess:
             self._stderr_thread = None
 
     def _read_stdout(self):
-        if self._process is None or self._process.stdout is None:
+        p = self._process
+        if p is None or p.stdout is None:
             return
-        for line in self._process.stdout:
-            if self._stop_event.is_set():
+
+        stopped = False
+        for line in p.stdout:
+            stopped = self._stop_event.is_set()
+            if stopped:
                 break
+
             stripped_line = line.rstrip()
             match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
             if match_obj is not None:
@@ -97,14 +102,35 @@ class _WorkerProcess:
             else:
                 logger.info(f"[Worker] {stripped_line}")
 
+        cause = "stop event" if stopped else "stdout ending"
+        logger.info(f"Stopped reading worker stdout due to {cause}")
+
+        if not stopped:
+            # the worker ended on its own, so it likely crashed
+            returncode = p.wait()
+            if returncode == 0:
+                logger.info("Worker process ended normally")
+            else:
+                logger.error(
+                    f"Worker process ended with non-zero return code {returncode}"
+                )
+
     def _read_stderr(self):
-        if self._process is None or self._process.stderr is None:
+        p = self._process
+        if p is None or p.stderr is None:
             return
-        for line in self._process.stderr:
-            if self._stop_event.is_set():
+
+        stopped = False
+        for line in p.stderr:
+            stopped = self._stop_event.is_set()
+            if stopped:
                 break
+
             stripped_line = line.rstrip()
             logger.error(f"[Worker] {stripped_line}")
+
+        cause = "stop event" if stopped else "stderr ending"
+        logger.info(f"Stopped reading worker stderr due to {cause}")
 
 
 class WorkerServer:
