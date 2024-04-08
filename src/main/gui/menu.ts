@@ -3,7 +3,7 @@ import { shell } from 'electron/common';
 import { Menu, MenuItemConstructorOptions, app, dialog } from 'electron/main';
 import os from 'os';
 import path from 'path';
-import { isMac } from '../../common/env';
+import { isMac } from '../env';
 import { links } from '../../common/links';
 import { openSaveFile } from '../../common/SaveFile';
 import { getLogsFolder } from '../platform';

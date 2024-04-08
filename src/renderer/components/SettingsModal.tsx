@@ -30,7 +30,7 @@ import { memo, useCallback, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { isMac } from '../../common/env';
+import { isMac } from '../../main/env';
 import { BackendContext } from '../contexts/BackendContext';
 import { useMutSetting } from '../contexts/SettingsContext';
 import { ipcRenderer } from '../safeIpc';

@@ -1,4 +1,4 @@
-import { IpcRendererEvent, ipcRenderer as unsafeIpcRenderer } from 'electron'; // TODO: replace with electron/renderer
+import { IpcRendererEvent } from 'electron'; // TODO: replace with electron/renderer
 import { ChannelArgs, ChannelReturn, InvokeChannels, SendChannels } from '../common/safeIpc';
 
 interface SafeIpcRenderer extends Electron.IpcRenderer {
@@ -30,4 +30,4 @@ interface SafeIpcRenderer extends Electron.IpcRenderer {
     sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
 }
 
-export const ipcRenderer = unsafeIpcRenderer as SafeIpcRenderer;
+export const ipcRenderer = window.unsafeIpcRenderer.ipcRenderer as SafeIpcRenderer;

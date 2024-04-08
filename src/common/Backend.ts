@@ -15,7 +15,7 @@ import {
     SchemaId,
     Version,
 } from './common-types';
-import { isRenderer } from './env';
+import { isRenderer } from '../main/env';
 
 export interface BackendSuccessResponse {
     type: 'success';

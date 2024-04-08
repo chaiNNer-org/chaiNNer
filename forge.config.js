@@ -161,7 +161,7 @@ const config = {
                         config: 'vite.main.config.ts',
                     },
                     {
-                        entry: 'src/main/preload.js',
+                        entry: 'src/main/preload.ts',
                         config: 'vite.preload.config.ts',
                     },
                 ],

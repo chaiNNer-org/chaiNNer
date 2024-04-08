@@ -35,6 +35,8 @@ export interface InvokeChannels {
     'quit-application': ChannelInfo<void>;
     'get-appdata': ChannelInfo<string>;
     'open-url': ChannelInfo<void, [url: string]>;
+    'get-is-mac': ChannelInfo<boolean>;
+    'get-is-arm-mac': ChannelInfo<boolean>;
 
     // settings
     'get-settings': ChannelInfo<ChainnerSettings>;

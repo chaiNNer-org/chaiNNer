@@ -9,9 +9,9 @@ import {
 } from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
+import path from 'path';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
-import { isMac } from '../../common/env';
 import { log } from '../../common/log';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { ChainnerSettings } from '../../common/settings/settings';
@@ -21,6 +21,7 @@ import { assertNever } from '../../common/util';
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
+import { isArmMac, isMac } from '../env';
 import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { writeSettings } from '../setting-storage';
@@ -134,6 +135,8 @@ const registerEventHandlerPreSetup = (
     });
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
+    ipcMain.handle('get-is-mac', (event) => isMac);
+    ipcMain.handle('get-is-arm-mac', (event) => isArmMac);
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none
     ipcMain.on('set-progress-bar', (event, progress) => {
@@ -205,22 +208,22 @@ const registerEventHandlerPreSetup = (
     }
 
     // Handle filesystem
-    ipcMain.handle('fs-read-file', async (event, path, options) => fs.readFile(path, options));
-    ipcMain.handle('fs-write-file', async (event, path, content, options) =>
-        fs.writeFile(path, content, options)
+    ipcMain.handle('fs-read-file', async (event, p, options) => fs.readFile(p, options));
+    ipcMain.handle('fs-write-file', async (event, p, content, options) =>
+        fs.writeFile(p, content, options)
     );
-    ipcMain.handle('fs-exists', async (event, path) => {
+    ipcMain.handle('fs-exists', async (event, p) => {
         try {
-            await fs.access(path, constants.F_OK);
+            await fs.access(p, constants.F_OK);
             return true;
         } catch {
             return false;
         }
     });
-    ipcMain.handle('fs-mkdir', async (event, path, options) => fs.mkdir(path, options));
-    ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
-    ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
-    ipcMain.handle('fs-access', async (event, path) => fs.access(path));
+    ipcMain.handle('fs-mkdir', async (event, p, options) => fs.mkdir(p, options));
+    ipcMain.handle('fs-readdir', async (event, p) => fs.readdir(p));
+    ipcMain.handle('fs-unlink', async (event, p) => fs.unlink(p));
+    ipcMain.handle('fs-access', async (event, p) => fs.access(p));
 
     // Handle electron
     ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
@@ -474,7 +477,8 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             webSecurity: false,
             nodeIntegration: false,
             nodeIntegrationInWorker: true,
-            contextIsolation: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, '/preload.js'),
         },
         icon: `${__dirname}/../public/icons/cross_platform/icon`,
         show: true,

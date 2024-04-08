@@ -4,7 +4,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { getBackend } from '../../common/Backend';
 import { PythonInfo } from '../../common/common-types';
-import { sanitizedEnv } from '../../common/env';
+import { sanitizedEnv } from '../env';
 import { log } from '../../common/log';
 import { delay, lazy } from '../../common/util';
 

@@ -12,7 +12,7 @@ import {
 import path from 'path';
 import { memo, useEffect, useMemo } from 'react';
 import { Setting } from '../../../common/common-types';
-import { getCacheLocation } from '../../../common/env';
+import { getCacheLocation } from '../../../main/env';
 import { log } from '../../../common/log';
 import { ipcRenderer } from '../../safeIpc';
 import { SettingsProps } from './props';
