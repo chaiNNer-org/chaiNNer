@@ -137,6 +137,7 @@
     "html-to-image": "^1.10.8",
     "https-browserify": "^1.0.0",
     "i18next": "^22.0.5",
+    "i18next-http-backend": "^2.5.0",
     "javascript-time-ago": "^2.5.9",
     "mathjs": "^12.4.1",
     "minisearch": "^6.1.0",
