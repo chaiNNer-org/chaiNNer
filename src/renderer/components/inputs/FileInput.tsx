@@ -1,3 +1,4 @@
+import { CloseIcon } from '@chakra-ui/icons';
 import {
     Icon,
     Input,
@@ -16,12 +17,13 @@ import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpcRenderer';
+
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
+import { ipcRenderer } from '../../safeIpc';
 import { WithLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -29,6 +31,7 @@ export const FileInput = memo(
     ({
         value: filePath,
         setValue: setFilePath,
+        resetValue: resetFilePath,
         input,
         inputKey,
         isConnected,
@@ -131,9 +134,7 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            ipcRenderer
-                                .invoke('clipboard-writeText', path.parse(filePath).name)
-                                .catch(log.error);
+                            navigator.clipboard.writeText(filePath).catch(log.error);
                         }
                     }}
                 >
@@ -144,11 +145,19 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            ipcRenderer.invoke('clipboard-writeText', filePath).catch(log.error);
+                            navigator.clipboard.writeText(filePath).catch(log.error);
                         }
                     }}
                 >
                     {t('inputs.file.copyFullFilePath', 'Copy Full File Path')}
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    icon={<CloseIcon />}
+                    isDisabled={!filePath}
+                    onClick={resetFilePath}
+                >
+                    {t('inputs.file.clear', 'Clear')}
                 </MenuItem>
                 {refactor}
             </MenuList>

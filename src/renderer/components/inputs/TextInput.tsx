@@ -6,7 +6,6 @@ import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpcRenderer';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -91,7 +90,7 @@ export const TextInput = memo(
                     isDisabled={!displayText}
                     onClick={() => {
                         if (displayText !== undefined) {
-                            ipcRenderer.invoke('clipboard-writeText', displayText).catch(log.error);
+                            navigator.clipboard.writeText(displayText).catch(log.error);
                         }
                     }}
                 >
@@ -101,8 +100,8 @@ export const TextInput = memo(
                     icon={<MdContentPaste />}
                     isDisabled={isConnected}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-readText')
+                        navigator.clipboard
+                            .readText()
                             .then((clipboardValue) => {
                                 // replace new lines
                                 const text = clipboardValue.replace(

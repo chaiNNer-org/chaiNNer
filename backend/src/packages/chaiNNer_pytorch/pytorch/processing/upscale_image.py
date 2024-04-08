@@ -6,7 +6,7 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
-from api import KeyInfo, NodeContext, NodeProgress
+from api import KeyInfo, NodeContext, Progress
 from nodes.groups import Condition, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
@@ -37,7 +37,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
-    progress: NodeProgress,
+    progress: Progress,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer

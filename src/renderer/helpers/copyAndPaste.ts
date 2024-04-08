@@ -6,6 +6,7 @@ import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types
 import { log } from '../../common/log';
 import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
 
@@ -67,7 +68,7 @@ export const pasteFromClipboard = async (
                 'clipboard-readBuffer',
                 'application/chainner.chain'
             );
-            const chain = JSON.parse(clipboardData.toString()) as ClipboardChain;
+            const chain = JSON.parse(Buffer.from(clipboardData).toString()) as ClipboardChain;
 
             const duplicationId = createUniqueId();
             const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
@@ -96,7 +97,7 @@ export const pasteFromClipboard = async (
             log.debug('Clipboard format', format);
             switch (format) {
                 case 'text/plain':
-                    log.debug('Clipboard text', ipcRenderer.invoke('clipboard-readText'));
+                    log.debug('Clipboard text', navigator.clipboard.readText());
                     break;
                 case 'text/html':
                     log.debug('Clipboard html', ipcRenderer.invoke('clipboard-readHTML'));

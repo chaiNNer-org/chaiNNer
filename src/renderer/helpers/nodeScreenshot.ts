@@ -2,8 +2,8 @@ import { toPng } from 'html-to-image';
 import { Node, ReactFlowInstance } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { delay } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 
 interface Rect {
     x: number;

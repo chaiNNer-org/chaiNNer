@@ -1,4 +1,4 @@
-import { type BrowserWindow, type MessagePortMain, type WebContents } from 'electron';
+import { type FileFilter, type OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
 import { MakeDirectoryOptions } from 'fs';
 import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
@@ -17,14 +17,10 @@ export interface InvokeChannels {
     'get-backend-url': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;
-    'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
+    'dir-select': ChannelInfo<OpenDialogReturnValue, [dirPath: string]>;
     'file-select': ChannelInfo<
-        Electron.OpenDialogReturnValue,
-        [
-            filters: Electron.FileFilter[],
-            allowMultiple: boolean | undefined,
-            dirPath: string | undefined
-        ]
+        OpenDialogReturnValue,
+        [filters: FileFilter[], allowMultiple: boolean | undefined, dirPath: string | undefined]
     >;
 
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
@@ -103,8 +99,7 @@ export interface InvokeChannels {
 }
 
 export interface SendChannels {
-    'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
-    'backend-ready': SendChannelInfo;
+    'setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-started': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
@@ -144,22 +139,3 @@ export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (Invo
     SendChannels)[C]['args'];
 export type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['returnType'];
-
-interface WebContentsWithSafeIcp extends WebContents {
-    invoke<C extends keyof SendChannels>(
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): Promise<ChannelReturn<C>>;
-    postMessage(channel: keyof SendChannels, message: unknown, transfer?: MessagePortMain[]): void;
-    send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-    sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): ChannelReturn<C>;
-    sendTo<C extends keyof SendChannels>(
-        webContentsId: number,
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): void;
-    sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-}
-export interface BrowserWindowWithSafeIpc extends BrowserWindow {
-    webContents: WebContentsWithSafeIcp;
-}

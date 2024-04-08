@@ -2,8 +2,8 @@
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { LEVEL_NAME, log } from '../common/log';
-import { ipcRenderer } from '../common/safeIpcRenderer';
 import { App } from './app';
+import { ipcRenderer } from './safeIpc';
 
 ipcRenderer
     .invoke('get-appdata')

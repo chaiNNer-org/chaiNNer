@@ -23,7 +23,6 @@ import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
 import { InputId, NodeData, Size } from '../../../../common/common-types';
 import { log } from '../../../../common/log';
-import { ipcRenderer } from '../../../../common/safeIpcRenderer';
 import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { useNodeStateFromData } from '../../../helpers/nodeState';
 import { useContextMenu } from '../../../hooks/useContextMenu';
@@ -129,9 +128,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                 icon={<MdContentCopy />}
                 onClick={() => {
                     if (value !== undefined) {
-                        ipcRenderer
-                            .invoke('clipboard-writeText', value.toString())
-                            .catch(log.error);
+                        navigator.clipboard.writeText(value.toString()).catch(log.error);
                     }
                 }}
             >
@@ -140,8 +137,8 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
             <MenuItem
                 icon={<MdContentPaste />}
                 onClick={() => {
-                    ipcRenderer
-                        .invoke('clipboard-readText')
+                    navigator.clipboard
+                        .readText()
                         .then((clipboardValue) => {
                             // replace new lines
                             const text = clipboardValue.replace(/\r?\n|\r/g, '\n');

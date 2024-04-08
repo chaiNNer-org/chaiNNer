@@ -2,10 +2,10 @@ import { useColorMode } from '@chakra-ui/react';
 import React, { SetStateAction, memo, useCallback, useEffect, useState } from 'react';
 import { createContext, useContext } from 'use-context-selector';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { ChainnerSettings, defaultSettings } from '../../common/settings/settings';
 import { noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 
 interface SettingsContextValue {
     settings: Readonly<ChainnerSettings>;

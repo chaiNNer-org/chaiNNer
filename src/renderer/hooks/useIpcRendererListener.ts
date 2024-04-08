@@ -1,7 +1,7 @@
-import { IpcRendererEvent } from 'electron';
+import { IpcRendererEvent } from 'electron'; // TODO: replace with electron/renderer
 import { useEffect } from 'react';
-import { ChannelArgs, SendChannels } from '../../common/safeIpcCommon';
-import { ipcRenderer } from '../../common/safeIpcRenderer';
+import { ChannelArgs, SendChannels } from '../../common/safeIpc';
+import { ipcRenderer } from '../safeIpc';
 
 export const useIpcRendererListener = <C extends keyof SendChannels>(
     channel: C,

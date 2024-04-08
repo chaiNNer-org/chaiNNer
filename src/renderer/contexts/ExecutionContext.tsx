@@ -11,7 +11,6 @@ import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { optimizeChain } from '../../common/nodes/optimize';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
-import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { fromJson } from '../../common/types/json';
 import { EMPTY_MAP, EMPTY_SET, assertNever, groupBy } from '../../common/util';
@@ -29,6 +28,7 @@ import {
 } from '../hooks/useBackendEventSource';
 import { EventBacklog, useEventBacklog } from '../hooks/useEventBacklog';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';

@@ -39,7 +39,7 @@ export const defaultSettings: Readonly<ChainnerSettings> = {
     snapToGrid: false,
     snapToGridAmount: 16,
     viewportExportPadding: 20,
-    showMinimap: true,
+    showMinimap: false,
 
     experimentalFeatures: false,
     hardwareAcceleration: false,

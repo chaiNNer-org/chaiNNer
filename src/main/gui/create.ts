@@ -1,5 +1,5 @@
-import { app } from 'electron';
-// import electronLog from 'electron-log';
+import electronLog from 'electron-log';
+import { app, dialog } from 'electron/main';
 import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';

@@ -6,7 +6,7 @@ import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, OfKind } from '../../../common/common-types';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpcRenderer';
+
 import { assertNever } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { InputContext } from '../../contexts/InputContext';
@@ -153,9 +153,7 @@ export const SliderInput = memo(
                 <MenuItem
                     icon={<MdContentCopy />}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-writeText', String(displaySliderValue))
-                            .catch(log.error);
+                        navigator.clipboard.writeText(String(displaySliderValue)).catch(log.error);
                     }}
                 >
                     {t('inputs.number.copyText', 'Copy Number')}
@@ -163,8 +161,8 @@ export const SliderInput = memo(
                 <MenuItem
                     icon={<MdContentPaste />}
                     onClick={() => {
-                        ipcRenderer
-                            .invoke('clipboard-readText')
+                        navigator.clipboard
+                            .readText()
                             .then((clipboardValue) => {
                                 const n = Number(clipboardValue);
                                 if (!Number.isNaN(n) && min <= n && max >= n) {

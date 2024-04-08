@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
-import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { EMPTY_ARRAY } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 import { useIpcRendererListener } from './useIpcRendererListener';
 import { useStored } from './useStored';
 

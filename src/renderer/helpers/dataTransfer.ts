@@ -2,10 +2,10 @@ import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpcRenderer';
 import { ParsedSaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
 

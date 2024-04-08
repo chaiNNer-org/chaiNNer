@@ -18,6 +18,7 @@ import api
 from custom_types import UpdateProgressFn
 from dependencies.store import (
     DependencyInfo,
+    filter_necessary_to_install,
     install_dependencies,
     installed_packages,
     uninstall_dependencies,
@@ -36,6 +37,22 @@ class AppContext:
         # This is necessary because we don't know Sanic's event loop yet.
         self.setup_queue: EventQueue = None  # type: ignore
         self.pool = ThreadPoolExecutor(max_workers=4)
+        self._worker: WorkerServer = WorkerServer()
+        self.is_ready = False
+
+    def get_worker_unmanaged(self) -> WorkerServer:
+        """
+        Returns the worker server instance no matter what state it is currently in.
+        """
+        return self._worker
+
+    async def get_worker(self) -> WorkerServer:
+        """
+        Returns the worker server instance after it is ready.
+        """
+        while not self.is_ready:
+            await asyncio.sleep(0.1)
+        return self._worker
 
     @staticmethod
     def get(app_instance: Sanic) -> AppContext:
@@ -57,47 +74,48 @@ class SSEFilter(logging.Filter):
         )
 
 
-worker: WorkerServer = WorkerServer()
-
-setup_task = None
-
 access_logger.addFilter(SSEFilter())
 
 
 @app.route("/nodes")
 async def nodes(request: Request):
-    resp = await worker.proxy_request(request)
-    return resp
+    worker = await AppContext.get(request.app).get_worker()
+    return await worker.proxy_request(request)
 
 
 @app.route("/run", methods=["POST"])
 async def run(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request, timeout=None)
 
 
 @app.route("/run/individual", methods=["POST"])
 async def run_individual(request: Request):
-    logger.info("Running individual")
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request)
 
 
 @app.route("/clear-cache/individual", methods=["POST"])
 async def clear_cache_individual(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request)
 
 
 @app.route("/pause", methods=["POST"])
 async def pause(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request)
 
 
 @app.route("/resume", methods=["POST"])
 async def resume(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request, timeout=None)
 
 
 @app.route("/kill", methods=["POST"])
 async def kill(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     try:
         response = await worker.proxy_request(request, timeout=3)
         if response.status > 200:
@@ -155,11 +173,13 @@ async def system_usage(_request: Request):
 
 @app.route("/packages", methods=["GET"])
 async def get_packages(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request)
 
 
 @app.route("/installed-dependencies", methods=["GET"])
 async def get_installed_dependencies(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     installed_deps: dict[str, str] = {}
     packages = await worker.get_packages()
     for package in packages:
@@ -173,6 +193,7 @@ async def get_installed_dependencies(request: Request):
 
 @app.route("/features")
 async def get_features(request: Request):
+    worker = await AppContext.get(request.app).get_worker()
     return await worker.proxy_request(request)
 
 
@@ -193,6 +214,7 @@ async def uninstall_dependencies_request(request: Request):
     full_data = dict(request.json)  # type: ignore
     package_to_uninstall = full_data["package"]
 
+    worker = await AppContext.get(request.app).get_worker()
     packages = await worker.get_packages()
 
     package = next((x for x in packages if x.id == package_to_uninstall), None)
@@ -253,6 +275,7 @@ async def install_dependencies_request(request: Request):
             timeout=0.01,
         )
 
+    worker = await AppContext.get(request.app).get_worker()
     packages = await worker.get_packages()
     package = next((x for x in packages if x.id == package_to_install), None)
 
@@ -281,6 +304,7 @@ async def sse(request: Request):
     if response is None:
         return
 
+    worker = await AppContext.get(request.app).get_worker()
     while True:
         try:
             async for data in worker.get_sse(request):
@@ -307,23 +331,24 @@ async def setup_sse(request: Request):
             break
 
 
+@app.post("/shutdown")
+async def shutdown(request: Request):
+    await close_server(request.app)
+    return json(success_response())
+
+
+@app.get("/status")
+async def status(request: Request):
+    ctx = AppContext.get(request.app)
+    return json({"ready": ctx.is_ready})
+
+
 async def import_packages(
-    config: ServerConfig,
+    cxt: AppContext,
     update_progress_cb: UpdateProgressFn,
 ):
-    async def install_deps(dependencies: list[api.Dependency]):
-        dep_info: list[DependencyInfo] = [
-            DependencyInfo(
-                package_name=dep.pypi_name,
-                display_name=dep.display_name,
-                version=dep.version,
-                extra_index_url=dep.extra_index_url,
-            )
-            for dep in dependencies
-        ]
-        num_installed = await install_dependencies(dep_info, update_progress_cb, logger)
-        return num_installed
-
+    config = cxt.config
+    worker = cxt.get_worker_unmanaged()
     packages = await worker.get_packages()
 
     logger.info("Checking dependencies...")
@@ -346,17 +371,20 @@ async def import_packages(
                 to_install.append(dep)
 
     try:
-        num_installed = await install_deps(to_install)
+        deps_to_install = filter_necessary_to_install(deps_to_dep_info(to_install))
 
-        if num_installed > 0:
-            flags = []
-            if config.error_on_failed_node:
-                flags.append("--error-on-failed-node")
+        restart_flags: list[str] = []
+        if config.error_on_failed_node:
+            restart_flags.append("--error-on-failed-node")
+        if config.close_after_start:
+            restart_flags.append("--close-after-start")
 
-            if config.close_after_start:
-                flags.append("--close-after-start")
-
-            await worker.restart(flags)
+        if len(restart_flags) > 0 or len(deps_to_install) > 0:
+            await worker.stop()
+            await install_dependencies(deps_to_install, update_progress_cb, logger)
+            await worker.start(restart_flags)
+        else:
+            logger.info("No dependencies to install. Skipping worker restart.")
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)
         if config.close_after_start:
@@ -366,7 +394,9 @@ async def import_packages(
 
 
 async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
-    setup_queue = AppContext.get(sanic_app).setup_queue
+    ctx = AppContext.get(sanic_app)
+    worker = ctx.get_worker_unmanaged()
+    setup_queue = ctx.setup_queue
 
     async def update_progress(
         message: str, progress: float, status_progress: float | None = None
@@ -398,27 +428,18 @@ async def setup(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     logger.info("Importing nodes...")
 
     # Now we can load all the nodes
-    await import_packages(AppContext.get(sanic_app).config, update_progress)
+    await import_packages(ctx, update_progress)
 
-    logger.info("Sending backend ready...")
+    logger.info("Backend almost ready...")
 
     await update_progress("Loading Nodes...", 1.0, None)
 
-    # Wait to send backend-ready until nodes are loaded
+    # Wait to set backend-ready until nodes are loaded
     await worker.wait_for_ready()
-
-    await setup_queue.put_and_wait(
-        {
-            "event": "backend-ready",
-            "data": None,
-        },
-        timeout=1,
-    )
+    ctx.is_ready = True
 
     logger.info("Done.")
 
-
-exit_code = 0
 
 setup_task = None
 
@@ -433,12 +454,14 @@ async def close_server(sanic_app: Sanic):
     except Exception as ex:
         logger.error(f"Error waiting for server to start: {ex}")
 
+    worker = AppContext.get(sanic_app).get_worker_unmanaged()
     await worker.stop()
     sanic_app.stop()
 
 
 @app.after_server_stop
-async def after_server_stop(_sanic_app: Sanic, _loop: asyncio.AbstractEventLoop):
+async def after_server_stop(sanic_app: Sanic, _loop: asyncio.AbstractEventLoop):
+    worker = AppContext.get(sanic_app).get_worker_unmanaged()
     await worker.stop()
     logger.info("Server closed.")
 
@@ -446,6 +469,7 @@ async def after_server_stop(_sanic_app: Sanic, _loop: asyncio.AbstractEventLoop)
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     global setup_task
+    worker = AppContext.get(sanic_app).get_worker_unmanaged()
     await worker.start()
 
     # initialize the queues
@@ -466,8 +490,6 @@ def main():
     config = ServerConfig.parse_argv()
     AppContext.get(app).config = config
     app.run(port=config.port, single_process=True)
-    if exit_code != 0:
-        sys.exit(exit_code)
 
 
 if __name__ == "__main__":
