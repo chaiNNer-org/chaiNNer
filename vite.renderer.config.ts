@@ -29,6 +29,7 @@ export default defineConfig((env) => {
                 os: 'os-browserify',
                 url: 'url',
                 util: 'util',
+                path: 'path-browserify',
             },
         },
         clearScreen: false,
