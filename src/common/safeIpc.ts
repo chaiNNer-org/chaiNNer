@@ -4,7 +4,7 @@ import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-ty
 import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
 import type { ParsedSaveData, SaveData } from '../main/SaveFile';
-import type { FileFilter, OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
+import type { FileFilter, OpenDialogReturnValue } from 'electron/common';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;

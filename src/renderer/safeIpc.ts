@@ -1,4 +1,4 @@
-import { IpcRendererEvent } from 'electron'; // TODO: replace with electron/renderer
+import { IpcRendererEvent } from 'electron/renderer';
 import { ChannelArgs, ChannelReturn, InvokeChannels, SendChannels } from '../common/safeIpc';
 
 interface SafeIpcRenderer extends Electron.IpcRenderer {
