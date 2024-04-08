@@ -105,6 +105,7 @@ class _WorkerProcess:
         cause = "stop event" if stopped else "stdout ending"
         logger.info(f"Stopped reading worker stdout due to {cause}")
 
+        stopped = self._stop_event.is_set()
         if not stopped:
             # the worker ended on its own, so it likely crashed
             returncode = p.wait()
