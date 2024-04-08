@@ -423,6 +423,7 @@ const setupProgressListeners = (
                 title: interrupt.title ?? 'Critical error occurred',
                 buttons: [...options.map((o) => o.title), 'Exit'],
                 defaultId: options.length,
+                cancelId: options.length,
                 message: interrupt.message,
             };
         } else {
@@ -431,6 +432,7 @@ const setupProgressListeners = (
                 title: interrupt.title ?? 'Critical error occurred',
                 buttons: [...options.map((o) => o.title), 'Ok'],
                 defaultId: options.length,
+                cancelId: options.length,
                 message: interrupt.message,
             };
         }
@@ -445,8 +447,12 @@ const setupProgressListeners = (
                         await shell.openExternal(action.url);
                         break;
                     }
+                    case 'run': {
+                        action.action();
+                        break;
+                    }
                     default:
-                        return assertNever(action.type);
+                        return assertNever(action);
                 }
             } catch (error) {
                 log.error(`Failed to execute action of type ${action.type}`, error);

@@ -7,7 +7,7 @@ import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
 import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
 import { checkPythonPaths } from '../python/checkPythonPaths';
-import { getIntegratedPython } from '../python/integratedPython';
+import { getIntegratedPython, getIntegratedPythonExecutable } from '../python/integratedPython';
 import { BackendProcess, BorrowedBackendProcess, OwnedBackendProcess } from './process';
 
 const getValidPort = async () => {
@@ -27,60 +27,48 @@ const getValidPort = async () => {
     return port;
 };
 
-const getPythonInfo = async (
-    token: ProgressToken,
-    useSystemPython: boolean,
-    systemPythonLocation: string | undefined | null,
-    rootDir: string
-) => {
-    log.info('Attempting to check Python env...');
+interface PythonSetupConfig {
+    integratedPythonFolder: string;
+    systemPythonLocation: string | undefined | null;
+}
+const getSystemPythonInfo = async (token: ProgressToken, config: PythonSetupConfig) => {
+    log.info('Attempting to check system Python env...');
 
-    let pythonInfo: PythonInfo;
-
-    let integratedPythonFolderPath = path.join(rootDir, '/python');
+    const { integratedPythonFolder } = config;
+    let { systemPythonLocation } = config;
 
     if (systemPythonLocation) {
-        // eslint-disable-next-line no-param-reassign
-        systemPythonLocation = path.normalize(String(JSON.parse(systemPythonLocation)));
-    }
-
-    if (integratedPythonFolderPath) {
-        integratedPythonFolderPath = path.normalize(integratedPythonFolderPath);
-    }
-
-    if (useSystemPython) {
         try {
-            pythonInfo = await checkPythonPaths([
-                ...(systemPythonLocation ? [systemPythonLocation] : []),
-                'python3',
-                'python',
-                // Fall back to integrated python if all else fails
-                integratedPythonFolderPath,
-            ]);
-            if (pythonInfo.python === integratedPythonFolderPath) {
-                log.info('System python not found. Using integrated Python');
-                await token.submitInterrupt({
-                    type: 'warning',
-                    title: 'Python not installed or invalid version',
-                    message:
-                        'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                        ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
-                        ' Be sure to select the add to PATH option. ChaiNNer will use its integrated Python for now.',
-                    options: [
-                        {
-                            title: 'Get Python',
-                            action: { type: 'open-url', url: 'https://www.python.org/downloads/' },
-                        },
-                    ],
-                });
-            }
+            systemPythonLocation = path.normalize(systemPythonLocation);
         } catch (error) {
-            log.error(error);
-            throw new CriticalError({
-                title: 'Error checking for valid Python instance',
+            log.error(`Ignoring system python location because of error: ${String(error)}`);
+
+            systemPythonLocation = null;
+        }
+    }
+
+    const integratedPython = getIntegratedPythonExecutable(integratedPythonFolder);
+
+    try {
+        const pythonInfo = await checkPythonPaths([
+            ...(systemPythonLocation ? [systemPythonLocation] : []),
+            'python3',
+            'python',
+            // Fall back to integrated python if all else fails
+            integratedPython,
+        ]);
+
+        if (pythonInfo.python === integratedPython) {
+            log.info('System python not found. Using integrated Python');
+            await token.submitInterrupt({
+                type: 'warning',
+                title: 'System Python not installed or invalid version',
                 message:
                     'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                    ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+                    ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
+                    ' Be sure to select the add to PATH option.' +
+                    '\n\nChaiNNer will start using its integrated Python for now.' +
+                    ' You can change this later in the settings.',
                 options: [
                     {
                         title: 'Get Python',
@@ -89,33 +77,120 @@ const getPythonInfo = async (
                 ],
             });
         }
-    } else {
-        // User is using integrated python
-        try {
-            pythonInfo = await getIntegratedPython(
-                integratedPythonFolderPath,
-                (percentage, stage) => {
-                    token.submitProgress({
-                        status:
-                            stage === 'download'
-                                ? t('setup.downloadingPython', 'Downloading Integrated Python...')
-                                : t('setup.extractingPython', 'Extracting downloaded files...'),
-                        totalProgress: stage === 'download' ? 0.3 : 0.4,
-                        statusProgress: percentage / 100,
-                    });
-                }
-            );
-        } catch (error) {
-            log.error(error);
 
-            throw new CriticalError({
-                title: 'Unable to install integrated Python',
-                message:
-                    `Chainner was unable to install its integrated Python environment.` +
-                    ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
-            });
-        }
+        return pythonInfo;
+    } catch (error) {
+        log.error(error);
+        throw new CriticalError({
+            title: 'Error checking for valid Python instance',
+            message:
+                'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
+                ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+            options: [
+                {
+                    title: 'Get Python',
+                    action: { type: 'open-url', url: 'https://www.python.org/downloads/' },
+                },
+            ],
+        });
     }
+};
+const getIntegratedPythonInfo = async (
+    token: ProgressToken,
+    config: PythonSetupConfig
+): Promise<PythonInfo> => {
+    log.info('Attempting to check integrated Python env...');
+
+    const { integratedPythonFolder } = config;
+
+    // User is using integrated python
+    try {
+        return await getIntegratedPython(integratedPythonFolder, (percentage, stage) => {
+            token.submitProgress({
+                status:
+                    stage === 'download'
+                        ? t('setup.downloadingPython', 'Downloading Integrated Python...')
+                        : t('setup.extractingPython', 'Extracting downloaded files...'),
+                totalProgress: stage === 'download' ? 0.3 : 0.4,
+                statusProgress: percentage / 100,
+            });
+        });
+    } catch (error) {
+        log.error(error);
+
+        enum Action {
+            Retry,
+            System,
+            Crash,
+        }
+        let action: Action = Action.Crash as Action;
+        await token.submitInterrupt({
+            type: 'warning',
+            title: 'Unable to install integrated Python',
+            message:
+                'ChaiNNer needs and active internet connection and access to the network to install its integrated Python environment. Please ensure an active internet connection and try again.' +
+                '\n\nAlternatively, chaiNNer can use your system Python environment instead if you have Python 3.8+ installed. (Note that chaiNNer will install packages into your system Python environment if you choose this option.)' +
+                '\n\nChaiNNer requires a valid Python environment to run. Please choose one of the following options:',
+            options: [
+                {
+                    title: 'Retry to install integrated Python',
+                    action: {
+                        type: 'run',
+                        action: () => {
+                            action = Action.Retry;
+                        },
+                    },
+                },
+                {
+                    title: 'Use System Python instead',
+                    action: {
+                        type: 'run',
+                        action: () => {
+                            action = Action.System;
+                        },
+                    },
+                },
+                {
+                    title: 'Exit',
+                    action: {
+                        type: 'run',
+                        action: () => {
+                            action = Action.Crash;
+                        },
+                    },
+                },
+            ],
+        });
+
+        if (action === Action.Retry) {
+            return getIntegratedPythonInfo(token, config);
+        }
+        if (action === Action.System) {
+            return getSystemPythonInfo(token, config);
+        }
+
+        throw new CriticalError({
+            title: 'Unable to install integrated Python',
+            message:
+                `Chainner was unable to install its integrated Python environment.` +
+                ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+        });
+    }
+};
+const getPythonInfo = async (
+    token: ProgressToken,
+    useSystemPython: boolean,
+    systemPythonLocation: string | undefined | null,
+    rootDir: string
+) => {
+    const config: PythonSetupConfig = {
+        integratedPythonFolder: path.normalize(path.join(rootDir, '/python')),
+        systemPythonLocation,
+    };
+
+    const pythonInfo = useSystemPython
+        ? await getSystemPythonInfo(token, config)
+        : await getIntegratedPythonInfo(token, config);
 
     log.info(`Final Python binary: ${pythonInfo.python}`);
     log.info(pythonInfo);
