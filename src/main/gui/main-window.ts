@@ -13,7 +13,6 @@ import path from 'path';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
 import { log } from '../../common/log';
-import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
 import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
@@ -24,6 +23,7 @@ import { setupBackend } from '../backend/setup';
 import { isArmMac, isMac } from '../env';
 import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
+import { SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
 
@@ -137,6 +137,7 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
     ipcMain.handle('get-is-mac', (event) => isMac);
     ipcMain.handle('get-is-arm-mac', (event) => isArmMac);
+    ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none
     ipcMain.on('set-progress-bar', (event, progress) => {
@@ -244,6 +245,10 @@ const registerEventHandlerPreSetup = (
         const image = nativeImage.createFromDataURL(url);
         clipboard.writeImage(image);
     });
+    ipcMain.handle('path-dirname', (event, p) => path.dirname(p));
+    ipcMain.handle('path-basename', (event, p) => path.basename(p));
+    ipcMain.handle('path-extname', (event, p) => path.extname(p));
+    ipcMain.handle('path-join', (event, ...paths) => path.join(...paths));
 };
 
 const registerEventHandlerPostSetup = (

@@ -13,6 +13,7 @@ import {
 import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
+import { log } from '../../../common/log';
 import { DisabledStatus } from '../../../common/nodes/disabled';
 import {
     EMPTY_ARRAY,
@@ -234,24 +235,27 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         if (fileInput && fileInput.kind === 'file' && event.dataTransfer.types.includes('Files')) {
             event.stopPropagation();
 
-            const p = getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes);
-            if (p) {
-                setInputValue(fileInput.id, p);
-                return;
-            }
+            getSingleFileWithExtension(event.dataTransfer, fileInput.filetypes)
+                .then((p) => {
+                    if (p) {
+                        setInputValue(fileInput.id, p);
+                        return;
+                    }
 
-            if (event.dataTransfer.files.length !== 1) {
-                sendToast({
-                    status: 'error',
-                    description: `Only one file is accepted by ${fileInput.label}.`,
-                });
-            } else {
-                const ext = path.extname(event.dataTransfer.files[0].path);
-                sendToast({
-                    status: 'error',
-                    description: `${fileInput.label} does not accept ${ext} files.`,
-                });
-            }
+                    if (event.dataTransfer.files.length !== 1) {
+                        sendToast({
+                            status: 'error',
+                            description: `Only one file is accepted by ${fileInput.label}.`,
+                        });
+                    } else {
+                        const ext = path.extname(event.dataTransfer.files[0].path);
+                        sendToast({
+                            status: 'error',
+                            description: `${fileInput.label} does not accept ${ext} files.`,
+                        });
+                    }
+                })
+                .catch(log.error);
         }
     };
 

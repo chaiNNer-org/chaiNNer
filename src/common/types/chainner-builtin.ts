@@ -22,9 +22,9 @@ import {
     wrapTernary,
 } from '@chainner/navi';
 import path from 'path';
+import { RRegex } from 'rregex/lib/browser';
 import { ColorJson } from '../common-types';
 import { log } from '../log';
-import { RRegex } from '../rust-regex';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }

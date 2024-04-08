@@ -1,4 +1,4 @@
-import { FSWatcher } from 'chokidar';
+// import { FSWatcher } from 'chokidar';
 import { useEffect } from 'react';
 import { log } from '../../common/log';
 
@@ -14,16 +14,16 @@ const callListeners = (file: string) => {
     }
 };
 
-const watcher = new FSWatcher({
-    disableGlobbing: true,
-    awaitWriteFinish: true,
-    ignoreInitial: true,
-    persistent: false,
-});
-watcher.on('error', (e) => log.error(e));
-watcher.on('add', callListeners);
-watcher.on('change', callListeners);
-watcher.on('unlink', callListeners);
+// const watcher = new FSWatcher({
+//     disableGlobbing: true,
+//     awaitWriteFinish: true,
+//     ignoreInitial: true,
+//     persistent: false,
+// });
+// watcher.on('error', (e) => log.error(e));
+// watcher.on('add', callListeners);
+// watcher.on('change', callListeners);
+// watcher.on('unlink', callListeners);
 
 export const useWatchFiles = (files: readonly string[], onChange: () => void): void => {
     useEffect(() => {
@@ -44,9 +44,9 @@ export const useWatchFiles = (files: readonly string[], onChange: () => void): v
     useEffect(() => {
         if (files.length === 0) return;
 
-        watcher.add(files);
-        return () => {
-            watcher.unwatch(files);
-        };
+        // watcher.add(files);
+        // return () => {
+        //     watcher.unwatch(files);
+        // };
     }, [files]);
 };

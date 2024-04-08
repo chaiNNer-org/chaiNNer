@@ -1,13 +1,12 @@
-import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
-import { ParsedSaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
 import { ipcRenderer } from '../safeIpc';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
+import type { ParsedSaveData } from '../../main/SaveFile';
 
 export interface ChainnerDragData {
     schemaId: SchemaId;
@@ -28,13 +27,13 @@ export interface DataTransferProcessorOptions {
     changeEdges: SetState<Edge<EdgeData>[]>;
 }
 
-export const getSingleFileWithExtension = (
+export const getSingleFileWithExtension = async (
     dataTransfer: DataTransfer,
     allowedExtensions: readonly string[]
-): string | undefined => {
+): Promise<string | undefined> => {
     if (dataTransfer.files.length === 1) {
         const [file] = dataTransfer.files;
-        const extension = extname(file.path).toLowerCase();
+        const extension = (await ipcRenderer.invoke('path-extname', file.path)).toLowerCase();
         if (allowedExtensions.includes(extension)) {
             return file.path;
         }
@@ -114,7 +113,8 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
         if (/\.chn/i.test(file.path)) {
             // found a .chn file
 
-            openSaveFile(file.path)
+            ipcRenderer
+                .invoke('open-save-file', file.path)
                 .then((result) => {
                     // TODO: 1 is hard-coded. Find a better way
                     ipcRenderer.sendTo(1, 'file-open', result);
@@ -134,21 +134,24 @@ const openFileProcessor: DataTransferProcessor = (
     for (const schema of schemata.schemata) {
         for (const input of schema.inputs) {
             if (input.kind === 'file' && input.primaryInput) {
-                const path = getSingleFileWithExtension(dataTransfer, input.filetypes);
-                if (path) {
-                    // found a supported file type
+                getSingleFileWithExtension(dataTransfer, input.filetypes)
+                    .then((path) => {
+                        if (path) {
+                            // found a supported file type
 
-                    createNode({
-                        // hard-coded offset because it looks nicer
-                        position: getNodePosition(100, 100),
-                        data: {
-                            schemaId: schema.schemaId,
-                            inputData: { [input.id]: path },
-                        },
-                    });
+                            createNode({
+                                // hard-coded offset because it looks nicer
+                                position: getNodePosition(100, 100),
+                                data: {
+                                    schemaId: schema.schemaId,
+                                    inputData: { [input.id]: path },
+                                },
+                            });
 
-                    return true;
-                }
+                            return true;
+                        }
+                    })
+                    .catch(log.error);
             }
         }
     }

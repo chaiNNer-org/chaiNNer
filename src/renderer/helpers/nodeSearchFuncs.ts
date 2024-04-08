@@ -1,6 +1,6 @@
+import { RRegex } from 'rregex/lib/browser';
 import { CategoryMap } from '../../common/CategoryMap';
 import { NodeSchema } from '../../common/common-types';
-import { RRegex } from '../../common/rust-regex';
 import { lazy } from '../../common/util';
 
 const isLetter = lazy(() => new RRegex('(?is)^[a-z]$'));

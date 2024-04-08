@@ -433,7 +433,7 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [selectionMenu, setSelectedNodes]
     );
 
-    const [isMac, setIsMac] = useState<boolean>(false);
+    const [isMac, setIsMac] = useState(false);
     useEffect(() => {
         ipcRenderer
             .invoke('get-is-mac')

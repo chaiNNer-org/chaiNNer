@@ -1,4 +1,4 @@
-import { isRenderer } from '../main/env';
+import { isRenderer } from './env';
 import { log } from './log';
 
 let imports;

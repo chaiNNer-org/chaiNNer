@@ -30,4 +30,4 @@ interface SafeIpcRenderer extends Electron.IpcRenderer {
     sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
 }
 
-export const ipcRenderer = window.unsafeIpcRenderer.ipcRenderer as SafeIpcRenderer;
+export const ipcRenderer = window.unsafeIpcRenderer as SafeIpcRenderer;

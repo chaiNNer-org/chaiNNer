@@ -84,24 +84,27 @@ export const FileInput = memo(
             if (event.dataTransfer.types.includes('Files')) {
                 event.stopPropagation();
 
-                const p = getSingleFileWithExtension(event.dataTransfer, filetypes);
-                if (p) {
-                    setFilePath(p);
-                    return;
-                }
+                getSingleFileWithExtension(event.dataTransfer, filetypes)
+                    .then((p) => {
+                        if (p) {
+                            setFilePath(p);
+                            return;
+                        }
 
-                if (event.dataTransfer.files.length !== 1) {
-                    sendToast({
-                        status: 'error',
-                        description: `Only one file is accepted by ${label}.`,
-                    });
-                } else {
-                    const ext = path.extname(event.dataTransfer.files[0].path);
-                    sendToast({
-                        status: 'error',
-                        description: `${label} does not accept ${ext} files.`,
-                    });
-                }
+                        if (event.dataTransfer.files.length !== 1) {
+                            sendToast({
+                                status: 'error',
+                                description: `Only one file is accepted by ${label}.`,
+                            });
+                        } else {
+                            const ext = path.extname(event.dataTransfer.files[0].path);
+                            sendToast({
+                                status: 'error',
+                                description: `${label} does not accept ${ext} files.`,
+                            });
+                        }
+                    })
+                    .catch(log.error);
             }
         };
 

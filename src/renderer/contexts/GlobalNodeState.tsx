@@ -1,5 +1,4 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
-import { dirname } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -28,7 +27,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
     EMPTY_SET,
@@ -87,6 +85,7 @@ import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { useSettings } from './SettingsContext';
+import type { ParsedSaveData, SaveData } from '../../main/SaveFile';
 
 const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
 
@@ -427,10 +426,12 @@ export const GlobalProvider = memo(
                     if (!saveAs && savePath) {
                         await ipcRenderer.invoke('file-save-json', saveData, savePath);
                     } else {
+                        const firstOpenRecent = openRecent[0];
+                        const dirname = await ipcRenderer.invoke('path-dirname', firstOpenRecent);
                         const result = await ipcRenderer.invoke(
                             'file-save-as-json',
                             saveData,
-                            savePath || (openRecent[0] && dirname(openRecent[0]))
+                            savePath || (firstOpenRecent && dirname)
                         );
                         if (result.kind === 'Canceled') {
                             return SaveResult.Canceled;

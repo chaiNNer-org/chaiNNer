@@ -1,10 +1,10 @@
-import { type FileFilter, type OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
 import { MakeDirectoryOptions } from 'fs';
 import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
-import { ParsedSaveData, SaveData } from './SaveFile';
 import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
+import type { ParsedSaveData, SaveData } from '../main/SaveFile';
+import type { FileFilter, OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
@@ -37,6 +37,7 @@ export interface InvokeChannels {
     'open-url': ChannelInfo<void, [url: string]>;
     'get-is-mac': ChannelInfo<boolean>;
     'get-is-arm-mac': ChannelInfo<boolean>;
+    'open-save-file': ChannelInfo<FileOpenResult<ParsedSaveData>, [path: string]>;
 
     // settings
     'get-settings': ChannelInfo<ChainnerSettings>;
@@ -98,6 +99,12 @@ export interface InvokeChannels {
     'clipboard-readImage': ChannelInfo<Electron.NativeImage>;
     'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
     'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
+
+    // Path
+    'path-dirname': ChannelInfo<string, [path: string]>;
+    'path-basename': ChannelInfo<string, [path: string]>;
+    'path-extname': ChannelInfo<string, [path: string]>;
+    'path-join': ChannelInfo<string, [path: string, ...paths: string[]]>;
 }
 
 export interface SendChannels {

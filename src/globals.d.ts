@@ -2,7 +2,5 @@
 declare var startupFile: string | null;
 
 interface Window {
-    unsafeIpcRenderer: {
-        ipcRenderer: import('electron').IpcRenderer;
-    };
+    unsafeIpcRenderer: import('electron').IpcRenderer;
 }
