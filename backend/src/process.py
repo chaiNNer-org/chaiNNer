@@ -7,7 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Iterable, List, NewType, Union
+from typing import Iterable, List, NewType, Sequence, Union
 
 from sanic.log import logger
 
@@ -221,14 +221,47 @@ class _Timer:
 
     @contextmanager
     def run(self):
-        start = time.time()
+        start = time.monotonic()
         try:
             yield None
         finally:
             self.add_since(start)
 
     def add_since(self, start: float):
-        self.duration += time.time() - start
+        self.duration += time.monotonic() - start
+
+
+class _IterationTimer:
+    def __init__(self, progress: ProgressController) -> None:
+        self.times: list[float] = []
+        self.progress = progress
+
+        self._start_time = time.monotonic()
+        self._start_paused = progress.time_paused
+
+        self._last_time = self._start_time
+        self._last_paused = self._start_paused
+
+    @property
+    def iterations(self) -> int:
+        return len(self.times)
+
+    def get_time_since_start(self) -> float:
+        now = time.monotonic()
+        paused = self.progress.time_paused
+
+        current_paused = max(0, paused - self._start_paused)
+        return now - self._start_time - current_paused
+
+    def add(self):
+        now = time.monotonic()
+        paused = self.progress.time_paused
+
+        current_paused = max(0, paused - self._last_paused)
+        self.times.append(now - self._last_time - current_paused)
+
+        self._last_time = now
+        self._last_paused = paused
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
@@ -611,24 +644,21 @@ class Executor:
             collectors.append((collector_output.collector, timer, collector_node))
 
         # timing iterations
-        times: list[float] = []
+        iter_times = _IterationTimer(self.progress)
         expected_length = iterator_output.iterator.expected_length
-        start_time = time.time()
-        last_time = [start_time]
 
         async def update_progress():
-            times.append(time.time() - last_time[0])
-            iterations = len(times)
-            last_time[0] = time.time()
+            iter_times.add()
+            iterations = iter_times.iterations
             await self.__send_node_progress(
                 node,
-                times,
+                iter_times.times,
                 iterations,
                 max(expected_length, iterations),
             )
 
         # iterate
-        await self.__send_node_progress(node, times, 0, expected_length)
+        await self.__send_node_progress(node, [], 0, expected_length)
 
         deferred_errors: list[str] = []
         for values in iterator_output.iterator.iter_supplier():
@@ -683,9 +713,8 @@ class Executor:
         await self.__send_node_broadcast(node, iterator_output.partial_output)
 
         # finish iterator
-        iterations = len(times)
-        await self.__send_node_progress_done(node, iterations)
-        await self.__send_node_finish(node, time.time() - start_time)
+        await self.__send_node_progress_done(node, iter_times.iterations)
+        await self.__send_node_finish(node, iter_times.get_time_since_start())
 
         # finalize collectors
         for collector, timer, collector_node in collectors:
@@ -786,12 +815,22 @@ class Executor:
         )
 
     async def __send_node_progress(
-        self, node: Node, times: list[float], index: int, length: int
+        self, node: Node, times: Sequence[float], index: int, length: int
     ):
-        def get_eta() -> float:
-            if len(times) == 0:
-                return 0
-            return (sum(times) / len(times)) * (length - index)
+        def get_eta(times: Sequence[float]) -> float:
+            avg_time = 0
+            if len(times) > 0:
+                # only consider the last 100
+                times = times[-100:]
+
+                # use a weighted average
+                weights = [max(1 / i, 0.9**i) for i in range(len(times), 0, -1)]
+                avg_time = sum(t * w for t, w in zip(times, weights)) / sum(weights)
+
+            remaining = max(0, length - index)
+            return avg_time * remaining
+
+        logger.info(f"times {times}")
 
         await self.queue.put(
             {
@@ -801,7 +840,7 @@ class Executor:
                     "progress": 1 if length == 0 else index / length,
                     "index": index,
                     "total": length,
-                    "eta": get_eta(),
+                    "eta": get_eta(times),
                 },
             }
         )
