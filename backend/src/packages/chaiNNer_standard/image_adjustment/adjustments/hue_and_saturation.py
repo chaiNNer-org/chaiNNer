@@ -102,14 +102,14 @@ def hue_and_saturation_node(
 
         # Adjust hue
         if hue != 0:
-            h += hue
+            h += hue  # type: ignore
             h[h >= 360] -= 360  # Wrap positive overflow
             h[h < 0] += 360  # Wrap negative overflow
 
         # Adjust saturation
         if saturation != 0:
             factor = 1 + saturation
-            s *= factor
+            s *= factor  # type: ignore
             if factor > 1:
                 s = np.clip(s, 0, 1, out=s)
 
