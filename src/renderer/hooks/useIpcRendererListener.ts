@@ -8,7 +8,15 @@ export const useIpcRendererListener = <C extends keyof SendChannels>(
     listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
 ) => {
     useEffect(() => {
-        ipcRenderer.on(channel, listener);
+        console.log('channel', channel);
+        const func = (...args: any[]) => {
+            console.log('interception');
+
+            // @ts-expect-error This is fine
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            listener(...args);
+        };
+        ipcRenderer.on(channel, func);
         return () => {
             ipcRenderer.removeListener(channel, listener);
         };

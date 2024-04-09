@@ -116,6 +116,7 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
             ipcRenderer
                 .invoke('open-save-file', file.path)
                 .then((result) => {
+                    console.log('🚀 ~ .then ~ result:', result);
                     // TODO: 1 is hard-coded. Find a better way
                     ipcRenderer.sendTo(1, 'file-open', result);
                 })
