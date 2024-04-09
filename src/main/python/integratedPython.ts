@@ -57,6 +57,12 @@ const extractPython = async (
     );
 };
 
+export const getIntegratedPythonExecutable = (directory: string): string => {
+    const platform = getPlatform();
+    const { path: relativePath } = downloads[platform];
+    return path.resolve(path.join(directory, relativePath));
+};
+
 /**
  * Retrieves the path of the python executable of the integrated python installation.
  *
@@ -67,9 +73,9 @@ export const getIntegratedPython = async (
     onProgress: (percentage: number, stage: 'download' | 'extract') => void
 ): Promise<PythonInfo> => {
     const platform = getPlatform();
-    const { url, version, path: relativePath } = downloads[platform];
+    const { url, version } = downloads[platform];
 
-    const pythonPath = path.resolve(path.join(directory, relativePath));
+    const pythonPath = getIntegratedPythonExecutable(directory);
     const pythonBinExists = await checkFileExists(pythonPath);
 
     if (pythonBinExists) {

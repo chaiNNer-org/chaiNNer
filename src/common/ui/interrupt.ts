@@ -5,8 +5,11 @@ interface ActionBase<T extends string> {
 interface OpenUrlAction extends ActionBase<'open-url'> {
     url: string;
 }
+interface RunAction extends ActionBase<'run'> {
+    action: () => void;
+}
 
-export type Action = OpenUrlAction;
+export type Action = OpenUrlAction | RunAction;
 
 export interface InteractionOption {
     title: string;

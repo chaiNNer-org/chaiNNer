@@ -145,14 +145,12 @@ export const NodeView = memo(
                             toggleCollapse={toggleCollapse}
                             validity={validity}
                         />
-                        {!isCollapsed ? (
-                            <NodeBody
-                                animated={animated}
-                                nodeState={nodeState}
-                            />
-                        ) : (
-                            <CollapsedHandles nodeState={nodeState} />
-                        )}
+                        <NodeBody
+                            animated={animated}
+                            isCollapsed={isCollapsed}
+                            nodeState={nodeState}
+                        />
+                        {isCollapsed && <CollapsedHandles nodeState={nodeState} />}
                     </VStack>
                     {!isCollapsed && (
                         <NodeFooter

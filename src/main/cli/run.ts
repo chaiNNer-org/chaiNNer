@@ -48,8 +48,12 @@ const addProgressListeners = (monitor: ProgressMonitor) => {
                     logger(`   Go to ${action.url}`);
                     break;
 
+                case 'run':
+                    // log nothing
+                    break;
+
                 default:
-                    return assertNever(action.type);
+                    return assertNever(action);
             }
         }
 
