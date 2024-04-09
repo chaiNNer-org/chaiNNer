@@ -3,6 +3,7 @@ import { defineConfig, mergeConfig } from 'vite';
 import checker from 'vite-plugin-checker';
 import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './vite.base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
+import './forge.env.d';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
