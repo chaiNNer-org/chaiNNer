@@ -124,30 +124,6 @@ const config = {
         },
     ],
     plugins: [
-        // {
-        //     name: '@electron-forge/plugin-webpack',
-        //     config: {
-        //         mainConfig: './webpack.main.config.js',
-        //         renderer: {
-        //             config: './webpack.renderer.config.js',
-        //             nodeIntegration: true,
-        //             contextIsolation: false,
-        //             entryPoints: [
-        //                 {
-        //                     html: './src/renderer/index.html',
-        //                     js: './src/renderer/renderer.js',
-        //                     name: 'main_window',
-        //                 },
-        //                 {
-        //                     html: './src/renderer/splash.html',
-        //                     js: './src/renderer/splash_renderer.js',
-        //                     name: 'splash_screen',
-        //                 },
-        //             ],
-        //         },
-        //         devContentSecurityPolicy: '',
-        //     },
-        // },
         {
             name: '@electron-forge/plugin-vite',
             config: {
