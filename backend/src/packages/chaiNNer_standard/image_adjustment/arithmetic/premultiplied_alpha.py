@@ -7,7 +7,7 @@ import numpy as np
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import adjustments_group
+from .. import arithmetic_group
 
 
 class AlphaAssociation(Enum):
@@ -15,7 +15,7 @@ class AlphaAssociation(Enum):
     UNPREMULTIPLY_RGB = "Premultiplied -> Straight"
 
 
-@adjustments_group.register(
+@arithmetic_group.register(
     schema_id="chainner:image:premultiplied_alpha",
     description="Converts an RGBA Input from a Straight Alpha Association to a Premultiplied Alpha Association, or vice versa.",
     name="Premultiplied Alpha",

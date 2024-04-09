@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 import numpy as np
 
 from nodes.properties.inputs import ImageInput
@@ -19,6 +21,8 @@ from .. import adjustments_group
 )
 def invert_color_node(img: np.ndarray) -> np.ndarray:
     c = get_h_w_c(img)[2]
+
+    time.sleep(1)
 
     # invert the first 3 channels
     if c <= 3:

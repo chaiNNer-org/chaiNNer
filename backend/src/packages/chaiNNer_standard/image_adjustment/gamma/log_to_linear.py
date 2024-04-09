@@ -5,10 +5,10 @@ import numpy as np
 from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import adjustments_group
+from .. import gamma_group
 
 
-@adjustments_group.register(
+@gamma_group.register(
     schema_id="chainner:image:log2lin",
     description="Convert all channels in an image to a scene linear encoding using the Kodak Cineon logarithmic function set.",
     name="Log To Linear",
