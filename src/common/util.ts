@@ -8,12 +8,6 @@ export const EMPTY_OBJECT: Readonly<Record<string, never>> = Object.freeze({});
 
 export const noop = () => {};
 
-export const checkFileExists = (file: string): Promise<boolean> => Promise.resolve(true);
-// fs.access(file, constants.F_OK).then(
-//     () => true,
-//     () => false
-// );
-
 export const assertNever = (value: never): never => {
     throw new Error(`Unreachable code path. The value ${String(value)} is invalid.`);
 };

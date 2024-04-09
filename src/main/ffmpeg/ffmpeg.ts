@@ -6,9 +6,10 @@ import path from 'path';
 import util from 'util';
 import { FfmpegInfo } from '../../common/common-types';
 import { log } from '../../common/log';
-import { assertNever, checkFileExists } from '../../common/util';
+import { assertNever } from '../../common/util';
 import { isArmMac } from '../env';
 import { SupportedPlatform, getPlatform } from '../platform';
+import { checkFileExists } from '../util';
 
 const exec = util.promisify(_exec);
 
