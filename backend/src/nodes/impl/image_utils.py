@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import itertools
 import math
-import os
-import random
-import string
 from enum import Enum
 from pathlib import Path
 
@@ -335,21 +332,14 @@ def cv_save_image(path: Path | str, img: np.ndarray, params: list[int]):
     A light wrapper around `cv2.imwrite` to support non-ASCII paths.
     """
 
-    # Write image with opencv if path is ascii, since imwrite doesn't support unicode
-    # This saves us from having to keep the image buffer in memory, if possible
-    if str(path).isascii():
-        cv2.imwrite(str(path), img, params)
-    else:
-        dirname, _, extension = split_file_path(path)
-        try:
-            temp_filename = f'temp-{"".join(random.choices(string.ascii_letters, k=16))}.{extension}'
-            full_temp_path = os.path.join(dirname, temp_filename)
-            cv2.imwrite(full_temp_path, img, params)
-            os.rename(full_temp_path, path)
-        except Exception:
-            _, buf_img = cv2.imencode(f".{extension}", img, params)
-            with open(path, "wb") as outf:
-                outf.write(buf_img)  # type: ignore
+    # We can't actually use `cv2.imwrite`, because it:
+    # 1. Doesn't support non-ASCII paths
+    # 2. Silently fails without doing anything if the path is invalid
+
+    _, _, extension = split_file_path(path)
+    _, buf_img = cv2.imencode(f".{extension}", img, params)
+    with open(path, "wb") as outf:
+        outf.write(buf_img)  # type: ignore
 
 
 def cartesian_product(arrays: list[np.ndarray]) -> np.ndarray:
