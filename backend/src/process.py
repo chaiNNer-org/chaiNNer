@@ -830,8 +830,6 @@ class Executor:
             remaining = max(0, length - index)
             return avg_time * remaining
 
-        logger.info(f"times {times}")
-
         await self.queue.put(
             {
                 "event": "node-progress",
