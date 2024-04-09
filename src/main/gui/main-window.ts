@@ -135,8 +135,8 @@ const registerEventHandlerPreSetup = (
     });
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
-    ipcMain.handle('get-is-mac', (event) => isMac);
-    ipcMain.handle('get-is-arm-mac', (event) => isArmMac);
+    ipcMain.handle('get-is-mac', () => isMac);
+    ipcMain.handle('get-is-arm-mac', () => isArmMac);
     ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none

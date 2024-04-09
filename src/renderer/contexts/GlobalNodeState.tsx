@@ -1,4 +1,5 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
+import { parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -1167,8 +1168,7 @@ export const GlobalProvider = memo(
             [reactFlowWrapper, currentReactFlowInstance, viewportExportPadding, sendToast]
         );
         const exportViewportScreenshot = useCallback(() => {
-            // const currentChainName = savePath ? parse(savePath).name : 'Untitled';
-            const currentChainName = 'Untitled';
+            const currentChainName = savePath ? parse(savePath).name : 'Untitled';
 
             const date = new Date();
             const dateString = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;

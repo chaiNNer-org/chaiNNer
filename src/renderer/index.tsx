@@ -1,4 +1,5 @@
-// import electronLog from 'electron-log';
+import electronLog from 'electron-log';
+import path from 'path';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { LEVEL_NAME, log } from '../common/log';
@@ -8,18 +9,18 @@ import { ipcRenderer } from './safeIpc';
 ipcRenderer
     .invoke('get-appdata')
     .then((rootDir) => {
-        // electronLog.transports.file.resolvePath = (variables) =>
-        //     path.join(rootDir, 'logs', variables.fileName!);
-        // electronLog.transports.file.level = 'info';
-        // electronLog.transports.console.level = 'debug';
-        // log.addTransport({
-        //     log: ({ level, message, additional }) => {
-        //         electronLog[LEVEL_NAME[level]](message, ...additional);
-        //     },
-        // });
+        electronLog.transports.file.resolvePath = (variables) =>
+            path.join(rootDir, 'logs', variables.fileName!);
+        electronLog.transports.file.level = 'info';
+        electronLog.transports.console.level = 'debug';
+        log.addTransport({
+            log: ({ level, message, additional }) => {
+                electronLog[LEVEL_NAME[level]](message, ...additional);
+            },
+        });
     })
     .catch((err) => {
-        // electronLog.error(err);
+        electronLog.error(err);
     });
 
 const queryClient = new QueryClient();

@@ -10,7 +10,10 @@ module.exports = {
         'unused-imports',
     ],
     globals: {
-        MAIN_WINDOW_WEBPACK_ENTRY: true,
+        MAIN_WINDOW_VITE_DEV_SERVER_URL: true,
+        MAIN_WINDOW_VITE_NAME: true,
+        VitePluginConfig: true,
+        VitePluginRuntimeKeys: true,
     },
     env: {
         browser: true,

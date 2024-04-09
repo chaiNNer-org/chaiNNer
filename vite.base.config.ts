@@ -85,6 +85,7 @@ export const pluginHotRestart = (command: 'reload' | 'restart'): Plugin => ({
     name: '@electron-forge/plugin-vite:hot-restart',
     closeBundle: () => {
         if (command === 'reload') {
+            // eslint-disable-next-line no-restricted-syntax
             for (const server of Object.values(process.viteDevServers)) {
                 // Preload scripts hot reload.
                 server.ws.send({ type: 'full-reload' });

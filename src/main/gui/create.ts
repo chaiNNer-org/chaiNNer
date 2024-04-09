@@ -11,37 +11,37 @@ const mdCodeBlock = (code: string): string => {
 };
 
 const setupErrorHandling = () => {
-    // electronLog.catchErrors({
-    //     showDialog: false,
-    //     onError: (error, versions, submitIssue) => {
-    //         dialog
-    //             .showMessageBox({
-    //                 title: 'An error occurred',
-    //                 message: error.message,
-    //                 detail: error.stack,
-    //                 type: 'error',
-    //                 buttons: ['Ignore', 'Report', 'Exit'],
-    //             })
-    //             .then((result) => {
-    //                 if (result.response === 1) {
-    //                     const stack = error.stack
-    //                         ? `\n${error.stack.replace(String(error), '')}`
-    //                         : '';
-    //                     submitIssue!('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
-    //                         title: `Error report: ${error.message}`,
-    //                         body: [
-    //                             mdCodeBlock(String(error) + stack),
-    //                             `ChaiNNer: ${String(versions?.app)}`,
-    //                             `OS: ${String(versions?.os)}`,
-    //                         ].join('\n'),
-    //                     });
-    //                 } else if (result.response === 2) {
-    //                     app.quit();
-    //                 }
-    //             })
-    //             .catch(log.error);
-    //     },
-    // });
+    electronLog.catchErrors({
+        showDialog: false,
+        onError: (error, versions, submitIssue) => {
+            dialog
+                .showMessageBox({
+                    title: 'An error occurred',
+                    message: error.message,
+                    detail: error.stack,
+                    type: 'error',
+                    buttons: ['Ignore', 'Report', 'Exit'],
+                })
+                .then((result) => {
+                    if (result.response === 1) {
+                        const stack = error.stack
+                            ? `\n${error.stack.replace(String(error), '')}`
+                            : '';
+                        submitIssue!('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
+                            title: `Error report: ${error.message}`,
+                            body: [
+                                mdCodeBlock(String(error) + stack),
+                                `ChaiNNer: ${String(versions?.app)}`,
+                                `OS: ${String(versions?.os)}`,
+                            ].join('\n'),
+                        });
+                    } else if (result.response === 2) {
+                        app.quit();
+                    }
+                })
+                .catch(log.error);
+        },
+    });
 };
 
 export const createGuiApp = (args: OpenArguments) => {
