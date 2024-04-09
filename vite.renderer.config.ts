@@ -1,5 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vite';
+import checker from 'vite-plugin-checker';
 import { pluginExposeRenderer } from './vite.base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
 
@@ -16,7 +18,7 @@ export default defineConfig((env) => {
         build: {
             outDir: `.vite/renderer/${name}`,
         },
-        plugins: [pluginExposeRenderer(name), react()],
+        plugins: [pluginExposeRenderer(name), react(), checker({ typescript: true })],
         resolve: {
             preserveSymlinks: true,
             alias: {

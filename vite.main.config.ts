@@ -1,4 +1,6 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { defineConfig, mergeConfig } from 'vite';
+import checker from 'vite-plugin-checker';
 import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './vite.base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
 
@@ -18,7 +20,7 @@ export default defineConfig((env) => {
                 external,
             },
         },
-        plugins: [pluginHotRestart('restart')],
+        plugins: [pluginHotRestart('restart'), checker({ typescript: true })],
         define,
         resolve: {
             // Load the Node.js entry.
