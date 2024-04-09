@@ -24,11 +24,10 @@ from nodes.impl.dds.format import (
 from nodes.impl.dds.texconv import save_as_dds
 from nodes.impl.image_utils import cv_save_image, to_uint8, to_uint16
 from nodes.properties.inputs import (
-    SUPPORTED_DDS_FORMATS,
     BoolInput,
-    DdsFormatDropdown,
-    DdsMipMapsDropdown,
     DirectoryInput,
+    DropDownGroup,
+    DropDownInput,
     EnumInput,
     ImageInput,
     SliderInput,
@@ -66,6 +65,64 @@ IMAGE_FORMAT_LABELS: dict[ImageFormat, str] = {
 }
 
 
+class JpegSubsampling(Enum):
+    FACTOR_444 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_444)
+    FACTOR_440 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_440)
+    FACTOR_422 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_422)
+    FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
+
+
+class PngColorDepth(Enum):
+    U8 = "u8"
+    U16 = "u16"
+
+
+class TiffColorDepth(Enum):
+    U8 = "u8"
+    U16 = "u16"
+    F32 = "f32"
+
+
+SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
+    ("BC1_UNORM_SRGB", "BC1 (4bpp, sRGB, 1-bit Alpha)"),
+    ("BC1_UNORM", "BC1 (4bpp, Linear, 1-bit Alpha)"),
+    ("BC3_UNORM_SRGB", "BC3 (8bpp, sRGB, 8-bit Alpha)"),
+    ("BC3_UNORM", "BC3 (8bpp, Linear, 8-bit Alpha)"),
+    ("BC4_UNORM", "BC4 (4bpp, Grayscale)"),
+    ("BC5_UNORM", "BC5 (8bpp, Unsigned, 2-channel normal)"),
+    ("BC5_SNORM", "BC5 (8bpp, Signed, 2-channel normal)"),
+    ("BC7_UNORM_SRGB", "BC7 (8bpp, sRGB, 8-bit Alpha)"),
+    ("BC7_UNORM", "BC7 (8bpp, Linear, 8-bit Alpha)"),
+    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha)"),
+    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha)"),
+    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha)"),
+    ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
+    ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM", "BGRA (32bpp, Linear, 8-bit Alpha)"),
+    ("B5G5R5A1_UNORM", "BGRA (16bpp, Linear, 1-bit Alpha)"),
+    ("B5G6R5_UNORM", "BGR (16bpp, Linear)"),
+    ("B8G8R8X8_UNORM_SRGB", "BGRX (32bpp, sRGB)"),
+    ("B8G8R8X8_UNORM", "BGRX (32bpp, Linear)"),
+    ("R8G8_UNORM", "RG (16bpp, Linear)"),
+    ("R8_UNORM", "R (8bpp, Linear)"),
+]
+
+
+def DdsFormatDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsFormat",
+        label="DDS Format",
+        options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
+        associated_type=DDSFormat,
+        groups=[
+            DropDownGroup("Compressed", start_at="BC1_UNORM_SRGB"),
+            DropDownGroup("Uncompressed", start_at="R8G8B8A8_UNORM_SRGB"),
+            DropDownGroup("Legacy Compressed", start_at="DXT1"),
+        ],
+    )
+
+
 SUPPORTED_FORMATS = {f for f, _ in SUPPORTED_DDS_FORMATS}
 SUPPORTED_BC7_FORMATS = list(SUPPORTED_FORMATS.intersection(BC7_FORMATS))
 SUPPORTED_BC123_FORMATS = list(SUPPORTED_FORMATS.intersection(BC123_FORMATS))
@@ -83,22 +140,17 @@ class BC7Compression(Enum):
     BEST_QUALITY = 2
 
 
-class JpegSubsampling(Enum):
-    FACTOR_444 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_444)
-    FACTOR_440 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_440)
-    FACTOR_422 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_422)
-    FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
-
-
-class PngColorDepth(Enum):
-    U8 = "u8"
-    U16 = "u16"
-
-
-class TiffColorDepth(Enum):
-    U8 = "u8"
-    U16 = "u16"
-    F32 = "f32"
+def DdsMipMapsDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsMipMaps",
+        label="Generate Mip Maps",
+        preferred_style="checkbox",
+        options=[
+            # these are not boolean values, see dds.py for more info
+            {"option": "Yes", "value": 0},
+            {"option": "No", "value": 1},
+        ],
+    )
 
 
 @io_group.register(
