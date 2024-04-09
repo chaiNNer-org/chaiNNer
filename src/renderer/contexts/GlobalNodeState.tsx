@@ -692,7 +692,6 @@ export const GlobalProvider = memo(
             'file-open',
             useCallback(
                 (_, result) => {
-                    console.log('🚀 ~ result:', result);
                     if (result.kind === 'Success') {
                         setStateFromJSONRef
                             .current(result.saveData, result.path, true)
