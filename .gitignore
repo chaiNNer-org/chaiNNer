@@ -238,3 +238,6 @@ dmypy.json
 .antlr/
 *.interp
 *.tokens
+
+# vite
+.vite/
