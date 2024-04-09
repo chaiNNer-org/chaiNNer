@@ -11,6 +11,8 @@ export const external = [
     'electron/main',
     'electron/common',
     'electron/renderer',
+    'electron-log/main',
+    'electron-log/renderer',
 ];
 
 export const getBuildConfig = (env: ConfigEnv<'build'>): UserConfig => {

@@ -11,9 +11,9 @@ const mdCodeBlock = (code: string): string => {
 };
 
 const setupErrorHandling = () => {
-    electronLog.catchErrors({
+    electronLog.errorHandler.startCatching({
         showDialog: false,
-        onError: (error, versions, submitIssue) => {
+        onError: ({ createIssue, error, processType, versions }) => {
             dialog
                 .showMessageBox({
                     title: 'An error occurred',
@@ -27,12 +27,12 @@ const setupErrorHandling = () => {
                         const stack = error.stack
                             ? `\n${error.stack.replace(String(error), '')}`
                             : '';
-                        submitIssue!('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
+                        createIssue('https://github.com/chaiNNer-org/chaiNNer/issues/new', {
                             title: `Error report: ${error.message}`,
                             body: [
                                 mdCodeBlock(String(error) + stack),
-                                `ChaiNNer: ${String(versions?.app)}`,
-                                `OS: ${String(versions?.os)}`,
+                                `ChaiNNer: ${String(versions.app)}`,
+                                `OS: ${String(versions.os)}`,
                             ].join('\n'),
                         });
                     } else if (result.response === 2) {
