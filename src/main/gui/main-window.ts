@@ -548,7 +548,6 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
         });
 
         // and load the index.html of the app.
-        // mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
         if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
             await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
         } else {

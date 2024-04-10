@@ -12,7 +12,7 @@ on:
             - 'package.json'
             - 'package-lock.json'
             - 'forge.config.js'
-            - 'webpack*.js'
+            - 'vite*.ts'
     push:
         branches: [main]
 
