@@ -13,7 +13,7 @@ const mdCodeBlock = (code: string): string => {
 const setupErrorHandling = () => {
     electronLog.errorHandler.startCatching({
         showDialog: false,
-        onError: ({ createIssue, error, processType, versions }) => {
+        onError: ({ createIssue, error, versions }) => {
             dialog
                 .showMessageBox({
                     title: 'An error occurred',
