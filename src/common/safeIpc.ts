@@ -99,6 +99,12 @@ export interface InvokeChannels {
     'clipboard-readImage': ChannelInfo<Electron.NativeImage>;
     'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
     'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
+
+    // File watching
+    'watch-file': ChannelInfo<void, [path: string]>;
+    'watch-files': ChannelInfo<void, [paths: readonly string[]]>;
+    'unwatch-file': ChannelInfo<void, [path: string]>;
+    'unwatch-files': ChannelInfo<void, [paths: readonly string[]]>;
 }
 
 export interface SendChannels {
@@ -125,6 +131,7 @@ export interface SendChannels {
     'reboot-after-save': SendChannelInfo;
     'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
     'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
+    'file-changed': SendChannelInfo<[eventType: 'add' | 'change' | 'unlink', path: string]>;
 
     // history
     'history-undo': SendChannelInfo;

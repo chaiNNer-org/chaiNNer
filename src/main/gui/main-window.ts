@@ -21,6 +21,7 @@ import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { isArmMac, isMac } from '../env';
+import { addBrowserWindow, addFile, addFiles, removeFile, removeFiles } from '../fileWatcher';
 import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { SaveFile, openSaveFile } from '../SaveFile';
@@ -245,6 +246,13 @@ const registerEventHandlerPreSetup = (
         const image = nativeImage.createFromDataURL(url);
         clipboard.writeImage(image);
     });
+
+    // File watching
+    addBrowserWindow(mainWindow);
+    ipcMain.handle('watch-file', (event, p) => addFile(p));
+    ipcMain.handle('watch-files', (event, ps) => addFiles(ps));
+    ipcMain.handle('unwatch-file', (event, p) => removeFile(p));
+    ipcMain.handle('unwatch-files', (event, ps) => removeFiles(ps));
 };
 
 const registerEventHandlerPostSetup = (
