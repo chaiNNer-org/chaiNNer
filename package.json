@@ -107,6 +107,7 @@
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
     "@chainner/navi": "^0.7.2",
+    "@chainner/node-path": "^0.1.1",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.9.0",
@@ -140,7 +141,6 @@
     "nodejs-file-downloader": "^4.9.3",
     "os-browserify": "^0.3.0",
     "os-utils": "^0.0.14",
-    "path-browserify": "^1.0.1",
     "portfinder": "^1.0.32",
     "process": "^0.11.10",
     "re-resizable": "^6.9.9",
