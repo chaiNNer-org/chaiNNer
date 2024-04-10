@@ -1,5 +1,5 @@
 import { Expression, Type, evaluate } from '@chainner/navi';
-import { parse } from 'path';
+import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     Connection,
@@ -427,12 +427,10 @@ export const GlobalProvider = memo(
                     if (!saveAs && savePath) {
                         await ipcRenderer.invoke('file-save-json', saveData, savePath);
                     } else {
-                        const firstOpenRecent = openRecent[0];
-                        const dirname = await ipcRenderer.invoke('path-dirname', firstOpenRecent);
                         const result = await ipcRenderer.invoke(
                             'file-save-as-json',
                             saveData,
-                            savePath || (firstOpenRecent && dirname)
+                            savePath || (openRecent[0] && dirname(openRecent[0]))
                         );
                         if (result.kind === 'Canceled') {
                             return SaveResult.Canceled;

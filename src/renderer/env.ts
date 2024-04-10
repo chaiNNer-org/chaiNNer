@@ -1,5 +1,5 @@
-import { ipcRenderer } from './safeIpc';
+import path from 'path';
 
 export const getCacheLocation = (userDataPath: string, cacheKey: string) => {
-    return ipcRenderer.invoke('path-join', userDataPath, '/cache/', cacheKey);
+    return path.join(userDataPath, '/cache/', cacheKey);
 };

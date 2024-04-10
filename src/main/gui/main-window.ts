@@ -245,10 +245,6 @@ const registerEventHandlerPreSetup = (
         const image = nativeImage.createFromDataURL(url);
         clipboard.writeImage(image);
     });
-    ipcMain.handle('path-dirname', (event, p) => path.dirname(p));
-    ipcMain.handle('path-basename', (event, p) => path.basename(p));
-    ipcMain.handle('path-extname', (event, p) => path.extname(p));
-    ipcMain.handle('path-join', (event, ...paths) => path.join(...paths));
 };
 
 const registerEventHandlerPostSetup = (

@@ -99,12 +99,6 @@ export interface InvokeChannels {
     'clipboard-readImage': ChannelInfo<Electron.NativeImage>;
     'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
     'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
-
-    // Path
-    'path-dirname': ChannelInfo<string, [path: string]>;
-    'path-basename': ChannelInfo<string, [path: string]>;
-    'path-extname': ChannelInfo<string, [path: string]>;
-    'path-join': ChannelInfo<string, [path: string, ...paths: string[]]>;
 }
 
 export interface SendChannels {

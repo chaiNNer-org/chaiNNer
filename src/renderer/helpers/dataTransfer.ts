@@ -1,3 +1,4 @@
+import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -27,13 +28,13 @@ export interface DataTransferProcessorOptions {
     changeEdges: SetState<Edge<EdgeData>[]>;
 }
 
-export const getSingleFileWithExtension = async (
+export const getSingleFileWithExtension = (
     dataTransfer: DataTransfer,
     allowedExtensions: readonly string[]
-): Promise<string | undefined> => {
+): string | undefined => {
     if (dataTransfer.files.length === 1) {
         const [file] = dataTransfer.files;
-        const extension = (await ipcRenderer.invoke('path-extname', file.path)).toLowerCase();
+        const extension = extname(file.path).toLowerCase();
         if (allowedExtensions.includes(extension)) {
             return file.path;
         }
@@ -134,24 +135,21 @@ const openFileProcessor: DataTransferProcessor = (
     for (const schema of schemata.schemata) {
         for (const input of schema.inputs) {
             if (input.kind === 'file' && input.primaryInput) {
-                getSingleFileWithExtension(dataTransfer, input.filetypes)
-                    .then((path) => {
-                        if (path) {
-                            // found a supported file type
+                const path = getSingleFileWithExtension(dataTransfer, input.filetypes);
+                if (path) {
+                    // found a supported file type
 
-                            createNode({
-                                // hard-coded offset because it looks nicer
-                                position: getNodePosition(100, 100),
-                                data: {
-                                    schemaId: schema.schemaId,
-                                    inputData: { [input.id]: path },
-                                },
-                            });
+                    createNode({
+                        // hard-coded offset because it looks nicer
+                        position: getNodePosition(100, 100),
+                        data: {
+                            schemaId: schema.schemaId,
+                            inputData: { [input.id]: path },
+                        },
+                    });
 
-                            return true;
-                        }
-                    })
-                    .catch(log.error);
+                    return true;
+                }
             }
         }
     }

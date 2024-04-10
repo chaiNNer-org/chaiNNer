@@ -17,7 +17,6 @@ import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { log } from '../../../common/log';
-
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -84,27 +83,24 @@ export const FileInput = memo(
             if (event.dataTransfer.types.includes('Files')) {
                 event.stopPropagation();
 
-                getSingleFileWithExtension(event.dataTransfer, filetypes)
-                    .then((p) => {
-                        if (p) {
-                            setFilePath(p);
-                            return;
-                        }
+                const p = getSingleFileWithExtension(event.dataTransfer, filetypes);
+                if (p) {
+                    setFilePath(p);
+                    return;
+                }
 
-                        if (event.dataTransfer.files.length !== 1) {
-                            sendToast({
-                                status: 'error',
-                                description: `Only one file is accepted by ${label}.`,
-                            });
-                        } else {
-                            const ext = path.extname(event.dataTransfer.files[0].path);
-                            sendToast({
-                                status: 'error',
-                                description: `${label} does not accept ${ext} files.`,
-                            });
-                        }
-                    })
-                    .catch(log.error);
+                if (event.dataTransfer.files.length !== 1) {
+                    sendToast({
+                        status: 'error',
+                        description: `Only one file is accepted by ${label}.`,
+                    });
+                } else {
+                    const ext = path.extname(event.dataTransfer.files[0].path);
+                    sendToast({
+                        status: 'error',
+                        description: `${label} does not accept ${ext} files.`,
+                    });
+                }
             }
         };
 
