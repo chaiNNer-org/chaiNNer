@@ -161,7 +161,7 @@
     "react-query": "^3.39.3",
     "react-time-ago": "^7.2.1",
     "reactflow": "^11.10.1",
-    "rregex": "^1.8.0",
+    "rregex": "^1.10.11",
     "semver": "^7.3.7",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",

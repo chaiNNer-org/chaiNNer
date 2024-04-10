@@ -22,9 +22,10 @@ import {
     wrapTernary,
 } from '@chainner/navi';
 import path from 'path';
-import { RRegex } from 'rregex/lib/browser';
 import { ColorJson } from '../common-types';
 import { log } from '../log';
+import { RRegex } from '../rust-regex';
+import { isNotNullish } from '../util';
 
 type ReplacementToken =
     | { type: 'literal'; value: string }
@@ -168,7 +169,7 @@ const regexReplaceImpl = (
 
     // check replacement keys
     const availableNames = new Set<string>([
-        ...regex.captureNames(),
+        ...regex.captureNames().filter(isNotNullish),
         ...Array.from({ length: regex.capturesLength() }, (_, i) => String(i)),
     ]);
     for (const name of replacement.names) {

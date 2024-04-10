@@ -1,1 +1,1 @@
-export const isRenderer = typeof process !== 'undefined' && process.type === 'renderer';
+export const isRenderer = typeof process === 'undefined' || process.type === 'renderer';
