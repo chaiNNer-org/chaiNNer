@@ -9,7 +9,9 @@ import {
 } from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
+import os from 'os';
 import path from 'path';
+import { v4 as uuid4 } from 'uuid';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -239,7 +241,13 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
     ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
     ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
-    ipcMain.handle('clipboard-readImage', () => clipboard.readImage());
+    ipcMain.handle('clipboard-readImage-and-store', async () => {
+        const clipboardData = clipboard.readImage();
+        const imgData = clipboardData.toPNG();
+        const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
+        await fs.writeFile(imgPath, imgData);
+        return imgPath;
+    });
     ipcMain.handle('clipboard-writeImage', (event, image) => clipboard.writeImage(image));
     ipcMain.handle('clipboard-writeImageFromURL', (event, url) => {
         const image = nativeImage.createFromDataURL(url);

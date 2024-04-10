@@ -142,6 +142,27 @@ module.exports = {
                 'regexp/prefer-d': ['warn', { insideCharacterClass: 'ignore' }],
             },
         },
+        {
+            files: ['src/common/**/*.ts', 'src/renderer/**/*.ts', 'src/renderer/**/*.tsx'],
+            env: {
+                browser: true,
+                node: false,
+            },
+            rules: {
+                'no-restricted-globals': [
+                    'error',
+                    'process',
+                    'global',
+                    '__dirname',
+                    '__filename',
+                    'require',
+                    'module',
+                    'exports',
+                    'setImmediate',
+                ],
+                'import/no-nodejs-modules': ['error', { allow: ['path'] }],
+            },
+        },
     ],
 
     ignorePatterns: ['**/antlr4/*.js'],
