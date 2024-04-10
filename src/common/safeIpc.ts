@@ -1,10 +1,12 @@
-import { MakeDirectoryOptions } from 'fs';
-import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
 import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
 import type { ParsedSaveData, SaveData } from '../main/SaveFile';
+// eslint-disable-next-line import/no-nodejs-modules
 import type { FileFilter, OpenDialogReturnValue } from 'electron/common';
+// eslint-disable-next-line import/no-nodejs-modules
+import type { MakeDirectoryOptions } from 'fs';
+import type { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
@@ -96,7 +98,7 @@ export interface InvokeChannels {
     'clipboard-availableFormats': ChannelInfo<string[]>;
     'clipboard-readHTML': ChannelInfo<string>;
     'clipboard-readRTF': ChannelInfo<string>;
-    'clipboard-readImage': ChannelInfo<Electron.NativeImage>;
+    'clipboard-readImage-and-store': ChannelInfo<string>;
     'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
     'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
 

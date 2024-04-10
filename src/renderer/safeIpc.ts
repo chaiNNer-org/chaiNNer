@@ -1,5 +1,6 @@
-import { IpcRendererEvent } from 'electron/renderer';
 import { ChannelArgs, ChannelReturn, InvokeChannels, SendChannels } from '../common/safeIpc';
+// eslint-disable-next-line import/no-nodejs-modules
+import type { IpcRendererEvent } from 'electron/renderer';
 
 interface SafeIpcRenderer extends Electron.IpcRenderer {
     invoke<C extends keyof InvokeChannels>(
