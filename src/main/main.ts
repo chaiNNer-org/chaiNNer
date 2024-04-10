@@ -39,7 +39,7 @@ const startApp = () => {
     });
 
     app.on('quit', () => {
-        // log.info('Cleaning up temp folders...');
+        log.info('Cleaning up temp folders...');
         const tempDir = os.tmpdir();
         // find all the folders starting with 'chaiNNer-'
         const tempFolders = readdirSync(tempDir, { withFileTypes: true })
@@ -50,7 +50,7 @@ const startApp = () => {
             try {
                 rmSync(path.join(tempDir, folder), { force: true, recursive: true });
             } catch (error) {
-                // log.error(`Error removing temp folder. ${String(error)}`);
+                log.error(`Error removing temp folder. ${String(error)}`);
             }
         });
     });

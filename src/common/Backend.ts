@@ -15,7 +15,6 @@ import {
     SchemaId,
     Version,
 } from './common-types';
-import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -144,16 +143,10 @@ export class Backend {
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
-        const options: RequestInit = isRenderer
-            ? { method, cache: 'no-cache' }
-            : {
-                  method,
-                  cache: 'no-cache',
-                  //   dispatcher: new Agent({
-                  //       bodyTimeout: 0,
-                  //       headersTimeout: 0,
-                  //   }),
-              };
+        const options: RequestInit = {
+            method,
+            cache: 'no-cache',
+        };
         const { signal } = this.abortController;
         if (json !== undefined) {
             options.body = JSON.stringify(json);
