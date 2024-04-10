@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { log } from '../../common/log';
 import { ipcRenderer } from '../safeIpc';
+// eslint-disable-next-line import/no-nodejs-modules
 import type { IpcRendererEvent } from 'electron/renderer';
 
 export const useWatchFiles = (files: readonly string[], onChange: () => void): void => {
