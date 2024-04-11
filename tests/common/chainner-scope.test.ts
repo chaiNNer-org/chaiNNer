@@ -1,4 +1,5 @@
 import { FunctionCallExpression, NamedExpression, evaluate } from '@chainner/navi';
+import { test } from 'vitest';
 import { getChainnerScope } from '../../src/common/types/chainner-scope';
 import { assertNever } from '../../src/common/util';
 

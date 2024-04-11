@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/no-loop-func */
 import * as fs from 'fs';
 import * as path from 'path';
+import { expect, test } from 'vitest';
 import { RawSaveFile, SaveFile } from '../../src/main/SaveFile';
 
 const dataDir = path.join(__dirname, '..', 'data');

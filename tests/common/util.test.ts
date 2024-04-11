@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { compareNumber, sameNumber } from '../../src/common/util';
 
 test('sameNumber', () => {
