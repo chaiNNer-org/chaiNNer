@@ -1,6 +1,10 @@
 import semver from 'semver';
 import type { RestEndpointMethodTypes } from '@octokit/rest';
 
+// DO NOT use @octokit/rest directly. @octokit/rest is unfortunately a node-only package.
+// It uses node modules and other node-only dependencies like node-fetch under the hood,
+// which mean that we cannot use in the browser. Instead, we use the fetch API directly.
+
 const repository = 'chaiNNer-org/chaiNNer';
 
 const fetchApi = async <T>(url: string): Promise<T> => {
