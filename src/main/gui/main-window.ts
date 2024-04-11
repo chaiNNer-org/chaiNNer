@@ -504,7 +504,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             preload: path.join(__dirname, '/preload.js'),
         },
         icon: `${__dirname}/../public/icons/cross_platform/icon`,
-        show: true,
+        show: false,
     }) as BrowserWindowWithSafeIpc;
 
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
