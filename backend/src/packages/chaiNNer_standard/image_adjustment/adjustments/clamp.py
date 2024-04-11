@@ -37,8 +37,11 @@ from .. import adjustments_group
     outputs=[
         ImageOutput(
             image_type="Input0",
+            assume_normalized=True,
         )
     ],
 )
 def clamp_node(img: np.ndarray, minimum: float, maximum: float) -> np.ndarray:
+    if minimum <= 0 and maximum >= 1:
+        return img
     return np.clip(img, minimum, maximum)
