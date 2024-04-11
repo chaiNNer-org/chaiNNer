@@ -49,8 +49,7 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { getFindLinks } from '../../common/pip';
-import { noop } from '../../common/util';
+import { isNotNullish, noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
 import {
@@ -78,6 +77,9 @@ enum InstallMode {
     COPY = 'copy',
 }
 
+const getFindLinks = (dependencies: readonly PyPiPackage[]): string[] => {
+    return [...new Set<string>(dependencies.map((p) => p.findLink).filter(isNotNullish))];
+};
 const getInstallCommand = (pkg: Package, pythonInfo: PythonInfo): string => {
     const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
     const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => ['--extra-index-url', l]);
