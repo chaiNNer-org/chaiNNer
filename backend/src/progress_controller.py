@@ -1,4 +1,5 @@
 import asyncio
+import time
 from abc import ABC, abstractmethod
 
 
@@ -30,6 +31,13 @@ class ProgressController(ProgressToken):
         self.__paused: bool = False
         self.__aborted: bool = False
 
+        self.time_paused: float = 0
+        """
+        The amount of time spend paused in seconds.
+
+        Only time spend during `suspend` is counted.
+        """
+
     @property
     def paused(self) -> bool:
         return self.__paused
@@ -51,7 +59,12 @@ class ProgressController(ProgressToken):
         if self.aborted:
             raise Aborted()
 
-        while self.paused:
-            await asyncio.sleep(0.1)
-            if self.aborted:
-                raise Aborted()
+        if self.paused:
+            start = time.monotonic()
+            try:
+                while self.paused:
+                    await asyncio.sleep(0.1)
+                    if self.aborted:
+                        raise Aborted()
+            finally:
+                self.time_paused += time.monotonic() - start

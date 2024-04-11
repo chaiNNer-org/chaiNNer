@@ -16,7 +16,7 @@ import { useContext } from 'use-context-selector';
 import { getKeyInfo } from '../../../common/nodes/keyInfo';
 import { Validity } from '../../../common/Validity';
 import { AlertBoxContext, AlertType } from '../../contexts/AlertBoxContext';
-import { NodeProgress } from '../../contexts/ExecutionContext';
+import { ExecutionStatusContext, NodeProgress } from '../../contexts/ExecutionContext';
 import { FakeNodeContext } from '../../contexts/FakeExampleContext';
 import { interpolateColor } from '../../helpers/colorTools';
 import { NodeState } from '../../helpers/nodeState';
@@ -30,9 +30,31 @@ interface IteratorProcessProps {
 }
 
 const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessProps) => {
+    const { paused } = useContext(ExecutionStatusContext);
+
     const { progress, eta, index, total } = nodeProgress;
     const etaDate = new Date();
     etaDate.setSeconds(etaDate.getSeconds() + eta);
+
+    let etaText;
+    if (paused) {
+        etaText = 'Paused';
+    } else if (progress >= 1) {
+        etaText = 'Finished';
+    } else {
+        etaText = (
+            <>
+                ETA:{' '}
+                <ReactTimeAgo
+                    future
+                    date={etaDate}
+                    locale="en-US"
+                    timeStyle="round"
+                    tooltip={false}
+                />
+            </>
+        );
+    }
 
     return (
         <Box
@@ -55,18 +77,7 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
                         fontSize="sm"
                         fontWeight="medium"
                     >
-                        ETA:{' '}
-                        {progress === 1 ? (
-                            'Finished'
-                        ) : (
-                            <ReactTimeAgo
-                                future
-                                date={etaDate}
-                                locale="en-US"
-                                timeStyle="round"
-                                tooltip={false}
-                            />
-                        )}
+                        {etaText}
                     </Text>
                 </HStack>
             </Center>
