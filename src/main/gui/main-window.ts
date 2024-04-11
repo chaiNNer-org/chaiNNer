@@ -499,7 +499,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
         webPreferences: {
             webSecurity: false,
             nodeIntegration: false,
-            nodeIntegrationInWorker: true,
+            nodeIntegrationInWorker: false,
             contextIsolation: true,
             preload: path.join(__dirname, '/preload.js'),
         },
