@@ -25,10 +25,9 @@ import {
 } from '@chakra-ui/react';
 import { memo, useEffect, useRef, useState } from 'react';
 import semver from 'semver';
-import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../../common/api/github';
-
 import logo from '../../../public/icons/png/256x256.png';
 import { useSettings } from '../../contexts/SettingsContext';
+import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../helpers/github';
 import { useAsyncEffect } from '../../hooks/useAsyncEffect';
 import { useStored } from '../../hooks/useStored';
 import { ipcRenderer } from '../../safeIpc';

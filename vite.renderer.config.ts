@@ -22,16 +22,6 @@ export default defineConfig((env) => {
         resolve: {
             preserveSymlinks: true,
             alias: {
-                process: 'process/browser',
-                buffer: 'buffer',
-                crypto: 'crypto-browserify',
-                stream: 'stream-browserify',
-                assert: 'assert',
-                http: 'stream-http',
-                https: 'https-browserify',
-                os: 'os-browserify',
-                url: 'url',
-                util: 'util',
                 path: '@chainner/node-path',
             },
         },
