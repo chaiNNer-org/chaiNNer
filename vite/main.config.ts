@@ -1,8 +1,8 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { defineConfig, mergeConfig } from 'vite';
-import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './vite.base.config';
+import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
-import './forge.env.d';
+import './forge-types';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
