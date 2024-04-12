@@ -49,7 +49,9 @@ export const ipcRenderer = {
         }
         channelListeners.add(listener);
     },
-    once: (...args) => window.unsafeIpcRenderer.once(...args),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    once: (channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void) =>
+        window.unsafeIpcRenderer.once(channel, listener),
     postMessage: (...args) => window.unsafeIpcRenderer.postMessage(...args),
     removeAllListeners: (channel: string) => {
         listeners.delete(channel);
