@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>chaiNNer</title>
 
-<head>
-  <meta charset="UTF-8">
-  <title>chaiNNer</title>
+  </head>
+  <body>
+    <div id="root">
 
-</head>
-
-<body>
-  <div id="root">
-
-  </div>
-</body>
-
+    </div>
+    <script>
+      if (global === undefined) {
+        var global = window;
+      }
+    </script>
+    <script type="module" src="./renderer.ts"></script>
+  </body>
 </html>

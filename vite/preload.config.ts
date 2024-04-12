@@ -1,7 +1,7 @@
 import { defineConfig, mergeConfig } from 'vite';
-import { external, getBuildConfig, pluginHotRestart } from './vite.base.config';
+import { external, getBuildConfig, pluginHotRestart } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
-import './forge.env.d';
+import './forge-types';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {

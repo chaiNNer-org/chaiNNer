@@ -1,8 +1,8 @@
 import { builtinModules } from 'node:module';
-import pkg from './package.json';
+import pkg from '../package.json';
 import type { AddressInfo } from 'node:net';
 import type { ConfigEnv, Plugin, UserConfig } from 'vite';
-import './forge.env.d';
+import './forge-types';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 

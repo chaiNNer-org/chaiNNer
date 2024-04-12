@@ -134,17 +134,17 @@ const config = {
                         // `entry` is an alias for `build.lib.entry`
                         // in the corresponding file of `config`.
                         entry: 'src/main/main.ts',
-                        config: 'vite.main.config.ts',
+                        config: 'vite/main.config.ts',
                     },
                     {
                         entry: 'src/main/preload.ts',
-                        config: 'vite.preload.config.ts',
+                        config: 'vite/preload.config.ts',
                     },
                 ],
                 renderer: [
                     {
                         name: 'main_window',
-                        config: 'vite.renderer.config.ts',
+                        config: 'vite/renderer.config.ts',
                     },
                 ],
             },

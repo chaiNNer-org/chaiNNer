@@ -1,9 +1,9 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import react from '@vitejs/plugin-react-swc';
+import path from 'path';
 import { defineConfig } from 'vite';
-import { pluginExposeRenderer } from './vite.base.config';
+import { pluginExposeRenderer } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
-import './forge.env.d';
+import './forge-types';
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -12,7 +12,7 @@ export default defineConfig((env) => {
     const name = forgeConfigSelf.name ?? '';
 
     return {
-        root,
+        root: path.join(root, 'src/renderer'),
         mode,
         base: './',
         build: {
