@@ -626,7 +626,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { showAlert, sendToast } = useContext(AlertBoxContext);
-    const { backend, url, pythonInfo, backendDownRef, packages } = useContext(BackendContext);
+    const { backend, url, pythonInfo, backendDownRef, packages, refreshNodes } =
+        useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [installMode, setInstallMode] = useState(InstallMode.NORMAL);
@@ -692,6 +693,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         supplier()
             .catch((error) => {
                 logOutput(String(error));
+                log.error(error);
             })
             .finally(() => {
                 refetchInstalledPyPi()
@@ -702,6 +704,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                         setOverallProgress(0);
                         setIndividualProgress(null);
                         backendDownRef.current = false;
+                        refreshNodes();
                     })
                     .catch(log.error);
             });
