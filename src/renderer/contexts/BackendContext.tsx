@@ -55,6 +55,7 @@ interface BackendContextState {
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
     isBackendReady: boolean;
+    refreshNodes: () => void;
 }
 
 export const BackendContext = createContext<Readonly<BackendContextState>>(
@@ -403,6 +404,7 @@ export const BackendProvider = memo(
             restart,
             connectionState,
             isBackendReady,
+            refreshNodes,
         });
 
         return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;
