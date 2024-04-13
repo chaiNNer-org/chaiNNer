@@ -9,7 +9,16 @@ from system import is_arm_mac
 
 from . import package
 
-nv = get_nvidia_helper()
+should_fp16 = False
+
+try:
+    nv = get_nvidia_helper()
+    if nv is not None:
+        should_fp16 = nv.supports_fp16()
+except Exception as e:
+    logger.warn(f"Error occurred when trying to initialize Nvidia GPU: {e}")
+if is_arm_mac:
+    should_fp16 = True
 
 if not is_arm_mac:
     gpu_list = []
@@ -42,11 +51,6 @@ package.add_setting(
     ),
 )
 
-should_fp16 = False
-if nv is not None:
-    should_fp16 = nv.supports_fp16()
-else:
-    should_fp16 = is_arm_mac
 
 package.add_setting(
     ToggleSetting(

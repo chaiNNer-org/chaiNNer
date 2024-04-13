@@ -63,7 +63,9 @@ class NvidiaHelper:
                     uuid=nv.nvmlDeviceGetUUID(handle),
                     index=i,
                     handle=handle,  # type: ignore
-                    arch=nv.nvmlDeviceGetArchitecture(handle),
+                    arch=nv.nvmlDeviceGetArchitecture(handle)
+                    if getattr(nv, "nvmlDeviceGetArchitecture", None) is not None
+                    else nv.NVML_DEVICE_ARCH_UNKNOWN,
                 )
             )
 

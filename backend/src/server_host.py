@@ -158,16 +158,19 @@ async def system_usage(_request: Request):
     mem_usage = psutil.virtual_memory().percent
     stats_list.append(SystemStat("CPU", cpu_usage))
     stats_list.append(SystemStat("RAM", mem_usage))
-    nv = get_nvidia_helper()
-    if nv is not None:
-        for i in range(nv.num_gpus):
-            total, used, _ = nv.get_current_vram_usage(i)
-            stats_list.append(
-                SystemStat(
-                    f"VRAM {i}" if nv.num_gpus > 1 else "VRAM",
-                    used / total * 100,
+    try:
+        nv = get_nvidia_helper()
+        if nv is not None:
+            for i in range(nv.num_gpus):
+                total, used, _ = nv.get_current_vram_usage(i)
+                stats_list.append(
+                    SystemStat(
+                        f"VRAM {i}" if nv.num_gpus > 1 else "VRAM",
+                        used / total * 100,
+                    )
                 )
-            )
+    except Exception as ex:
+        logger.error(f"Error getting GPU usage: {ex}", exc_info=True)
     return json([asdict(x) for x in stats_list])
 
 
