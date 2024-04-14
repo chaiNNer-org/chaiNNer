@@ -1,5 +1,6 @@
 import time
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Literal
 
 from .settings import SettingsParser
@@ -135,4 +136,13 @@ class NodeContext(Progress, ABC):
     def settings(self) -> SettingsParser:
         """
         Returns the settings of the current node execution.
+        """
+
+    @property
+    @abstractmethod
+    def storage_dir(self) -> Path:
+        """
+        The path of a directory where nodes can store files.
+
+        This directory persists between node executions, and its contents are shared between different nodes.
         """

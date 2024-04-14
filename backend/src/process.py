@@ -7,6 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, List, NewType, Sequence, Union
 
 from sanic.log import logger
@@ -314,11 +315,14 @@ ExecutionId = NewType("ExecutionId", str)
 
 
 class _ExecutorNodeContext(NodeContext):
-    def __init__(self, progress: ProgressToken, settings: SettingsParser) -> None:
+    def __init__(
+        self, progress: ProgressToken, settings: SettingsParser, storage_dir: Path
+    ) -> None:
         super().__init__()
 
         self.progress = progress
         self.__settings = settings
+        self._storage_dir = storage_dir
 
     @property
     def aborted(self) -> bool:
@@ -340,6 +344,10 @@ class _ExecutorNodeContext(NodeContext):
         Returns the settings of the current node execution.
         """
         return self.__settings
+
+    @property
+    def storage_dir(self) -> Path:
+        return self._storage_dir
 
 
 class Executor:
@@ -503,7 +511,7 @@ class Executor:
             package_id = registry.get_package(node.data.schema_id).id
             settings = self.options.get_package_settings(package_id)
 
-            context = _ExecutorNodeContext(self.progress, settings)
+            context = _ExecutorNodeContext(self.progress, settings, self._storage_dir)
             self.__context_cache[node.data.schema_id] = context
 
         return context

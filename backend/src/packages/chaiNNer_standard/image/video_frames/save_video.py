@@ -10,10 +10,10 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api import Collector, IteratorInputInfo, KeyInfo
+from api import Collector, IteratorInputInfo, KeyInfo, NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
+from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8
-from nodes.impl.video import FFMPEG_PATH
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
@@ -114,6 +114,7 @@ class Writer:
     save_path: str
     output_params: dict[str, str | float]
     global_params: list[str]
+    ffmpeg_env: FFMpegEnv
     out: Popen | None = None
 
     def start(self, width: int, height: int):
@@ -138,7 +139,9 @@ class Writer:
                     .output(**self.output_params, loglevel="error")
                     .overwrite_output()
                     .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, pipe_stdout=False, cmd=FFMPEG_PATH)
+                    .run_async(
+                        pipe_stdin=True, pipe_stdout=False, cmd=self.ffmpeg_env.ffmpeg
+                    )
                 )
 
             except Exception as e:
@@ -316,8 +319,10 @@ class Writer:
     key_info=KeyInfo.enum(4),
     kind="collector",
     side_effects=True,
+    node_context=True,
 )
 def save_video_node(
+    node_context: NodeContext,
     _: None,
     save_dir: str,
     video_name: str,
@@ -386,6 +391,7 @@ def save_video_node(
         save_path=save_path,
         output_params=output_params,
         global_params=global_params,
+        ffmpeg_env=FFMpegEnv.get_integrated(node_context.storage_dir),
     )
 
     def on_iterate(img: np.ndarray):
