@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { Validity } from '../../common/Validity';
+import { useIsCollapsedNode } from '../contexts/CollapsedNodeContext';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { noContextMenu } from '../hooks/useContextMenu';
 import { Markdown } from './Markdown';
@@ -123,8 +124,10 @@ export const Handle = memo(
         connectedColor,
         isIterated,
     }: HandleProps) => {
-        const isConnected = !!connectedColor;
+        const isCollapsed = useIsCollapsedNode();
+        if (isCollapsed) return null;
 
+        const isConnected = !!connectedColor;
         const connectedBg = 'var(--connection-color)';
 
         return (

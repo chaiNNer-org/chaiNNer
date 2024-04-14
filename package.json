@@ -3,7 +3,7 @@
   "productName": "chaiNNer",
   "appId": "app.chainner",
   "desktopName": "chainner.desktop",
-  "version": "0.22.2",
+  "version": "0.23.1",
   "description": "A flowchart-based image processing GUI",
   "main": ".webpack/main",
   "scripts": {
@@ -107,7 +107,7 @@
   },
   "dependencies": {
     "@babel/plugin-transform-react-jsx": "^7.17.12",
-    "@chainner/navi": "^0.7.1",
+    "@chainner/navi": "^0.7.2",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.9.0",

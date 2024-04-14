@@ -6,10 +6,10 @@ from chainner_ext import fast_gamma
 from nodes.properties.inputs import BoolInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import adjustments_group
+from .. import gamma_group
 
 
-@adjustments_group.register(
+@gamma_group.register(
     schema_id="chainner:image:gamma",
     name="Gamma",
     description="Adjusts the gamma of an image.",

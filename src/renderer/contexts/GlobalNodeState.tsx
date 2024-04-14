@@ -124,6 +124,7 @@ interface Global {
     setNodeInputHeight: (nodeId: string, inputId: InputId, value: number) => void;
     setNodeOutputHeight: (nodeId: string, outputId: OutputId, value: number) => void;
     setNodeWidth: (nodeId: string, value: number) => void;
+    setNodeName: (nodeId: string, nickname: string | undefined) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
@@ -963,6 +964,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeName = useCallback(
+            (nodeId: string, name: string | undefined): void => {
+                modifyNode(nodeId, (old) => {
+                    return withNewData(old, 'nodeName', name);
+                });
+            },
+            [modifyNode]
+        );
+
         const [individuallyRunning, setIndividuallyRunning] =
             useState<ReadonlySet<string>>(EMPTY_SET);
         const addIndividuallyRunning = useCallback((node: string): void => {
@@ -1284,6 +1294,7 @@ export const GlobalProvider = memo(
             setNodeInputHeight,
             setNodeOutputHeight,
             setNodeWidth,
+            setNodeName,
             toggleNodeLock,
             resetInputs,
             resetConnections,

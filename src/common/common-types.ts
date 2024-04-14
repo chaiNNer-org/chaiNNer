@@ -335,6 +335,7 @@ export interface NodeData {
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
     readonly isCollapsed?: boolean;
+    readonly nodeName?: string;
 }
 export interface EdgeData {
     sourceX?: number;

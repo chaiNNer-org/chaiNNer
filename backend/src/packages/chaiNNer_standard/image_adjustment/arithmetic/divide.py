@@ -5,10 +5,10 @@ import numpy as np
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
 
-from .. import adjustments_group
+from .. import arithmetic_group
 
 
-@adjustments_group.register(
+@arithmetic_group.register(
     schema_id="chainner:image:divide",
     description="Divide all channels in an image by a value.",
     name="Divide",

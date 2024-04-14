@@ -12,8 +12,12 @@ from .. import adjustments_group
 
 def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
     if lightness > 0:
-        return img + (1 - img) * lightness
+        assert lightness <= 1
+        res = img * (1 - lightness)
+        res += lightness
+        return res
     elif lightness < 0:
+        assert lightness >= -1
         return img * (1 + lightness)
     else:
         return img
@@ -63,7 +67,9 @@ def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
             gradient=["#000000", "#ffffff"],
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[
+        ImageOutput(image_type="Input0", assume_normalized=True),
+    ],
 )
 def hue_and_saturation_node(
     img: np.ndarray,
@@ -88,24 +94,32 @@ def hue_and_saturation_node(
     alpha = None
     if c > 3:
         alpha = img[:, :, 3]
+        img = img[:, :, :3]
 
-    h, l, s = cv2.split(cv2.cvtColor(img[:, :, :3], cv2.COLOR_BGR2HLS))
+    if hue != 0 or saturation != 0:
+        # Convert to HLS color space
+        h, l, s = cv2.split(cv2.cvtColor(img, cv2.COLOR_BGR2HLS))
 
-    # Adjust hue
-    if hue != 0:
-        h += hue  # type: ignore
-        h[h >= 360] -= 360  # Wrap positive overflow
-        h[h < 0] += 360  # Wrap negative overflow
+        # Adjust hue
+        if hue != 0:
+            h += hue  # type: ignore
+            h[h >= 360] -= 360  # Wrap positive overflow
+            h[h < 0] += 360  # Wrap negative overflow
 
-    # Adjust saturation
-    if saturation != 0:
-        saturation = 1 + saturation
-        s = np.clip(s * saturation, 0, 1)  # type: ignore
+        # Adjust saturation
+        if saturation != 0:
+            factor = 1 + saturation
+            s *= factor  # type: ignore
+            if factor > 1:
+                s = np.clip(s, 0, 1, out=s)
 
-    img = cv2.cvtColor(cv2.merge([h, l, s]), cv2.COLOR_HLS2BGR)
+        # we assume that this returns normalized values in Change Color Model,
+        # so it should be fine here as well
+        img = cv2.cvtColor(cv2.merge([h, l, s]), cv2.COLOR_HLS2BGR)
 
     # Adjust lightness
-    img = with_lightness(img, lightness)
+    if lightness != 0:
+        img = with_lightness(img, lightness)
 
     # Re-add alpha, if it exists
     if alpha is not None:

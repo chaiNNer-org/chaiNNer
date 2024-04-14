@@ -33,7 +33,7 @@ from .. import adjustments_group
             controls_step=1,
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(image_type="Input0", assume_normalized=True)],
 )
 def brightness_and_contrast_node(
     img: np.ndarray, brightness: float, contrast: float
@@ -51,15 +51,19 @@ def brightness_and_contrast_node(
     factor: float = (max_c * (contrast + 1)) / (max_c - contrast)
     add: float = factor * brightness + 0.5 * (1 - factor)
 
-    if c <= 3:
-        img = factor * img + add
-    else:
-        img = np.concatenate(
-            [
-                factor * img[:, :, :3] + add,
-                img[:, :, 3:],
-            ],
-            axis=2,
-        )
+    def process_rgb(rgb: np.ndarray):
+        if factor == 1:
+            out = rgb + add
+        else:
+            out = factor * rgb
+            out += add
 
-    return img
+        if add < 0 or factor + add > 1:
+            out = np.clip(out, 0, 1, out=out)
+
+        return out
+
+    if c <= 3:
+        return process_rgb(img)
+    else:
+        return np.dstack([process_rgb(img[:, :, :3]), img[:, :, 3:]])

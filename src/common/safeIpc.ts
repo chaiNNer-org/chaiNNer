@@ -99,8 +99,7 @@ export interface InvokeChannels {
 }
 
 export interface SendChannels {
-    'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
-    'backend-ready': SendChannelInfo;
+    'setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-started': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
