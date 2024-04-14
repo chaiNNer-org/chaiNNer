@@ -14,7 +14,7 @@ from .. import noise_group
 
 @noise_group.register(
     schema_id="chainner:image:fast_nlmeans",
-    name="Fast NL means",
+    name="Denoise",
     description="Use the fast Non-Local Means algorithm to denoise an image.",
     icon="CgEditNoise",
     inputs=[
@@ -45,7 +45,7 @@ from .. import noise_group
     outputs=[ImageOutput(image_type="Input0")],
     limited_to_8bpc=True,
 )
-def fast_nl_means_node(
+def denoise_node(
     img: np.ndarray,
     h: float,
     h_color: float,

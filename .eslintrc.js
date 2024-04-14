@@ -11,7 +11,6 @@ module.exports = {
     ],
     globals: {
         MAIN_WINDOW_WEBPACK_ENTRY: true,
-        SPLASH_SCREEN_WEBPACK_ENTRY: true,
     },
     env: {
         browser: true,

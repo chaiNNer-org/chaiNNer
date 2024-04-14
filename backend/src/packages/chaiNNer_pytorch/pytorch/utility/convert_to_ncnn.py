@@ -5,6 +5,7 @@ from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT
 from spandrel.architectures.OmniSR import OmniSR
 from spandrel.architectures.SCUNet import SCUNet
+from spandrel.architectures.SPAN import SPAN
 from spandrel.architectures.Swin2SR import Swin2SR
 from spandrel.architectures.SwinIR import SwinIR
 from spandrel_extra_arches.architectures.SRFormer import SRFormer
@@ -60,8 +61,8 @@ def convert_to_ncnn_node(
         )
 
     assert is_onnx_supported(model) and not isinstance(
-        model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SRFormer)
-    ), f"{model.architecture} is not supported for NCNN conversions at this time."
+        model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SPAN, SRFormer)
+    ), f"{model.architecture.name} is not supported for NCNN conversions at this time."
 
     exec_options = get_settings(context)
     device = exec_options.device

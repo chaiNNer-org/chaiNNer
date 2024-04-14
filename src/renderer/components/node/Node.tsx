@@ -144,14 +144,12 @@ export const NodeView = memo(
                             toggleCollapse={toggleCollapse}
                             validity={validity}
                         />
-                        {!isCollapsed ? (
-                            <NodeBody
-                                animated={animated}
-                                nodeState={nodeState}
-                            />
-                        ) : (
-                            <CollapsedHandles nodeState={nodeState} />
-                        )}
+                        <NodeBody
+                            animated={animated}
+                            isCollapsed={isCollapsed}
+                            nodeState={nodeState}
+                        />
+                        {isCollapsed && <CollapsedHandles nodeState={nodeState} />}
                     </VStack>
                     {!isCollapsed && (
                         <NodeFooter
@@ -281,7 +279,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
-    const menu = useNodeMenu(data, disabled, { reload: startingNode ? reload : undefined });
+    const menu = useNodeMenu(data, disabled, {
+        reload: startingNode ? reload : undefined,
+    });
 
     const toggleCollapse = useCallback(() => {
         setNodeCollapsed(id, !isCollapsed);
