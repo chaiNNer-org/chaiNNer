@@ -1,6 +1,7 @@
 import { TabList as ChakraTabList, Tab, TabIndicator, Tabs } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { DropDownInput, InputSchemaValue } from '../../../../common/common-types';
+import { noop } from '../../../../common/util';
 
 export interface TabListProps {
     value: InputSchemaValue | undefined;
@@ -43,7 +44,7 @@ export const TabList = memo(({ value, onChange, reset, isDisabled, options }: Ta
             pt={1}
             size="sm"
             variant="unstyled"
-            onChange={() => {}} // Placeholder, no operation here
+            onChange={noop}
         >
             <ChakraTabList
                 borderBottom="1px solid"
