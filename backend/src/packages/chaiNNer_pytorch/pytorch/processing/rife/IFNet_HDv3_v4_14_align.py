@@ -3,7 +3,7 @@
 # https://github.com/megvii-research/ECCV2022-RIFE
 # https://github.com/hzwer/Practical-RIFE
 
-# Modifications to use Rife for Image Alignment by tepete ('Enhance Everything!' Discord Server)
+# Modifications to use Rife for Image Alignment by tepete/pifroggi ('Enhance Everything!' Discord Server)
 
 # Additional helpful github issues
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/278
@@ -166,6 +166,6 @@ class IFNet(nn.Module):
 
         for iteration in range(num_iterations):
             aligned_img0, flow = self.align_images(img0, img1, timestep, scale_list, blur_strength, ensemble, device)
-            img0 = aligned_img0  #use the aligned image as img0 for the next iteration
+            img0 = aligned_img0 #use the aligned image as img0 for the next iteration
 
         return aligned_img0, flow
