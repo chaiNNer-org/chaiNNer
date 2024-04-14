@@ -9,24 +9,16 @@
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/278
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/344
 
-import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(current_dir)
-sys.path.append(project_root)
-
+from appdirs import user_data_dir
 import torch
-import torch.nn.functional as F
 import numpy as np
-import cv2
 import requests
 import zipfile
 from pathlib import Path
-from api import NodeContext
-from nodes.properties.inputs import ImageInput, EnumInput, NumberInput, BoolInput, SliderInput
+from nodes.properties.inputs import ImageInput, EnumInput, NumberInput
 from nodes.properties.outputs import ImageOutput
-from ...settings import PyTorchSettings, get_settings
+from ...settings import get_settings
 from .. import processing_group
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.impl.resize import resize, ResizeFilter
@@ -57,8 +49,8 @@ def calculate_padding(height, width, precision_mode):
     pad_width = (pad_value - width % pad_value) % pad_value
     return pad_height, pad_width
 
-def download_model(download_url, model_path, model_file, zip_inner_path):
-    model_dir = Path(model_path)
+def download_model(download_url, download_path, model_file, zip_inner_path):
+    model_dir = Path(download_path)
     model_dir.mkdir(parents=True, exist_ok=True)
     zip_path = model_dir / "model.zip"
 
@@ -75,36 +67,30 @@ def download_model(download_url, model_path, model_file, zip_inner_path):
             final_path = model_dir / model_file
             if extracted_file_path != final_path:
                 extracted_file_path.rename(final_path)
-
-            #cleanup
+            
+            #cleanup empty folder
             train_log_dir = model_dir / zip_inner_path
             train_log_dir.rmdir()
-            
+
             zip_path.unlink()
         except requests.RequestException as e:
             print(f"Failed to download the model. Error: {e}")
 
-def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precision_mode, model_path='python/models/rife_v4.14', model_file='flownet.pkl', multiplier=1, alignment_passes=1, blur_strength=0, ensemble=True) -> np.ndarray:
+def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precision_mode, model_file='flownet.pkl', multiplier=1, alignment_passes=1, blur_strength=0, ensemble=True) -> np.ndarray:
+    appdata_path = user_data_dir(roaming=True)
+    path_str = "chaiNNer/python/rife_v4.14/weights"
+    download_path = os.path.join(appdata_path, path_str)
     download_url = "https://drive.usercontent.google.com/download?id=1BjuEY7CHZv1wzmwXSQP9ZTj0mLWu_4xy&export=download&authuser=0"
     zip_inner_path = 'train_log'
-    download_model(download_url, model_path, model_file, zip_inner_path)
+    download_model(download_url, download_path, model_file, zip_inner_path)
     
     source_h, source_w, _ = get_h_w_c(source_img)
     target_h, target_w, _ = get_h_w_c(target_img)
 
-    #resize, then shift reference left because rife shifts slightly to the right)
+    #resize, then shift reference left because rife shifts slightly to the right
     target_img_resized = resize(target_img, (source_w, source_h), filter=ResizeFilter.LANCZOS)
     target_img_resized = np.roll(target_img_resized, -1, axis=1)
     target_img_resized[:, -1] = target_img_resized[:, -2]
-
-    #resize, then shift reference left because rife shifts slightly to the right)
-    #different approach to do subpixel shift
-    #scale_x = source_w / target_w
-    #scale_y = source_h / target_h
-    #shift_x = -1.0
-    #shift_y = 0
-    #transformation_matrix = np.float32([[scale_x, 0, shift_x], [0, scale_y, shift_y]])
-    #target_img_resized = cv2.warpAffine(target_img, transformation_matrix, (source_w, source_h), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REPLICATE)
     
     #padding because rife can only work with multiples of 32 (changes with precision mode)
     pad_h, pad_w = calculate_padding(source_h, source_w, precision_mode)
@@ -114,23 +100,21 @@ def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precis
     right_pad = pad_w - left_pad
     target_img_padded = np.pad(target_img_resized, ((top_pad, bottom_pad), (left_pad, right_pad), (0, 0)), mode='edge')
     source_img_padded = np.pad(source_img, ((top_pad, bottom_pad), (left_pad, right_pad), (0, 0)), mode='edge')
-    #target_img_padded = target_img
-    #source_img_padded = source_img_resized
 
     exec_options = get_settings(context)
     device = exec_options.device
 
     #load model
-    model_full_path = os.path.join(model_path, model_file)
-    model = IFNet().to(device)#.half()
+    model_full_path = os.path.join(download_path, model_file)
+    model = IFNet().to(device)
     state_dict = torch.load(model_full_path, map_location=device)
     new_state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
     model.load_state_dict(new_state_dict)
     model.eval()
 
     #convert to tensors
-    target_tensor_padded = np2tensor(target_img_padded, change_range=True).to(device)#.half()
-    source_tensor_padded = np2tensor(source_img_padded, change_range=True).to(device)#.half()
+    target_tensor_padded = np2tensor(target_img_padded, change_range=True).to(device)
+    source_tensor_padded = np2tensor(source_img_padded, change_range=True).to(device)
 
     #concatenate images
     img_pair = torch.cat((target_tensor_padded, source_tensor_padded), dim=1)
@@ -144,13 +128,9 @@ def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precis
 
     return result_img
 
-
-
-
-
 @processing_group.register(
     schema_id="chainner:pytorch:image_align_rife",
-    name="Image Align with Rife",
+    name="Align Image to Reference",
     description="Aligns an Image with a Reference Image using Rife. Images should have vague alignment before using this Node. Output Image will have the same dimensions as Reference Image. Resize Reference Image to get desired output scale.",
     icon="BsRulers",
     inputs=[
@@ -177,6 +157,7 @@ def align_images(context, target_img: np.ndarray, source_img: np.ndarray, precis
         NumberInput(
             "Alignment Passes",
             controls_step=1,
+            minimum=1,
             maximum=1000,
             default=1,
             unit="#",
