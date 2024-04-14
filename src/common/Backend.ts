@@ -255,6 +255,14 @@ export class Backend {
             package: pkg.id,
         });
     }
+
+    shutdown(): Promise<void> {
+        return this.fetchJson('/shutdown', 'POST');
+    }
+
+    status(): Promise<{ ready: boolean }> {
+        return this.fetchJson('/status', 'GET');
+    }
 }
 
 const backendCache = new Map<string, Backend>();
@@ -310,7 +318,6 @@ export interface BackendEventMap {
         progress: number;
         statusProgress?: number | null;
     };
-    'backend-ready': null;
     'package-install-status': {
         message: string;
         progress: number;

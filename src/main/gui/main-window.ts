@@ -1,23 +1,30 @@
-import { BrowserWindow, app, dialog, nativeTheme, powerSaveBlocker, shell } from 'electron';
+import { clipboard, nativeImage, shell } from 'electron/common';
+import {
+    BrowserWindow,
+    MessageBoxOptions,
+    app,
+    dialog,
+    nativeTheme,
+    powerSaveBlocker,
+} from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
-import { t } from 'i18next';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
 import { isMac } from '../../common/env';
 import { log } from '../../common/log';
-import { BrowserWindowWithSafeIpc, ipcMain } from '../../common/safeIpc';
 import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
-import { ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
+import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
+import { assertNever } from '../../common/util';
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getRootDirSync } from '../platform';
+import { getRootDir } from '../platform';
+import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
-import { addSplashScreen } from './splash';
 
 const version = app.getVersion() as Version;
 
@@ -27,7 +34,7 @@ const registerEventHandlerPreSetup = (
     settings: ChainnerSettings
 ) => {
     ipcMain.handle('get-app-version', () => version);
-    ipcMain.handle('get-appdata', () => getRootDirSync());
+    ipcMain.handle('get-appdata', () => getRootDir());
     ipcMain.handle('refresh-nodes', () => args.refresh);
 
     // settings
@@ -52,7 +59,7 @@ const registerEventHandlerPreSetup = (
 
     // menu
     const menuData: MenuData = { openRecentRev: [] };
-    setMainMenu({ mainWindow, menuData, enabled: true });
+    setMainMenu({ mainWindow, menuData, enabled: false });
     ipcMain.on('update-open-recent-menu', (_, openRecent) => {
         menuData.openRecentRev = openRecent;
         setMainMenu({ mainWindow, menuData, enabled: true });
@@ -214,6 +221,26 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
     ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
     ipcMain.handle('fs-access', async (event, path) => fs.access(path));
+
+    // Handle electron
+    ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
+    ipcMain.handle('shell-openPath', (event, fullPath) => shell.openPath(fullPath));
+    ipcMain.handle('app-quit', () => app.quit());
+    ipcMain.handle('clipboard-writeText', (event, text) => clipboard.writeText(text));
+    ipcMain.handle('clipboard-readText', () => clipboard.readText());
+    ipcMain.handle('clipboard-writeBuffer', (event, format, buffer, type) =>
+        clipboard.writeBuffer(format, buffer, type)
+    );
+    ipcMain.handle('clipboard-readBuffer', (event, format) => clipboard.readBuffer(format));
+    ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
+    ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
+    ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
+    ipcMain.handle('clipboard-readImage', () => clipboard.readImage());
+    ipcMain.handle('clipboard-writeImage', (event, image) => clipboard.writeImage(image));
+    ipcMain.handle('clipboard-writeImageFromURL', (event, url) => {
+        const image = nativeImage.createFromDataURL(url);
+        clipboard.writeImage(image);
+    });
 };
 
 const registerEventHandlerPostSetup = (
@@ -236,12 +263,15 @@ const registerEventHandlerPostSetup = (
             app.exit(1);
         });
 
-        app.on('before-quit', () => backend.tryKill());
+        app.on('before-quit', () => {
+            backend.clearErrorListeners();
+            backend.tryKill().catch(log.error);
+        });
     }
 
-    ipcMain.handle('restart-backend', () => {
+    ipcMain.handle('restart-backend', async () => {
         if (backend.owned) {
-            backend.restart();
+            await backend.restart();
         } else {
             log.warn('Tried to restart non-owned backend');
         }
@@ -260,10 +290,14 @@ const registerEventHandlerPostSetup = (
 
     const restartChainner = (): void => {
         if (backend.owned) {
-            backend.tryKill();
+            backend
+                .tryKill()
+                .finally(() => {
+                    app.relaunch();
+                    app.exit();
+                })
+                .catch(log.error);
         }
-        app.relaunch();
-        app.exit();
     };
 
     ipcMain.on('reboot-after-save', () => {
@@ -340,9 +374,96 @@ const createBackend = async (
         token,
         settings.useSystemPython,
         settings.systemPythonLocation,
-        getRootDirSync(),
+        getRootDir(),
         args.remoteBackend
     );
+};
+
+const setupProgressListeners = (
+    mainWindow: BrowserWindow,
+    progressController: ProgressController
+) => {
+    let progressFinished = false;
+    let lastProgress: Progress | undefined;
+
+    // This is a hack that solves 2 problems at one:
+    // 1. Even after 'ready-to-show', React might still not be ready,
+    //    so it's hard to say when we should re-send the last progress.
+    // 2. The splash screen sometimes randomly reloads which resets the displayed progress.
+    const intervalId = setInterval(() => {
+        if (progressFinished || mainWindow.isDestroyed()) {
+            clearInterval(intervalId);
+            return;
+        }
+
+        if (lastProgress) {
+            mainWindow.webContents.send('setup-progress', lastProgress);
+        }
+    }, 100);
+
+    progressController.addProgressListener((progress) => {
+        lastProgress = { ...progress };
+
+        if (progress.totalProgress === 1) {
+            progressFinished = true;
+        }
+    });
+
+    progressController.addInterruptListener(async (interrupt) => {
+        const options = interrupt.options ?? [];
+
+        let messageBoxOptions: MessageBoxOptions;
+        if (interrupt.type === 'critical error') {
+            if (!mainWindow.isDestroyed()) {
+                mainWindow.hide();
+            }
+
+            messageBoxOptions = {
+                type: 'error',
+                title: interrupt.title ?? 'Critical error occurred',
+                buttons: [...options.map((o) => o.title), 'Exit'],
+                defaultId: options.length,
+                cancelId: options.length,
+                message: interrupt.message,
+            };
+        } else {
+            messageBoxOptions = {
+                type: 'warning',
+                title: interrupt.title ?? 'Critical error occurred',
+                buttons: [...options.map((o) => o.title), 'Ok'],
+                defaultId: options.length,
+                cancelId: options.length,
+                message: interrupt.message,
+            };
+        }
+
+        const { response } = await dialog.showMessageBox(messageBoxOptions);
+        if (response < options.length) {
+            const { action } = options[response];
+
+            try {
+                switch (action.type) {
+                    case 'open-url': {
+                        await shell.openExternal(action.url);
+                        break;
+                    }
+                    case 'run': {
+                        action.action();
+                        break;
+                    }
+                    default:
+                        return assertNever(action);
+                }
+            } catch (error) {
+                log.error(`Failed to execute action of type ${action.type}`, error);
+            }
+        }
+
+        if (interrupt.type === 'critical error') {
+            progressFinished = true;
+            app.exit(1);
+        }
+    });
 };
 
 export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
@@ -371,12 +492,13 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
     });
 
     const progressController = new ProgressController();
-    addSplashScreen(progressController);
+
+    setupProgressListeners(mainWindow, progressController);
 
     try {
         registerEventHandlerPreSetup(mainWindow, args, settings);
         const backend = await createBackend(
-            SubProgress.slice(progressController, 0, 0.5),
+            SubProgress.slice(progressController, 0, 0.25),
             args,
             settings
         );
@@ -393,7 +515,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             mainWindow.webContents.send('backend-started');
         });
 
-        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.5, 0.95);
+        const backendStatusProgressSlice = SubProgress.slice(progressController, 0.25, 0.95);
         sse.addEventListener('backend-status', (e: MessageEvent<string>) => {
             if (e.data) {
                 const data = JSON.parse(e.data) as BackendEventMap['backend-status'];
@@ -405,35 +527,16 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             }
         });
 
-        let opened = false;
-        sse.addEventListener('backend-ready', () => {
-            progressController.submitProgress({
-                totalProgress: 1,
-                status: t('splash.loadingApp', 'Loading main application...'),
-            });
-
-            if (mainWindow.isDestroyed()) {
-                dialog.showMessageBoxSync({
-                    type: 'error',
-                    title: 'Unable to start application',
-                    message: 'The main window was closed before the backend was ready.',
-                });
-                app.quit();
-                return;
-            }
-
-            if (!opened) {
-                mainWindow.show();
-                if (settings.lastWindowSize.maximized) {
-                    mainWindow.maximize();
-                }
-                opened = true;
-            }
-        });
-
         if (mainWindow.isDestroyed()) {
             return;
         }
+
+        mainWindow.once('ready-to-show', () => {
+            mainWindow.show();
+            if (settings.lastWindowSize.maximized) {
+                mainWindow.maximize();
+            }
+        });
 
         // and load the index.html of the app.
         mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);

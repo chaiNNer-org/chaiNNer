@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app } from 'electron/main';
 import EventSource from 'eventsource';
 import { Backend, BackendEventMap, getBackend } from '../../common/Backend';
 import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
@@ -21,7 +21,7 @@ import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
-import { getRootDirSync } from '../platform';
+import { getRootDir } from '../platform';
 import { readSettings } from '../setting-storage';
 import { Exit } from './exit';
 import type { Edge, Node } from 'reactflow';
@@ -48,8 +48,12 @@ const addProgressListeners = (monitor: ProgressMonitor) => {
                     logger(`   Go to ${action.url}`);
                     break;
 
+                case 'run':
+                    // log nothing
+                    break;
+
                 default:
-                    return assertNever(action.type);
+                    return assertNever(action);
             }
         }
 
@@ -70,7 +74,7 @@ const createBackend = async (
         token,
         settings.useSystemPython,
         settings.systemPythonLocation,
-        getRootDirSync(),
+        getRootDir(),
         args.remoteBackend
     );
 };

@@ -1,8 +1,8 @@
 import React, { memo, useCallback, useState } from 'react';
 import { createContext } from 'use-context-selector';
-import { ipcRenderer } from '../../common/safeIpc';
 import { noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 
 interface HotkeysContextState {
     hotkeysEnabled: boolean;

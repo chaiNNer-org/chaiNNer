@@ -7,6 +7,7 @@ import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { ExpressionJson, fromJson } from '../../../common/types/json';
 import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
+import { useIsCollapsedNode } from '../../contexts/CollapsedNodeContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NodeState } from '../../helpers/nodeState';
 import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
@@ -91,6 +92,12 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
             }
         }
     }, [id, currentTypes, schema, setManualOutputType]);
+
+    const isCollapsed = useIsCollapsedNode();
+    if (isCollapsed) {
+        // just need the effect for collapsed nodes, not the elements
+        return null;
+    }
 
     const functions = functionDefinitions.get(schemaId)?.outputDefaults;
     return (

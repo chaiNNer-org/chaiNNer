@@ -1,12 +1,23 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
-import { Box, Center, HStack, Heading, IconButton, Spacer, Text, VStack } from '@chakra-ui/react';
-import { memo, useEffect, useMemo } from 'react';
+import {
+    Box,
+    Center,
+    HStack,
+    Heading,
+    IconButton,
+    Input,
+    Spacer,
+    Text,
+    VStack,
+} from '@chakra-ui/react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import ReactTimeAgo from 'react-time-ago';
 import { useContext } from 'use-context-selector';
 import { getKeyInfo } from '../../../common/nodes/keyInfo';
 import { Validity } from '../../../common/Validity';
 import { AlertBoxContext, AlertType } from '../../contexts/AlertBoxContext';
-import { NodeProgress } from '../../contexts/ExecutionContext';
+import { ExecutionStatusContext, NodeProgress } from '../../contexts/ExecutionContext';
+import { FakeNodeContext } from '../../contexts/FakeExampleContext';
 import { interpolateColor } from '../../helpers/colorTools';
 import { NodeState } from '../../helpers/nodeState';
 import { useThemeColor } from '../../hooks/useThemeColor';
@@ -19,9 +30,31 @@ interface IteratorProcessProps {
 }
 
 const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessProps) => {
+    const { paused } = useContext(ExecutionStatusContext);
+
     const { progress, eta, index, total } = nodeProgress;
     const etaDate = new Date();
     etaDate.setSeconds(etaDate.getSeconds() + eta);
+
+    let etaText;
+    if (paused) {
+        etaText = 'Paused';
+    } else if (progress >= 1) {
+        etaText = 'Finished';
+    } else {
+        etaText = (
+            <>
+                ETA:{' '}
+                <ReactTimeAgo
+                    future
+                    date={etaDate}
+                    locale="en-US"
+                    timeStyle="round"
+                    tooltip={false}
+                />
+            </>
+        );
+    }
 
     return (
         <Box
@@ -44,18 +77,7 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
                         fontSize="sm"
                         fontWeight="medium"
                     >
-                        ETA:{' '}
-                        {progress === 1 ? (
-                            'Finished'
-                        ) : (
-                            <ReactTimeAgo
-                                future
-                                date={etaDate}
-                                locale="en-US"
-                                timeStyle="round"
-                                tooltip={false}
-                            />
-                        )}
+                        {etaText}
                     </Text>
                 </HStack>
             </Center>
@@ -121,6 +143,58 @@ const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
     );
 });
 
+interface RenameInputProps {
+    name: string;
+    onChangeName: (name: string) => void;
+    onCancel: () => void;
+}
+const RenameInput = memo(({ name, onChangeName, onCancel }: RenameInputProps) => {
+    const [tempName, setTempName] = useState<string>(name);
+
+    useEffect(() => {
+        setTempName(name);
+    }, [name]);
+
+    const inputRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        inputRef.current?.select();
+    }, []);
+
+    return (
+        <Input
+            autoFocus
+            borderColor="transparent"
+            className="nodrag"
+            flex={1}
+            height="auto"
+            htmlSize={0}
+            lineHeight="100%"
+            my="-0.25rem"
+            px={2}
+            py="calc(0.25rem - 1px)"
+            ref={inputRef}
+            size="md"
+            textAlign="center"
+            value={tempName}
+            onBlur={() => {
+                onChangeName(tempName);
+            }}
+            onChange={(e) => {
+                setTempName(e.target.value);
+            }}
+            onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === 'Enter') {
+                    onChangeName(tempName);
+                }
+                if (e.key === 'Escape') {
+                    onCancel();
+                }
+            }}
+        />
+    );
+});
+
 interface NodeHeaderProps {
     nodeState: NodeState;
     accentColor: string;
@@ -145,6 +219,8 @@ export const NodeHeader = memo(
         isCollapsed = false,
         toggleCollapse,
     }: NodeHeaderProps) => {
+        const { isFake } = useContext(FakeNodeContext);
+
         const bgColor = useThemeColor('--bg-700');
         const gradL = interpolateColor(accentColor, bgColor, 0.9);
         const gradR = bgColor;
@@ -155,6 +231,9 @@ export const NodeHeader = memo(
         );
         const collapsedHandleHeight = '6px';
         const minHeight = `calc(${maxConnected} * ${collapsedHandleHeight})`;
+
+        const name = nodeState.nodeName ?? nodeState.schema.name;
+        const [isRenaming, setIsRenaming] = useState(false);
 
         return (
             <VStack
@@ -170,7 +249,6 @@ export const NodeHeader = memo(
                     p={1}
                     verticalAlign="middle"
                     w="full"
-                    onDoubleClick={toggleCollapse}
                 >
                     <Center w="24px">
                         {toggleCollapse && (
@@ -184,8 +262,18 @@ export const NodeHeader = memo(
                             />
                         )}
                     </Center>
-                    <Spacer />
-                    <HStack verticalAlign="middle">
+                    {!isRenaming && <Spacer />}
+                    <HStack
+                        flex={isRenaming ? 1 : undefined}
+                        style={{ contain: isRenaming ? 'size' : undefined }}
+                        verticalAlign="middle"
+                        onDoubleClick={(event) => {
+                            event.stopPropagation();
+                            if (!isFake) {
+                                setIsRenaming(true);
+                            }
+                        }}
+                    >
                         <Center
                             alignContent="center"
                             alignItems="center"
@@ -198,7 +286,32 @@ export const NodeHeader = memo(
                                 icon={nodeState.schema.icon}
                             />
                         </Center>
-                        <Center verticalAlign="middle">
+                        {isRenaming ? (
+                            <RenameInput
+                                name={name}
+                                onCancel={() => {
+                                    setIsRenaming(false);
+                                }}
+                                onChangeName={(newName) => {
+                                    setIsRenaming(false);
+
+                                    // clean up user input
+                                    // eslint-disable-next-line no-param-reassign
+                                    newName = newName.trim().replace(/\s+/g, ' ');
+
+                                    if (
+                                        !newName ||
+                                        newName.toUpperCase() ===
+                                            nodeState.schema.name.toUpperCase()
+                                    ) {
+                                        // reset to default name
+                                        nodeState.setNodeName(undefined);
+                                    } else {
+                                        nodeState.setNodeName(newName);
+                                    }
+                                }}
+                            />
+                        ) : (
                             <HStack>
                                 <Heading
                                     alignContent="center"
@@ -214,15 +327,15 @@ export const NodeHeader = memo(
                                     verticalAlign="middle"
                                     whiteSpace="nowrap"
                                 >
-                                    {nodeState.schema.name}
+                                    {name}
                                 </Heading>
                                 {isCollapsed && nodeState.schema.keyInfo && (
                                     <KeyInfoLabel nodeState={nodeState} />
                                 )}
                             </HStack>
-                        </Center>
+                        )}
                     </HStack>
-                    <Spacer />
+                    {!isRenaming && <Spacer />}
                     <Center w="24px">
                         {isCollapsed && (animated || !validity.isValid) && (
                             <ValidityIndicator

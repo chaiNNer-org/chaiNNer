@@ -3,7 +3,6 @@ import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en.json';
 import { memo, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
-import { ipcRenderer } from '../common/safeIpc';
 import { ChainnerSettings } from '../common/settings/settings';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { BackendProvider } from './contexts/BackendContext';
@@ -12,6 +11,7 @@ import { HotkeysProvider } from './contexts/HotKeyContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
 import { Main } from './main';
+import { ipcRenderer } from './safeIpc';
 import { darktheme } from './theme';
 import './i18n';
 

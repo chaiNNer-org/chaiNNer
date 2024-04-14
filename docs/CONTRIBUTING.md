@@ -146,8 +146,8 @@ Let's go through the metadata:
 -   `inputs` declares all arguments of the python function. In our case, we have 2 inputs: `img` and `radius`. `ImageInput` and `NumberInput` are classes that define the type of the input. `ImageInput` is used for images, and `NumberInput` is used for numbers. `NumberInput` takes a few arguments. `minimum` and `maximum` define the range of the number, `default` defines the default value, and `precision` defines the number of decimal places.
 -   `outputs` declares all return values of the python function. In our case, we return one image. `ImageOutput` is used for images. `image_type="Input0"` means that the output image has the same size and number of channels as the input image.
 
-For more information about metadata, see the [Node Metadata docs](docs/nodes.md#node-metadata).
+For more information about metadata, see the [Node Metadata docs](nodes.md#node-metadata).
 
 And that's it. We have successfully implemented a new node. Now we can start chaiNNer and see our new node in action.
 
-For more information about nodes, see [the nodes documentation](docs/nodes.md).
+For more information about nodes, see [the nodes documentation](nodes.md).

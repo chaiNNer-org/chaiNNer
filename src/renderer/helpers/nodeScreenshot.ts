@@ -1,8 +1,9 @@
-import { clipboard, nativeImage } from 'electron';
 import { toPng } from 'html-to-image';
 import { Node, ReactFlowInstance } from 'reactflow';
 import { EdgeData, NodeData } from '../../common/common-types';
+import { log } from '../../common/log';
 import { delay } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 
 interface Rect {
     x: number;
@@ -109,6 +110,5 @@ export const saveDataUrlAsFile = (dataUrl: PngDataUrl, fileName: string) => {
 };
 
 export const writeDataUrlToClipboard = (dataUrl: PngDataUrl) => {
-    const image = nativeImage.createFromDataURL(dataUrl);
-    clipboard.writeImage(image);
+    ipcRenderer.invoke('clipboard-writeImageFromURL', dataUrl).catch(log.error);
 };

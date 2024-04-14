@@ -1,7 +1,7 @@
 import { memo, useEffect } from 'react';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpc';
 import { getInputValue } from '../../../common/util';
+import { ipcRenderer } from '../../safeIpc';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
 

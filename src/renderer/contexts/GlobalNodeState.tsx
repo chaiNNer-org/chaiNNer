@@ -28,7 +28,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-import { ipcRenderer } from '../../common/safeIpc';
 import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
@@ -84,6 +83,7 @@ import {
     useOutputDataStore,
 } from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { useSettings } from './SettingsContext';
@@ -124,6 +124,7 @@ interface Global {
     setNodeInputHeight: (nodeId: string, inputId: InputId, value: number) => void;
     setNodeOutputHeight: (nodeId: string, outputId: OutputId, value: number) => void;
     setNodeWidth: (nodeId: string, value: number) => void;
+    setNodeName: (nodeId: string, nickname: string | undefined) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
@@ -963,6 +964,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeName = useCallback(
+            (nodeId: string, name: string | undefined): void => {
+                modifyNode(nodeId, (old) => {
+                    return withNewData(old, 'nodeName', name);
+                });
+            },
+            [modifyNode]
+        );
+
         const [individuallyRunning, setIndividuallyRunning] =
             useState<ReadonlySet<string>>(EMPTY_SET);
         const addIndividuallyRunning = useCallback((node: string): void => {
@@ -1191,7 +1201,7 @@ export const GlobalProvider = memo(
                 createNode,
                 screenToFlowPosition,
                 reactFlowWrapper
-            );
+            ).catch(log.error);
         }, [changeNodes, changeEdges, createNode, screenToFlowPosition, reactFlowWrapper]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
@@ -1284,6 +1294,7 @@ export const GlobalProvider = memo(
             setNodeInputHeight,
             setNodeOutputHeight,
             setNodeWidth,
+            setNodeName,
             toggleNodeLock,
             resetInputs,
             resetConnections,
