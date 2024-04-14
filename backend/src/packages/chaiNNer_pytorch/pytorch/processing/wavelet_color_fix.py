@@ -6,10 +6,9 @@
 import torch
 import torch.nn.functional as F
 import numpy as np
-from api import NodeContext
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
-from ...settings import PyTorchSettings, get_settings
+from ...settings import get_settings
 from .. import processing_group
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.impl.resize import resize, ResizeFilter
@@ -50,6 +49,7 @@ def wavelet_reconstruction(content_feat: torch.Tensor, style_feat: torch.Tensor,
         NumberInput(
             "Number of Wavelets",
             controls_step=1,
+            minimum=1,
             maximum=10,
             default=5,
             unit="#",
