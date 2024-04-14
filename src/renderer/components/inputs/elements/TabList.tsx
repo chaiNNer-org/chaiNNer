@@ -21,12 +21,13 @@ export const TabList = memo(({ value, onChange, reset, isDisabled, options }: Ta
     let selection = options.findIndex((o) => o.value === value);
     if (selection === -1) selection = 0;
 
-    const handleChange = (index: number) => {
-        const selectedValue = options[index]?.value as InputSchemaValue | undefined;
-        if (selectedValue === undefined) {
-            reset();
-        } else {
-            onChange(selectedValue);
+    const handleTabClick = (index: number, event: React.MouseEvent) => {
+        if (event.button === 0) {
+            // Check if left mouse button was clicked
+            const selectedValue = options[index]?.value as InputSchemaValue | undefined;
+            if (selectedValue !== undefined) {
+                onChange(selectedValue);
+            }
         }
     };
 
@@ -42,7 +43,6 @@ export const TabList = memo(({ value, onChange, reset, isDisabled, options }: Ta
             pt={1}
             size="sm"
             variant="unstyled"
-            onChange={handleChange}
         >
             <ChakraTabList
                 borderBottom="1px solid"
@@ -57,6 +57,7 @@ export const TabList = memo(({ value, onChange, reset, isDisabled, options }: Ta
                             key={option}
                             opacity={selected ? 1 : 0.8}
                             px={2}
+                            onMouseDown={(event) => handleTabClick(i, event)}
                         >
                             {option}
                         </Tab>
