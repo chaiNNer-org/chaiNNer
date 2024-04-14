@@ -3,7 +3,7 @@
 # https://github.com/megvii-research/ECCV2022-RIFE
 # https://github.com/hzwer/Practical-RIFE
 
-# Modifications to use Rife for Image Alignment by tepete/pifroggi ('Enhance Everything!' Discord Server)
+# Modifications to use Rife for Image Alignment by tepete ('Enhance Everything!' Discord Server)
 
 # Additional helpful github issues
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/278
@@ -14,14 +14,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 from .warplayer import warp
-# from train_log.refine import *
-#import logging
-
-# Setup logging
-#logging.basicConfig(filename='debug.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(message)s')
-
-
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
     return nn.Sequential(
@@ -105,15 +97,6 @@ class IFBlock(nn.Module):
         mask = tmp[:, 4:5]
         return flow, mask
 
-
-
-
-
-
-
-
-
-
 class IFNet(nn.Module):
     def __init__(self):
         super(IFNet, self).__init__()
@@ -163,17 +146,18 @@ class IFNet(nn.Module):
 
         #apply warp to original image
         aligned_img0 = warp(img0, flow_list[-1][:, :2], device)
+        
+        #add clamp here instead of in warplayer script, as it changes the output there
         aligned_img0 = aligned_img0.clamp(min=0.0, max=1.0)
         return aligned_img0, flow_list[-1]
 
     def forward(self, x, timestep=1, training=False, fastmode=True, ensemble=True, num_iterations=1, multiplier=0.5, blur_strength=0, device='cuda'):
-        if training == False:
+        if not training:
             channel = x.shape[1] // 2
             img0 = x[:, :channel]
             img1 = x[:, channel:]
         
         scale_list = [multiplier * 8, multiplier * 4, multiplier * 2, multiplier]
-        #logging.debug(f"Generated scale list: {scale_list}")
 
         if not torch.is_tensor(timestep):
             timestep = (x[:, :1].clone() * 0 + 1) * timestep
@@ -182,6 +166,6 @@ class IFNet(nn.Module):
 
         for iteration in range(num_iterations):
             aligned_img0, flow = self.align_images(img0, img1, timestep, scale_list, blur_strength, ensemble, device)
-            img0 = aligned_img0  # Use the aligned image as img0 for the next iteration
+            img0 = aligned_img0  #use the aligned image as img0 for the next iteration
 
         return aligned_img0, flow
