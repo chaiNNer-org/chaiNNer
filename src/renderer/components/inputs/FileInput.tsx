@@ -134,7 +134,8 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            navigator.clipboard.writeText(filePath).catch(log.error);
+                            const { name } = path.parse(filePath);
+                            navigator.clipboard.writeText(name).catch(log.error);
                         }
                     }}
                 >
