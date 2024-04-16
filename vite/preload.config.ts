@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig, mergeConfig } from 'vite';
 import { external, getBuildConfig, pluginHotRestart } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';

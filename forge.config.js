@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const AdmZip = require('adm-zip');
 const fs = require('fs/promises');
 const path = require('path');
