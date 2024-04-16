@@ -49,8 +49,7 @@ import {
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { getFindLinks } from '../../common/pip';
-import { noop } from '../../common/util';
+import { isNotNullish, noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
 import {
@@ -78,6 +77,9 @@ enum InstallMode {
     COPY = 'copy',
 }
 
+const getFindLinks = (dependencies: readonly PyPiPackage[]): string[] => {
+    return [...new Set<string>(dependencies.map((p) => p.findLink).filter(isNotNullish))];
+};
 const getInstallCommand = (pkg: Package, pythonInfo: PythonInfo): string => {
     const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
     const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => ['--extra-index-url', l]);
@@ -624,7 +626,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const { showAlert, sendToast } = useContext(AlertBoxContext);
-    const { backend, url, pythonInfo, backendDownRef, packages } = useContext(BackendContext);
+    const { backend, url, pythonInfo, backendDownRef, packages, refreshNodes } =
+        useContext(BackendContext);
     const { hasRelevantUnsavedChangesRef } = useContext(GlobalContext);
 
     const [installMode, setInstallMode] = useState(InstallMode.NORMAL);
@@ -690,6 +693,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         supplier()
             .catch((error) => {
                 logOutput(String(error));
+                log.error(error);
             })
             .finally(() => {
                 refetchInstalledPyPi()
@@ -700,6 +704,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                         setOverallProgress(0);
                         setIndividualProgress(null);
                         backendDownRef.current = false;
+                        refreshNodes();
                     })
                     .catch(log.error);
             });
