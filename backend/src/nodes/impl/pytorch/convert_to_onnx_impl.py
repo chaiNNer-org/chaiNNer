@@ -2,12 +2,13 @@ from io import BytesIO
 
 import torch
 from spandrel import ImageModelDescriptor, ModelDescriptor
+from spandrel.architectures.CRAFT import CRAFT
 from spandrel.architectures.SAFMN import SAFMN
 from spandrel.architectures.SCUNet import SCUNet
 
 
 def is_onnx_supported(model: ModelDescriptor) -> bool:
-    return not isinstance(model.model, (SCUNet, SAFMN))
+    return not isinstance(model.model, (SCUNet, SAFMN, CRAFT))
 
 
 def convert_to_onnx_impl(
