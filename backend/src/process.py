@@ -364,6 +364,7 @@ class Executor:
         loop: asyncio.AbstractEventLoop,
         queue: EventConsumer,
         pool: ThreadPoolExecutor,
+        storage_dir: Path,
         parent_cache: OutputCache[NodeOutput] | None = None,
     ):
         self.id: ExecutionId = id
@@ -382,6 +383,8 @@ class Executor:
         self.pool: ThreadPoolExecutor = pool
 
         self.cache_strategy: dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
+
+        self._storage_dir = storage_dir
 
     async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
         # Return cached output value from an already-run node if that cached output exists
