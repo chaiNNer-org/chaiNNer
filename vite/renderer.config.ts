@@ -1,5 +1,7 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import react from '@vitejs/plugin-react-swc';
 import path from 'path';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig } from 'vite';
 import { pluginExposeRenderer } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
