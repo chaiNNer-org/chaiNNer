@@ -37,6 +37,7 @@ const onUninstall = () => {
         'python',
         'settings',
         'settings_old',
+        'backend-storage',
         // don't delete the logs folder, it's important to us and doesn't take up much space
         // don't delete settings.json in case the user re-installs the app
     ];

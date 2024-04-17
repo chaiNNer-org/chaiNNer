@@ -5,11 +5,14 @@ import gc
 import importlib
 import logging
 import sys
+import tempfile
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from functools import cached_property
 from json import dumps as stringify
-from typing import TypedDict
+from pathlib import Path
+from typing import Final, TypedDict
 
 from sanic import Sanic
 from sanic.log import access_logger, logger
@@ -43,14 +46,40 @@ from server_config import ServerConfig
 
 class AppContext:
     def __init__(self):
-        self.config: ServerConfig = None  # type: ignore
+        self.config: Final[ServerConfig] = ServerConfig.parse_argv()
         self.executor: Executor | None = None
         self.individual_executors: dict[ExecutionId, Executor] = {}
         self.cache: dict[NodeId, NodeOutput] = {}
-        # This will be initialized by after_server_start.
-        # This is necessary because we don't know Sanic's event loop yet.
-        self.queue: EventQueue = None  # type: ignore
-        self.pool = ThreadPoolExecutor(max_workers=4)
+        self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
+
+    @cached_property
+    def queue(self) -> EventQueue:
+        return EventQueue()
+
+    @cached_property
+    def storage_dir(self) -> Path:
+        if self.config.storage_dir is not None:
+            logger.info(f"Using given storage directory: {self.config.storage_dir}")
+            return Path(self.config.storage_dir)
+
+        default_sub_dir = "chaiNNer/backend-storage"
+
+        # try using the chaiNNer's app dir
+        try:
+            # appdirs is likely only installed on dev machines
+            from appdirs import user_data_dir
+
+            app_data_dir = Path(user_data_dir(roaming=True)) / default_sub_dir
+            logger.info(f"Using app data as storage directory: {app_data_dir}")
+            return app_data_dir
+        except:  # noqa: E722
+            # ignore errors
+            pass
+
+        # last resort: use the system's temporary directory
+        temp = Path(tempfile.gettempdir()) / default_sub_dir
+        logger.info(f"No storage directory given. Using temporary directory: {temp}")
+        return Path(temp)
 
     @staticmethod
     def get(app_instance: Sanic) -> AppContext:
@@ -175,6 +204,7 @@ async def run(request: Request):
             loop=app.loop,
             queue=ctx.queue,
             pool=ctx.pool,
+            storage_dir=ctx.storage_dir,
             parent_cache=OutputCache(static_data=ctx.cache.copy()),
         )
         try:
@@ -260,6 +290,7 @@ async def run_individual(request: Request):
             options=ExecutionOptions.parse(full_data["options"]),
             loop=app.loop,
             queue=queue,
+            storage_dir=ctx.storage_dir,
             pool=ctx.pool,
         )
 
@@ -523,10 +554,7 @@ async def close_server(sanic_app: Sanic):
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     # pylint: disable=global-statement
     global setup_task
-
-    # initialize the queues
     ctx = AppContext.get(sanic_app)
-    ctx.queue = EventQueue()
 
     # start the setup task
     setup_task = loop.create_task(setup(sanic_app))
@@ -537,8 +565,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
 
 def main():
-    config = ServerConfig.parse_argv()
-    AppContext.get(app).config = config
+    config = AppContext.get(app).config
     app.run(port=config.port, single_process=True)
     if exit_code != 0:
         sys.exit(exit_code)

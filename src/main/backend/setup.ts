@@ -1,11 +1,11 @@
 import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
-import { FfmpegInfo, PythonInfo } from '../../common/common-types';
+import { PythonInfo } from '../../common/common-types';
 import { log } from '../../common/log';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
-import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
+import { getBackendStorageFolder } from '../platform';
 import { checkPythonPaths } from '../python/checkPythonPaths';
 import { getIntegratedPython, getIntegratedPythonExecutable } from '../python/integratedPython';
 import { BackendProcess, BorrowedBackendProcess, OwnedBackendProcess } from './process';
@@ -184,7 +184,7 @@ const getPythonInfo = async (
     rootDir: string
 ) => {
     const config: PythonSetupConfig = {
-        integratedPythonFolder: path.normalize(path.join(rootDir, '/python')),
+        integratedPythonFolder: path.normalize(path.join(rootDir, 'python')),
         systemPythonLocation,
     };
 
@@ -198,51 +198,12 @@ const getPythonInfo = async (
     return pythonInfo;
 };
 
-const getFfmpegInfo = async (token: ProgressToken, rootDir: string) => {
-    log.info('Attempting to check Ffmpeg env...');
-
-    let ffmpegInfo: FfmpegInfo;
-
-    const integratedFfmpegFolderPath = path.join(rootDir, '/ffmpeg');
-
+const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
     try {
-        ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
-            token.submitProgress({
-                status:
-                    stage === 'download'
-                        ? t('setup.downloadingFfmpeg', 'Downloading ffmpeg...')
-                        : t('setup.extractingFfmpeg', 'Extracting downloaded files...'),
-                totalProgress: stage === 'download' ? 0.5 : 0.6,
-                statusProgress: percentage / 100,
-            });
-        });
-    } catch (error) {
-        log.error(error);
-
-        await token.submitInterrupt({
-            type: 'warning',
-            title: 'Unable to install integrated Ffmpeg',
-            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network or some functionality may not work properly.`,
-        });
-
-        if (await hasSystemFfmpeg()) {
-            ffmpegInfo = { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
-        } else {
-            ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
-        }
-    }
-
-    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
-    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe ?? 'Not found'}`);
-
-    return ffmpegInfo;
-};
-
-const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegInfo) => {
-    try {
-        const backend = OwnedBackendProcess.spawn(port, pythonInfo, {
-            STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
-            STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
+        const backend = OwnedBackendProcess.spawn({
+            port,
+            python: pythonInfo,
+            storageDir: getBackendStorageFolder(),
         });
 
         return backend;
@@ -266,21 +227,15 @@ const setupOwnedBackend = async (
 
     token.submitProgress({
         status: t('setup.checkingPython', 'Checking system environment for valid Python...'),
-        totalProgress: 0.2,
+        totalProgress: 0.3,
     });
     const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation, rootDir);
 
     token.submitProgress({
-        status: t('setup.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
-        totalProgress: 0.5,
-    });
-    const ffmpegInfo = await getFfmpegInfo(token, rootDir);
-
-    token.submitProgress({
         status: t('setup.startingBackend', 'Starting up backend process...'),
-        totalProgress: 0.8,
+        totalProgress: 0.7,
     });
-    return spawnBackend(port, pythonInfo, ffmpegInfo);
+    return spawnBackend(port, pythonInfo);
 };
 
 const setupBorrowedBackend = async (
