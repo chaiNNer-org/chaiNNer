@@ -7,6 +7,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, List, NewType, Sequence, Union
 
 from sanic.log import logger
@@ -314,11 +315,14 @@ ExecutionId = NewType("ExecutionId", str)
 
 
 class _ExecutorNodeContext(NodeContext):
-    def __init__(self, progress: ProgressToken, settings: SettingsParser) -> None:
+    def __init__(
+        self, progress: ProgressToken, settings: SettingsParser, storage_dir: Path
+    ) -> None:
         super().__init__()
 
         self.progress = progress
         self.__settings = settings
+        self._storage_dir = storage_dir
 
     @property
     def aborted(self) -> bool:
@@ -341,6 +345,10 @@ class _ExecutorNodeContext(NodeContext):
         """
         return self.__settings
 
+    @property
+    def storage_dir(self) -> Path:
+        return self._storage_dir
+
 
 class Executor:
     """
@@ -356,6 +364,7 @@ class Executor:
         loop: asyncio.AbstractEventLoop,
         queue: EventConsumer,
         pool: ThreadPoolExecutor,
+        storage_dir: Path,
         parent_cache: OutputCache[NodeOutput] | None = None,
     ):
         self.id: ExecutionId = id
@@ -374,6 +383,8 @@ class Executor:
         self.pool: ThreadPoolExecutor = pool
 
         self.cache_strategy: dict[NodeId, CacheStrategy] = get_cache_strategies(chain)
+
+        self._storage_dir = storage_dir
 
     async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
         # Return cached output value from an already-run node if that cached output exists
@@ -503,7 +514,7 @@ class Executor:
             package_id = registry.get_package(node.data.schema_id).id
             settings = self.options.get_package_settings(package_id)
 
-            context = _ExecutorNodeContext(self.progress, settings)
+            context = _ExecutorNodeContext(self.progress, settings, self._storage_dir)
             self.__context_cache[node.data.schema_id] = context
 
         return context

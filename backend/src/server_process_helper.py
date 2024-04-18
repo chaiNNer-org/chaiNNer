@@ -135,18 +135,19 @@ class _WorkerProcess:
 
 
 class WorkerServer:
-    def __init__(self):
+    def __init__(self, flags: Iterable[str] = []):
         self._process = None
 
         self._port = _find_free_port()
         self._base_url = f"http://127.0.0.1:{self._port}"
+        self._flags = list(flags)
         self._session = None
         self._is_ready = False
         self._is_checking_ready = False
 
-    async def start(self, flags: Iterable[str] = []):
+    async def start(self, extra_flags: Iterable[str] = []):
         logger.info(f"Starting worker process on port {self._port}...")
-        self._process = _WorkerProcess([str(self._port), *flags])
+        self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
         self._is_checking_ready = False
@@ -160,10 +161,10 @@ class WorkerServer:
             await self._session.close()
         logger.info("Worker process stopped")
 
-    async def restart(self, flags: Iterable[str] = []):
+    async def restart(self, extra_flags: Iterable[str] = []):
         logger.info("Restarting worker...")
         await self.stop()
-        await self.start(flags)
+        await self.start(extra_flags)
 
     async def wait_for_ready(self, timeout: float = 300):
         if self._is_ready:

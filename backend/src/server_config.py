@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 from dataclasses import dataclass
 
@@ -30,8 +32,15 @@ class ServerConfig:
     Usage: `--error-on-failed-node`
     """
 
+    storage_dir: str | None
+    """
+    Directory to store for nodes to store files in.
+
+    Usage: `--storage-dir /foo/bar`
+    """
+
     @staticmethod
-    def parse_argv() -> "ServerConfig":
+    def parse_argv() -> ServerConfig:
         parser = argparse.ArgumentParser(description="ChaiNNer's server.")
         parser.add_argument(
             "port",
@@ -55,6 +64,11 @@ class ServerConfig:
             action="store_true",
             help="Errors and exits the server with a non-zero exit code if a node fails to import.",
         )
+        parser.add_argument(
+            "--storage-dir",
+            type=str,
+            help="Directory to store for nodes to store files in.",
+        )
 
         parsed = parser.parse_args()
 
@@ -63,4 +77,5 @@ class ServerConfig:
             close_after_start=parsed.close_after_start,
             install_builtin_packages=parsed.install_builtin_packages,
             error_on_failed_node=parsed.error_on_failed_node,
+            storage_dir=parsed.storage_dir or None,
         )
