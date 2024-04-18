@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal, Union
 
+import navi
 from api import BaseInput
 
 # pylint: disable=relative-beyond-top-level
@@ -25,23 +26,27 @@ class FileInput(BaseInput):
 
     def __init__(
         self,
-        input_type_name: str,
         label: str,
         file_kind: FileInputKind,
         filetypes: list[str],
         has_handle: bool = False,
         primary_input: bool = False,
     ):
-        super().__init__(input_type_name, label, kind="file", has_handle=has_handle)
+        super().__init__(
+            navi.named("File", {"kind": navi.literal(file_kind)}),
+            label,
+            kind="file",
+            has_handle=has_handle,
+        )
         self.filetypes = filetypes
         self.file_kind = file_kind
         self.primary_input = primary_input
 
-        self.input_adapt = f"""
-            match Input {{
-                string as path => {input_type_name} {{ path: path }},
+        self.input_adapt = """
+            match Input {
+                string as path => File { path: path },
                 _ => never
-            }}
+            }
         """
 
         self.associated_type = Path
@@ -66,7 +71,6 @@ class FileInput(BaseInput):
 def ImageFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
-        input_type_name="ImageFile",
         label="Image File",
         file_kind="image",
         filetypes=get_available_image_formats(),
@@ -78,7 +82,6 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:
 def VideoFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
-        input_type_name="VideoFile",
         label="Video File",
         file_kind="video",
         filetypes=[
@@ -102,7 +105,6 @@ def VideoFileInput(primary_input: bool = False) -> FileInput:
 def PthFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput(
-        input_type_name="PthFile",
         label="Model",
         file_kind="pth",
         filetypes=[".pt", ".pth", ".ckpt", ".safetensors"],
@@ -158,7 +160,6 @@ class DirectoryInput(BaseInput):
 def BinFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .bin file"""
     return FileInput(
-        input_type_name="NcnnBinFile",
         label="NCNN Bin File",
         file_kind="bin",
         filetypes=[".bin"],
@@ -169,7 +170,6 @@ def BinFileInput(primary_input: bool = False) -> FileInput:
 def ParamFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput(
-        input_type_name="NcnnParamFile",
         label="NCNN Param File",
         file_kind="param",
         filetypes=[".param"],
@@ -180,7 +180,6 @@ def ParamFileInput(primary_input: bool = False) -> FileInput:
 def OnnxFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .onnx file"""
     return FileInput(
-        input_type_name="OnnxFile",
         label="ONNX Model File",
         file_kind="onnx",
         filetypes=[".onnx"],
