@@ -10,6 +10,7 @@ import {
 import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useRef } from 'react';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
+import { IoMdFastforward } from 'react-icons/io';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -18,26 +19,33 @@ import { GlobalContext } from '../contexts/GlobalNodeState';
 import { NodeDocumentationContext } from '../contexts/NodeDocumentationContext';
 import { copyToClipboard } from '../helpers/copyAndPaste';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
-import { UseDisabled } from './useDisabled';
-
+import { NO_DISABLED, UseDisabled } from './useDisabled';
+import { NO_PASSTHROUGH, UsePassthrough } from './usePassthrough';
 import './useNodeMenu.scss';
 
 export interface UseNodeMenuOptions {
+    disabled?: UseDisabled;
+    passthrough?: UsePassthrough;
     canLock?: boolean;
     reload?: () => void;
 }
 
 export const useNodeMenu = (
     data: NodeData,
-    useDisabled: UseDisabled,
-    { canLock = true, reload }: UseNodeMenuOptions = {}
+    {
+        disabled = NO_DISABLED,
+        passthrough = NO_PASSTHROUGH,
+        canLock = true,
+        reload,
+    }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
     const { openNodeDocumentation } = useContext(NodeDocumentationContext);
     const { id, isLocked = false, schemaId } = data;
 
     const { removeNodesById, resetInputs, resetConnections, duplicateNodes, toggleNodeLock } =
         useContext(GlobalContext);
-    const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = useDisabled;
+    const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = disabled;
+    const { canPassthrough, isPassthrough, toggle: togglePassthrough } = passthrough;
 
     const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -122,6 +130,14 @@ export const useNodeMenu = (
                     onClick={toggleDirectlyDisabled}
                 >
                     {isDirectlyDisabled ? 'Enable' : 'Disable'}
+                </MenuItem>
+            )}
+            {canPassthrough && (
+                <MenuItem
+                    icon={isPassthrough ? <MdPlayArrow /> : <IoMdFastforward />}
+                    onClick={togglePassthrough}
+                >
+                    {isPassthrough ? 'Disable Passthrough' : 'Passthrough'}
                 </MenuItem>
             )}
 

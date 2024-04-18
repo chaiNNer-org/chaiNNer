@@ -26,7 +26,6 @@ import { log } from '../../../../common/log';
 import { GlobalVolatileContext } from '../../../contexts/GlobalNodeState';
 import { useNodeStateFromData } from '../../../helpers/nodeState';
 import { useContextMenu } from '../../../hooks/useContextMenu';
-import { useDisabled } from '../../../hooks/useDisabled';
 import { useNodeMenu } from '../../../hooks/useNodeMenu';
 import { DragHandleSVG, IconFactory } from '../../CustomIcons';
 import { Markdown } from '../../Markdown';
@@ -80,8 +79,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
 
     const targetRef = useRef<HTMLDivElement>(null);
 
-    const disabled = useDisabled(data);
-    const menu = useNodeMenu(data, disabled);
+    const menu = useNodeMenu(data);
 
     const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 

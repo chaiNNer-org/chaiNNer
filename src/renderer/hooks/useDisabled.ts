@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
 import { DisabledStatus, getDisabledStatus } from '../../common/nodes/disabled';
+import { noop } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { useMemoObject } from './useMemo';
@@ -12,6 +13,13 @@ export interface UseDisabled {
     readonly status: DisabledStatus;
     readonly toggleDirectlyDisabled: () => void;
 }
+
+export const NO_DISABLED: UseDisabled = {
+    canDisable: false,
+    isDirectlyDisabled: false,
+    status: DisabledStatus.Enabled,
+    toggleDirectlyDisabled: noop,
+};
 
 export const useDisabled = (data: NodeData): UseDisabled => {
     const { id, isDisabled, schemaId } = data;
