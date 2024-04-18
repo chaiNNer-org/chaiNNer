@@ -82,7 +82,7 @@ UNIFORM_DITHER_ALGORITHM_LABELS = {
             ).with_id(5),
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def dither_node(
     img: np.ndarray,

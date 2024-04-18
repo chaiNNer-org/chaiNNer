@@ -25,7 +25,7 @@ from .. import arithmetic_group
             scale="log",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def multiply_node(img: np.ndarray, mult: float) -> np.ndarray:
     if mult == 1.0:

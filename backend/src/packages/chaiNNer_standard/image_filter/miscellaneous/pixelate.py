@@ -24,7 +24,7 @@ from .. import miscellaneous_group
             SliderInput("Size Y", minimum=1, maximum=1024, default=10, scale="log"),
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def pixelate_node(
     img: np.ndarray,

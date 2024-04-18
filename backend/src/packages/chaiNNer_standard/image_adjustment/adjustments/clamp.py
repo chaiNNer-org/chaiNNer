@@ -35,10 +35,7 @@ from .. import adjustments_group
         ),
     ],
     outputs=[
-        ImageOutput(
-            image_type="Input0",
-            assume_normalized=True,
-        )
+        ImageOutput(shape_as=0, assume_normalized=True),
     ],
 )
 def clamp_node(img: np.ndarray, minimum: float, maximum: float) -> np.ndarray:
