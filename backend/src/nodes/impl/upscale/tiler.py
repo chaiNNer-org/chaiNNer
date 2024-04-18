@@ -31,12 +31,12 @@ class NoTiling(Tiler):
     def allow_smaller_tile_size(self) -> bool:
         return True
 
-    def starting_tile_size(self, width: int, height: int, _channels: int) -> Size:
+    def starting_tile_size(self, width: int, height: int, channels: int) -> Size:
         size = max(width, height)
         # we prefer square tiles
         return size, size
 
-    def split(self, _: Size) -> Size:
+    def split(self, tile_size: Size) -> Size:
         raise ValueError("Image cannot be upscale with No Tiling mode.")
 
 
@@ -47,7 +47,7 @@ class MaxTileSize(Tiler):
     def allow_smaller_tile_size(self) -> bool:
         return True
 
-    def starting_tile_size(self, width: int, height: int, _channels: int) -> Size:
+    def starting_tile_size(self, width: int, height: int, channels: int) -> Size:
         # Tile size a lot larger than the image don't make sense.
         # So we use the minimum of the image dimensions and the given tile size.
         max_tile_size = max(width + 10, height + 10)
@@ -62,10 +62,10 @@ class ExactTileSize(Tiler):
     def allow_smaller_tile_size(self) -> bool:
         return False
 
-    def starting_tile_size(self, _width: int, _height: int, _channels: int) -> Size:
+    def starting_tile_size(self, width: int, height: int, channels: int) -> Size:
         return self.exact_size
 
-    def split(self, _tile_size: Size) -> Size:
+    def split(self, tile_size: Size) -> Size:
         raise ValueError(
             f"Splits are not supported for exact size ({self.exact_size[0]}x{self.exact_size[1]}px) splitting."
             f" This typically means that your machine does not have enough VRAM to run the current model."

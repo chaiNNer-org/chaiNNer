@@ -4,7 +4,7 @@ import json
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Literal, TypedDict, TypeVar
+from typing import Any, Literal, TypedDict, TypeVar
 
 import numpy as np
 from sanic.log import logger
@@ -66,7 +66,10 @@ class DropDownGroup:
         return {"label": self.label, "startAt": start_at}
 
 
-class DropDownInput(BaseInput):
+T = TypeVar("T")
+
+
+class DropDownInput(BaseInput[T]):
     """Input for a dropdown"""
 
     def __init__(
@@ -113,9 +116,9 @@ class DropDownInput(BaseInput):
     def make_optional(self):
         raise ValueError("DropDownInput cannot be made optional")
 
-    def enforce(self, value: object):
+    def enforce(self, value: object) -> T:
         assert value in self.accepted_values, f"{value} is not a valid option"
-        return value
+        return value  # type: ignore
 
     def wrap_with_conditional_group(self):
         """
@@ -138,7 +141,7 @@ class DropDownInput(BaseInput):
         return group("conditional", {"condition": condition})(self)
 
 
-class BoolInput(DropDownInput):
+class BoolInput(DropDownInput[bool]):
     def __init__(self, label: str, default: bool = True, icon: str | None = None):
         super().__init__(
             input_type="bool",
@@ -166,10 +169,10 @@ class BoolInput(DropDownInput):
         return bool(value)
 
 
-T = TypeVar("T", bound=Enum)
+E = TypeVar("E", bound=Enum)
 
 
-class EnumInput(Generic[T], DropDownInput):
+class EnumInput(DropDownInput[E]):
     """
     This adapts a python Enum into a chaiNNer dropdown input.
 
@@ -192,17 +195,17 @@ class EnumInput(Generic[T], DropDownInput):
 
     def __init__(
         self,
-        enum: type[T],
+        enum: type[E],
         label: str | None = None,
-        default: T | None = None,
+        default: E | None = None,
         type_name: str | None = None,
-        option_labels: dict[T, str] | None = None,
+        option_labels: dict[E, str] | None = None,
         extra_definitions: str | None = None,
         preferred_style: DropDownStyle = "dropdown",
         label_style: LabelStyle = "default",
         categories: list[DropDownGroup] | None = None,
-        conditions: dict[T, Condition] | None = None,
-        icons: dict[T, str] | None = None,
+        conditions: dict[E, Condition] | None = None,
+        icons: dict[E, str] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -263,12 +266,12 @@ class EnumInput(Generic[T], DropDownInput):
 
         self.associated_type = enum
 
-    def enforce(self, value: object) -> T:
+    def enforce(self, value: object) -> E:
         value = super().enforce(value)
         return self.enum(value)
 
 
-class TextInput(BaseInput):
+class TextInput(BaseInput[str]):
     """Input for arbitrary text"""
 
     def __init__(
@@ -365,7 +368,7 @@ class ClipboardInput(BaseInput):
         }
 
 
-class AnyInput(BaseInput):
+class AnyInput(BaseInput[object]):
     def __init__(self, label: str):
         super().__init__(input_type="any", label=label)
         self.associated_type = object
@@ -398,7 +401,7 @@ class SeedInput(NumberInput):
 
         self.associated_type = Seed
 
-    def enforce(self, value: object) -> Seed:
+    def enforce(self, value: object) -> Seed:  # type: ignore
         if isinstance(value, Seed):
             return value
         if isinstance(value, (int, float, str)):
@@ -409,7 +412,7 @@ class SeedInput(NumberInput):
         raise ValueError("SeedInput cannot be made optional")
 
 
-class ColorInput(BaseInput):
+class ColorInput(BaseInput[Color]):
     def __init__(
         self,
         label: str = "Color",

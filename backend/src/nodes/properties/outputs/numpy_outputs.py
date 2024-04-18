@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 import navi
-from api import BaseOutput, OutputKind
+from api import BaseOutput, BroadcastData, InputId, OutputKind
 
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.resize import ResizeFilter, resize
@@ -14,7 +14,7 @@ from ...utils.format import format_image_with_channels
 from ...utils.utils import get_h_w_c, round_half_up
 
 
-class NumPyOutput(BaseOutput):
+class NumPyOutput(BaseOutput[np.ndarray]):
     """Output a NumPy array"""
 
     def __init__(
@@ -50,19 +50,26 @@ class ImageOutput(NumPyOutput):
         kind: OutputKind = "image",
         has_handle: bool = True,
         channels: int | None = None,
+        shape_as: int | InputId | None = None,
         assume_normalized: bool = False,
     ):
-        super().__init__(
-            navi.intersect_with_error(image_type, navi.Image(channels=channels)),
-            label,
-            kind=kind,
-            has_handle=has_handle,
-        )
+        # narrow down type
+        if channels is not None:
+            image_type = navi.intersect_with_error(
+                image_type, navi.Image(channels=channels)
+            )
+        if shape_as is not None:
+            image_type = navi.intersect_with_error(image_type, f"Input{shape_as}")
+
+        super().__init__(image_type, label, kind=kind, has_handle=has_handle)
 
         self.channels: int | None = channels
         self.assume_normalized: bool = assume_normalized
 
-    def get_broadcast_data(self, value: np.ndarray):
+        if shape_as is not None:
+            self.as_pass_through_of(shape_as)
+
+    def get_broadcast_data(self, value: np.ndarray) -> BroadcastData:
         h, w, c = get_h_w_c(value)
         return {
             "height": h,
