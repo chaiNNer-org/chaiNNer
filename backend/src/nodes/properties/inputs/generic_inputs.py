@@ -286,6 +286,7 @@ class TextInput(BaseInput[str]):
         default: str | None = None,
         label_style: LabelStyle = "default",
         allow_empty_string: bool = False,
+        invalid_pattern: str | None = None,
     ):
         super().__init__(
             input_type="string" if min_length == 0 else 'invStrSet("")',
@@ -300,6 +301,7 @@ class TextInput(BaseInput[str]):
         self.multiline = multiline
         self.label_style: LabelStyle = label_style
         self.allow_empty_string = allow_empty_string
+        self.invalid_pattern = invalid_pattern
 
         if default is not None:
             assert default != ""
@@ -339,6 +341,7 @@ class TextInput(BaseInput[str]):
             "def": self.default,
             "labelStyle": self.label_style,
             "allowEmptyString": self.allow_empty_string,
+            "invalidPattern": self.invalid_pattern,
         }
 
 

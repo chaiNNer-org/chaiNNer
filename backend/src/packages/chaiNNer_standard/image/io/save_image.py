@@ -30,8 +30,8 @@ from nodes.properties.inputs import (
     DropDownInput,
     EnumInput,
     ImageInput,
+    RelativePathInput,
     SliderInput,
-    TextInput,
 )
 from nodes.utils.utils import get_h_w_c
 
@@ -161,13 +161,13 @@ def DdsMipMapsDropdown() -> DropDownInput:
     inputs=[
         ImageInput(),
         DirectoryInput(must_exist=False),
-        TextInput("Subdirectory Path")
+        RelativePathInput("Subdirectory Path")
         .make_optional()
         .with_docs(
             "An optional subdirectory path. Use this to save the image to a subdirectory of the specified directory. If the subdirectory does not exist, it will be created. Multiple subdirectories can be specified by separating them with a forward slash (`/`).",
             "Example: `foo/bar`",
         ),
-        TextInput("Image Name").with_docs(
+        RelativePathInput("Image Name").with_docs(
             "The name of the image file **without** the file extension. If the file already exists, it will be overwritten.",
             "Example: `my-image`",
         ),
@@ -385,4 +385,4 @@ def get_full_path(
     if relative_path and relative_path != ".":
         base_directory = base_directory / relative_path
     full_path = base_directory / file
-    return full_path
+    return full_path.resolve()
