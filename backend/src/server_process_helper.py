@@ -144,6 +144,7 @@ class WorkerServer:
         self._session = None
         self._is_ready = False
         self._is_checking_ready = False
+        self._manually_close: set[aiohttp.ClientResponse] = set()
 
     async def start(self, extra_flags: Iterable[str] = []):
         logger.info(f"Starting worker process on port {self._port}...")
@@ -158,6 +159,9 @@ class WorkerServer:
         if self._process:
             self._process.close()
         if self._session:
+            for resp in self._manually_close:
+                resp.close()
+            self._manually_close.clear()
             await self._session.close()
         logger.info("Worker process stopped")
 
@@ -238,8 +242,12 @@ class WorkerServer:
             data=request.body,
             timeout=aiohttp.ClientTimeout(total=60 * 60, connect=5),
         ) as resp:
-            async for data, _ in resp.content.iter_chunks():
-                yield data
+            self._manually_close.add(resp)
+            try:
+                async for data, _ in resp.content.iter_chunks():
+                    yield data
+            finally:
+                self._manually_close.remove(resp)
 
     async def get_packages(self):
         await self.wait_for_ready()
