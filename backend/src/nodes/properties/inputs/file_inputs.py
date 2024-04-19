@@ -114,36 +114,6 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-def BinFileInput(primary_input: bool = False) -> FileInput:
-    """Input for submitting a local .bin file"""
-    return FileInput(
-        label="NCNN Bin File",
-        file_kind="bin",
-        filetypes=[".bin"],
-        primary_input=primary_input,
-    )
-
-
-def ParamFileInput(primary_input: bool = False) -> FileInput:
-    """Input for submitting a local .param file"""
-    return FileInput(
-        label="NCNN Param File",
-        file_kind="param",
-        filetypes=[".param"],
-        primary_input=primary_input,
-    )
-
-
-def OnnxFileInput(primary_input: bool = False) -> FileInput:
-    """Input for submitting a local .onnx file"""
-    return FileInput(
-        label="ONNX Model File",
-        file_kind="onnx",
-        filetypes=[".onnx"],
-        primary_input=primary_input,
-    )
-
-
 class DirectoryInput(BaseInput[Path]):
     """Input for submitting a local directory"""
 
@@ -183,6 +153,36 @@ class DirectoryInput(BaseInput[Path]):
             assert value.exists(), f"Directory {value} does not exist"
 
         return value
+
+
+def BinFileInput(primary_input: bool = False) -> FileInput:
+    """Input for submitting a local .bin file"""
+    return FileInput(
+        label="NCNN Bin File",
+        file_kind="bin",
+        filetypes=[".bin"],
+        primary_input=primary_input,
+    )
+
+
+def ParamFileInput(primary_input: bool = False) -> FileInput:
+    """Input for submitting a local .param file"""
+    return FileInput(
+        label="NCNN Param File",
+        file_kind="param",
+        filetypes=[".param"],
+        primary_input=primary_input,
+    )
+
+
+def OnnxFileInput(primary_input: bool = False) -> FileInput:
+    """Input for submitting a local .onnx file"""
+    return FileInput(
+        label="ONNX Model File",
+        file_kind="onnx",
+        filetypes=[".onnx"],
+        primary_input=primary_input,
+    )
 
 
 _INVALID_PATH_CHARS = re.compile(r'[<>:"|?*\x00-\x1F]')
