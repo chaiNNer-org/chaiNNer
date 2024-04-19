@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Generic, Literal, Mapping, TypeVar
 
 import navi
 
 from .types import InputId, OutputId
 
 OutputKind = Literal["image", "large-image", "tagged", "generic"]
+BroadcastData = Mapping[str, object]
+
+T = TypeVar("T")
 
 
-class BaseOutput:
+class BaseOutput(Generic[T]):
     def __init__(
         self,
         output_type: navi.ExpressionJson,
@@ -65,12 +68,12 @@ class BaseOutput:
         self.passthrough_of = InputId(input_id)
         return self
 
-    def get_broadcast_data(self, _value: object):
+    def get_broadcast_data(self, _value: T) -> BroadcastData | None:
         return None
 
-    def get_broadcast_type(self, _value: object) -> navi.ExpressionJson | None:
+    def get_broadcast_type(self, _value: T) -> navi.ExpressionJson | None:
         return None
 
-    def enforce(self, value: object) -> object:
+    def enforce(self, value: object) -> T:
         assert value is not None
-        return value
+        return value  # type: ignore

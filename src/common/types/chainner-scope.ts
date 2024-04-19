@@ -33,11 +33,14 @@ def error(message: invStrSet("")): Error {
 struct Seed;
 
 struct Directory { path: string }
+struct File {
+    // what kind of file. E.g. image, video, pth
+    kind: string,
+    path: string,
+}
 
-struct AudioFile;
 struct Audio;
 
-struct ImageFile { path: string }
 struct Image {
     width: int(1..),
     height: int(1..),
@@ -45,11 +48,8 @@ struct Image {
 }
 struct Color { channels: int(1..) }
 
-struct VideoFile { path: string }
 struct Video;
 
-struct PthFile { path: string }
-struct PtFile { path: string }
 struct PyTorchScript;
 struct PyTorchModel {
     scale: int(1..),
@@ -62,8 +62,6 @@ struct PyTorchModel {
 }
 enum ModelTiling { Supported, Discouraged, Internal }
 
-struct NcnnBinFile { path: string }
-struct NcnnParamFile { path: string }
 struct NcnnNetwork {
     scale: int(1..),
     inputChannels: int(1..),
@@ -72,7 +70,6 @@ struct NcnnNetwork {
     fp: string,
 }
 
-struct OnnxFile { path: string }
 struct OnnxModel {
     arch: string,
     subType: string,

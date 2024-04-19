@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 import navi
-from api import BaseOutput, InputId, OutputKind
+from api import BaseOutput, BroadcastData, InputId, OutputKind
 
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.resize import ResizeFilter, resize
@@ -14,7 +14,7 @@ from ...utils.format import format_image_with_channels
 from ...utils.utils import get_h_w_c, round_half_up
 
 
-class NumPyOutput(BaseOutput):
+class NumPyOutput(BaseOutput[np.ndarray]):
     """Output a NumPy array"""
 
     def __init__(
@@ -69,7 +69,7 @@ class ImageOutput(NumPyOutput):
         if shape_as is not None:
             self.as_passthrough_of(shape_as)
 
-    def get_broadcast_data(self, value: np.ndarray):
+    def get_broadcast_data(self, value: np.ndarray) -> BroadcastData:
         h, w, c = get_h_w_c(value)
         return {
             "height": h,
