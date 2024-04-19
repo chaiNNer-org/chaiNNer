@@ -26,6 +26,15 @@ export class PassthroughInfo {
         }
         return inputId;
     }
+
+    isMappedInput(inputId: InputId): boolean {
+        for (const id of this.mapping.values()) {
+            if (id === inputId) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 const guessPassthroughInput = (

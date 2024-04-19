@@ -193,3 +193,13 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         setNodeName: setName,
     });
 };
+
+export const getPassthroughIgnored = ({ passthrough }: NodeState, inputId?: InputId): boolean => {
+    if (passthrough === undefined) return false;
+    if (inputId === undefined) {
+        // we'll just assume it's ignored. This works, because most inputs are ignored
+        return true;
+    }
+
+    return !passthrough.isMappedInput(inputId);
+};
