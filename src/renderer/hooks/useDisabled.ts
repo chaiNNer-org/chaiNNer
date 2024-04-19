@@ -11,14 +11,14 @@ export interface UseDisabled {
     readonly canDisable: boolean;
     readonly isDirectlyDisabled: boolean;
     readonly status: DisabledStatus;
-    readonly toggleDirectlyDisabled: () => void;
+    readonly setDirectlyDisabled: (value: boolean) => void;
 }
 
 export const NO_DISABLED: UseDisabled = {
     canDisable: false,
     isDirectlyDisabled: false,
     status: DisabledStatus.Enabled,
-    toggleDirectlyDisabled: noop,
+    setDirectlyDisabled: noop,
 };
 
 export const useDisabled = (data: NodeData): UseDisabled => {
@@ -36,9 +36,9 @@ export const useDisabled = (data: NodeData): UseDisabled => {
         canDisable: schema.hasSideEffects || schema.outputs.length > 0,
         isDirectlyDisabled: isDisabled ?? false,
         status,
-        toggleDirectlyDisabled: useCallback(
-            () => setNodeDisabled(id, !isDisabled),
-            [setNodeDisabled, id, isDisabled]
+        setDirectlyDisabled: useCallback(
+            (value) => setNodeDisabled(id, value),
+            [setNodeDisabled, id]
         ),
     });
 };

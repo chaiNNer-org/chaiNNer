@@ -44,8 +44,8 @@ export const useNodeMenu = (
 
     const { removeNodesById, resetInputs, resetConnections, duplicateNodes, toggleNodeLock } =
         useContext(GlobalContext);
-    const { isDirectlyDisabled, canDisable, toggleDirectlyDisabled } = disabled;
-    const { canPassthrough, isPassthrough, toggle: togglePassthrough } = passthrough;
+    const { isDirectlyDisabled, canDisable, setDirectlyDisabled } = disabled;
+    const { canPassthrough, isPassthrough, setIsPassthrough } = passthrough;
 
     const { getNode, getNodes, getEdges } = useReactFlow<NodeData, EdgeData>();
 
@@ -124,21 +124,42 @@ export const useNodeMenu = (
                 </MenuList>
             </div>
             <MenuDivider />
-            {canDisable && (
-                <MenuItem
-                    icon={isDirectlyDisabled ? <MdPlayArrow /> : <MdPlayDisabled />}
-                    onClick={toggleDirectlyDisabled}
-                >
-                    {isDirectlyDisabled ? 'Enable' : 'Disable'}
-                </MenuItem>
-            )}
-            {canPassthrough && (
-                <MenuItem
-                    icon={isPassthrough ? <MdPlayArrow /> : <IoMdFastforward />}
-                    onClick={togglePassthrough}
-                >
-                    {isPassthrough ? 'Disable Passthrough' : 'Passthrough'}
-                </MenuItem>
+            {(canDisable || canPassthrough) && (
+                <>
+                    {(isDirectlyDisabled || isPassthrough) && (
+                        <MenuItem
+                            icon={<MdPlayArrow />}
+                            onClick={() => {
+                                setDirectlyDisabled(false);
+                                setIsPassthrough(false);
+                            }}
+                        >
+                            Enable
+                        </MenuItem>
+                    )}
+                    {!isDirectlyDisabled && (
+                        <MenuItem
+                            icon={<MdPlayDisabled />}
+                            onClick={() => {
+                                setDirectlyDisabled(true);
+                                setIsPassthrough(false);
+                            }}
+                        >
+                            Disable
+                        </MenuItem>
+                    )}
+                    {canPassthrough && (isDirectlyDisabled || !isPassthrough) && (
+                        <MenuItem
+                            icon={<IoMdFastforward />}
+                            onClick={() => {
+                                setDirectlyDisabled(false);
+                                setIsPassthrough(true);
+                            }}
+                        >
+                            Skip
+                        </MenuItem>
+                    )}
+                </>
             )}
 
             {canLock && (

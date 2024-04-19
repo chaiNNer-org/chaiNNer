@@ -11,14 +11,14 @@ export interface UsePassthrough {
     readonly isPassthrough: boolean;
     readonly canPassthrough: boolean;
     readonly info: PassthroughInfo | undefined;
-    readonly toggle: () => void;
+    readonly setIsPassthrough: (value: boolean) => void;
 }
 
 export const NO_PASSTHROUGH: UsePassthrough = {
     isPassthrough: false,
     canPassthrough: false,
     info: undefined,
-    toggle: noop,
+    setIsPassthrough: noop,
 };
 
 export const usePassthrough = (data: NodeData): UsePassthrough => {
@@ -33,8 +33,11 @@ export const usePassthrough = (data: NodeData): UsePassthrough => {
         isPassthrough: isPassthrough ?? false,
         canPassthrough,
         info,
-        toggle: useCallback(() => {
-            setNodePassthrough(data.id, canPassthrough && !isPassthrough);
-        }, [setNodePassthrough, data.id, canPassthrough, isPassthrough]),
+        setIsPassthrough: useCallback(
+            (value) => {
+                setNodePassthrough(data.id, value);
+            },
+            [setNodePassthrough, data.id]
+        ),
     });
 };
