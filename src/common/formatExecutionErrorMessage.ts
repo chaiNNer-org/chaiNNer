@@ -27,6 +27,8 @@ export const formatExecutionErrorMessage = (
             valueStr = inputValue.formatString;
         } else if (inputValue.type === 'unknown') {
             valueStr = `Value of type '${inputValue.typeModule}.${inputValue.typeName}'`;
+        } else if (inputValue.type === 'pending') {
+            valueStr = `Pending. The value hasn't been computed.`;
         } else {
             const { value } = inputValue;
 

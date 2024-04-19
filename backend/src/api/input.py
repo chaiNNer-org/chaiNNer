@@ -66,13 +66,19 @@ class FormattedErrorValue(TypedDict):
     formatString: str
 
 
+class PendingErrorValue(TypedDict):
+    type: Literal["pending"]
+
+
 class UnknownErrorValue(TypedDict):
     type: Literal["unknown"]
     typeName: str
     typeModule: str
 
 
-ErrorValue = Union[LiteralErrorValue, FormattedErrorValue, UnknownErrorValue]
+ErrorValue = Union[
+    LiteralErrorValue, FormattedErrorValue, UnknownErrorValue, PendingErrorValue
+]
 
 T = TypeVar("T")
 
@@ -98,6 +104,7 @@ class BaseInput(Generic[T]):
         self.associated_type: Any = associated_type
 
         self.fused: IOFusion | None = None
+        self.lazy: bool = False
 
         # Optional documentation
         self.description: str | None = None
@@ -180,6 +187,10 @@ class BaseInput(Generic[T]):
         if self.associated_type is not None:
             associated_type = self.associated_type
             self.associated_type = Optional[associated_type]
+        return self
+
+    def make_lazy(self):
+        self.lazy = True
         return self
 
     def make_fused(self, with_output: OutputId | int = 0):
