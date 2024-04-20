@@ -105,6 +105,7 @@ export interface TextInput extends InputBase {
     readonly placeholder?: string | null;
     readonly def?: string | null;
     readonly allowEmptyString?: boolean;
+    readonly invalidPattern?: string | null;
     readonly labelStyle: LabelStyle | undefined;
 }
 export interface NumberInput extends InputBase {

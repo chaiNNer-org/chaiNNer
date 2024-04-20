@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Literal, Union
 
@@ -8,6 +9,7 @@ from api import BaseInput
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
+from .generic_inputs import TextInput
 from .label import LabelStyle
 
 FileInputKind = Union[
@@ -112,7 +114,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-class DirectoryInput(BaseInput):
+class DirectoryInput(BaseInput[Path]):
     """Input for submitting a local directory"""
 
     def __init__(
@@ -120,7 +122,6 @@ class DirectoryInput(BaseInput):
         label: str = "Directory",
         has_handle: bool = True,
         must_exist: bool = True,
-        create: bool = False,
         label_style: LabelStyle = "default",
     ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
@@ -133,7 +134,6 @@ class DirectoryInput(BaseInput):
         """
 
         self.must_exist: bool = must_exist
-        self.create: bool = create
         self.label_style: LabelStyle = label_style
 
         self.associated_type = Path
@@ -144,14 +144,12 @@ class DirectoryInput(BaseInput):
             "labelStyle": self.label_style,
         }
 
-    def enforce(self, value: object):
+    def enforce(self, value: object) -> Path:
         if isinstance(value, str):
             value = Path(value)
         assert isinstance(value, Path)
 
-        if self.create:
-            value.mkdir(parents=True, exist_ok=True)
-        elif self.must_exist:
+        if self.must_exist:
             assert value.exists(), f"Directory {value} does not exist"
 
         return value
@@ -185,3 +183,47 @@ def OnnxFileInput(primary_input: bool = False) -> FileInput:
         filetypes=[".onnx"],
         primary_input=primary_input,
     )
+
+
+_INVALID_PATH_CHARS = re.compile(r'[<>:"|?*\x00-\x1F]')
+
+
+def _is_abs_path(path: str) -> bool:
+    return path.startswith(("/", "\\")) or Path(path).is_absolute()
+
+
+class RelativePathInput(TextInput):
+    def __init__(
+        self,
+        label: str,
+        has_handle: bool = True,
+        placeholder: str | None = None,
+        allow_numbers: bool = True,
+        default: str | None = None,
+        label_style: LabelStyle = "default",
+    ):
+        super().__init__(
+            label,
+            has_handle=has_handle,
+            min_length=1,
+            max_length=None,
+            placeholder=placeholder,
+            multiline=False,
+            allow_numbers=allow_numbers,
+            default=default,
+            label_style=label_style,
+            allow_empty_string=False,
+            invalid_pattern=_INVALID_PATH_CHARS.pattern,
+        )
+
+    def enforce(self, value: object) -> str:
+        value = super().enforce(value)
+
+        if _is_abs_path(value):
+            raise ValueError(f"Absolute paths are not allowed for input {self.label}.")
+
+        invalid = _INVALID_PATH_CHARS.search(value)
+        if invalid is not None:
+            raise ValueError(f"Invalid character '{invalid.group()}' in {self.label}.")
+
+        return value
