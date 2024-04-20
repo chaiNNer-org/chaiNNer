@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from enum import Enum
 from pathlib import Path
 from typing import Literal
@@ -10,7 +9,7 @@ import numpy as np
 from PIL import Image
 from sanic.log import logger
 
-from api import KeyInfo
+from api import KeyInfo, Lazy
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
     BC7_FORMATS,
@@ -159,7 +158,7 @@ def DdsMipMapsDropdown() -> DropDownInput:
     description="Save image to file at a specified directory.",
     icon="MdSave",
     inputs=[
-        ImageInput(),
+        ImageInput().make_lazy(),
         DirectoryInput(must_exist=False),
         RelativePathInput("Subdirectory Path")
         .make_optional()
@@ -262,6 +261,11 @@ def DdsMipMapsDropdown() -> DropDownInput:
                 ),
             ),
         ),
+        BoolInput("Skip existing files", default=False)
+        .with_id(1000)
+        .with_docs(
+            "If enabled, the node will not overwrite existing files.",
+        ),
     ],
     outputs=[],
     key_info=KeyInfo.enum(4),
@@ -269,7 +273,7 @@ def DdsMipMapsDropdown() -> DropDownInput:
     limited_to_8bpc="Image will be saved with 8 bits/channel by default. Some formats support higher bit depths.",
 )
 def save_image_node(
-    img: np.ndarray,
+    lazy_image: Lazy[np.ndarray],
     base_directory: Path,
     relative_path: str | None,
     filename: str,
@@ -286,12 +290,20 @@ def save_image_node(
     dds_dithering: bool,
     dds_mipmap_levels: int,
     dds_separate_alpha: bool,
+    skip_existing_files: bool,
 ) -> None:
     full_path = get_full_path(base_directory, relative_path, filename, image_format)
-    logger.debug(f"Writing image to path: {full_path}")
 
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    if full_path.exists():
+        if skip_existing_files:
+            logger.debug(f"Skipping existing file: {full_path}")
+            return
+    else:
+        # Create directory if it doesn't exist
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.debug(f"Writing image to path: {full_path}")
+    img = lazy_image.value
 
     # DDS files are handled separately
     if image_format == ImageFormat.DDS:

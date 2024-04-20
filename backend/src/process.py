@@ -13,11 +13,13 @@ from typing import Iterable, List, NewType, Sequence, Union
 from sanic.log import logger
 
 from api import (
+    BaseInput,
     BaseOutput,
     Collector,
     ExecutionOptions,
     InputId,
     Iterator,
+    Lazy,
     NodeContext,
     NodeData,
     NodeId,
@@ -37,13 +39,21 @@ Output = List[object]
 
 def collect_input_information(
     node: NodeData,
-    inputs: list[object],
+    inputs: list[object | Lazy[object]],
     enforced: bool = True,
 ) -> InputsDict:
     try:
         input_dict: InputsDict = {}
 
         for value, node_input in zip(inputs, node.inputs):
+            if isinstance(value, Lazy) and value.has_value:
+                value = value.value  # noqa: PLW2901
+
+            if isinstance(value, Lazy):
+                # the value hasn't been computed yet, so we won't do so here
+                input_dict[node_input.id] = {"type": "pending"}
+                continue
+
             if not enforced:
                 try:
                     value = node_input.enforce_(value)  # noqa
@@ -75,16 +85,24 @@ def enforce_inputs(
     node_id: NodeId,
     ignored_inputs: list[InputId],
 ) -> list[object]:
+    def enforce(i: BaseInput, value: object) -> object:
+        if i.id in ignored_inputs:
+            return None
+
+        # we generally assume that enforcing a value is cheap, so we do it as soon as possible
+        if i.lazy:
+            if isinstance(value, Lazy):
+                return Lazy(lambda: i.enforce_(value.value))
+            return Lazy.ready(i.enforce_(value))
+
+        if isinstance(value, Lazy):
+            value = value.value  # compute lazy value
+        return i.enforce_(value)
+
     try:
         enforced_inputs: list[object] = []
-
         for index, value in enumerate(inputs):
-            i = node.inputs[index]
-            if i.id in ignored_inputs:
-                enforced_inputs.append(None)
-            else:
-                enforced_inputs.append(i.enforce_(value))
-
+            enforced_inputs.append(enforce(node.inputs[index], value))
         return enforced_inputs
     except Exception as e:
         input_dict = collect_input_information(node, inputs, enforced=False)
@@ -478,6 +496,12 @@ class Executor:
                 if i.id in iterator_input.inputs:
                     ignore.add(input_index)
 
+        # some inputs are lazy, so we want to lazily resolve them
+        lazy: set[int] = set()
+        for input_index, i in enumerate(node.data.inputs):
+            if i.lazy:
+                lazy.add(input_index)
+
         assigned_inputs = self.inputs.get(node.id)
         assert len(assigned_inputs) == len(node.data.inputs)
 
@@ -485,6 +509,12 @@ class Executor:
         for input_index, node_input in enumerate(assigned_inputs):
             if input_index in ignore:
                 inputs.append(None)
+            if input_index in lazy:
+                inputs.append(
+                    Lazy.from_coroutine(
+                        self.__resolve_node_input(node_input), self.loop
+                    )
+                )
             else:
                 inputs.append(await self.__resolve_node_input(node_input))
 

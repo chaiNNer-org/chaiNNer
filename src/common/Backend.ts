@@ -35,10 +35,14 @@ export interface BackendUnknownErrorValue {
     typeName: string;
     typeModule: string;
 }
+export interface BackendPendingErrorValue {
+    type: 'pending';
+}
 export type BackendErrorValue =
     | BackendLiteralErrorValue
     | BackendFormattedErrorValue
-    | BackendUnknownErrorValue;
+    | BackendUnknownErrorValue
+    | BackendPendingErrorValue;
 
 export interface BackendExceptionSource {
     nodeId: string;
