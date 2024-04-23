@@ -21,6 +21,8 @@ UNINSTALLING_REGEX = re.compile(r"Uninstalling ([a-zA-Z0-9-_]+)-+")
 
 DEP_MAX_PROGRESS = 0.8
 
+ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+
 
 @dataclass(frozen=True)
 class DependencyInfo:
@@ -101,6 +103,7 @@ def install_dependencies_sync(
             "--no-warn-script-location",
             *extra_index_args,
         ],
+        env=ENV,
     )
     if exit_code != 0:
         raise ValueError("An error occurred while installing dependencies.")
@@ -167,6 +170,7 @@ async def install_dependencies(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         encoding="utf-8",
+        env=ENV,
     )
     installing_name = "Unknown"
     while True:
@@ -252,6 +256,7 @@ def uninstall_dependencies_sync(
             *[d.package_name for d in dependencies],
             "-y",
         ],
+        env=ENV,
     )
     if exit_code != 0:
         raise ValueError("An error occurred while uninstalling dependencies.")
@@ -301,6 +306,7 @@ async def uninstall_dependencies(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         encoding="utf-8",
+        env=ENV,
     )
     uninstalling_name = "Unknown"
     while True:
