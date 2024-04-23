@@ -30,6 +30,8 @@ def _port_in_use(port: int):
 
 SANIC_LOG_REGEX = re.compile(r"^\s*\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
+ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+
 
 class _WorkerProcess:
     def __init__(self, flags: list[str]):
@@ -43,6 +45,7 @@ class _WorkerProcess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding="utf-8",
+            env=ENV,
         )
         self._stop_event = threading.Event()
 
