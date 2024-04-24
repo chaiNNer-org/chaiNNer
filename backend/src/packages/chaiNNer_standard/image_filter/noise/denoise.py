@@ -42,7 +42,7 @@ from .. import noise_group
         NumberInput("Patch radius", minimum=1, default=3, maximum=30, precision=0),
         NumberInput("Search radius", minimum=1, default=10, maximum=30, precision=0),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
     limited_to_8bpc=True,
 )
 def denoise_node(

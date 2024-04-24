@@ -68,7 +68,7 @@ def with_lightness(img: np.ndarray, lightness: float) -> np.ndarray:
         ),
     ],
     outputs=[
-        ImageOutput(image_type="Input0", assume_normalized=True),
+        ImageOutput(shape_as=0, assume_normalized=True),
     ],
 )
 def hue_and_saturation_node(

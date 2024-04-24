@@ -19,7 +19,7 @@ from .. import modification_group
         ImageInput("Image"),
         EnumInput(FlipAxis),
     ],
-    outputs=[ImageOutput(image_type="Input0", assume_normalized=True)],
+    outputs=[ImageOutput(shape_as=0, assume_normalized=True)],
     key_info=KeyInfo.enum(1),
 )
 def flip_node(img: np.ndarray, axis: FlipAxis) -> np.ndarray:

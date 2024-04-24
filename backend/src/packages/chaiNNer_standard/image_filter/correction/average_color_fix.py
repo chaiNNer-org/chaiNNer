@@ -33,7 +33,7 @@ from .. import correction_group
             unit="%",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def average_color_fix_node(
     input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float

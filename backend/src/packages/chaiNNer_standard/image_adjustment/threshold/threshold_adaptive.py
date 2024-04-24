@@ -74,7 +74,7 @@ _ADAPTIVE_METHOD_LABELS: dict[AdaptiveMethod, str] = {
             "Assuming that **Threshold Type** is *Binary*, then higher values will result in more white pixels and lower values will result in more black pixels.",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
     limited_to_8bpc=True,
 )
 def threshold_adaptive_node(

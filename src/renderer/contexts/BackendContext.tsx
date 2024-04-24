@@ -26,6 +26,7 @@ import {
 import { log } from '../../common/log';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
 import { sortNodes } from '../../common/nodes/sort';
+import { PassthroughMap } from '../../common/PassthroughMap';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
 import { getChainnerScope } from '../../common/types/chainner-scope';
@@ -46,6 +47,7 @@ interface BackendContextState {
     schemaInputs: SchemaInputsMap;
     pythonInfo: PythonInfo;
     packages: readonly Package[];
+    passthrough: PassthroughMap;
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     scope: Scope;
     features: ReadonlyMap<FeatureId, Feature>;
@@ -72,6 +74,7 @@ interface NodesInfo {
     rawResponse: BackendData;
     schemata: SchemaMap;
     categories: CategoryMap;
+    passthrough: PassthroughMap;
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     categoriesMissingNodes: CategoryId[];
     packages: Package[];
@@ -80,12 +83,17 @@ interface NodesInfo {
 const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     const { categories, categoriesMissingNodes, nodes } = rawResponse[0];
     const categoryMap = new CategoryMap(categories);
+    const schemata = new SchemaMap(sortNodes(nodes, categoryMap));
+
+    const functionDefinitions = parseFunctionDefinitions(nodes);
+    const passthrough = PassthroughMap.create(functionDefinitions);
 
     return {
         rawResponse,
-        schemata: new SchemaMap(sortNodes(nodes, categoryMap)),
+        schemata,
         categories: categoryMap,
-        functionDefinitions: parseFunctionDefinitions(nodes),
+        passthrough,
+        functionDefinitions,
         categoriesMissingNodes,
         packages: rawResponse[1],
     };
@@ -396,6 +404,7 @@ export const BackendProvider = memo(
             categoriesMissingNodes: nodesInfo?.categoriesMissingNodes ?? EMPTY_ARRAY,
             packages: nodesInfo?.packages ?? EMPTY_ARRAY,
             features: featuresMaps,
+            passthrough: nodesInfo?.passthrough ?? PassthroughMap.EMPTY,
             functionDefinitions: nodesInfo?.functionDefinitions ?? EMPTY_MAP,
             scope,
             featureStates: featureStatesMaps,

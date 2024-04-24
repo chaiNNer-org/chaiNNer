@@ -67,7 +67,7 @@ class ImageOutput(NumPyOutput):
         self.assume_normalized: bool = assume_normalized
 
         if shape_as is not None:
-            self.as_pass_through_of(shape_as)
+            self.as_passthrough_of(shape_as)
 
     def get_broadcast_data(self, value: np.ndarray) -> BroadcastData:
         h, w, c = get_h_w_c(value)

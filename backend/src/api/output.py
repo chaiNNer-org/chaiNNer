@@ -27,7 +27,7 @@ class BaseOutput(Generic[T]):
         self.never_reason: str | None = None
         self.kind: OutputKind = kind
         self.has_handle: bool = has_handle
-        self.pass_through_of: InputId | None = None
+        self.passthrough_of: InputId | None = None
 
         self.associated_type: Any = associated_type
 
@@ -43,7 +43,7 @@ class BaseOutput(Generic[T]):
             "neverReason": self.never_reason,
             "kind": self.kind,
             "hasHandle": self.has_handle,
-            "passThroughOf": self.pass_through_of,
+            "passthroughOf": self.passthrough_of,
             "description": self.description,
             "suggest": self.should_suggest,
         }
@@ -64,8 +64,8 @@ class BaseOutput(Generic[T]):
         self.should_suggest = True
         return self
 
-    def as_pass_through_of(self, input_id: InputId | int):
-        self.pass_through_of = InputId(input_id)
+    def as_passthrough_of(self, input_id: InputId | int):
+        self.passthrough_of = InputId(input_id)
         return self
 
     def get_broadcast_data(self, _value: T) -> BroadcastData | None:

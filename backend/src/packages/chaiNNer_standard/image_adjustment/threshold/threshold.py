@@ -78,7 +78,7 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
         ),
     ],
     outputs=[
-        ImageOutput(image_type="Input0"),
+        ImageOutput(shape_as=0),
     ],
     key_info=KeyInfo.number(1),
     see_also=[

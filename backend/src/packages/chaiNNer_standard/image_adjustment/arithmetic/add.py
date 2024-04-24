@@ -24,7 +24,7 @@ from .. import arithmetic_group
             controls_step=1,
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def add_node(img: np.ndarray, add: float) -> np.ndarray:
     if add == 0:

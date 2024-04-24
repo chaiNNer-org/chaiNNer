@@ -66,7 +66,9 @@ from .. import adjustments_group
             controls_step=0.01,
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[
+        ImageOutput(shape_as=0),
+    ],
 )
 def color_levels_node(
     img: np.ndarray,

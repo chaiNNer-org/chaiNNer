@@ -170,6 +170,7 @@ export interface Output {
     readonly label: string;
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
+    readonly passthroughOf?: InputId | null;
     readonly description?: string | null;
     readonly suggest: boolean;
 }
@@ -336,6 +337,7 @@ export interface NodeData {
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
     readonly isCollapsed?: boolean;
+    readonly isPassthrough?: boolean;
     readonly nodeName?: string;
 }
 export interface EdgeData {
