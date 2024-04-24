@@ -505,18 +505,20 @@ class Executor:
         assigned_inputs = self.inputs.get(node.id)
         assert len(assigned_inputs) == len(node.data.inputs)
 
+        async def get_input_value(input_index: int, node_input: Input):
+            if input_index in ignore:
+                return None
+
+            if input_index in lazy:
+                return Lazy.from_coroutine(
+                    self.__resolve_node_input(assigned_inputs[input_index]), self.loop
+                )
+
+            return await self.__resolve_node_input(node_input)
+
         inputs = []
         for input_index, node_input in enumerate(assigned_inputs):
-            if input_index in ignore:
-                inputs.append(None)
-            if input_index in lazy:
-                inputs.append(
-                    Lazy.from_coroutine(
-                        self.__resolve_node_input(node_input), self.loop
-                    )
-                )
-            else:
-                inputs.append(await self.__resolve_node_input(node_input))
+            inputs.append(await get_input_value(input_index, node_input))
 
         return inputs
 
