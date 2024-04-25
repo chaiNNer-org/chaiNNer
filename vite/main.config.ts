@@ -19,6 +19,11 @@ export default defineConfig((env) => {
             },
             rollupOptions: {
                 external,
+                output: {
+                    entryFileNames: `[name].js`,
+                    chunkFileNames: `[name].js`,
+                    assetFileNames: `[name].[ext]`,
+                },
             },
         },
         plugins: [pluginHotRestart('restart')],

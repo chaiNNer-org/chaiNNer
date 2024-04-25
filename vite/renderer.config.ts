@@ -24,6 +24,11 @@ export default defineConfig((env) => {
                 input: {
                     main: path.resolve(root, 'src/renderer', 'index.html'),
                 },
+                output: {
+                    entryFileNames: `[name].js`,
+                    chunkFileNames: `[name].js`,
+                    assetFileNames: `[name].[ext]`,
+                },
             },
         },
         plugins: [pluginExposeRenderer(name), react()],
