@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import os
-
 import cv2
 import numpy as np
 import torch
-from appdirs import user_data_dir
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
 from sanic.log import logger
 from spandrel import ImageModelDescriptor
@@ -166,9 +163,7 @@ def upscale_face_node(
         device = exec_options.device
 
         with torch.no_grad():
-            appdata_path = user_data_dir(roaming=True)
-            path_str = "chaiNNer/python/gfpgan/weights"
-            download_path = os.path.join(appdata_path, path_str)
+            download_path = str(context.storage_dir / "gfpgan/weights")
 
             # initialize face helper
             face_helper = FaceRestoreHelper(

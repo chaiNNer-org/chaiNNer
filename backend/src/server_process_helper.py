@@ -30,6 +30,8 @@ def _port_in_use(port: int):
 
 SANIC_LOG_REGEX = re.compile(r"^\s*\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
+ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+
 
 class _WorkerProcess:
     def __init__(self, flags: list[str]):
@@ -43,6 +45,7 @@ class _WorkerProcess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             encoding="utf-8",
+            env=ENV,
         )
         self._stop_event = threading.Event()
 
@@ -135,18 +138,20 @@ class _WorkerProcess:
 
 
 class WorkerServer:
-    def __init__(self):
+    def __init__(self, flags: Iterable[str] = []):
         self._process = None
 
         self._port = _find_free_port()
         self._base_url = f"http://127.0.0.1:{self._port}"
+        self._flags = list(flags)
         self._session = None
         self._is_ready = False
         self._is_checking_ready = False
+        self._manually_close: set[aiohttp.ClientResponse] = set()
 
-    async def start(self, flags: Iterable[str] = []):
+    async def start(self, extra_flags: Iterable[str] = []):
         logger.info(f"Starting worker process on port {self._port}...")
-        self._process = _WorkerProcess([str(self._port), *flags])
+        self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
         self._is_checking_ready = False
@@ -157,13 +162,16 @@ class WorkerServer:
         if self._process:
             self._process.close()
         if self._session:
+            for resp in self._manually_close:
+                resp.close()
+            self._manually_close.clear()
             await self._session.close()
         logger.info("Worker process stopped")
 
-    async def restart(self, flags: Iterable[str] = []):
+    async def restart(self, extra_flags: Iterable[str] = []):
         logger.info("Restarting worker...")
         await self.stop()
-        await self.start(flags)
+        await self.start(extra_flags)
 
     async def wait_for_ready(self, timeout: float = 300):
         if self._is_ready:
@@ -237,8 +245,12 @@ class WorkerServer:
             data=request.body,
             timeout=aiohttp.ClientTimeout(total=60 * 60, connect=5),
         ) as resp:
-            async for data, _ in resp.content.iter_chunks():
-                yield data
+            self._manually_close.add(resp)
+            try:
+                async for data, _ in resp.content.iter_chunks():
+                    yield data
+            finally:
+                self._manually_close.remove(resp)
 
     async def get_packages(self):
         await self.wait_for_ready()

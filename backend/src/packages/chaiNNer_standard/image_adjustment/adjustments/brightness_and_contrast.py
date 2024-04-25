@@ -33,7 +33,9 @@ from .. import adjustments_group
             controls_step=1,
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0", assume_normalized=True)],
+    outputs=[
+        ImageOutput(shape_as=0, assume_normalized=True),
+    ],
 )
 def brightness_and_contrast_node(
     img: np.ndarray, brightness: float, contrast: float

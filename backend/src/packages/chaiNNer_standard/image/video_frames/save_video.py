@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from subprocess import Popen
 from typing import Any, Literal
 
@@ -10,15 +11,16 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-from api import Collector, IteratorInputInfo, KeyInfo
+from api import Collector, IteratorInputInfo, KeyInfo, NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
+from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8
-from nodes.impl.video import FFMPEG_PATH
 from nodes.properties.inputs import (
     BoolInput,
     DirectoryInput,
     EnumInput,
     ImageInput,
+    RelativePathInput,
     SliderInput,
     TextInput,
 )
@@ -114,6 +116,7 @@ class Writer:
     save_path: str
     output_params: dict[str, str | float]
     global_params: list[str]
+    ffmpeg_env: FFMpegEnv
     out: Popen | None = None
 
     def start(self, width: int, height: int):
@@ -138,7 +141,9 @@ class Writer:
                     .output(**self.output_params, loglevel="error")
                     .overwrite_output()
                     .global_args(*self.global_params)
-                    .run_async(pipe_stdin=True, pipe_stdout=False, cmd=FFMPEG_PATH)
+                    .run_async(
+                        pipe_stdin=True, pipe_stdout=False, cmd=self.ffmpeg_env.ffmpeg
+                    )
                 )
 
             except Exception as e:
@@ -216,8 +221,8 @@ class Writer:
     icon="MdVideoCameraBack",
     inputs=[
         ImageInput("Image Sequence", channels=3),
-        DirectoryInput(create=True),
-        TextInput("Video Name"),
+        DirectoryInput(must_exist=False),
+        RelativePathInput("Video Name"),
         EnumInput(
             VideoFormat,
             label="Video Format",
@@ -316,10 +321,12 @@ class Writer:
     key_info=KeyInfo.enum(4),
     kind="collector",
     side_effects=True,
+    node_context=True,
 )
 def save_video_node(
+    node_context: NodeContext,
     _: None,
-    save_dir: str,
+    save_dir: Path,
     video_name: str,
     container: VideoFormat,
     encoder: VideoEncoder,
@@ -331,11 +338,12 @@ def save_video_node(
     audio: Any,
     audio_settings: AudioSettings,
 ) -> Collector[np.ndarray, None]:
-    save_path = os.path.join(save_dir, f"{video_name}.{container.ext}")
+    save_path = (save_dir / f"{video_name}.{container.ext}").resolve()
+    save_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Common output settings
     output_params = {
-        "filename": save_path,
+        "filename": str(save_path),
         "pix_fmt": "yuv420p",
         "r": fps,
         "movflags": "faststart",
@@ -383,9 +391,10 @@ def save_video_node(
         fps=fps,
         audio=audio,
         audio_settings=audio_settings,
-        save_path=save_path,
+        save_path=str(save_path),
         output_params=output_params,
         global_params=global_params,
+        ffmpeg_env=FFMpegEnv.get_integrated(node_context.storage_dir),
     )
 
     def on_iterate(img: np.ndarray):

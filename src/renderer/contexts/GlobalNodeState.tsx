@@ -145,6 +145,7 @@ interface Global {
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
     setNodeCollapsed: (id: string, isCollapsed: boolean) => void;
+    setNodePassthrough: (id: string, isPassthrough: boolean) => void;
     addEdgeBreakpoint: (id: string, position: XYPosition) => void;
     removeEdgeBreakpoint: (id: string) => void;
 }
@@ -169,7 +170,8 @@ interface GlobalProviderProps {
 export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
-        const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
+        const { schemata, functionDefinitions, passthrough, scope, backend } =
+            useContext(BackendContext);
         const { viewportExportPadding } = useSettings();
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
@@ -271,6 +273,7 @@ export const GlobalProvider = memo(
                     getEdges(),
                     manualOutputTypes.map,
                     functionDefinitions,
+                    passthrough,
                     typeStateRef.current
                 );
                 setTypeState(types);
@@ -287,6 +290,7 @@ export const GlobalProvider = memo(
             manualOutputTypes,
             functionDefinitions,
             schemata,
+            passthrough,
             getEdges,
             getNodes,
         ]);
@@ -1147,6 +1151,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodePassthrough = useCallback(
+            (id: string, isPassthrough: boolean): void => {
+                modifyNode(id, (n) => {
+                    return withNewData(n, 'isPassthrough', isPassthrough);
+                });
+            },
+            [modifyNode]
+        );
+
         const exportViewportScreenshotAs = useCallback(
             (saveAs: (dataUrl: PngDataUrl) => void) => {
                 const currentFlowWrapper = reactFlowWrapper.current;
@@ -1315,6 +1328,7 @@ export const GlobalProvider = memo(
             getInputHash,
             hasRelevantUnsavedChangesRef,
             setNodeCollapsed,
+            setNodePassthrough,
             addEdgeBreakpoint,
             removeEdgeBreakpoint,
         });

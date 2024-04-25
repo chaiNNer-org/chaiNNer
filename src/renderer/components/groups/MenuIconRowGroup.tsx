@@ -1,6 +1,7 @@
 import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
 import { getUniqueKey } from '../../../common/group-inputs';
+import { getPassthroughIgnored } from '../../helpers/nodeState';
 import { IconList } from '../inputs/elements/IconList';
 import { InputContainer, WithoutLabel } from '../inputs/InputContainer';
 import { IconSet } from './IconSetGroup';
@@ -8,7 +9,7 @@ import { GroupProps } from './props';
 
 export const MenuIconRowGroup = memo(({ inputs, nodeState }: GroupProps<'menu-icon-row'>) => {
     return (
-        <InputContainer>
+        <InputContainer passthroughIgnored={getPassthroughIgnored(nodeState)}>
             <WithoutLabel>
                 <Box
                     display="flex"

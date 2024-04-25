@@ -19,7 +19,7 @@ from .. import blur_group
         ImageInput(),
         SliderInput("Radius", minimum=0, maximum=1000, default=1, scale="log"),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
     limited_to_8bpc=True,
 )
 def median_blur_node(

@@ -59,7 +59,7 @@ def binary_sdf(img: np.ndarray, spread: float) -> np.ndarray:
             "Sub-pixel distance transform is implemented using the excellent [ESDF algorithm](https://acko.net/blog/subpixel-distance-transform/) by Steven Wittens.",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def distance_transform_node(
     img: np.ndarray,

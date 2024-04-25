@@ -170,7 +170,7 @@ def lens_blur(
             scale="log",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def lens_blur_node(
     img: np.ndarray,

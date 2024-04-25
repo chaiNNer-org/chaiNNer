@@ -3,6 +3,7 @@ import { memo, useCallback } from 'react';
 import { IoMdArrowForward } from 'react-icons/io';
 import { Input, InputData, InputId, InputValue, OfKind } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
+import { getPassthroughIgnored } from '../../helpers/nodeState';
 import { DropDown } from '../inputs/elements/Dropdown';
 import { InputContainer } from '../inputs/InputContainer';
 import { GroupProps } from './props';
@@ -39,7 +40,7 @@ export const FromToDropdownsGroup = memo(
         const [from, to] = inputs;
 
         return (
-            <InputContainer>
+            <InputContainer passthroughIgnored={getPassthroughIgnored(nodeState)}>
                 <HStack
                     mb={2}
                     mt={2}

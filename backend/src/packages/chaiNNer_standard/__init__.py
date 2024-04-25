@@ -29,12 +29,6 @@ package = add_package(
             import_name="PIL",
         ),
         Dependency(
-            display_name="appdirs",
-            pypi_name="appdirs",
-            version="1.4.4",
-            size_estimate=13.5 * KB,
-        ),
-        Dependency(
             display_name="FFMPEG",
             pypi_name="ffmpeg-python",
             version="0.2.0",
@@ -83,7 +77,7 @@ package = add_package(
         Dependency(
             display_name="ChaiNNer Extensions",
             pypi_name="chainner_ext",
-            version="0.3.9",
+            version="0.3.10",
             size_estimate=2.0 * MB,
         ),
     ],

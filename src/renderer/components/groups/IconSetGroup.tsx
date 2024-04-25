@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, Tooltip } from '@chakra-ui/react';
 import { memo, useEffect } from 'react';
 import { DropDownInput, InputOption, InputSchemaValue } from '../../../common/common-types';
-import { NodeState } from '../../helpers/nodeState';
+import { NodeState, getPassthroughIgnored } from '../../helpers/nodeState';
 import { IconFactory } from '../CustomIcons';
 import { InlineLabel, InputContainer } from '../inputs/InputContainer';
 import { GroupProps } from './props';
@@ -103,7 +103,7 @@ export const IconSetGroup = memo(({ inputs, nodeState, group }: GroupProps<'icon
     const { label } = group.options;
 
     return (
-        <InputContainer>
+        <InputContainer passthroughIgnored={getPassthroughIgnored(nodeState)}>
             <InlineLabel input={{ label }}>
                 <IconSet
                     inputs={inputs}

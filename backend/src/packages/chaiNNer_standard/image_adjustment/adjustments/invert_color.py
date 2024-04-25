@@ -15,7 +15,7 @@ from .. import adjustments_group
     description="Inverts all colors in an image.",
     icon="MdInvertColors",
     inputs=[ImageInput()],
-    outputs=[ImageOutput(image_type="Input0", assume_normalized=True)],
+    outputs=[ImageOutput(shape_as=0, assume_normalized=True)],
 )
 def invert_color_node(img: np.ndarray) -> np.ndarray:
     c = get_h_w_c(img)[2]

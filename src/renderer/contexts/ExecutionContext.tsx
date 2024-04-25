@@ -147,6 +147,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         features,
         featureStates,
         categories,
+        passthrough,
     } = useContext(BackendContext);
     const { packageSettings } = useSettings();
 
@@ -352,7 +353,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
     const runNodes = useCallback(async () => {
-        const { nodes, edges, report } = optimizeChain(getNodes(), getEdges(), schemata);
+        const { nodes, edges, report } = optimizeChain(
+            getNodes(),
+            getEdges(),
+            schemata,
+            passthrough
+        );
 
         // show an error if there are no nodes to run
         if (nodes.length === 0) {
@@ -450,6 +456,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         categories,
         sendAlert,
         typeStateRef,
+        passthrough,
         chainLineageRef,
         features,
         featureStates,

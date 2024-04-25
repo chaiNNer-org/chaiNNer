@@ -5,7 +5,9 @@ import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
+from functools import cached_property
 from json import dumps as stringify
+from typing import Final
 
 import psutil
 from sanic import Sanic
@@ -32,12 +34,15 @@ from server_process_helper import WorkerServer
 
 class AppContext:
     def __init__(self):
-        self.config: ServerConfig = None  # type: ignore
-        # This will be initialized by after_server_start.
-        # This is necessary because we don't know Sanic's event loop yet.
-        self.setup_queue: EventQueue = None  # type: ignore
-        self.pool = ThreadPoolExecutor(max_workers=4)
-        self._worker: WorkerServer = WorkerServer()
+        self.config: Final[ServerConfig] = ServerConfig.parse_argv()
+
+        # flags to pass along to the worker
+        worker_flags: list[str] = []
+        if self.config.storage_dir is not None:
+            worker_flags.extend(["--storage-dir", self.config.storage_dir])
+
+        self._worker: Final[WorkerServer] = WorkerServer(worker_flags)
+        self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
         self.is_ready = False
 
     def get_worker_unmanaged(self) -> WorkerServer:
@@ -53,6 +58,10 @@ class AppContext:
         while not self.is_ready:
             await asyncio.sleep(0.1)
         return self._worker
+
+    @cached_property
+    def setup_queue(self) -> EventQueue:
+        return EventQueue()
 
     @staticmethod
     def get(app_instance: Sanic) -> AppContext:
@@ -469,13 +478,12 @@ async def after_server_stop(sanic_app: Sanic, _loop: asyncio.AbstractEventLoop):
 @app.after_server_start
 async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
     global setup_task
-    worker = AppContext.get(sanic_app).get_worker_unmanaged()
-    await worker.start()
 
     # initialize the queues
     ctx = AppContext.get(sanic_app)
-    ctx.setup_queue = EventQueue()
 
+    worker = ctx.get_worker_unmanaged()
+    await worker.start()
     await worker.wait_for_ready()
 
     # start the setup task
@@ -487,8 +495,7 @@ async def after_server_start(sanic_app: Sanic, loop: asyncio.AbstractEventLoop):
 
 
 def main():
-    config = ServerConfig.parse_argv()
-    AppContext.get(app).config = config
+    config = AppContext.get(app).config
     app.run(port=config.port, single_process=True)
 
 

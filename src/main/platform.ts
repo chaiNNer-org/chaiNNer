@@ -36,3 +36,7 @@ export const getRootDir = lazy((): string => {
 export const getLogsFolder = lazy((): string => {
     return path.join(getRootDir(), 'logs');
 });
+
+export const getBackendStorageFolder = lazy((): string => {
+    return path.join(getRootDir(), 'backend-storage');
+});

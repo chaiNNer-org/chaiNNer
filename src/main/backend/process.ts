@@ -35,55 +35,65 @@ type Env = Readonly<Partial<Record<string, string>>>;
 
 type ErrorListener = (error: Error) => void;
 
+export interface SpawnOptions {
+    port: number;
+    python: PythonInfo;
+    storageDir?: string;
+    env?: Env;
+}
+
 export class OwnedBackendProcess implements BaseBackendProcess {
     readonly owned = true;
 
-    readonly port: number;
-
     get url(): string {
-        return `http://127.0.0.1:${this.port}`;
+        return `http://127.0.0.1:${this.options.port}`;
     }
 
-    readonly python: PythonInfo;
+    get python(): PythonInfo {
+        return this.options.python;
+    }
 
-    private readonly env: Env;
+    private readonly options: SpawnOptions;
 
     private process?: ChildProcessWithoutNullStreams;
 
     private errorListeners: ErrorListener[] = [];
 
-    private constructor(
-        port: number,
-        python: PythonInfo,
-        env: Env,
-        process: ChildProcessWithoutNullStreams
-    ) {
-        this.port = port;
-        this.python = python;
-        this.env = env;
+    private constructor(options: SpawnOptions, process: ChildProcessWithoutNullStreams) {
+        this.options = options;
         this.setNewProcess(process);
     }
 
-    static spawn(port: number, python: PythonInfo, env: Env = {}): OwnedBackendProcess {
+    static spawn(options: Readonly<SpawnOptions>): OwnedBackendProcess {
         // defensive copy
         // eslint-disable-next-line no-param-reassign
-        env = { ...env };
+        options = {
+            ...options,
+            env: options.env ? { ...options.env } : undefined,
+        };
 
-        const backend = OwnedBackendProcess.spawnProcess(port, python, env);
-        return new OwnedBackendProcess(port, python, env, backend);
+        const backend = OwnedBackendProcess.spawnProcess(options);
+        return new OwnedBackendProcess(options, backend);
     }
 
-    private static spawnProcess(
-        port: number,
-        { python }: PythonInfo,
-        env: Env
-    ): ChildProcessWithoutNullStreams {
+    private static spawnProcess(options: SpawnOptions): ChildProcessWithoutNullStreams {
         log.info('Attempting to spawn backend...');
 
-        const backend = spawn(python, [getBackendPath(), String(port)], {
+        const args: string[] = [
+            // path to run.py
+            getBackendPath(),
+            // port the server will run on
+            String(options.port),
+        ];
+
+        if (options.storageDir) {
+            args.push('--storage-dir', options.storageDir);
+        }
+
+        const backend = spawn(options.python.python, args, {
             env: {
                 ...sanitizedEnv,
-                ...env,
+                ...options.env,
             },
         });
 
@@ -180,7 +190,7 @@ export class OwnedBackendProcess implements BaseBackendProcess {
     async restart() {
         await this.tryKill();
 
-        const backend = OwnedBackendProcess.spawnProcess(this.port, this.python, this.env);
+        const backend = OwnedBackendProcess.spawnProcess(this.options);
         this.setNewProcess(backend);
     }
 }

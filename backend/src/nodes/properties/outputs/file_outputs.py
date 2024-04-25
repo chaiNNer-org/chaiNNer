@@ -6,7 +6,7 @@ import navi
 from api import BaseOutput
 
 
-class DirectoryOutput(BaseOutput):
+class DirectoryOutput(BaseOutput[Path]):
     """Output for saving to a directory"""
 
     def __init__(

@@ -76,7 +76,7 @@ def get_kernel_2d(radius_x: float, radius_y: float) -> np.ndarray:
             ),
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def box_blur_node(
     img: np.ndarray,

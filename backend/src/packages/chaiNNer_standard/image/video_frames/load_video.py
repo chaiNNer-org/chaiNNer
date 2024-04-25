@@ -5,8 +5,9 @@ from typing import Any
 
 import numpy as np
 
-from api import Iterator, IteratorOutputInfo
+from api import Iterator, IteratorOutputInfo, NodeContext
 from nodes.groups import Condition, if_group
+from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.video import VideoLoader
 from nodes.properties.inputs import BoolInput, NumberInput, VideoFileInput
 from nodes.properties.outputs import (
@@ -52,16 +53,18 @@ from .. import video_frames_group
         AudioStreamOutput().suggest(),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
+    node_context=True,
     kind="newIterator",
 )
 def load_video_node(
+    node_context: NodeContext,
     path: Path,
     use_limit: bool,
     limit: int,
 ) -> tuple[Iterator[tuple[np.ndarray, int]], Path, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
-    loader = VideoLoader(path)
+    loader = VideoLoader(path, FFMpegEnv.get_integrated(node_context.storage_dir))
     frame_count = loader.metadata.frame_count
     if use_limit:
         frame_count = min(frame_count, limit)

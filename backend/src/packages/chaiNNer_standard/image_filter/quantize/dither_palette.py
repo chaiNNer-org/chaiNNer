@@ -66,7 +66,7 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
             ).with_id(4),
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def dither_palette_node(
     img: np.ndarray,

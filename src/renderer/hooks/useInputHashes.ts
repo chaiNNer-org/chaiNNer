@@ -30,7 +30,7 @@ const computeInputHashes = (
         if (hash) return hash;
 
         const schema = schemata.get(node.data.schemaId);
-        const inputs: string[] = [node.data.schemaId];
+        const inputs: string[] = [node.data.schemaId, String(node.data.isPassthrough ?? false)];
         for (const input of schema.inputs) {
             const connectedEdge = byTargetHandle.get(
                 stringifyTargetHandle({ nodeId: node.id, inputId: input.id })
