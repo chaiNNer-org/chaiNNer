@@ -24,7 +24,8 @@
     "test:js": "vitest",
     "test:py": "pytest ./backend/tests/",
     "test:update": "npm run test:js -- -u",
-    "test": "npm run test:js && npm run test:py"
+    "test": "npm run test:js && npm run test:py",
+    "postinstall": "patch-package"
   },
   "keywords": [],
   "author": {
@@ -83,6 +84,7 @@
     "eslint-plugin-regexp": "^2.3.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "nodemon": "^2.0.16",
+    "patch-package": "^8.0.0",
     "prettier": "^2.8.8",
     "sass": "^1.54.4",
     "stylelint": "^14.13.0",
