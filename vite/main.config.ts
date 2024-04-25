@@ -1,7 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import os from 'os';
+import ignore from 'rollup-plugin-ignore';
 import { defineConfig, mergeConfig } from 'vite';
 import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
+
 import './forge-types';
 
 // https://vitejs.dev/config
@@ -26,7 +29,10 @@ export default defineConfig((env) => {
                 },
             },
         },
-        plugins: [pluginHotRestart('restart')],
+        plugins: [
+            pluginHotRestart('restart'),
+            ...(os.platform() === 'darwin' ? [ignore(['fsevents'])] : []),
+        ],
         define,
         resolve: {
             // Load the Node.js entry.

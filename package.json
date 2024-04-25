@@ -86,6 +86,7 @@
     "nodemon": "^2.0.16",
     "patch-package": "^8.0.0",
     "prettier": "^2.8.8",
+    "rollup-plugin-ignore": "^1.0.10",
     "sass": "^1.54.4",
     "stylelint": "^14.13.0",
     "stylelint-config-prettier-scss": "^0.0.1",
