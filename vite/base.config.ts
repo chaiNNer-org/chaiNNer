@@ -1,20 +1,11 @@
 import { builtinModules } from 'node:module';
-import pkg from '../package.json';
 import type { AddressInfo } from 'node:net';
 import type { ConfigEnv, Plugin, UserConfig } from 'vite';
 import './forge-types';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 
-export const external = [
-    ...builtins,
-    ...Object.keys('dependencies' in pkg ? (pkg.dependencies as Record<string, unknown>) : {}),
-    'electron/main',
-    'electron/common',
-    'electron/renderer',
-    'electron-log/main',
-    'electron-log/renderer',
-];
+export const external = [...builtins];
 
 export const getBuildConfig = (env: ConfigEnv<'build'>): UserConfig => {
     const { root, mode, command } = env;

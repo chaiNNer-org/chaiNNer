@@ -11,6 +11,7 @@ export default defineConfig((env) => {
     const define = getBuildDefine(forgeEnv);
     const config: UserConfig = {
         build: {
+            emptyOutDir: false,
             lib: {
                 entry: forgeConfigSelf.entry!,
                 fileName: () => '[name].js',
@@ -25,6 +26,11 @@ export default defineConfig((env) => {
         resolve: {
             // Load the Node.js entry.
             mainFields: ['module', 'jsnext:main', 'jsnext'],
+            alias: {
+                'electron/main': 'electron',
+                'electron/common': 'electron',
+                'electron-log/main': 'electron-log',
+            },
         },
         server: {
             watch: {

@@ -10,6 +10,7 @@ export default defineConfig((env) => {
     const { forgeConfigSelf } = forgeEnv;
     const config: UserConfig = {
         build: {
+            emptyOutDir: false,
             rollupOptions: {
                 external,
                 // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
@@ -22,6 +23,15 @@ export default defineConfig((env) => {
                     chunkFileNames: '[name].js',
                     assetFileNames: '[name].[ext]',
                 },
+            },
+        },
+        resolve: {
+            alias: {
+                'electron/main': 'electron',
+                'electron/common': 'electron',
+                'electron/renderer': 'electron',
+                'electron-log/main': 'electron-log',
+                'electron-log/renderer': 'electron-log',
             },
         },
         plugins: [pluginHotRestart('reload')],

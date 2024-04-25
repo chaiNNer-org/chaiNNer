@@ -14,17 +14,26 @@ export default defineConfig((env) => {
     const name = forgeConfigSelf.name ?? '';
 
     return {
-        root: path.join(root, 'src/renderer'),
+        root,
         mode,
         base: './',
         build: {
+            emptyOutDir: false,
             outDir: `.vite/renderer/${name}`,
+            rollupOptions: {
+                input: {
+                    main: path.resolve(root, 'src/renderer', 'index.html'),
+                },
+            },
         },
         plugins: [pluginExposeRenderer(name), react()],
         resolve: {
             preserveSymlinks: true,
             alias: {
                 path: '@chainner/node-path',
+                'electron/common': 'electron',
+                'electron/renderer': 'electron',
+                'electron-log/renderer': 'electron-log',
             },
         },
         clearScreen: false,
