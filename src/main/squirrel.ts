@@ -1,5 +1,6 @@
 // Windows-only (un)install hooks
 
+import check from 'electron-squirrel-startup';
 import { appendFileSync, existsSync, rmdirSync } from 'fs';
 import path from 'path';
 import { LEVEL_NAME, log } from '../common/log';
@@ -68,8 +69,7 @@ export const handleSquirrel = (): boolean => {
 
     // We use electron-squirrel-startup to process Squirrel events. It will do
     // the most important work for us, so we can focus on our custom logic.
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const isSquirrelCommand = Boolean(require('electron-squirrel-startup'));
+    const isSquirrelCommand = Boolean(check);
     if (!isSquirrelCommand) {
         return false;
     }
