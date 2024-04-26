@@ -7,6 +7,7 @@ from typing import Literal
 import cv2
 import numpy as np
 from PIL import Image
+import pillow_avif
 from sanic.log import logger
 
 from api import KeyInfo, Lazy
@@ -46,6 +47,7 @@ class ImageFormat(Enum):
     WEBP = "webp"
     TGA = "tga"
     DDS = "dds"
+    AVIF = "avif"
 
     @property
     def extension(self) -> str:
@@ -61,6 +63,7 @@ IMAGE_FORMAT_LABELS: dict[ImageFormat, str] = {
     ImageFormat.WEBP: "WEBP",
     ImageFormat.TGA: "TGA",
     ImageFormat.DDS: "DDS",
+    ImageFormat.AVIF: "AVIF",
 }
 
 
@@ -69,6 +72,13 @@ class JpegSubsampling(Enum):
     FACTOR_440 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_440)
     FACTOR_422 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_422)
     FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
+
+
+class AvifSubsampling(Enum):
+    FACTOR_444 = "4:4:4"
+    FACTOR_422 = "4:2:2"
+    FACTOR_420 = "4:2:0"
+    FACTOR_400 = "4:0:0"
 
 
 class PngColorDepth(Enum):
@@ -192,6 +202,7 @@ def DdsMipMapsDropdown() -> DropDownInput:
         ),
         if_group(
             Condition.enum(4, ImageFormat.JPG)
+            | Condition.enum(4, ImageFormat.AVIF)
             | (Condition.enum(4, ImageFormat.WEBP) & Condition.enum(14, 0))
         )(
             SliderInput(
@@ -261,6 +272,19 @@ def DdsMipMapsDropdown() -> DropDownInput:
                 ),
             ),
         ),
+        if_enum_group(4, ImageFormat.AVIF)(
+            EnumInput(
+                AvifSubsampling,
+                label="Chroma Subsampling",
+                default=AvifSubsampling.FACTOR_420,
+                option_labels={
+                    AvifSubsampling.FACTOR_444: "4:4:4 (Best Quality)",
+                    AvifSubsampling.FACTOR_422: "4:2:2",
+                    AvifSubsampling.FACTOR_420: "4:2:0",
+                    AvifSubsampling.FACTOR_400: "4:0:0 (Best Compression)",
+                },
+            ).with_id(17)
+        ),
         BoolInput("Skip existing files", default=False)
         .with_id(1000)
         .with_docs(
@@ -290,6 +314,7 @@ def save_image_node(
     dds_dithering: bool,
     dds_mipmap_levels: int,
     dds_separate_alpha: bool,
+    avif_chroma_subsampling: AvifSubsampling,
     skip_existing_files: bool,
 ) -> None:
     full_path = get_full_path(base_directory, relative_path, filename, image_format)
@@ -328,9 +353,14 @@ def save_image_node(
         return
 
     # Some formats are handled by PIL
-    if image_format in (ImageFormat.GIF, ImageFormat.TGA):
+    if image_format in (ImageFormat.GIF, ImageFormat.TGA, ImageFormat.AVIF):
         # we only support 8bits of precision for those formats
         img = to_uint8(img, normalized=True)
+        args = {}
+
+        if image_format == ImageFormat.AVIF:
+            args["quality"] = quality
+            args["subsampling"] = avif_chroma_subsampling.value
 
         channels = get_h_w_c(img)[2]
         if channels == 1:
@@ -347,7 +377,7 @@ def save_image_node(
             )
 
         with Image.fromarray(img) as image:
-            image.save(full_path)
+            image.save(full_path, **args)
 
     else:
         params: list[int]

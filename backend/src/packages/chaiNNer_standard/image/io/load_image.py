@@ -8,6 +8,7 @@ from typing import Callable, Iterable, Union
 import cv2
 import numpy as np
 from PIL import Image
+import pillow_avif
 from sanic.log import logger
 
 from nodes.impl.dds.texconv import dds_to_png_texconv
