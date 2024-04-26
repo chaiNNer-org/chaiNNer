@@ -6,8 +6,8 @@ from typing import Literal
 
 import cv2
 import numpy as np
+import pillow_avif  # noqa: F401
 from PIL import Image
-import pillow_avif
 from sanic.log import logger
 
 from api import KeyInfo, Lazy
