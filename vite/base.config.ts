@@ -1,11 +1,12 @@
 import { builtinModules } from 'node:module';
+import os from 'node:os';
 import type { AddressInfo } from 'node:net';
 import type { ConfigEnv, Plugin, UserConfig } from 'vite';
 import './forge-types';
 
 export const builtins = ['electron', ...builtinModules.map((m) => [m, `node:${m}`]).flat()];
 
-export const external = [...builtins];
+export const external = [...builtins, ...(os.platform() === 'darwin' ? ['fsevents'] : [])];
 
 export const getBuildConfig = (env: ConfigEnv<'build'>): UserConfig => {
     const { root, mode, command } = env;
