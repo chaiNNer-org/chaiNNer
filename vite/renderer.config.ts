@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import react from '@vitejs/plugin-react-swc';
-import path from 'path';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig } from 'vite';
 import { pluginExposeRenderer } from './base.config';
@@ -21,9 +20,6 @@ export default defineConfig((env) => {
             emptyOutDir: false,
             outDir: `.vite/renderer/${name}`,
             rollupOptions: {
-                input: {
-                    main: path.resolve(root, 'src/renderer', 'index.html'),
-                },
                 output: {
                     entryFileNames: `[name].js`,
                     chunkFileNames: `[name].js`,
