@@ -26,7 +26,7 @@ from dependencies.store import (
     uninstall_dependencies,
 )
 from events import EventQueue
-from gpu import get_nvidia_helper
+from gpu import nvidia
 from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
@@ -167,16 +167,14 @@ async def system_usage(_request: Request):
     mem_usage = psutil.virtual_memory().percent
     stats_list.append(SystemStat("CPU", cpu_usage))
     stats_list.append(SystemStat("RAM", mem_usage))
-    nv = get_nvidia_helper()
-    if nv is not None:
-        for i in range(nv.num_gpus):
-            total, used, _ = nv.get_current_vram_usage(i)
-            stats_list.append(
-                SystemStat(
-                    f"VRAM {i}" if nv.num_gpus > 1 else "VRAM",
-                    used / total * 100,
-                )
+    for device in nvidia.devices:
+        usage = device.get_current_vram_usage()
+        stats_list.append(
+            SystemStat(
+                f"VRAM {device.index}" if len(nvidia.devices) > 1 else "VRAM",
+                usage.used / usage.total * 100,
             )
+        )
     return json([asdict(x) for x in stats_list])
 
 
