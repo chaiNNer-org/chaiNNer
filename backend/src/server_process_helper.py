@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import atexit
 import os
 import re
 import socket
@@ -63,16 +64,25 @@ class _WorkerProcess:
         )
         self._stderr_thread.start()
 
+        atexit.register(self.close)
+
     def close(self):
+        if self._process is None:
+            # already closed
+            return
+
         logger.info("Closing worker process...")
         self._stop_event.set()
-        if self._process is not None:
+        try:
             self._process.terminate()
             self._process.kill()
-            self._process = None
+        except Exception:
+            logger.error("Failed to terminate worker process", exc_info=True)
+        self._process = None
+        atexit.unregister(self.close)
 
-            self._stdout_thread = None
-            self._stderr_thread = None
+        self._stdout_thread = None
+        self._stderr_thread = None
 
     def _read_stdout(self):
         p = self._process
