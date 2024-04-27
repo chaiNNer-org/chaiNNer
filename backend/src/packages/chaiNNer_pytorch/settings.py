@@ -4,12 +4,10 @@ import torch
 from sanic.log import logger
 
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
-from gpu import get_nvidia_helper
+from gpu import nvidia
 from system import is_arm_mac
 
 from . import package
-
-nv = get_nvidia_helper()
 
 if not is_arm_mac:
     gpu_list = []
@@ -43,8 +41,8 @@ package.add_setting(
 )
 
 should_fp16 = False
-if nv is not None:
-    should_fp16 = nv.supports_fp16()
+if nvidia.is_available:
+    should_fp16 = nvidia.all_support_fp16
 else:
     should_fp16 = is_arm_mac
 
