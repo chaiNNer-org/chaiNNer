@@ -29,6 +29,13 @@ package = add_package(
             import_name="PIL",
         ),
         Dependency(
+            display_name="pillow-avif-plugin",
+            pypi_name="pillow-avif-plugin",
+            version="1.4.3",
+            size_estimate=11 * MB,
+            import_name="pillow_avif",
+        ),
+        Dependency(
             display_name="FFMPEG",
             pypi_name="ffmpeg-python",
             version="0.2.0",
