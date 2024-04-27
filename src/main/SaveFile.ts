@@ -1,9 +1,9 @@
 import { createHash } from 'crypto';
 import { readFile, writeFile } from 'fs/promises';
-import { EdgeData, FileOpenResult, NodeData, Version } from './common-types';
-import { log } from './log';
-import { currentMigration, migrate } from './migrations';
-import { versionGt } from './version';
+import { EdgeData, FileOpenResult, NodeData, Version } from '../common/common-types';
+import { log } from '../common/log';
+import { currentMigration, migrate } from '../common/migrations';
+import { versionGt } from '../common/version';
 import type { Edge, Node, Viewport } from 'reactflow';
 
 export interface SaveData {

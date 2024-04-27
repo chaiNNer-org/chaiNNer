@@ -1,5 +1,3 @@
-import { constants } from 'fs';
-import fs from 'fs/promises';
 import { v4 as uuid4, v5 as uuid5 } from 'uuid';
 import type { Input, InputData, InputId, InputValue, NodeSchema, OutputId } from './common-types';
 
@@ -9,12 +7,6 @@ export const EMPTY_MAP: ReadonlyMap<never, never> = new Map<never, never>();
 export const EMPTY_OBJECT: Readonly<Record<string, never>> = Object.freeze({});
 
 export const noop = () => {};
-
-export const checkFileExists = (file: string): Promise<boolean> =>
-    fs.access(file, constants.F_OK).then(
-        () => true,
-        () => false
-    );
 
 export const assertNever = (value: never): never => {
     throw new Error(`Unreachable code path. The value ${String(value)} is invalid.`);

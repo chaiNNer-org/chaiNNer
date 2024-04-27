@@ -26,11 +26,11 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { isMac } from '../../common/env';
+import { log } from '../../common/log';
 import { BackendContext } from '../contexts/BackendContext';
 import { useMutSetting } from '../contexts/SettingsContext';
 import { ipcRenderer } from '../safeIpc';
@@ -347,6 +347,16 @@ const AdvancedSettings = memo(() => {
     const [hardwareAcceleration, setHardwareAcceleration] = useMutSetting('hardwareAcceleration');
     const [allowMultipleInstances, setAllowMultipleInstances] =
         useMutSetting('allowMultipleInstances');
+
+    const [isMac, setIsMac] = useState(false);
+    useEffect(() => {
+        ipcRenderer
+            .invoke('get-is-mac')
+            .then((result) => {
+                setIsMac(result);
+            })
+            .catch(log.error);
+    }, []);
 
     return (
         <VStack

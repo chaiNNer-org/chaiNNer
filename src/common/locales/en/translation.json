@@ -7,7 +7,7 @@
   "dependencyManager": {
     "manageDependencies": "Manage Dependencies",
     "updatesAvailable": "Updates Available",
-    "updatesAvailableDescription": "There are {{count}} updates available for your dependencies."
+    "updatesAvailableDescription": "There are {{count}} packages with available dependency updates."
   },
   "error": {
     "error": "Error",

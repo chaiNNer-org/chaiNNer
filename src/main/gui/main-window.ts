@@ -9,11 +9,12 @@ import {
 } from 'electron/main';
 import EventSource from 'eventsource';
 import fs, { constants } from 'fs/promises';
+import os from 'os';
+import path from 'path';
+import { v4 as uuid4 } from 'uuid';
 import { BackendEventMap } from '../../common/Backend';
 import { Version } from '../../common/common-types';
-import { isMac } from '../../common/env';
 import { log } from '../../common/log';
-import { SaveFile, openSaveFile } from '../../common/SaveFile';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
 import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
@@ -21,8 +22,11 @@ import { assertNever } from '../../common/util';
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
+import { isArmMac, isMac } from '../env';
+import { addBrowserWindow, addFile, addFiles, removeFile, removeFiles } from '../fileWatcher';
 import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
+import { SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
 
@@ -134,6 +138,9 @@ const registerEventHandlerPreSetup = (
     });
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
+    ipcMain.handle('get-is-mac', () => isMac);
+    ipcMain.handle('get-is-arm-mac', () => isArmMac);
+    ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none
     ipcMain.on('set-progress-bar', (event, progress) => {
@@ -205,22 +212,22 @@ const registerEventHandlerPreSetup = (
     }
 
     // Handle filesystem
-    ipcMain.handle('fs-read-file', async (event, path, options) => fs.readFile(path, options));
-    ipcMain.handle('fs-write-file', async (event, path, content, options) =>
-        fs.writeFile(path, content, options)
+    ipcMain.handle('fs-read-file', async (event, p, options) => fs.readFile(p, options));
+    ipcMain.handle('fs-write-file', async (event, p, content, options) =>
+        fs.writeFile(p, content, options)
     );
-    ipcMain.handle('fs-exists', async (event, path) => {
+    ipcMain.handle('fs-exists', async (event, p) => {
         try {
-            await fs.access(path, constants.F_OK);
+            await fs.access(p, constants.F_OK);
             return true;
         } catch {
             return false;
         }
     });
-    ipcMain.handle('fs-mkdir', async (event, path, options) => fs.mkdir(path, options));
-    ipcMain.handle('fs-readdir', async (event, path) => fs.readdir(path));
-    ipcMain.handle('fs-unlink', async (event, path) => fs.unlink(path));
-    ipcMain.handle('fs-access', async (event, path) => fs.access(path));
+    ipcMain.handle('fs-mkdir', async (event, p, options) => fs.mkdir(p, options));
+    ipcMain.handle('fs-readdir', async (event, p) => fs.readdir(p));
+    ipcMain.handle('fs-unlink', async (event, p) => fs.unlink(p));
+    ipcMain.handle('fs-access', async (event, p) => fs.access(p));
 
     // Handle electron
     ipcMain.handle('shell-showItemInFolder', (event, fullPath) => shell.showItemInFolder(fullPath));
@@ -235,12 +242,25 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
     ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
     ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
-    ipcMain.handle('clipboard-readImage', () => clipboard.readImage());
+    ipcMain.handle('clipboard-readImage-and-store', async () => {
+        const clipboardData = clipboard.readImage();
+        const imgData = clipboardData.toPNG();
+        const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
+        await fs.writeFile(imgPath, imgData);
+        return imgPath;
+    });
     ipcMain.handle('clipboard-writeImage', (event, image) => clipboard.writeImage(image));
     ipcMain.handle('clipboard-writeImageFromURL', (event, url) => {
         const image = nativeImage.createFromDataURL(url);
         clipboard.writeImage(image);
     });
+
+    // File watching
+    addBrowserWindow(mainWindow);
+    ipcMain.handle('watch-file', (event, p) => addFile(p));
+    ipcMain.handle('watch-files', (event, ps) => addFiles(ps));
+    ipcMain.handle('unwatch-file', (event, p) => removeFile(p));
+    ipcMain.handle('unwatch-files', (event, ps) => removeFiles(ps));
 };
 
 const registerEventHandlerPostSetup = (
@@ -478,9 +498,10 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
         roundedCorners: true,
         webPreferences: {
             webSecurity: false,
-            nodeIntegration: true,
-            nodeIntegrationInWorker: true,
-            contextIsolation: false,
+            nodeIntegration: false,
+            nodeIntegrationInWorker: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, '/preload.js'),
         },
         icon: `${__dirname}/../public/icons/cross_platform/icon`,
         show: false,
@@ -539,7 +560,13 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
         });
 
         // and load the index.html of the app.
-        mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY).catch(log.error);
+        if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+            await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+        } else {
+            await mainWindow.loadFile(
+                path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+            );
+        }
     } catch (error) {
         if (error instanceof CriticalError) {
             await progressController.submitInterrupt(error.interrupt);

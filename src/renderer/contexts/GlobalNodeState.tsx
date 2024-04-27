@@ -28,7 +28,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
     EMPTY_SET,
@@ -87,6 +86,7 @@ import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { useSettings } from './SettingsContext';
+import type { ParsedSaveData, SaveData } from '../../main/SaveFile';
 
 const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
 
