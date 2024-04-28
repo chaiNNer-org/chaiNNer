@@ -238,7 +238,13 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('clipboard-writeBuffer', (event, format, buffer, type) =>
         clipboard.writeBuffer(format, buffer, type)
     );
+    ipcMain.handle('clipboard-writeBuffer-fromString', (event, format, json, type) =>
+        clipboard.writeBuffer(format, Buffer.from(json), type)
+    );
     ipcMain.handle('clipboard-readBuffer', (event, format) => clipboard.readBuffer(format));
+    ipcMain.handle('clipboard-readBuffer-toString', (event, format) =>
+        Buffer.from(clipboard.readBuffer(format)).toString()
+    );
     ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
     ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
     ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
