@@ -25,9 +25,13 @@ export const copyToClipboard = (
         nodes: nodes.filter((n) => copyIds.has(n.id)),
         edges: edges.filter((e) => copyIds.has(e.source) && copyIds.has(e.target)),
     };
-    const copyData = Buffer.from(JSON.stringify(data));
     ipcRenderer
-        .invoke('clipboard-writeBuffer', 'application/chainner.chain', copyData, 'clipboard')
+        .invoke(
+            'clipboard-writeBuffer-fromString',
+            'application/chainner.chain',
+            JSON.stringify(data),
+            'clipboard'
+        )
         .catch(log.error);
 };
 
@@ -61,10 +65,10 @@ export const pasteFromClipboard = async (
     if (availableFormats.length === 0) {
         try {
             const clipboardData = await ipcRenderer.invoke(
-                'clipboard-readBuffer',
+                'clipboard-readBuffer-toString',
                 'application/chainner.chain'
             );
-            const chain = JSON.parse(Buffer.from(clipboardData).toString()) as ClipboardChain;
+            const chain = JSON.parse(clipboardData) as ClipboardChain;
 
             const duplicationId = createUniqueId();
             const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);

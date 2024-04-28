@@ -94,7 +94,12 @@ export interface InvokeChannels {
         void,
         [format: string, buffer: Buffer, type?: 'selection' | 'clipboard' | undefined]
     >;
+    'clipboard-writeBuffer-fromString': ChannelInfo<
+        void,
+        [format: string, json: string, type?: 'selection' | 'clipboard' | undefined]
+    >;
     'clipboard-readBuffer': ChannelInfo<Buffer, [format: string]>;
+    'clipboard-readBuffer-toString': ChannelInfo<string, [format: string]>;
     'clipboard-availableFormats': ChannelInfo<string[]>;
     'clipboard-readHTML': ChannelInfo<string>;
     'clipboard-readRTF': ChannelInfo<string>;
