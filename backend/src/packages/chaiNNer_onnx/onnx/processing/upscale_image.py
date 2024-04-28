@@ -140,6 +140,12 @@ def upscale_image_node(
         img,
         in_nc,
         out_nc,
-        lambda i: upscale(i, session, custom_tile_size if tile_size == CUSTOM else tile_size, change_shape, exact_size),
+        lambda i: upscale(
+            i,
+            session,
+            custom_tile_size if tile_size == CUSTOM else tile_size,
+            change_shape,
+            exact_size,
+        ),
         separate_alpha,
     )

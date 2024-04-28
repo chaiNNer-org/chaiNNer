@@ -277,7 +277,13 @@ def upscale_image_node(
             img,
             in_nc,
             out_nc,
-            lambda i: upscale(i, model, custom_tile_size if tile_size == CUSTOM else tile_size, exec_options, context),
+            lambda i: upscale(
+                i,
+                model,
+                custom_tile_size if tile_size == CUSTOM else tile_size,
+                exec_options,
+                context,
+            ),
             separate_alpha,
             clip=False,  # pytorch_auto_split already does clipping internally
         )
