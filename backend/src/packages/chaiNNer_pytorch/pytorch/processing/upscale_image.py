@@ -280,7 +280,7 @@ def upscale_image_node(
             lambda i: upscale(
                 i,
                 model,
-                custom_tile_size if tile_size == CUSTOM else tile_size,
+                TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
                 exec_options,
                 context,
             ),
