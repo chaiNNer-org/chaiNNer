@@ -14,7 +14,7 @@ from ..processing.upscale_image import upscale_image_node
 
 def check_will_upscale(context: NodeContext, interp: NcnnModelWrapper):
     fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-    result = upscale_image_node(context, fake_img, interp, NO_TILING, 0, False)
+    result = upscale_image_node(context, fake_img, interp, NO_TILING, None, False)
 
     mean_color = np.mean(result)
     del result
