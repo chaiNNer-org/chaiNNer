@@ -41,6 +41,7 @@ export default defineConfig((env) => {
                 'electron/main': 'electron',
                 'electron/common': 'electron',
                 'electron-log/main': 'electron-log',
+                uuid: './node_modules/uuid/dist/index.js',
             },
         },
         server: {
