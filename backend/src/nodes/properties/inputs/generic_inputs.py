@@ -17,7 +17,13 @@ from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
 from ...impl.image_utils import FillColor
-from ...impl.upscale.auto_split_tiles import TileSize
+from ...impl.upscale.auto_split_tiles import (
+    CUSTOM,
+    ESTIMATE,
+    MAX_TILE_SIZE,
+    NO_TILING,
+    TileSize,
+)
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
@@ -527,13 +533,15 @@ def TileSizeDropdown(
 ) -> DropDownInput:
     options = []
     if estimate:
-        options.append({"option": "Auto (estimate)", "value": 0})
+        options.append({"option": "Auto (estimate)", "value": ESTIMATE})
 
-    options.append({"option": "Maximum", "value": -2})
-    options.append({"option": "No Tiling", "value": -1})
+    options.append({"option": "Maximum", "value": MAX_TILE_SIZE})
+    options.append({"option": "No Tiling", "value": NO_TILING})
 
-    for size in [128, 192, 256, 384, 512, 768, 1024, 2048, 4096]:
+    for size in [128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096]:
         options.append({"option": str(size), "value": size})
+
+    options.append({"option": "Custom", "value": CUSTOM})
 
     return DropDownInput(
         input_type="TileSize",
