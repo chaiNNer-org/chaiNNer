@@ -257,7 +257,7 @@ def upscale_image_node(
     use_custom_scale: bool,
     custom_scale: int,
     tile_size: TileSize,
-    custom_tile_size: int,
+    custom_tile_size: int | None,
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)

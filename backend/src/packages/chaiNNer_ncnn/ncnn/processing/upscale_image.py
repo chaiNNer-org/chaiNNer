@@ -204,7 +204,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: NcnnModelWrapper,
     tile_size: TileSize,
-    custom_tile_size: int,
+    custom_tile_size: int | None,
     separate_alpha: bool,
 ) -> np.ndarray:
     settings = get_settings(context)
