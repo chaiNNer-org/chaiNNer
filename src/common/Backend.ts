@@ -1,4 +1,3 @@
-import * as undici from 'undici';
 import {
     BackendJsonNode,
     Category,
@@ -16,7 +15,6 @@ import {
     SchemaId,
     Version,
 } from './common-types';
-import { isRenderer } from './env';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -35,10 +33,14 @@ export interface BackendUnknownErrorValue {
     typeName: string;
     typeModule: string;
 }
+export interface BackendPendingErrorValue {
+    type: 'pending';
+}
 export type BackendErrorValue =
     | BackendLiteralErrorValue
     | BackendFormattedErrorValue
-    | BackendUnknownErrorValue;
+    | BackendUnknownErrorValue
+    | BackendPendingErrorValue;
 
 export interface BackendExceptionSource {
     nodeId: string;
@@ -145,16 +147,10 @@ export class Backend {
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
-        const options: RequestInit & undici.RequestInit = isRenderer
-            ? { method, cache: 'no-cache' }
-            : {
-                  method,
-                  cache: 'no-cache',
-                  dispatcher: new undici.Agent({
-                      bodyTimeout: 0,
-                      headersTimeout: 0,
-                  }),
-              };
+        const options: RequestInit = {
+            method,
+            cache: 'no-cache',
+        };
         const { signal } = this.abortController;
         if (json !== undefined) {
             options.body = JSON.stringify(json);
@@ -163,7 +159,7 @@ export class Backend {
             };
             options.signal = signal;
         }
-        const resp = await (isRenderer ? fetch : undici.fetch)(`${this.url}${path}`, options);
+        const resp = await fetch(`${this.url}${path}`, options);
         const result = (await resp.json()) as T;
         if (ServerError.isJson(result)) {
             throw ServerError.fromJson(result);
@@ -255,6 +251,14 @@ export class Backend {
             package: pkg.id,
         });
     }
+
+    shutdown(): Promise<void> {
+        return this.fetchJson('/shutdown', 'POST');
+    }
+
+    status(): Promise<{ ready: boolean }> {
+        return this.fetchJson('/status', 'GET');
+    }
 }
 
 const backendCache = new Map<string, Backend>();
@@ -310,7 +314,6 @@ export interface BackendEventMap {
         progress: number;
         statusProgress?: number | null;
     };
-    'backend-ready': null;
     'package-install-status': {
         message: string;
         progress: number;

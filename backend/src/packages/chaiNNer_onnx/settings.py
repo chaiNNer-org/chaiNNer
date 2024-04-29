@@ -8,22 +8,18 @@ import onnxruntime as ort
 from sanic.log import logger
 
 from api import CacheSetting, DropdownSetting, NodeContext, ToggleSetting
-from gpu import get_nvidia_helper
+from gpu import nvidia
 from system import is_arm_mac
 
 from . import package
 
-nv = get_nvidia_helper()
-
 if not is_arm_mac:
-    gpu_list = nv.list_gpus() if nv is not None else []
-
     package.add_setting(
         DropdownSetting(
             label="GPU",
             key="gpu_index",
             description="Which GPU to use for ONNX. This is only relevant if you have multiple GPUs.",
-            options=[{"label": x, "value": str(i)} for i, x in enumerate(gpu_list)],
+            options=[{"label": d.name, "value": str(d.index)} for d in nvidia.devices],
             default="0",
         )
     )
@@ -41,6 +37,13 @@ def get_providers():
     return providers, default
 
 
+def get_provider_label(identifier: str) -> str:
+    label = identifier.replace("ExecutionProvider", "")
+    if label.lower() == "tensorrt":
+        label = "TensorRT"
+    return label
+
+
 execution_providers, default_provider = get_providers()
 
 if not is_arm_mac:
@@ -50,7 +53,7 @@ if not is_arm_mac:
             key="execution_provider",
             description="What provider to use for ONNX.",
             options=[
-                {"label": x.replace("ExecutionProvider", ""), "value": x}
+                {"label": get_provider_label(x), "value": x}
                 for x in execution_providers
             ],
             default=default_provider,
@@ -67,9 +70,7 @@ if not is_arm_mac:
         )
     )
 
-    should_fp16 = False
-    if nv is not None:
-        should_fp16 = nv.supports_fp16()
+    should_fp16 = nvidia.is_available and nvidia.all_support_fp16
 
     package.add_setting(
         ToggleSetting(

@@ -14,7 +14,8 @@ import {
 } from '../../../common/common-types';
 import { checkNodeValidity } from '../../../common/nodes/checkNodeValidity';
 import { TypeState } from '../../../common/nodes/TypeState';
-import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET } from '../../../common/util';
+import { PassthroughMap } from '../../../common/PassthroughMap';
+import { EMPTY_ARRAY, EMPTY_MAP, EMPTY_OBJECT, EMPTY_SET, noop } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { FakeNodeProvider } from '../../contexts/FakeExampleContext';
 import { NodeState, TypeInfo, testForInputConditionTypeInfo } from '../../helpers/nodeState';
@@ -118,7 +119,8 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
             new Map([[nodeId, node]]),
             EMPTY_ARRAY,
             EMPTY_MAP,
-            functionDefinitions
+            functionDefinitions,
+            PassthroughMap.EMPTY
         );
     }, [nodeId, selectedSchema, inputData, functionDefinitions]);
 
@@ -159,12 +161,15 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
         setWidth,
         setInputHeight: setSingleInputHeight,
         isLocked: false,
+        passthrough: undefined,
         connectedInputs: EMPTY_SET,
         connectedOutputs: EMPTY_SET,
         iteratedInputs,
         iteratedOutputs,
         type: typeInfo,
         testCondition: testForInputConditionTypeInfo(inputData, selectedSchema, typeInfo),
+        nodeName: undefined,
+        setNodeName: noop,
     };
 
     return (

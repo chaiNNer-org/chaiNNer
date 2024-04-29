@@ -7,25 +7,28 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from logging import Logger
+from typing import Iterable
 
 from custom_types import UpdateProgressFn
 
 python_path = sys.executable
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-installed_packages: dict[str, str | None] = {}
+installed_packages: dict[str, str] = {}
 
 COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 UNINSTALLING_REGEX = re.compile(r"Uninstalling ([a-zA-Z0-9-_]+)-+")
 
 DEP_MAX_PROGRESS = 0.8
 
+ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+
 
 @dataclass(frozen=True)
 class DependencyInfo:
     package_name: str
+    version: str
     display_name: str | None = None
-    version: str | None = None
     from_file: str | None = None
     extra_index_url: str | None = None
 
@@ -37,9 +40,6 @@ def pin(dependency: DependencyInfo) -> str:
         whl_file = f"{dir_path}/whls/{package_name}/{dependency.from_file}"
         if os.path.isfile(whl_file):
             return whl_file
-
-    if dependency.version is None:
-        return package_name
 
     return f"{package_name}=={dependency.version}"
 
@@ -58,11 +58,14 @@ def coerce_semver(version: str) -> tuple[int, int, int]:
     return (0, 0, 0)
 
 
-def get_deps_to_install(dependencies: list[DependencyInfo]):
+def filter_necessary_to_install(dependencies: Iterable[DependencyInfo]):
+    """
+    Filters out dependencies that are already installed and have the same or higher version.
+    """
     dependencies_to_install: list[DependencyInfo] = []
     for dependency in dependencies:
         version = installed_packages.get(dependency.package_name, None)
-        if dependency.version and version:
+        if version:
             installed_version = coerce_semver(version)
             dep_version = coerce_semver(dependency.version)
             if installed_version < dep_version:
@@ -75,7 +78,7 @@ def get_deps_to_install(dependencies: list[DependencyInfo]):
 def install_dependencies_sync(
     dependencies: list[DependencyInfo],
 ):
-    dependencies_to_install = get_deps_to_install(dependencies)
+    dependencies_to_install = filter_necessary_to_install(dependencies)
     if len(dependencies_to_install) == 0:
         return 0
 
@@ -100,6 +103,7 @@ def install_dependencies_sync(
             "--no-warn-script-location",
             *extra_index_args,
         ],
+        env=ENV,
     )
     if exit_code != 0:
         raise ValueError("An error occurred while installing dependencies.")
@@ -119,7 +123,7 @@ async def install_dependencies(
     if update_progress_cb is None:
         return install_dependencies_sync(dependencies)
 
-    dependencies_to_install = get_deps_to_install(dependencies)
+    dependencies_to_install = filter_necessary_to_install(dependencies)
     if len(dependencies_to_install) == 0:
         return 0
 
@@ -165,13 +169,15 @@ async def install_dependencies(
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        encoding="utf-8",
+        env=ENV,
     )
     installing_name = "Unknown"
     while True:
         nextline = process.stdout.readline()  # type: ignore
-        if nextline == b"" and process.poll() is not None:
+        if process.poll() is not None:
             break
-        line = nextline.decode("utf-8").strip()
+        line = nextline.strip()
         if not line:
             continue
 
@@ -250,6 +256,7 @@ def uninstall_dependencies_sync(
             *[d.package_name for d in dependencies],
             "-y",
         ],
+        env=ENV,
     )
     if exit_code != 0:
         raise ValueError("An error occurred while uninstalling dependencies.")
@@ -298,13 +305,15 @@ async def uninstall_dependencies(
         ],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        encoding="utf-8",
+        env=ENV,
     )
     uninstalling_name = "Unknown"
     while True:
         nextline = process.stdout.readline()  # type: ignore
-        if nextline == b"" and process.poll() is not None:
+        if process.poll() is not None:
             break
-        line = nextline.decode("utf-8").strip()
+        line = nextline.strip()
         if not line:
             continue
 

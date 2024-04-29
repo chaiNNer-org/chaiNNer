@@ -1,4 +1,4 @@
-import { app } from 'electron';
+import { app } from 'electron/main';
 import { existsSync } from 'fs';
 import os from 'os';
 import path from 'path';
@@ -27,12 +27,16 @@ export const getIsPortableSync = lazy((): boolean => {
     return isPortable;
 });
 
-export const getRootDirSync = lazy((): string => {
+export const getRootDir = lazy((): string => {
     const isPortable = getIsPortableSync();
     const rootDir = isPortable ? currentExecutableDir : app.getPath('userData');
     return rootDir;
 });
 
 export const getLogsFolder = lazy((): string => {
-    return path.join(getRootDirSync(), 'logs');
+    return path.join(getRootDir(), 'logs');
+});
+
+export const getBackendStorageFolder = lazy((): string => {
+    return path.join(getRootDir(), 'backend-storage');
 });

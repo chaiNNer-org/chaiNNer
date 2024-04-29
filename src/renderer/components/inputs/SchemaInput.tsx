@@ -5,7 +5,7 @@ import { useContextSelector } from 'use-context-selector';
 import { Input, InputKind, InputValue, Size } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { NodeState } from '../../helpers/nodeState';
+import { NodeState, getPassthroughIgnored } from '../../helpers/nodeState';
 import { OutputHandle } from '../outputs/OutputContainer';
 import { TypeTags } from '../TypeTag';
 import { ColorInput } from './ColorInput';
@@ -176,5 +176,9 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
         );
     }
 
-    return <InputContainer>{inputElement}</InputContainer>;
+    return (
+        <InputContainer passthroughIgnored={getPassthroughIgnored(nodeState, inputId)}>
+            {inputElement}
+        </InputContainer>
+    );
 });

@@ -3,9 +3,9 @@ import { LocalStorage } from 'node-localstorage';
 import path from 'path';
 import { migrateOldStorageSettings } from '../common/settings/migration';
 import { ChainnerSettings, defaultSettings } from '../common/settings/settings';
-import { getRootDirSync } from './platform';
+import { getRootDir } from './platform';
 
-const settingsJson = path.join(getRootDirSync(), 'settings.json');
+const settingsJson = path.join(getRootDir(), 'settings.json');
 
 export const writeSettings = (settings: ChainnerSettings) => {
     writeFileSync(settingsJson, JSON.stringify(settings, null, 4), 'utf-8');
@@ -18,7 +18,12 @@ export const readSettings = (): ChainnerSettings => {
     }
 
     // legacy settings
-    const storagePath = path.join(getRootDirSync(), 'settings');
+    const storagePath = path.join(getRootDir(), 'settings');
+    if (!existsSync(storagePath)) {
+        // neither settings.json nor old settings exist, so this is a fresh install
+        return { ...defaultSettings };
+    }
+
     const storage = new LocalStorage(storagePath);
     const partialSettings = migrateOldStorageSettings({
         keys: Array.from({ length: storage.length }, (_, i) => storage.key(i)),
@@ -32,7 +37,7 @@ export const readSettings = (): ChainnerSettings => {
     // write a new settings.json we'll use form now on
     writeSettings(settings);
     // don't delete the old settings in case we need to revert
-    renameSync(storagePath, path.join(getRootDirSync(), 'settings_old'));
+    renameSync(storagePath, path.join(getRootDir(), 'settings_old'));
 
     return settings;
 };

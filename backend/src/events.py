@@ -22,7 +22,7 @@ class BackendStatusEvent(TypedDict):
 
 
 class BackendStateEvent(TypedDict):
-    event: Literal["backend-ready"] | Literal["backend-started"]
+    event: Literal["backend-started"]
     data: None
 
 

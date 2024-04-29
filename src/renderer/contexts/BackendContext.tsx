@@ -26,15 +26,15 @@ import {
 import { log } from '../../common/log';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
 import { sortNodes } from '../../common/nodes/sort';
-import { ipcRenderer } from '../../common/safeIpc';
+import { PassthroughMap } from '../../common/PassthroughMap';
 import { SchemaInputsMap } from '../../common/SchemaInputsMap';
 import { SchemaMap } from '../../common/SchemaMap';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { FunctionDefinition } from '../../common/types/function';
 import { EMPTY_ARRAY, EMPTY_MAP, delay } from '../../common/util';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
-import { useIpcRendererListener } from '../hooks/useIpcRendererListener';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertId, AlertType } from './AlertBoxContext';
 
 interface BackendContextState {
@@ -47,6 +47,7 @@ interface BackendContextState {
     schemaInputs: SchemaInputsMap;
     pythonInfo: PythonInfo;
     packages: readonly Package[];
+    passthrough: PassthroughMap;
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     scope: Scope;
     features: ReadonlyMap<FeatureId, Feature>;
@@ -55,6 +56,8 @@ interface BackendContextState {
     backendDownRef: React.MutableRefObject<boolean>;
     restart: () => Promise<void>;
     connectionState: 'connecting' | 'connected' | 'failed';
+    isBackendReady: boolean;
+    refreshNodes: () => void;
 }
 
 export const BackendContext = createContext<Readonly<BackendContextState>>(
@@ -71,6 +74,7 @@ interface NodesInfo {
     rawResponse: BackendData;
     schemata: SchemaMap;
     categories: CategoryMap;
+    passthrough: PassthroughMap;
     functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>;
     categoriesMissingNodes: CategoryId[];
     packages: Package[];
@@ -79,26 +83,33 @@ interface NodesInfo {
 const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
     const { categories, categoriesMissingNodes, nodes } = rawResponse[0];
     const categoryMap = new CategoryMap(categories);
+    const schemata = new SchemaMap(sortNodes(nodes, categoryMap));
+
+    const functionDefinitions = parseFunctionDefinitions(nodes);
+    const passthrough = PassthroughMap.create(functionDefinitions);
 
     return {
         rawResponse,
-        schemata: new SchemaMap(sortNodes(nodes, categoryMap)),
+        schemata,
         categories: categoryMap,
-        functionDefinitions: parseFunctionDefinitions(nodes),
+        passthrough,
+        functionDefinitions,
         categoriesMissingNodes,
         packages: rawResponse[1],
     };
 };
 
-const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<boolean>>) => {
+const useNodes = (
+    backend: Backend,
+    backendDownRef: Readonly<MutableRefObject<boolean>>,
+    backendReadyRef: Readonly<MutableRefObject<boolean>>
+) => {
     const isBackendIntentionallyDown = backendDownRef.current;
 
     const { t } = useTranslation();
     const { sendAlert, forgetAlert } = useContext(AlertBoxContext);
 
     const [nodesInfo, setNodesInfo] = useState<NodesInfo>();
-
-    const [backendReady, setBackendReady] = useState(false);
 
     const queryClient = useQueryClient();
     const refreshNodes = useCallback(() => {
@@ -119,7 +130,7 @@ const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<bo
         queryFn: async (): Promise<BackendData> => {
             try {
                 // spin until we're no longer restarting
-                while (backendDownRef.current) {
+                while (!backendReadyRef.current || backendDownRef.current) {
                     // eslint-disable-next-line no-await-in-loop
                     await delay(100);
                 }
@@ -181,7 +192,7 @@ const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<bo
                 return prev;
             });
         }
-    }, [nodesQuery.status, nodesQuery.data, backendReady, sendAlert, forgetLastErrorAlert, t]);
+    }, [nodesQuery.status, nodesQuery.data, sendAlert, forgetLastErrorAlert, t]);
 
     useEffect(() => {
         if (nodeQueryError && !isBackendIntentionallyDown) {
@@ -197,15 +208,6 @@ const useNodes = (backend: Backend, backendDownRef: Readonly<MutableRefObject<bo
             });
         }
     }, [nodeQueryError, sendAlert, forgetLastErrorAlert, t, isBackendIntentionallyDown]);
-
-    useIpcRendererListener('backend-ready', () => {
-        // Refresh the nodes once the backend is ready
-        refreshNodes();
-        if (!backendReady) {
-            setBackendReady(true);
-            ipcRenderer.send('backend-ready');
-        }
-    });
 
     const scope = useMemo(() => {
         // function definitions all use the same scope, so just pick any one of them
@@ -290,10 +292,46 @@ export const BackendProvider = memo(
         const backendDownRef = useRef(false);
         const restartPromiseRef = useRef<Promise<void>>();
         const needsNewRestartRef = useRef(false);
+        const backendReadyRef = useRef(false);
+
+        const [isBackendReady, setIsBackendReady] = useState(false);
+        useEffect(() => {
+            backendReadyRef.current = isBackendReady;
+        }, [isBackendReady]);
+        const statusQuery = useQuery({
+            queryKey: ['status', backend.url],
+            queryFn: async (): Promise<{ ready: boolean }> => {
+                try {
+                    // spin until we're no longer restarting
+                    while (backendDownRef.current) {
+                        // eslint-disable-next-line no-await-in-loop
+                        await delay(100);
+                    }
+
+                    return await backend.status();
+                } catch (error) {
+                    return { ready: false };
+                }
+            },
+            cacheTime: 0,
+            retry: 25,
+            refetchOnWindowFocus: true,
+            refetchInterval: isBackendReady ? undefined : 1000,
+        });
+
+        useEffect(() => {
+            if (statusQuery.status === 'success') {
+                const { ready } = statusQuery.data;
+                if (ready) {
+                    setIsBackendReady(true);
+                }
+            }
+        }, [statusQuery.status, statusQuery.data]);
 
         const { nodesInfo, schemaInputs, scope, refreshNodes, connectionState } = useNodes(
             backend,
-            backendDownRef
+            backendDownRef,
+            backendReadyRef
         );
         const { featureStates, refreshFeatureStates } = useFeatureStates(backend);
 
@@ -366,6 +404,7 @@ export const BackendProvider = memo(
             categoriesMissingNodes: nodesInfo?.categoriesMissingNodes ?? EMPTY_ARRAY,
             packages: nodesInfo?.packages ?? EMPTY_ARRAY,
             features: featuresMaps,
+            passthrough: nodesInfo?.passthrough ?? PassthroughMap.EMPTY,
             functionDefinitions: nodesInfo?.functionDefinitions ?? EMPTY_MAP,
             scope,
             featureStates: featureStatesMaps,
@@ -373,6 +412,8 @@ export const BackendProvider = memo(
             backendDownRef,
             restart,
             connectionState,
+            isBackendReady,
+            refreshNodes,
         });
 
         return <BackendContext.Provider value={value}>{children}</BackendContext.Provider>;

@@ -1,12 +1,8 @@
-import { clipboard } from 'electron';
-import { writeFile } from 'fs/promises';
-import os from 'os';
-import path from 'path';
 import { Edge, Node, Project } from 'reactflow';
-import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
 
@@ -29,8 +25,14 @@ export const copyToClipboard = (
         nodes: nodes.filter((n) => copyIds.has(n.id)),
         edges: edges.filter((e) => copyIds.has(e.source) && copyIds.has(e.target)),
     };
-    const copyData = Buffer.from(JSON.stringify(data));
-    clipboard.writeBuffer('application/chainner.chain', copyData, 'clipboard');
+    ipcRenderer
+        .invoke(
+            'clipboard-writeBuffer-fromString',
+            'application/chainner.chain',
+            JSON.stringify(data),
+            'clipboard'
+        )
+        .catch(log.error);
 };
 
 export const cutAndCopyToClipboard = (
@@ -52,19 +54,21 @@ export const cutAndCopyToClipboard = (
     );
 };
 
-export const pasteFromClipboard = (
+export const pasteFromClipboard = async (
     setNodes: SetState<Node<NodeData>[]>,
     setEdges: SetState<Edge<EdgeData>[]>,
     createNode: (proto: NodeProto, parentId?: string) => void,
     screenToFlowPosition: Project,
     reactFlowWrapper: React.RefObject<Element>
 ) => {
-    const availableFormats = clipboard.availableFormats();
+    const availableFormats = await ipcRenderer.invoke('clipboard-availableFormats');
     if (availableFormats.length === 0) {
         try {
-            const chain = JSON.parse(
-                clipboard.readBuffer('application/chainner.chain').toString()
-            ) as ClipboardChain;
+            const clipboardData = await ipcRenderer.invoke(
+                'clipboard-readBuffer-toString',
+                'application/chainner.chain'
+            );
+            const chain = JSON.parse(clipboardData) as ClipboardChain;
 
             const duplicationId = createUniqueId();
             const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
@@ -93,23 +97,22 @@ export const pasteFromClipboard = (
             log.debug('Clipboard format', format);
             switch (format) {
                 case 'text/plain':
-                    log.debug('Clipboard text', clipboard.readText());
+                    log.debug('Clipboard text', navigator.clipboard.readText());
                     break;
                 case 'text/html':
-                    log.debug('Clipboard html', clipboard.readHTML());
+                    log.debug('Clipboard html', ipcRenderer.invoke('clipboard-readHTML'));
                     break;
                 case 'text/rtf':
-                    log.debug('Clipboard rtf', clipboard.readRTF());
+                    log.debug('Clipboard rtf', ipcRenderer.invoke('clipboard-readRTF'));
                     break;
                 case 'image/jpeg':
                 case 'image/gif':
                 case 'image/bmp':
                 case 'image/tiff':
                 case 'image/png': {
-                    const imgData = clipboard.readImage().toPNG();
-                    const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
-                    writeFile(imgPath, imgData)
-                        .then(() => {
+                    ipcRenderer
+                        .invoke('clipboard-readImage-and-store')
+                        .then((imgPath) => {
                             log.debug('Clipboard image', imgPath);
                             let positionX = 0;
                             let positionY = 0;
@@ -120,7 +123,10 @@ export const pasteFromClipboard = (
                                 positionY = (height + y) / 2;
                             }
                             createNode({
-                                position: screenToFlowPosition({ x: positionX, y: positionY }),
+                                position: screenToFlowPosition({
+                                    x: positionX,
+                                    y: positionY,
+                                }),
                                 data: {
                                     schemaId: 'chainner:image:load' as SchemaId,
                                     inputData: {
@@ -130,12 +136,12 @@ export const pasteFromClipboard = (
                             });
                         })
                         .catch((e) => {
-                            log.error('Failed to write clipboard image', e);
+                            log.error('Failed to read clipboard image and save to disk', e);
                         });
                     break;
                 }
                 default:
-                    log.debug('Clipboard data', clipboard.readBuffer(format));
+                    log.debug('Clipboard data', ipcRenderer.invoke('clipboard-readBuffer', format));
             }
         });
     }

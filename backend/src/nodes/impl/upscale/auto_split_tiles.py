@@ -37,6 +37,7 @@ TileSize = NewType("TileSize", int)
 ESTIMATE = TileSize(0)
 NO_TILING = TileSize(-1)
 MAX_TILE_SIZE = TileSize(-2)
+CUSTOM = TileSize(-3)
 TILE_SIZE_256 = TileSize(256)
 
 

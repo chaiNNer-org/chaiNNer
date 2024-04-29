@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 const AdmZip = require('adm-zip');
 const fs = require('fs/promises');
 const path = require('path');
@@ -40,6 +41,7 @@ const deletePycFiles = async (directory) => {
 /** @type {import("@electron-forge/shared-types").ForgeConfig} */
 const config = {
     packagerConfig: {
+        asar: false,
         executableName: process.platform === 'linux' ? packageJson.name : packageJson.productName,
         extraResource: ['./backend/src/', './src/public/icons/mac/file_chn.icns'],
         icon: makerOptions.icon,
@@ -124,27 +126,28 @@ const config = {
     ],
     plugins: [
         {
-            name: '@electron-forge/plugin-webpack',
+            name: '@electron-forge/plugin-vite',
             config: {
-                mainConfig: './webpack.main.config.js',
-                renderer: {
-                    config: './webpack.renderer.config.js',
-                    nodeIntegration: true,
-                    contextIsolation: false,
-                    entryPoints: [
-                        {
-                            html: './src/renderer/index.html',
-                            js: './src/renderer/renderer.js',
-                            name: 'main_window',
-                        },
-                        {
-                            html: './src/renderer/splash.html',
-                            js: './src/renderer/splash_renderer.js',
-                            name: 'splash_screen',
-                        },
-                    ],
-                },
-                devContentSecurityPolicy: '',
+                // `build` can specify multiple entry builds, which can be
+                // Main process, Preload scripts, Worker process, etc.
+                build: [
+                    {
+                        // `entry` is an alias for `build.lib.entry`
+                        // in the corresponding file of `config`.
+                        entry: 'src/main/main.ts',
+                        config: 'vite/main.config.ts',
+                    },
+                    {
+                        entry: 'src/main/preload.ts',
+                        config: 'vite/preload.config.ts',
+                    },
+                ],
+                renderer: [
+                    {
+                        name: 'main_window',
+                        config: 'vite/renderer.config.ts',
+                    },
+                ],
             },
         },
     ],

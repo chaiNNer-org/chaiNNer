@@ -59,7 +59,7 @@ TRANSFER_COLOR_ALGORITHM_LABELS = {
             BoolInput("Reciprocal Scaling Factor", default=True).with_id(4),
         ),
     ],
-    outputs=[ImageOutput("Image", image_type="Input0")],
+    outputs=[ImageOutput("Image", shape_as=0)],
 )
 def color_transfer_node(
     img: np.ndarray,

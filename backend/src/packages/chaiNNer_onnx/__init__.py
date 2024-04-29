@@ -1,7 +1,7 @@
 from sanic.log import logger
 
 from api import KB, MB, Dependency, add_package
-from gpu import nvidia_is_available
+from gpu import nvidia
 from system import is_arm_mac
 
 general = "ONNX uses .onnx models to upscale images."
@@ -19,19 +19,20 @@ else:
 
 
 def get_onnx_runtime():
-    if nvidia_is_available:
+    if nvidia.is_available:
         return Dependency(
             display_name="ONNX Runtime (GPU)",
             pypi_name="onnxruntime-gpu",
-            version="1.15.1",
+            version="1.17.1",
             size_estimate=120 * MB,
             import_name="onnxruntime",
+            extra_index_url="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/",
         )
     else:
         return Dependency(
             display_name="ONNX Runtime",
             pypi_name="onnxruntime",
-            version="1.15.1",
+            version="1.17.1",
             size_estimate=6 * MB,
         )
 
@@ -45,7 +46,7 @@ package = add_package(
         Dependency(
             display_name="ONNX",
             pypi_name="onnx",
-            version="1.14.1",
+            version="1.16.0",
             size_estimate=12 * MB,
         ),
         Dependency(

@@ -3,7 +3,7 @@ from pathlib import Path
 from sanic.log import logger
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
-from nodes.properties.inputs import DirectoryInput, NcnnModelInput, TextInput
+from nodes.properties.inputs import DirectoryInput, NcnnModelInput, RelativePathInput
 
 from .. import io_group
 
@@ -15,18 +15,18 @@ from .. import io_group
     icon="MdSave",
     inputs=[
         NcnnModelInput(),
-        DirectoryInput(create=True),
-        TextInput("Param/Bin Name"),
+        DirectoryInput(must_exist=False),
+        RelativePathInput("Param/Bin Name"),
     ],
     outputs=[],
     side_effects=True,
 )
 def save_model_node(model: NcnnModelWrapper, directory: Path, name: str) -> None:
-    full_bin = f"{name}.bin"
-    full_param = f"{name}.param"
-    full_bin_path = directory / full_bin
-    full_param_path = directory / full_param
+    full_bin_path = (directory / f"{name}.bin").resolve()
+    full_param_path = (directory / f"{name}.param").resolve()
 
     logger.debug(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
+
+    full_bin_path.parent.mkdir(parents=True, exist_ok=True)
     model.model.write_bin(full_bin_path)
     model.model.write_param(full_param_path)

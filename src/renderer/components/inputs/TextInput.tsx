@@ -1,11 +1,11 @@
-import { Center, Input, MenuItem, MenuList, Textarea } from '@chakra-ui/react';
-import { clipboard } from 'electron';
+import { Center, Input, MenuItem, MenuList, Textarea, Tooltip } from '@chakra-ui/react';
 import { Resizable } from 're-resizable';
 import { ChangeEvent, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MdContentCopy, MdContentPaste } from 'react-icons/md';
 import { useContextSelector } from 'use-context-selector';
 import { useDebouncedCallback } from 'use-debounce';
+import { log } from '../../../common/log';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { typeToString } from '../../helpers/naviHelpers';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -14,7 +14,30 @@ import { DragHandleSVG } from '../CustomIcons';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
-const DEFAULT_SIZE = { width: 240, height: 80 };
+const DEFAULT_SIZE = { width: 240, height: 80 } as const;
+
+const invalidRegexCache = new Map<string | null | undefined, RegExp | undefined>();
+const getInvalidRegex = (pattern: string): RegExp | undefined => {
+    if (!invalidRegexCache.has(pattern)) {
+        try {
+            invalidRegexCache.set(pattern, new RegExp(pattern, 'u'));
+        } catch (e) {
+            log.error('Invalid regex pattern:', pattern);
+            invalidRegexCache.set(pattern, undefined);
+        }
+    }
+
+    return invalidRegexCache.get(pattern);
+};
+const withGlobalFlag = (regex: RegExp): RegExp => {
+    return new RegExp(regex.source, `${regex.flags}g`);
+};
+const removeInvalid = (text: string, invalidRegex: RegExp | undefined): string => {
+    if (invalidRegex?.test(text)) {
+        return text.replaceAll(withGlobalFlag(invalidRegex), '');
+    }
+    return text;
+};
 
 export const TextInput = memo(
     ({
@@ -29,8 +52,10 @@ export const TextInput = memo(
         setSize,
         nodeId,
     }: InputProps<'text', string>) => {
-        const { label, multiline, maxLength, def, placeholder, allowEmptyString } = input;
+        const { label, multiline, maxLength, def, placeholder, allowEmptyString, invalidPattern } =
+            input;
         const minLength = input.minLength ?? 0;
+        const invalidRegex = invalidPattern ? getInvalidRegex(invalidPattern) : undefined;
 
         const [tempText, setTempText] = useState(value ?? '');
 
@@ -52,6 +77,9 @@ export const TextInput = memo(
 
         const inputValue = useCallback(
             (text: string, resetInvalid: boolean): void => {
+                // eslint-disable-next-line no-param-reassign
+                text = removeInvalid(text, invalidRegex);
+
                 if (maxLength) {
                     // eslint-disable-next-line no-param-reassign
                     text = text.slice(0, maxLength);
@@ -63,15 +91,30 @@ export const TextInput = memo(
                     resetValue();
                 }
             },
-            [minLength, maxLength, allowEmptyString, setValue, resetValue]
+            [minLength, maxLength, allowEmptyString, invalidRegex, setValue, resetValue]
         );
+        const delayedInputValue = useDebouncedCallback((text: string) => {
+            inputValue(text, true);
+        }, 500);
 
-        const handleChange = useDebouncedCallback(
-            (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-                inputValue(event.target.value, true);
-            },
-            500
-        );
+        const [lastInvalidCharacter, setLastInvalidCharacter] = useState<string>();
+        useEffect(() => {
+            const timerId = setTimeout(() => {
+                setLastInvalidCharacter(undefined);
+            }, 5000);
+            return () => clearTimeout(timerId);
+        }, [lastInvalidCharacter]);
+
+        const onChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            let text = event.target.value;
+            const invalidChar = invalidRegex?.exec(text);
+            if (invalidChar) {
+                setLastInvalidCharacter(invalidChar[0]);
+                text = removeInvalid(text, invalidRegex);
+            }
+            setTempText(text);
+            delayedInputValue(text);
+        };
 
         const strType = inputType.underlying === 'number' ? typeToString(inputType) : inputType;
         const typeText =
@@ -90,7 +133,7 @@ export const TextInput = memo(
                     isDisabled={!displayText}
                     onClick={() => {
                         if (displayText !== undefined) {
-                            clipboard.writeText(displayText);
+                            navigator.clipboard.writeText(displayText).catch(log.error);
                         }
                     }}
                 >
@@ -100,12 +143,19 @@ export const TextInput = memo(
                     icon={<MdContentPaste />}
                     isDisabled={isConnected}
                     onClick={() => {
-                        let text = clipboard.readText();
-                        // replace new lines
-                        text = text.replace(/\r?\n|\r/g, multiline ? '\n' : ' ');
-                        if (text) {
-                            inputValue(text, false);
-                        }
+                        navigator.clipboard
+                            .readText()
+                            .then((clipboardValue) => {
+                                // replace new lines
+                                const text = clipboardValue.replace(
+                                    /\r?\n|\r/g,
+                                    multiline ? '\n' : ' '
+                                );
+                                if (text) {
+                                    inputValue(text, false);
+                                }
+                            })
+                            .catch(log.error);
                     }}
                 >
                     {t('inputs.text.paste', 'Paste')}
@@ -183,10 +233,7 @@ export const TextInput = memo(
                         resize="none"
                         value={displayText ?? ''}
                         w="full"
-                        onChange={(event) => {
-                            setTempText(event.target.value);
-                            handleChange(event);
-                        }}
+                        onChange={onChange}
                         onContextMenu={menu.onContextMenu}
                     />
                 </Resizable>
@@ -203,12 +250,24 @@ export const TextInput = memo(
                     placeholder={placeholder ?? label}
                     size="sm"
                     value={displayText ?? ''}
-                    onChange={(event) => {
-                        setTempText(event.target.value);
-                        handleChange(event);
-                    }}
+                    onChange={onChange}
                     onContextMenu={menu.onContextMenu}
                 />
+            );
+        }
+
+        if (invalidRegex) {
+            const codePoint = lastInvalidCharacter?.codePointAt(0) ?? 0;
+            inputElement = (
+                <Tooltip
+                    isOpen={lastInvalidCharacter !== undefined}
+                    label={`Invalid character '${lastInvalidCharacter ?? ''}' (U+${codePoint
+                        .toString(16)
+                        .padStart(4, '0')}).`}
+                    onClose={() => setLastInvalidCharacter(undefined)}
+                >
+                    {inputElement}
+                </Tooltip>
             );
         }
 

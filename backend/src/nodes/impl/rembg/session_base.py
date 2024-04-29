@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 import numpy as np
 import onnxruntime as ort
 
 from nodes.impl.resize import ResizeFilter, resize
 
 
-class BaseSession:
+class BaseSession(ABC):
     def __init__(
         self,
         inner_session: ort.InferenceSession,
@@ -33,5 +35,6 @@ class BaseSession:
 
         return {model_input_name: np.expand_dims(tmp_img, 0).astype(np.float32)}
 
-    def predict(self, _: np.ndarray) -> list[np.ndarray]:
-        raise NotImplementedError
+    @abstractmethod
+    def predict(self, img: np.ndarray) -> list[np.ndarray]:
+        pass

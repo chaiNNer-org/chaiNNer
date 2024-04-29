@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import atexit
 import os
 import re
 import socket
@@ -30,6 +31,8 @@ def _port_in_use(port: int):
 
 SANIC_LOG_REGEX = re.compile(r"^\s*\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
+ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+
 
 class _WorkerProcess:
     def __init__(self, flags: list[str]):
@@ -42,28 +45,57 @@ class _WorkerProcess:
             stdin=None,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            encoding="utf-8",
+            env=ENV,
         )
         self._stop_event = threading.Event()
 
         # Create a separate thread to read and print the output of the subprocess
-        threading.Thread(
-            target=self._read_output,
+        self._stdout_thread = threading.Thread(
+            target=self._read_stdout,
             daemon=True,
-            name="output reader",
-        ).start()
+            name="stdout reader",
+        )
+        self._stdout_thread.start()
+        self._stderr_thread = threading.Thread(
+            target=self._read_stderr,
+            daemon=True,
+            name="stderr reader",
+        )
+        self._stderr_thread.start()
+
+        atexit.register(self.close)
 
     def close(self):
-        self._stop_event.set()
-        self._process.terminate()
-        self._process.kill()
-
-    def _read_output(self):
-        if self._process.stdout is None:
+        if self._process is None:
+            # already closed
             return
-        for line in self._process.stdout:
-            if self._stop_event.is_set():
+
+        logger.info("Closing worker process...")
+        self._stop_event.set()
+        try:
+            self._process.terminate()
+            self._process.kill()
+        except Exception:
+            logger.error("Failed to terminate worker process", exc_info=True)
+        self._process = None
+        atexit.unregister(self.close)
+
+        self._stdout_thread = None
+        self._stderr_thread = None
+
+    def _read_stdout(self):
+        p = self._process
+        if p is None or p.stdout is None:
+            return
+
+        stopped = False
+        for line in p.stdout:
+            stopped = self._stop_event.is_set()
+            if stopped:
                 break
-            stripped_line = line.decode().rstrip()
+
+            stripped_line = line.rstrip()
             match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
             if match_obj is not None:
                 log_level, message = match_obj.groups()
@@ -83,20 +115,53 @@ class _WorkerProcess:
             else:
                 logger.info(f"[Worker] {stripped_line}")
 
+        cause = "stop event" if stopped else "stdout ending"
+        logger.info(f"Stopped reading worker stdout due to {cause}")
+
+        stopped = self._stop_event.is_set()
+        if not stopped:
+            # the worker ended on its own, so it likely crashed
+            returncode = p.wait()
+            if returncode == 0:
+                logger.info("Worker process ended normally")
+            else:
+                logger.error(
+                    f"Worker process ended with non-zero return code {returncode}"
+                )
+
+    def _read_stderr(self):
+        p = self._process
+        if p is None or p.stderr is None:
+            return
+
+        stopped = False
+        for line in p.stderr:
+            stopped = self._stop_event.is_set()
+            if stopped:
+                break
+
+            stripped_line = line.rstrip()
+            logger.error(f"[Worker] {stripped_line}")
+
+        cause = "stop event" if stopped else "stderr ending"
+        logger.info(f"Stopped reading worker stderr due to {cause}")
+
 
 class WorkerServer:
-    def __init__(self):
+    def __init__(self, flags: Iterable[str] = []):
         self._process = None
 
         self._port = _find_free_port()
         self._base_url = f"http://127.0.0.1:{self._port}"
+        self._flags = list(flags)
         self._session = None
         self._is_ready = False
         self._is_checking_ready = False
+        self._manually_close: set[aiohttp.ClientResponse] = set()
 
-    async def start(self, flags: Iterable[str] = []):
+    async def start(self, extra_flags: Iterable[str] = []):
         logger.info(f"Starting worker process on port {self._port}...")
-        self._process = _WorkerProcess([str(self._port), *flags])
+        self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
         self._is_checking_ready = False
@@ -107,13 +172,16 @@ class WorkerServer:
         if self._process:
             self._process.close()
         if self._session:
+            for resp in self._manually_close:
+                resp.close()
+            self._manually_close.clear()
             await self._session.close()
         logger.info("Worker process stopped")
 
-    async def restart(self, flags: Iterable[str] = []):
+    async def restart(self, extra_flags: Iterable[str] = []):
         logger.info("Restarting worker...")
         await self.stop()
-        await self.start(flags)
+        await self.start(extra_flags)
 
     async def wait_for_ready(self, timeout: float = 300):
         if self._is_ready:
@@ -185,10 +253,14 @@ class WorkerServer:
             "/sse",
             headers=request.headers,
             data=request.body,
-            timeout=5,
+            timeout=aiohttp.ClientTimeout(total=60 * 60, connect=5),
         ) as resp:
-            async for data, _ in resp.content.iter_chunks():
-                yield data
+            self._manually_close.add(resp)
+            try:
+                async for data, _ in resp.content.iter_chunks():
+                    yield data
+            finally:
+                self._manually_close.remove(resp)
 
     async def get_packages(self):
         await self.wait_for_ready()

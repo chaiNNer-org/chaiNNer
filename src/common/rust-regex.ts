@@ -1,17 +1,9 @@
-import { isRenderer } from './env';
+import wasmUrl from 'rregex/lib/rregex.wasm?url';
+import init, { RRegex as _rr } from 'rregex/lib/web';
 import { log } from './log';
 
-let imports;
-if (isRenderer) {
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    imports = require('rregex/lib/browser') as typeof import('rregex');
+// This is not good, but I can't think of a better way.
+// We are racing loading the wasm module and using it.
+init(wasmUrl).catch(log.error);
 
-    // This is not good, but I can't think of a better way.
-    // We are racing loading the wasm module and using it.
-    imports.default().catch(log.error);
-} else {
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    imports = require('rregex/lib/commonjs') as typeof import('rregex');
-}
-
-export class RRegex extends imports.RRegex {}
+export class RRegex extends _rr {}

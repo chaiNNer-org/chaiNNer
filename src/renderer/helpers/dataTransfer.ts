@@ -2,12 +2,12 @@ import { extname } from 'path';
 import { Edge, Node, XYPosition } from 'reactflow';
 import { EdgeData, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpc';
-import { ParsedSaveData, openSaveFile } from '../../common/SaveFile';
 import { SchemaMap } from '../../common/SchemaMap';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
+import { ipcRenderer } from '../safeIpc';
 import { NodeProto, copyEdges, copyNodes, setSelected } from './reactFlowUtil';
 import { SetState } from './types';
+import type { ParsedSaveData } from '../../main/SaveFile';
 
 export interface ChainnerDragData {
     schemaId: SchemaId;
@@ -114,7 +114,8 @@ const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
         if (/\.chn/i.test(file.path)) {
             // found a .chn file
 
-            openSaveFile(file.path)
+            ipcRenderer
+                .invoke('open-save-file', file.path)
                 .then((result) => {
                     // TODO: 1 is hard-coded. Find a better way
                     ipcRenderer.sendTo(1, 'file-open', result);

@@ -16,14 +16,13 @@ import {
     useDisclosure,
     useToast,
 } from '@chakra-ui/react';
-import { app, clipboard, shell } from 'electron';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { log } from '../../common/log';
-import { ipcRenderer } from '../../common/safeIpc';
 import { assertNever, noop } from '../../common/util';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 import { ContextMenuContext } from './ContextMenuContext';
 import { HotkeysContext } from './HotKeyContext';
 
@@ -182,9 +181,11 @@ const getButtons = (
                             ipcRenderer
                                 .invoke('get-appdata')
                                 .then((appDataPath) => {
-                                    shell.openPath(path.join(appDataPath, 'logs')).catch(() => {
-                                        log.error('Failed to open logs folder');
-                                    });
+                                    ipcRenderer
+                                        .invoke('shell-openPath', path.join(appDataPath, 'logs'))
+                                        .catch(() => {
+                                            log.error('Failed to open logs folder');
+                                        });
                                 })
                                 .catch(() => {
                                     log.error('Failed to get appdata path');
@@ -203,7 +204,9 @@ const getButtons = (
                         ref={cancelRef}
                         onClick={() => {
                             window.close();
-                            app.quit();
+                            ipcRenderer.invoke('app-quit').catch(() => {
+                                log.error('Failed to quit application');
+                            });
                         }}
                     >
                         Exit Application
@@ -315,7 +318,11 @@ const AlertBoxDialog = memo(
                                 background="transparent"
                                 icon={<CopyIcon />}
                                 title="Copy to Clipboard"
-                                onClick={() => clipboard.writeText(copyText)}
+                                onClick={() => {
+                                    navigator.clipboard
+                                        .writeText(copyText.toString())
+                                        .catch(log.error);
+                                }}
                             />
                             <HStack
                                 justifyContent="flex-end"

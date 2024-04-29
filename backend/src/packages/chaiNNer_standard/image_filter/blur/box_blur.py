@@ -76,24 +76,22 @@ def get_kernel_2d(radius_x: float, radius_y: float) -> np.ndarray:
             ),
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def box_blur_node(
     img: np.ndarray,
     radius_x: float,
     radius_y: float,
 ) -> np.ndarray:
-    if radius_x == 0 or radius_y == 0:
+    if radius_x == 0 and radius_y == 0:
         return img
 
-    use_optimized_int = (
-        # both radii are integers
-        int(radius_x) == radius_x
-        and int(radius_y) == radius_y
-        # you can't tell the difference between a float and an integer when the radius is large enough
-        or radius_x > 200
-        and radius_y > 200
-    )
+    # you can't tell the difference between a float and an integer when the radius is large enough
+    radius_x = round(radius_x) if radius_x > 200 else radius_x
+    radius_y = round(radius_y) if radius_y > 200 else radius_y
+
+    # both radii are integers
+    use_optimized_int = int(radius_x) == radius_x and int(radius_y) == radius_y
 
     if use_optimized_int:
         # we can use an optimized box blur implementation
@@ -102,6 +100,20 @@ def box_blur_node(
         return cv2.blur(
             img, (radius_x * 2 + 1, radius_y * 2 + 1), borderType=cv2.BORDER_REFLECT_101
         )
+
+    # cv2.blur is so much faster than the other methods, that it's worth manually separating the kernel.
+    # the idea here is that we blur with cv2.blur in x or y if we can
+    threshold = 15
+    if radius_x >= threshold and int(radius_x) == radius_x:
+        img = cv2.blur(
+            img, (int(radius_x) * 2 + 1, 1), borderType=cv2.BORDER_REFLECT_101
+        )
+        radius_x = 1
+    if radius_y >= threshold and int(radius_y) == radius_y:
+        img = cv2.blur(
+            img, (1, int(radius_y) * 2 + 1), borderType=cv2.BORDER_REFLECT_101
+        )
+        radius_y = 1
 
     # Separable filter is faster for relatively small kernels, but after a certain size it becomes
     # slower than filter2D's DFT implementation. The exact cutoff depends on the hardware.

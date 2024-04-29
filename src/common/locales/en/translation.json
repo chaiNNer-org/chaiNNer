@@ -7,7 +7,7 @@
   "dependencyManager": {
     "manageDependencies": "Manage Dependencies",
     "updatesAvailable": "Updates Available",
-    "updatesAvailableDescription": "There are {{count}} updates available for your dependencies."
+    "updatesAvailableDescription": "There are {{count}} packages with available dependency updates."
   },
   "error": {
     "error": "Error",
@@ -30,12 +30,14 @@
   "inputs": {
     "copyInputOverrideId": "Copy Input Override Id",
     "directory": {
+      "clear": "Clear",
       "copyFullDirectoryPath": "Copy Full Directory Path",
       "openInFileExplorer": "Open in File Explorer",
       "selectDirectory": "Select a directory..."
     },
     "extractValueIntoNode": "Extract value into node",
     "file": {
+      "clear": "Clear",
       "copyFileName": "Copy File Name",
       "copyFullFilePath": "Copy Full File Path",
       "openInFileExplorer": "Open in File Explorer",
@@ -50,7 +52,6 @@
       "paste": "Paste"
     }
   },
-  "loading": "Loading...",
   "outputs": {
     "largeImage": {
       "imageNotAvailable": "Image not available."
@@ -59,16 +60,12 @@
       "modelNotAvailable": "Model data not available."
     }
   },
-  "splash": {
-    "checkingFfmpeg": "Checking system environment for Ffmpeg...",
+  "setup": {
     "checkingPort": "Checking for available port...",
     "checkingPython": "Checking system environment for valid Python...",
-    "downloadingFfmpeg": "Downloading ffmpeg...",
     "downloadingPython": "Downloading Integrated Python...",
-    "extractingFfmpeg": "Extracting downloaded files...",
     "extractingPython": "Extracting downloaded files...",
     "loading": "Loading...",
-    "loadingApp": "Loading main application...",
     "startingBackend": "Starting up backend process..."
   },
   "typeTags": {

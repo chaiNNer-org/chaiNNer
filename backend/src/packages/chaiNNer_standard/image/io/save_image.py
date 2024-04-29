@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-import os
 from enum import Enum
 from pathlib import Path
 from typing import Literal
 
 import cv2
 import numpy as np
+import pillow_avif  # noqa: F401
 from PIL import Image
 from sanic.log import logger
 
-from api import KeyInfo
+from api import KeyInfo, Lazy
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
     BC7_FORMATS,
@@ -24,15 +24,14 @@ from nodes.impl.dds.format import (
 from nodes.impl.dds.texconv import save_as_dds
 from nodes.impl.image_utils import cv_save_image, to_uint8, to_uint16
 from nodes.properties.inputs import (
-    SUPPORTED_DDS_FORMATS,
     BoolInput,
-    DdsFormatDropdown,
-    DdsMipMapsDropdown,
     DirectoryInput,
+    DropDownGroup,
+    DropDownInput,
     EnumInput,
     ImageInput,
+    RelativePathInput,
     SliderInput,
-    TextInput,
 )
 from nodes.utils.utils import get_h_w_c
 
@@ -48,6 +47,7 @@ class ImageFormat(Enum):
     WEBP = "webp"
     TGA = "tga"
     DDS = "dds"
+    AVIF = "avif"
 
     @property
     def extension(self) -> str:
@@ -63,7 +63,73 @@ IMAGE_FORMAT_LABELS: dict[ImageFormat, str] = {
     ImageFormat.WEBP: "WEBP",
     ImageFormat.TGA: "TGA",
     ImageFormat.DDS: "DDS",
+    ImageFormat.AVIF: "AVIF",
 }
+
+
+class JpegSubsampling(Enum):
+    FACTOR_444 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_444)
+    FACTOR_440 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_440)
+    FACTOR_422 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_422)
+    FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
+
+
+class AvifSubsampling(Enum):
+    FACTOR_444 = "4:4:4"
+    FACTOR_422 = "4:2:2"
+    FACTOR_420 = "4:2:0"
+    FACTOR_400 = "4:0:0"
+
+
+class PngColorDepth(Enum):
+    U8 = "u8"
+    U16 = "u16"
+
+
+class TiffColorDepth(Enum):
+    U8 = "u8"
+    U16 = "u16"
+    F32 = "f32"
+
+
+SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
+    ("BC1_UNORM_SRGB", "BC1 (4bpp, sRGB, 1-bit Alpha)"),
+    ("BC1_UNORM", "BC1 (4bpp, Linear, 1-bit Alpha)"),
+    ("BC3_UNORM_SRGB", "BC3 (8bpp, sRGB, 8-bit Alpha)"),
+    ("BC3_UNORM", "BC3 (8bpp, Linear, 8-bit Alpha)"),
+    ("BC4_UNORM", "BC4 (4bpp, Grayscale)"),
+    ("BC5_UNORM", "BC5 (8bpp, Unsigned, 2-channel normal)"),
+    ("BC5_SNORM", "BC5 (8bpp, Signed, 2-channel normal)"),
+    ("BC7_UNORM_SRGB", "BC7 (8bpp, sRGB, 8-bit Alpha)"),
+    ("BC7_UNORM", "BC7 (8bpp, Linear, 8-bit Alpha)"),
+    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha)"),
+    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha)"),
+    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha)"),
+    ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
+    ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
+    ("B8G8R8A8_UNORM", "BGRA (32bpp, Linear, 8-bit Alpha)"),
+    ("B5G5R5A1_UNORM", "BGRA (16bpp, Linear, 1-bit Alpha)"),
+    ("B5G6R5_UNORM", "BGR (16bpp, Linear)"),
+    ("B8G8R8X8_UNORM_SRGB", "BGRX (32bpp, sRGB)"),
+    ("B8G8R8X8_UNORM", "BGRX (32bpp, Linear)"),
+    ("R8G8_UNORM", "RG (16bpp, Linear)"),
+    ("R8_UNORM", "R (8bpp, Linear)"),
+]
+
+
+def DdsFormatDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsFormat",
+        label="DDS Format",
+        options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
+        associated_type=DDSFormat,
+        groups=[
+            DropDownGroup("Compressed", start_at="BC1_UNORM_SRGB"),
+            DropDownGroup("Uncompressed", start_at="R8G8B8A8_UNORM_SRGB"),
+            DropDownGroup("Legacy Compressed", start_at="DXT1"),
+        ],
+    )
 
 
 SUPPORTED_FORMATS = {f for f, _ in SUPPORTED_DDS_FORMATS}
@@ -83,22 +149,17 @@ class BC7Compression(Enum):
     BEST_QUALITY = 2
 
 
-class JpegSubsampling(Enum):
-    FACTOR_444 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_444)
-    FACTOR_440 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_440)
-    FACTOR_422 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_422)
-    FACTOR_420 = int(cv2.IMWRITE_JPEG_SAMPLING_FACTOR_420)
-
-
-class PngColorDepth(Enum):
-    U8 = "u8"
-    U16 = "u16"
-
-
-class TiffColorDepth(Enum):
-    U8 = "u8"
-    U16 = "u16"
-    F32 = "f32"
+def DdsMipMapsDropdown() -> DropDownInput:
+    return DropDownInput(
+        input_type="DdsMipMaps",
+        label="Generate Mip Maps",
+        preferred_style="checkbox",
+        options=[
+            # these are not boolean values, see dds.py for more info
+            {"option": "Yes", "value": 0},
+            {"option": "No", "value": 1},
+        ],
+    )
 
 
 @io_group.register(
@@ -107,15 +168,15 @@ class TiffColorDepth(Enum):
     description="Save image to file at a specified directory.",
     icon="MdSave",
     inputs=[
-        ImageInput(),
+        ImageInput().make_lazy(),
         DirectoryInput(must_exist=False),
-        TextInput("Subdirectory Path")
+        RelativePathInput("Subdirectory Path")
         .make_optional()
         .with_docs(
             "An optional subdirectory path. Use this to save the image to a subdirectory of the specified directory. If the subdirectory does not exist, it will be created. Multiple subdirectories can be specified by separating them with a forward slash (`/`).",
             "Example: `foo/bar`",
         ),
-        TextInput("Image Name").with_docs(
+        RelativePathInput("Image Name").with_docs(
             "The name of the image file **without** the file extension. If the file already exists, it will be overwritten.",
             "Example: `my-image`",
         ),
@@ -141,6 +202,7 @@ class TiffColorDepth(Enum):
         ),
         if_group(
             Condition.enum(4, ImageFormat.JPG)
+            | Condition.enum(4, ImageFormat.AVIF)
             | (Condition.enum(4, ImageFormat.WEBP) & Condition.enum(14, 0))
         )(
             SliderInput(
@@ -210,6 +272,24 @@ class TiffColorDepth(Enum):
                 ),
             ),
         ),
+        if_enum_group(4, ImageFormat.AVIF)(
+            EnumInput(
+                AvifSubsampling,
+                label="Chroma Subsampling",
+                default=AvifSubsampling.FACTOR_420,
+                option_labels={
+                    AvifSubsampling.FACTOR_444: "4:4:4 (Best Quality)",
+                    AvifSubsampling.FACTOR_422: "4:2:2",
+                    AvifSubsampling.FACTOR_420: "4:2:0",
+                    AvifSubsampling.FACTOR_400: "4:0:0 (Best Compression)",
+                },
+            ).with_id(17)
+        ),
+        BoolInput("Skip existing files", default=False)
+        .with_id(1000)
+        .with_docs(
+            "If enabled, the node will not overwrite existing files.",
+        ),
     ],
     outputs=[],
     key_info=KeyInfo.enum(4),
@@ -217,7 +297,7 @@ class TiffColorDepth(Enum):
     limited_to_8bpc="Image will be saved with 8 bits/channel by default. Some formats support higher bit depths.",
 )
 def save_image_node(
-    img: np.ndarray,
+    lazy_image: Lazy[np.ndarray],
     base_directory: Path,
     relative_path: str | None,
     filename: str,
@@ -234,12 +314,21 @@ def save_image_node(
     dds_dithering: bool,
     dds_mipmap_levels: int,
     dds_separate_alpha: bool,
+    avif_chroma_subsampling: AvifSubsampling,
+    skip_existing_files: bool,
 ) -> None:
     full_path = get_full_path(base_directory, relative_path, filename, image_format)
-    logger.debug(f"Writing image to path: {full_path}")
 
-    # Create directory if it doesn't exist
-    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    if full_path.exists():
+        if skip_existing_files:
+            logger.debug(f"Skipping existing file: {full_path}")
+            return
+    else:
+        # Create directory if it doesn't exist
+        full_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.debug(f"Writing image to path: {full_path}")
+    img = lazy_image.value
 
     # DDS files are handled separately
     if image_format == ImageFormat.DDS:
@@ -264,9 +353,14 @@ def save_image_node(
         return
 
     # Some formats are handled by PIL
-    if image_format in (ImageFormat.GIF, ImageFormat.TGA):
+    if image_format in (ImageFormat.GIF, ImageFormat.TGA, ImageFormat.AVIF):
         # we only support 8bits of precision for those formats
         img = to_uint8(img, normalized=True)
+        args = {}
+
+        if image_format == ImageFormat.AVIF:
+            args["quality"] = quality
+            args["subsampling"] = avif_chroma_subsampling.value
 
         channels = get_h_w_c(img)[2]
         if channels == 1:
@@ -283,7 +377,7 @@ def save_image_node(
             )
 
         with Image.fromarray(img) as image:
-            image.save(full_path)
+            image.save(full_path, **args)
 
     else:
         params: list[int]
@@ -333,4 +427,4 @@ def get_full_path(
     if relative_path and relative_path != ".":
         base_directory = base_directory / relative_path
     full_path = base_directory / file
-    return full_path
+    return full_path.resolve()

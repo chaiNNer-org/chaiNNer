@@ -1,4 +1,6 @@
-import sys
+from __future__ import annotations
+
+import argparse
 from dataclasses import dataclass
 
 
@@ -7,7 +9,7 @@ class ServerConfig:
     port: int
     """Port to run the server on."""
 
-    close_after_start: bool = False
+    close_after_start: bool
     """
     Whether to close the server after starting it.
 
@@ -16,49 +18,64 @@ class ServerConfig:
     Usage: `--close-after-start`
     """
 
-    install_builtin_packages: bool = False
+    install_builtin_packages: bool
     """
     Whether to install all built-in packages.
 
     Usage: `--install-builtin-packages`
     """
 
-    error_on_failed_node: bool = False
+    error_on_failed_node: bool
     """
     Errors and exits the server with a non-zero exit code if a node fails to import.
 
     Usage: `--error-on-failed-node`
     """
 
+    storage_dir: str | None
+    """
+    Directory to store for nodes to store files in.
+
+    Usage: `--storage-dir /foo/bar`
+    """
+
     @staticmethod
-    def parse_argv() -> "ServerConfig":
-        # Remove the first argument, which is the script name.
-        argv = sys.argv[1:]
+    def parse_argv() -> ServerConfig:
+        parser = argparse.ArgumentParser(description="ChaiNNer's server.")
+        parser.add_argument(
+            "port",
+            type=int,
+            nargs="?",
+            default=8000,
+            help="Port to run the server on.",
+        )
+        parser.add_argument(
+            "--close-after-start",
+            action="store_true",
+            help="Close the server after starting Useful for CI.",
+        )
+        parser.add_argument(
+            "--install-builtin-packages",
+            action="store_true",
+            help="Install all built-in packages.",
+        )
+        parser.add_argument(
+            "--error-on-failed-node",
+            action="store_true",
+            help="Errors and exits the server with a non-zero exit code if a node fails to import.",
+        )
+        parser.add_argument(
+            "--storage-dir",
+            type=str,
+            help="Directory to store for nodes to store files in.",
+        )
 
-        try:
-            port = int(argv[0]) or 8000
-            argv = argv[1:]
-        except Exception:
-            port = 8000
-
-        close_after_start = False
-        if "--close-after-start" in argv:
-            close_after_start = True
-            argv.remove("--close-after-start")
-
-        install_builtin_packages = False
-        if "--install-builtin-packages" in argv:
-            install_builtin_packages = True
-            argv.remove("--install-builtin-packages")
-
-        error_on_failed_node = False
-        if "--error-on-failed-node" in argv:
-            error_on_failed_node = True
-            argv.remove("--error-on-failed-node")
+        parsed = parser.parse_args()
 
         return ServerConfig(
-            port=port,
-            close_after_start=close_after_start,
-            install_builtin_packages=install_builtin_packages,
-            error_on_failed_node=error_on_failed_node,
+            port=parsed.port,
+            close_after_start=parsed.close_after_start,
+            install_builtin_packages=parsed.install_builtin_packages,
+            error_on_failed_node=parsed.error_on_failed_node,
+            storage_dir=parsed.storage_dir or None,
         )

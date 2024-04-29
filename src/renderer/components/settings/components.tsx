@@ -9,13 +9,12 @@ import {
     Select,
     Switch,
 } from '@chakra-ui/react';
-import { access, mkdir, readdir, unlink } from 'fs/promises';
 import path from 'path';
 import { memo, useEffect, useMemo } from 'react';
 import { Setting } from '../../../common/common-types';
-import { getCacheLocation } from '../../../common/env';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { getCacheLocation } from '../../env';
+import { ipcRenderer } from '../../safeIpc';
 import { SettingsProps } from './props';
 import { SettingContainer } from './SettingContainer';
 
@@ -130,9 +129,14 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     onClick={() => {
                         locationPromise
                             .then(async (cacheLocation) => {
-                                const files = await readdir(cacheLocation);
+                                const files = await ipcRenderer.invoke('fs-readdir', cacheLocation);
                                 await Promise.all(
-                                    files.map((file) => unlink(path.join(cacheLocation, file)))
+                                    files.map((file) =>
+                                        ipcRenderer.invoke(
+                                            'fs-unlink',
+                                            path.join(cacheLocation, file)
+                                        )
+                                    )
                                 );
                             })
                             .catch(log.error);
@@ -151,9 +155,11 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                             locationPromise
                                 .then(async (cacheLocation) => {
                                     try {
-                                        await access(cacheLocation);
+                                        await ipcRenderer.invoke('fs-access', cacheLocation);
                                     } catch (error) {
-                                        await mkdir(cacheLocation, { recursive: true });
+                                        await ipcRenderer.invoke('fs-mkdir', cacheLocation, {
+                                            recursive: true,
+                                        });
                                     }
                                     setValue(cacheLocation);
                                 })

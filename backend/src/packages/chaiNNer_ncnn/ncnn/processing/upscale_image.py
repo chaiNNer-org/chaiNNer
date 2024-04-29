@@ -16,11 +16,13 @@ except ImportError:
 from sanic.log import logger
 
 from api import NodeContext
-from nodes.groups import Condition, if_group
+from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.ncnn.session import get_ncnn_net
 from nodes.impl.upscale.auto_split_tiles import (
+    CUSTOM,
+    TILE_SIZE_256,
     TileSize,
     estimate_tile_size,
     parse_tile_size_input,
@@ -31,6 +33,7 @@ from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
     NcnnModelInput,
+    NumberInput,
     TileSizeDropdown,
 )
 from nodes.properties.outputs import ImageOutput
@@ -158,6 +161,18 @@ def upscale_impl(
             "Generally it's recommended to use the largest tile size possible for best performance (with the ideal scenario being no tiling at all), but depending on the model and image size, this may not be possible.",
             "If you are having issues with the automatic mode, you can manually select a tile size, or set a memory budget limit. On certain machines, a very small tile size such as 256 or 128 might be required for it to work at all.",
         ),
+        if_enum_group(2, CUSTOM)(
+            NumberInput(
+                "Custom Tile Size",
+                minimum=1,
+                maximum=None,
+                default=TILE_SIZE_256,
+                precision=0,
+                controls_step=1,
+                unit="px",
+                has_handle=False,
+            )
+        ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
             & (
@@ -189,6 +204,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: NcnnModelWrapper,
     tile_size: TileSize,
+    custom_tile_size: int | None,
     separate_alpha: bool,
 ) -> np.ndarray:
     settings = get_settings(context)
@@ -205,7 +221,9 @@ def upscale_image_node(
             model,
             model.model.layers[0].outputs[0],
             model.model.layers[-1].outputs[0],
-            tile_size,
+            TileSize(custom_tile_size)
+            if tile_size == CUSTOM and custom_tile_size is not None
+            else tile_size,
         )
         if ic == 3:
             i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)

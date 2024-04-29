@@ -1,17 +1,12 @@
-import {
-    BrowserWindow,
-    IpcMainEvent,
-    IpcMainInvokeEvent,
-    IpcRendererEvent,
-    MessagePortMain,
-    WebContents,
-    ipcMain as unsafeIpcMain,
-    ipcRenderer as unsafeIpcRenderer,
-} from 'electron';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
-import { ParsedSaveData, SaveData } from './SaveFile';
 import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
+import type { ParsedSaveData, SaveData } from '../main/SaveFile';
+// eslint-disable-next-line import/no-nodejs-modules
+import type { FileFilter, OpenDialogReturnValue } from 'electron/common';
+// eslint-disable-next-line import/no-nodejs-modules
+import type { MakeDirectoryOptions } from 'fs';
+import type { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
@@ -24,14 +19,10 @@ export interface InvokeChannels {
     'get-backend-url': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
     'get-app-version': ChannelInfo<Version>;
-    'dir-select': ChannelInfo<Electron.OpenDialogReturnValue, [dirPath: string]>;
+    'dir-select': ChannelInfo<OpenDialogReturnValue, [dirPath: string]>;
     'file-select': ChannelInfo<
-        Electron.OpenDialogReturnValue,
-        [
-            filters: Electron.FileFilter[],
-            allowMultiple: boolean | undefined,
-            dirPath: string | undefined
-        ]
+        OpenDialogReturnValue,
+        [filters: FileFilter[], allowMultiple: boolean | undefined, dirPath: string | undefined]
     >;
 
     'file-save-json': ChannelInfo<void, [saveData: SaveData, savePath: string]>;
@@ -39,22 +30,92 @@ export interface InvokeChannels {
         FileSaveResult,
         [saveData: SaveData, defaultPath: string | undefined]
     >;
-    'get-cli-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
+    'get-auto-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
     'owns-backend': ChannelInfo<boolean>;
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
     'get-appdata': ChannelInfo<string>;
     'open-url': ChannelInfo<void, [url: string]>;
+    'get-is-mac': ChannelInfo<boolean>;
+    'get-is-arm-mac': ChannelInfo<boolean>;
+    'open-save-file': ChannelInfo<FileOpenResult<ParsedSaveData>, [path: string]>;
 
     // settings
     'get-settings': ChannelInfo<ChainnerSettings>;
     'set-settings': ChannelInfo<void, [settings: ChainnerSettings]>;
+
+    // fs
+    'fs-read-file': ChannelInfo<
+        string,
+        // Mostly copied this from the original fs.readFile, but had to remove some bits due to being unable to import the types
+        [
+            path: PathLike,
+            options:
+                | {
+                      encoding: BufferEncoding;
+                      flag?: OpenMode | undefined;
+                  }
+                | BufferEncoding
+        ]
+    >;
+    'fs-write-file': ChannelInfo<
+        void,
+        // Mostly copied this from the original fs.writeFile, but had to remove some bits due to being unable to import the types
+        [
+            file: PathLike,
+            data:
+                | string
+                | NodeJS.ArrayBufferView
+                | Iterable<string | NodeJS.ArrayBufferView>
+                | AsyncIterable<string | NodeJS.ArrayBufferView>,
+            options?:
+                | (ObjectEncodingOptions & {
+                      mode?: Mode | undefined;
+                      flag?: OpenMode | undefined;
+                  })
+                | BufferEncoding
+                | null
+        ]
+    >;
+    'fs-exists': ChannelInfo<boolean, [path: string]>;
+    'fs-mkdir': ChannelInfo<string | undefined, [path: string, options: MakeDirectoryOptions]>;
+    'fs-readdir': ChannelInfo<string[], [path: string]>;
+    'fs-unlink': ChannelInfo<void, [path: string]>;
+    'fs-access': ChannelInfo<void, [path: string]>;
+
+    // Electron
+    'shell-showItemInFolder': ChannelInfo<void, [fullPath: string]>;
+    'shell-openPath': ChannelInfo<string, [fullPath: string]>;
+    'app-quit': ChannelInfo<void>;
+    'clipboard-writeText': ChannelInfo<void, [text: string]>;
+    'clipboard-readText': ChannelInfo<string>;
+    'clipboard-writeBuffer': ChannelInfo<
+        void,
+        [format: string, buffer: Buffer, type?: 'selection' | 'clipboard' | undefined]
+    >;
+    'clipboard-writeBuffer-fromString': ChannelInfo<
+        void,
+        [format: string, json: string, type?: 'selection' | 'clipboard' | undefined]
+    >;
+    'clipboard-readBuffer': ChannelInfo<Buffer, [format: string]>;
+    'clipboard-readBuffer-toString': ChannelInfo<string, [format: string]>;
+    'clipboard-availableFormats': ChannelInfo<string[]>;
+    'clipboard-readHTML': ChannelInfo<string>;
+    'clipboard-readRTF': ChannelInfo<string>;
+    'clipboard-readImage-and-store': ChannelInfo<string>;
+    'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
+    'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
+
+    // File watching
+    'watch-file': ChannelInfo<void, [path: string]>;
+    'watch-files': ChannelInfo<void, [paths: readonly string[]]>;
+    'unwatch-file': ChannelInfo<void, [path: string]>;
+    'unwatch-files': ChannelInfo<void, [paths: readonly string[]]>;
 }
 
 export interface SendChannels {
-    'splash-setup-progress': SendChannelInfo<[progress: Progress]>;
-    'backend-ready': SendChannelInfo;
+    'setup-progress': SendChannelInfo<[progress: Progress]>;
     'backend-started': SendChannelInfo;
     'file-new': SendChannelInfo;
     'file-open': SendChannelInfo<[FileOpenResult<ParsedSaveData>]>;
@@ -77,6 +138,7 @@ export interface SendChannels {
     'reboot-after-save': SendChannelInfo;
     'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
     'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
+    'file-changed': SendChannelInfo<[eventType: 'add' | 'change' | 'unlink', path: string]>;
 
     // history
     'history-undo': SendChannelInfo;
@@ -94,85 +156,3 @@ export type ChannelArgs<C extends keyof (InvokeChannels & SendChannels)> = (Invo
     SendChannels)[C]['args'];
 export type ChannelReturn<C extends keyof (InvokeChannels & SendChannels)> = (InvokeChannels &
     SendChannels)[C]['returnType'];
-
-interface SafeIpcMain extends Electron.IpcMain {
-    handle<C extends keyof InvokeChannels>(
-        channel: C,
-        listener: (
-            event: IpcMainInvokeEvent,
-            ...args: ChannelArgs<C>
-        ) => Promise<ChannelReturn<C>> | ChannelReturn<C>
-    ): void;
-    handleOnce<C extends keyof InvokeChannels>(
-        channel: C,
-        listener: (
-            event: IpcMainInvokeEvent,
-            ...args: ChannelArgs<C>
-        ) => Promise<ChannelReturn<C>> | ChannelReturn<C>
-    ): void;
-    on<C extends keyof SendChannels>(
-        channel: C,
-        listener: (event: IpcMainEvent, ...args: ChannelArgs<C>) => void
-    ): this;
-    once<C extends keyof SendChannels>(
-        channel: C,
-        listener: (event: IpcMainEvent, ...args: ChannelArgs<C>) => void
-    ): this;
-    removeAllListeners(channel?: keyof SendChannels): this;
-    removeHandler(channel: keyof InvokeChannels): void;
-    removeListener<C extends keyof SendChannels>(
-        channel: C,
-        listener: (event: IpcMainEvent | IpcMainInvokeEvent, ...args: ChannelArgs<C>) => void
-    ): this;
-}
-
-interface SafeIpcRenderer extends Electron.IpcRenderer {
-    invoke<C extends keyof InvokeChannels>(
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): Promise<ChannelReturn<C>>;
-    on<C extends keyof SendChannels>(
-        channel: C,
-        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
-    ): this;
-    once<C extends keyof SendChannels>(
-        channel: C,
-        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
-    ): this;
-    postMessage(channel: keyof SendChannels, message: unknown, transfer?: MessagePort[]): void;
-    removeAllListeners(channel: keyof SendChannels): this;
-    removeListener<C extends keyof SendChannels>(
-        channel: C,
-        listener: (event: IpcRendererEvent, ...args: ChannelArgs<C>) => void
-    ): this;
-    send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-    sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-    sendTo<C extends keyof SendChannels>(
-        webContentsId: number,
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): void;
-    sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-}
-
-interface WebContentsWithSafeIcp extends WebContents {
-    invoke<C extends keyof SendChannels>(
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): Promise<ChannelReturn<C>>;
-    postMessage(channel: keyof SendChannels, message: unknown, transfer?: MessagePortMain[]): void;
-    send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-    sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): ChannelReturn<C>;
-    sendTo<C extends keyof SendChannels>(
-        webContentsId: number,
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): void;
-    sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-}
-export interface BrowserWindowWithSafeIpc extends BrowserWindow {
-    webContents: WebContentsWithSafeIcp;
-}
-
-export const ipcMain = unsafeIpcMain as SafeIpcMain;
-export const ipcRenderer = unsafeIpcRenderer as SafeIpcRenderer;

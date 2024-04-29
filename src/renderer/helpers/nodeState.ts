@@ -14,6 +14,7 @@ import {
 import { IdSet } from '../../common/IdSet';
 import { TestFn, testForInputCondition } from '../../common/nodes/condition';
 import { isAutoIterable } from '../../common/nodes/lineage';
+import { PassthroughInfo } from '../../common/PassthroughMap';
 import { FunctionInstance } from '../../common/types/function';
 import { EMPTY_ARRAY, EMPTY_SET } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
@@ -71,19 +72,37 @@ export interface NodeState {
     readonly nodeWidth: number | undefined;
     readonly setWidth: (width: number) => void;
     readonly isLocked: boolean;
+    readonly passthrough: PassthroughInfo | undefined;
     readonly connectedInputs: ReadonlySet<InputId>;
     readonly connectedOutputs: ReadonlySet<OutputId>;
     readonly iteratedInputs: ReadonlySet<InputId>;
     readonly iteratedOutputs: ReadonlySet<OutputId>;
     readonly type: TypeInfo;
     readonly testCondition: TestFn;
+    readonly nodeName: string | undefined;
+    readonly setNodeName: (nickname: string | undefined) => void;
 }
 
 export const useNodeStateFromData = (data: NodeData): NodeState => {
-    const { setNodeInputValue, setNodeInputHeight, setNodeOutputHeight, setNodeWidth } =
-        useContext(GlobalContext);
+    const {
+        setNodeInputValue,
+        setNodeInputHeight,
+        setNodeOutputHeight,
+        setNodeWidth,
+        setNodeName,
+    } = useContext(GlobalContext);
 
-    const { id, inputData, inputHeight, outputHeight, isLocked, schemaId, nodeWidth } = data;
+    const {
+        id,
+        inputData,
+        inputHeight,
+        outputHeight,
+        isLocked,
+        isPassthrough,
+        schemaId,
+        nodeWidth,
+        nodeName,
+    } = data;
 
     const setInputValue = useMemo(() => setNodeInputValue.bind(null, id), [id, setNodeInputValue]);
 
@@ -97,8 +116,9 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
     );
 
     const setWidth = useMemo(() => setNodeWidth.bind(null, id), [id, setNodeWidth]);
+    const setName = useMemo(() => setNodeName.bind(null, id), [id, setNodeName]);
 
-    const { schemata } = useContext(BackendContext);
+    const { schemata, passthrough } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
 
     const connectedString = useContextSelector(GlobalVolatileContext, (c) =>
@@ -162,11 +182,24 @@ export const useNodeStateFromData = (data: NodeData): NodeState => {
         nodeWidth,
         setWidth,
         isLocked: isLocked ?? false,
+        passthrough: isPassthrough ? passthrough.get(schemaId) : undefined,
         connectedInputs,
         connectedOutputs,
         iteratedInputs,
         iteratedOutputs,
         type,
         testCondition,
+        nodeName,
+        setNodeName: setName,
     });
+};
+
+export const getPassthroughIgnored = ({ passthrough }: NodeState, inputId?: InputId): boolean => {
+    if (passthrough === undefined) return false;
+    if (inputId === undefined) {
+        // we'll just assume it's ignored. This works, because most inputs are ignored
+        return true;
+    }
+
+    return !passthrough.isMappedInput(inputId);
 };

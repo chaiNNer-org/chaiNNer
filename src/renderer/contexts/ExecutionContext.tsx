@@ -11,7 +11,6 @@ import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
 import { optimizeChain } from '../../common/nodes/optimize';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
-import { ipcRenderer } from '../../common/safeIpc';
 import { getChainnerScope } from '../../common/types/chainner-scope';
 import { fromJson } from '../../common/types/json';
 import { EMPTY_MAP, EMPTY_SET, assertNever, groupBy } from '../../common/util';
@@ -29,6 +28,7 @@ import {
 } from '../hooks/useBackendEventSource';
 import { EventBacklog, useEventBacklog } from '../hooks/useEventBacklog';
 import { useMemoObject } from '../hooks/useMemo';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
@@ -147,6 +147,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         features,
         featureStates,
         categories,
+        passthrough,
     } = useContext(BackendContext);
     const { packageSettings } = useSettings();
 
@@ -352,7 +353,12 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     }, [status, nodeChanges, edgeChanges, sendToast]);
 
     const runNodes = useCallback(async () => {
-        const { nodes, edges, report } = optimizeChain(getNodes(), getEdges(), schemata);
+        const { nodes, edges, report } = optimizeChain(
+            getNodes(),
+            getEdges(),
+            schemata,
+            passthrough
+        );
 
         // show an error if there are no nodes to run
         if (nodes.length === 0) {
@@ -450,6 +456,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         categories,
         sendAlert,
         typeStateRef,
+        passthrough,
         chainLineageRef,
         features,
         featureStates,

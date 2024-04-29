@@ -28,8 +28,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-import { ipcRenderer } from '../../common/safeIpc';
-import { ParsedSaveData, SaveData, openSaveFile } from '../../common/SaveFile';
 
 import {
     EMPTY_SET,
@@ -84,9 +82,11 @@ import {
     useOutputDataStore,
 } from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { useSettings } from './SettingsContext';
+import type { ParsedSaveData, SaveData } from '../../main/SaveFile';
 
 const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
 
@@ -124,6 +124,7 @@ interface Global {
     setNodeInputHeight: (nodeId: string, inputId: InputId, value: number) => void;
     setNodeOutputHeight: (nodeId: string, outputId: OutputId, value: number) => void;
     setNodeWidth: (nodeId: string, value: number) => void;
+    setNodeName: (nodeId: string, nickname: string | undefined) => void;
     removeNodesById: (ids: readonly string[]) => void;
     removeEdgeById: (id: string) => void;
     duplicateNodes: (nodeIds: readonly string[], withInputEdges?: boolean) => void;
@@ -144,6 +145,7 @@ interface Global {
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
     setNodeCollapsed: (id: string, isCollapsed: boolean) => void;
+    setNodePassthrough: (id: string, isPassthrough: boolean) => void;
     addEdgeBreakpoint: (id: string, position: XYPosition) => void;
     removeEdgeBreakpoint: (id: string) => void;
 }
@@ -168,8 +170,9 @@ interface GlobalProviderProps {
 export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
-        const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
-        const { startupTemplate, viewportExportPadding } = useSettings();
+        const { schemata, functionDefinitions, passthrough, scope, backend } =
+            useContext(BackendContext);
+        const { viewportExportPadding } = useSettings();
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
         const [edgeChanges, addEdgeChanges, edgeChangesRef] = useChangeCounter();
@@ -270,6 +273,7 @@ export const GlobalProvider = memo(
                     getEdges(),
                     manualOutputTypes.map,
                     functionDefinitions,
+                    passthrough,
                     typeStateRef.current
                 );
                 setTypeState(types);
@@ -286,6 +290,7 @@ export const GlobalProvider = memo(
             manualOutputTypes,
             functionDefinitions,
             schemata,
+            passthrough,
             getEdges,
             getNodes,
         ]);
@@ -669,7 +674,7 @@ export const GlobalProvider = memo(
 
         useAsyncEffect(
             () => async () => {
-                const result = await ipcRenderer.invoke('get-cli-open');
+                const result = await ipcRenderer.invoke('get-auto-open');
                 if (result) {
                     if (result.kind === 'Success') {
                         await setStateFromJSONRef.current(result.saveData, result.path, true);
@@ -719,33 +724,6 @@ export const GlobalProvider = memo(
         );
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         useIpcRendererListener('file-export-template', exportTemplate);
-
-        const [firstLoad, setFirstLoad] = useSessionStorage('firstLoad', true);
-        useAsyncEffect(
-            () => async () => {
-                if (firstLoad && startupTemplate) {
-                    try {
-                        const saveFile = await openSaveFile(startupTemplate);
-                        if (saveFile.kind === 'Success') {
-                            await setStateFromJSONRef.current(saveFile.saveData, '', true);
-                        } else {
-                            sendAlert({
-                                type: AlertType.ERROR,
-                                message: `Unable to open file ${startupTemplate}: ${saveFile.error}`,
-                            });
-                        }
-                    } catch (error) {
-                        log.error(error);
-                        sendAlert({
-                            type: AlertType.ERROR,
-                            message: `Unable to open file ${startupTemplate}`,
-                        });
-                    }
-                    setFirstLoad(false);
-                }
-            },
-            [firstLoad, sendAlert, setFirstLoad, startupTemplate]
-        );
 
         const removeNodesById = useCallback(
             (ids: readonly string[]) => {
@@ -990,6 +968,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodeName = useCallback(
+            (nodeId: string, name: string | undefined): void => {
+                modifyNode(nodeId, (old) => {
+                    return withNewData(old, 'nodeName', name);
+                });
+            },
+            [modifyNode]
+        );
+
         const [individuallyRunning, setIndividuallyRunning] =
             useState<ReadonlySet<string>>(EMPTY_SET);
         const addIndividuallyRunning = useCallback((node: string): void => {
@@ -1164,6 +1151,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodePassthrough = useCallback(
+            (id: string, isPassthrough: boolean): void => {
+                modifyNode(id, (n) => {
+                    return withNewData(n, 'isPassthrough', isPassthrough);
+                });
+            },
+            [modifyNode]
+        );
+
         const exportViewportScreenshotAs = useCallback(
             (saveAs: (dataUrl: PngDataUrl) => void) => {
                 const currentFlowWrapper = reactFlowWrapper.current;
@@ -1218,7 +1214,7 @@ export const GlobalProvider = memo(
                 createNode,
                 screenToFlowPosition,
                 reactFlowWrapper
-            );
+            ).catch(log.error);
         }, [changeNodes, changeEdges, createNode, screenToFlowPosition, reactFlowWrapper]);
         const selectAllFn = useCallback(() => {
             changeNodes((nodes) => nodes.map((n) => ({ ...n, selected: true })));
@@ -1311,6 +1307,7 @@ export const GlobalProvider = memo(
             setNodeInputHeight,
             setNodeOutputHeight,
             setNodeWidth,
+            setNodeName,
             toggleNodeLock,
             resetInputs,
             resetConnections,
@@ -1331,6 +1328,7 @@ export const GlobalProvider = memo(
             getInputHash,
             hasRelevantUnsavedChangesRef,
             setNodeCollapsed,
+            setNodePassthrough,
             addEdgeBreakpoint,
             removeEdgeBreakpoint,
         });

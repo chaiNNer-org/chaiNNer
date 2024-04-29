@@ -49,7 +49,7 @@ class MorphShape(Enum):
             scale="log",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def erode_node(
     img: np.ndarray,

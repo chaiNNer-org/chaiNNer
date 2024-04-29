@@ -1,5 +1,5 @@
-import { app } from 'electron';
-import electronLog from 'electron-log';
+import electronLog from 'electron-log/main';
+import { app } from 'electron/main';
 import { readdirSync, rmSync } from 'fs';
 import os from 'os';
 import path from 'path';
@@ -9,12 +9,14 @@ import { parseArgs } from './arguments';
 import { createCli } from './cli/create';
 import { runChainInCli } from './cli/run';
 import { createGuiApp } from './gui/create';
-import { getLogsFolder, getRootDirSync } from './platform';
+import { getLogsFolder, getRootDir } from './platform';
+import { handleSquirrel } from './squirrel';
 
 const startApp = () => {
     const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
-    electronLog.transports.file.resolvePath = (variables) =>
+    electronLog.initialize();
+    electronLog.transports.file.resolvePathFn = (variables) =>
         path.join(getLogsFolder(), variables.fileName!);
     electronLog.transports.file.level = 'info';
     electronLog.transports.console.level = 'debug';
@@ -27,7 +29,7 @@ const startApp = () => {
 
     process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 
-    app.setPath('userData', getRootDirSync());
+    app.setPath('userData', getRootDir());
 
     // On macOS, we need to store the file-path when chaiNNer got started via a double
     // click on a .chn file. This listener gets remove later on.
@@ -60,9 +62,7 @@ const startApp = () => {
     }
 };
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-// eslint-disable-next-line global-require
-if (require('electron-squirrel-startup')) {
+if (handleSquirrel()) {
     app.quit();
 } else {
     startApp();

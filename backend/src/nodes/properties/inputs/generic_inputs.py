@@ -4,7 +4,7 @@ import json
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Literal, TypedDict, TypeVar
+from typing import Any, Literal, TypedDict, TypeVar
 
 import numpy as np
 from sanic.log import logger
@@ -16,9 +16,14 @@ from api import BaseInput, InputConversion, group
 from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
 from ...impl.color.color import Color
-from ...impl.dds.format import DDSFormat
 from ...impl.image_utils import FillColor
-from ...impl.upscale.auto_split_tiles import TileSize
+from ...impl.upscale.auto_split_tiles import (
+    CUSTOM,
+    ESTIMATE,
+    MAX_TILE_SIZE,
+    NO_TILING,
+    TileSize,
+)
 from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 from ...utils.utils import (
@@ -67,7 +72,10 @@ class DropDownGroup:
         return {"label": self.label, "startAt": start_at}
 
 
-class DropDownInput(BaseInput):
+T = TypeVar("T")
+
+
+class DropDownInput(BaseInput[T]):
     """Input for a dropdown"""
 
     def __init__(
@@ -114,9 +122,9 @@ class DropDownInput(BaseInput):
     def make_optional(self):
         raise ValueError("DropDownInput cannot be made optional")
 
-    def enforce(self, value: object):
+    def enforce(self, value: object) -> T:
         assert value in self.accepted_values, f"{value} is not a valid option"
-        return value
+        return value  # type: ignore
 
     def wrap_with_conditional_group(self):
         """
@@ -139,7 +147,7 @@ class DropDownInput(BaseInput):
         return group("conditional", {"condition": condition})(self)
 
 
-class BoolInput(DropDownInput):
+class BoolInput(DropDownInput[bool]):
     def __init__(self, label: str, default: bool = True, icon: str | None = None):
         super().__init__(
             input_type="bool",
@@ -167,10 +175,10 @@ class BoolInput(DropDownInput):
         return bool(value)
 
 
-T = TypeVar("T", bound=Enum)
+E = TypeVar("E", bound=Enum)
 
 
-class EnumInput(Generic[T], DropDownInput):
+class EnumInput(DropDownInput[E]):
     """
     This adapts a python Enum into a chaiNNer dropdown input.
 
@@ -193,17 +201,17 @@ class EnumInput(Generic[T], DropDownInput):
 
     def __init__(
         self,
-        enum: type[T],
+        enum: type[E],
         label: str | None = None,
-        default: T | None = None,
+        default: E | None = None,
         type_name: str | None = None,
-        option_labels: dict[T, str] | None = None,
+        option_labels: dict[E, str] | None = None,
         extra_definitions: str | None = None,
         preferred_style: DropDownStyle = "dropdown",
         label_style: LabelStyle = "default",
         categories: list[DropDownGroup] | None = None,
-        conditions: dict[T, Condition] | None = None,
-        icons: dict[T, str] | None = None,
+        conditions: dict[E, Condition] | None = None,
+        icons: dict[E, str] | None = None,
     ):
         if type_name is None:
             type_name = enum.__name__
@@ -264,12 +272,12 @@ class EnumInput(Generic[T], DropDownInput):
 
         self.associated_type = enum
 
-    def enforce(self, value: object) -> T:
+    def enforce(self, value: object) -> E:
         value = super().enforce(value)
         return self.enum(value)
 
 
-class TextInput(BaseInput):
+class TextInput(BaseInput[str]):
     """Input for arbitrary text"""
 
     def __init__(
@@ -284,6 +292,7 @@ class TextInput(BaseInput):
         default: str | None = None,
         label_style: LabelStyle = "default",
         allow_empty_string: bool = False,
+        invalid_pattern: str | None = None,
     ):
         super().__init__(
             input_type="string" if min_length == 0 else 'invStrSet("")',
@@ -298,6 +307,7 @@ class TextInput(BaseInput):
         self.multiline = multiline
         self.label_style: LabelStyle = label_style
         self.allow_empty_string = allow_empty_string
+        self.invalid_pattern = invalid_pattern
 
         if default is not None:
             assert default != ""
@@ -337,6 +347,7 @@ class TextInput(BaseInput):
             "def": self.default,
             "labelStyle": self.label_style,
             "allowEmptyString": self.allow_empty_string,
+            "invalidPattern": self.invalid_pattern,
         }
 
 
@@ -366,7 +377,7 @@ class ClipboardInput(BaseInput):
         }
 
 
-class AnyInput(BaseInput):
+class AnyInput(BaseInput[object]):
     def __init__(self, label: str):
         super().__init__(input_type="any", label=label)
         self.associated_type = object
@@ -399,7 +410,7 @@ class SeedInput(NumberInput):
 
         self.associated_type = Seed
 
-    def enforce(self, value: object) -> Seed:
+    def enforce(self, value: object) -> Seed:  # type: ignore
         if isinstance(value, Seed):
             return value
         if isinstance(value, (int, float, str)):
@@ -410,7 +421,7 @@ class SeedInput(NumberInput):
         raise ValueError("SeedInput cannot be made optional")
 
 
-class ColorInput(BaseInput):
+class ColorInput(BaseInput[Color]):
     def __init__(
         self,
         label: str = "Color",
@@ -522,13 +533,15 @@ def TileSizeDropdown(
 ) -> DropDownInput:
     options = []
     if estimate:
-        options.append({"option": "Auto (estimate)", "value": 0})
+        options.append({"option": "Auto (estimate)", "value": ESTIMATE})
 
-    options.append({"option": "Maximum", "value": -2})
-    options.append({"option": "No Tiling", "value": -1})
+    options.append({"option": "Maximum", "value": MAX_TILE_SIZE})
+    options.append({"option": "No Tiling", "value": NO_TILING})
 
-    for size in [128, 192, 256, 384, 512, 768, 1024, 2048, 4096]:
+    for size in [128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096]:
         options.append({"option": str(size), "value": size})
+
+    options.append({"option": "Custom", "value": CUSTOM})
 
     return DropDownInput(
         input_type="TileSize",
@@ -536,59 +549,6 @@ def TileSizeDropdown(
         options=options,
         associated_type=TileSize,
         default_value=default,
-    )
-
-
-SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
-    ("BC1_UNORM_SRGB", "BC1 (4bpp, sRGB, 1-bit Alpha)"),
-    ("BC1_UNORM", "BC1 (4bpp, Linear, 1-bit Alpha)"),
-    ("BC3_UNORM_SRGB", "BC3 (8bpp, sRGB, 8-bit Alpha)"),
-    ("BC3_UNORM", "BC3 (8bpp, Linear, 8-bit Alpha)"),
-    ("BC4_UNORM", "BC4 (4bpp, Grayscale)"),
-    ("BC5_UNORM", "BC5 (8bpp, Unsigned, 2-channel normal)"),
-    ("BC5_SNORM", "BC5 (8bpp, Signed, 2-channel normal)"),
-    ("BC7_UNORM_SRGB", "BC7 (8bpp, sRGB, 8-bit Alpha)"),
-    ("BC7_UNORM", "BC7 (8bpp, Linear, 8-bit Alpha)"),
-    ("DXT1", "DXT1 (4bpp, Linear, 1-bit Alpha)"),
-    ("DXT3", "DXT3 (8bpp, Linear, 4-bit Alpha)"),
-    ("DXT5", "DXT5 (8bpp, Linear, 8-bit Alpha)"),
-    ("R8G8B8A8_UNORM_SRGB", "RGBA (32bpp, sRGB, 8-bit Alpha)"),
-    ("R8G8B8A8_UNORM", "RGBA (32bpp, Linear, 8-bit Alpha)"),
-    ("B8G8R8A8_UNORM_SRGB", "BGRA (32bpp, sRGB, 8-bit Alpha)"),
-    ("B8G8R8A8_UNORM", "BGRA (32bpp, Linear, 8-bit Alpha)"),
-    ("B5G5R5A1_UNORM", "BGRA (16bpp, Linear, 1-bit Alpha)"),
-    ("B5G6R5_UNORM", "BGR (16bpp, Linear)"),
-    ("B8G8R8X8_UNORM_SRGB", "BGRX (32bpp, sRGB)"),
-    ("B8G8R8X8_UNORM", "BGRX (32bpp, Linear)"),
-    ("R8G8_UNORM", "RG (16bpp, Linear)"),
-    ("R8_UNORM", "R (8bpp, Linear)"),
-]
-
-
-def DdsFormatDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsFormat",
-        label="DDS Format",
-        options=[{"option": title, "value": f} for f, title in SUPPORTED_DDS_FORMATS],
-        associated_type=DDSFormat,
-        groups=[
-            DropDownGroup("Compressed", start_at="BC1_UNORM_SRGB"),
-            DropDownGroup("Uncompressed", start_at="R8G8B8A8_UNORM_SRGB"),
-            DropDownGroup("Legacy Compressed", start_at="DXT1"),
-        ],
-    )
-
-
-def DdsMipMapsDropdown() -> DropDownInput:
-    return DropDownInput(
-        input_type="DdsMipMaps",
-        label="Generate Mip Maps",
-        preferred_style="checkbox",
-        options=[
-            # these are not boolean values, see dds.py for more info
-            {"option": "Yes", "value": 0},
-            {"option": "No", "value": 1},
-        ],
     )
 
 

@@ -17,6 +17,7 @@
 	"reportDuplicateImport": "warning",
 	"reportImportCycles": "error",
 	"reportIncompatibleVariableOverride": "error",
+	"reportIncompatibleMethodOverride": "error",
 	"reportOverlappingOverload": "error",
 	"reportPrivateImportUsage": "error",
 	"reportUninitializedInstanceVariable": "error",

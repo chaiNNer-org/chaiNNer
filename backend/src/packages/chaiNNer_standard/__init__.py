@@ -29,10 +29,11 @@ package = add_package(
             import_name="PIL",
         ),
         Dependency(
-            display_name="appdirs",
-            pypi_name="appdirs",
-            version="1.4.4",
-            size_estimate=13.5 * KB,
+            display_name="pillow-avif-plugin",
+            pypi_name="pillow-avif-plugin",
+            version="1.4.3",
+            size_estimate=11 * MB,
+            import_name="pillow_avif",
         ),
         Dependency(
             display_name="FFMPEG",
@@ -83,7 +84,7 @@ package = add_package(
         Dependency(
             display_name="ChaiNNer Extensions",
             pypi_name="chainner_ext",
-            version="0.3.9",
+            version="0.3.10",
             size_estimate=2.0 * MB,
         ),
     ],

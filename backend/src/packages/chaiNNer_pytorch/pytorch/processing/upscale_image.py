@@ -6,11 +6,13 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
-from api import KeyInfo, NodeContext, NodeProgress
-from nodes.groups import Condition, if_group
+from api import KeyInfo, NodeContext, Progress
+from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
+    CUSTOM,
     NO_TILING,
+    TILE_SIZE_256,
     TileSize,
     estimate_tile_size,
     parse_tile_size_input,
@@ -37,7 +39,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
-    progress: NodeProgress,
+    progress: Progress,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
@@ -169,6 +171,18 @@ def upscale(
                 hint=True,
             ),
         ),
+        if_enum_group(2, CUSTOM)(
+            NumberInput(
+                "Custom Tile Size",
+                minimum=1,
+                maximum=None,
+                default=TILE_SIZE_256,
+                precision=0,
+                controls_step=1,
+                unit="px",
+                has_handle=False,
+            ).with_id(6),
+        ),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
             & (
@@ -243,6 +257,7 @@ def upscale_image_node(
     use_custom_scale: bool,
     custom_scale: int,
     tile_size: TileSize,
+    custom_tile_size: int | None,
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
@@ -262,7 +277,15 @@ def upscale_image_node(
             img,
             in_nc,
             out_nc,
-            lambda i: upscale(i, model, tile_size, exec_options, context),
+            lambda i: upscale(
+                i,
+                model,
+                TileSize(custom_tile_size)
+                if tile_size == CUSTOM and custom_tile_size is not None
+                else tile_size,
+                exec_options,
+                context,
+            ),
             separate_alpha,
             clip=False,  # pytorch_auto_split already does clipping internally
         )

@@ -1,13 +1,13 @@
 import { t } from 'i18next';
 import path from 'path';
 import portfinder from 'portfinder';
-import { FfmpegInfo, PythonInfo } from '../../common/common-types';
+import { PythonInfo } from '../../common/common-types';
 import { log } from '../../common/log';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
-import { getIntegratedFfmpeg, hasSystemFfmpeg } from '../ffmpeg/ffmpeg';
+import { getBackendStorageFolder } from '../platform';
 import { checkPythonPaths } from '../python/checkPythonPaths';
-import { getIntegratedPython } from '../python/integratedPython';
+import { getIntegratedPython, getIntegratedPythonExecutable } from '../python/integratedPython';
 import { BackendProcess, BorrowedBackendProcess, OwnedBackendProcess } from './process';
 
 const getValidPort = async () => {
@@ -27,60 +27,48 @@ const getValidPort = async () => {
     return port;
 };
 
-const getPythonInfo = async (
-    token: ProgressToken,
-    useSystemPython: boolean,
-    systemPythonLocation: string | undefined | null,
-    rootDir: string
-) => {
-    log.info('Attempting to check Python env...');
+interface PythonSetupConfig {
+    integratedPythonFolder: string;
+    systemPythonLocation: string | undefined | null;
+}
+const getSystemPythonInfo = async (token: ProgressToken, config: PythonSetupConfig) => {
+    log.info('Attempting to check system Python env...');
 
-    let pythonInfo: PythonInfo;
-
-    let integratedPythonFolderPath = path.join(rootDir, '/python');
+    const { integratedPythonFolder } = config;
+    let { systemPythonLocation } = config;
 
     if (systemPythonLocation) {
-        // eslint-disable-next-line no-param-reassign
-        systemPythonLocation = path.normalize(String(JSON.parse(systemPythonLocation)));
-    }
-
-    if (integratedPythonFolderPath) {
-        integratedPythonFolderPath = path.normalize(integratedPythonFolderPath);
-    }
-
-    if (useSystemPython) {
         try {
-            pythonInfo = await checkPythonPaths([
-                ...(systemPythonLocation ? [systemPythonLocation] : []),
-                'python3',
-                'python',
-                // Fall back to integrated python if all else fails
-                integratedPythonFolderPath,
-            ]);
-            if (pythonInfo.python === integratedPythonFolderPath) {
-                log.info('System python not found. Using integrated Python');
-                await token.submitInterrupt({
-                    type: 'warning',
-                    title: 'Python not installed or invalid version',
-                    message:
-                        'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                        ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
-                        ' Be sure to select the add to PATH option. ChaiNNer will use its integrated Python for now.',
-                    options: [
-                        {
-                            title: 'Get Python',
-                            action: { type: 'open-url', url: 'https://www.python.org/downloads/' },
-                        },
-                    ],
-                });
-            }
+            systemPythonLocation = path.normalize(systemPythonLocation);
         } catch (error) {
-            log.error(error);
-            throw new CriticalError({
-                title: 'Error checking for valid Python instance',
+            log.error(`Ignoring system python location because of error: ${String(error)}`);
+
+            systemPythonLocation = null;
+        }
+    }
+
+    const integratedPython = getIntegratedPythonExecutable(integratedPythonFolder);
+
+    try {
+        const pythonInfo = await checkPythonPaths([
+            ...(systemPythonLocation ? [systemPythonLocation] : []),
+            'python3',
+            'python',
+            // Fall back to integrated python if all else fails
+            integratedPython,
+        ]);
+
+        if (pythonInfo.python === integratedPython) {
+            log.info('System python not found. Using integrated Python');
+            await token.submitInterrupt({
+                type: 'warning',
+                title: 'System Python not installed or invalid version',
                 message:
                     'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                    ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+                    ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
+                    ' Be sure to select the add to PATH option.' +
+                    '\n\nChaiNNer will start using its integrated Python for now.' +
+                    ' You can change this later in the settings.',
                 options: [
                     {
                         title: 'Get Python',
@@ -89,33 +77,120 @@ const getPythonInfo = async (
                 ],
             });
         }
-    } else {
-        // User is using integrated python
-        try {
-            pythonInfo = await getIntegratedPython(
-                integratedPythonFolderPath,
-                (percentage, stage) => {
-                    token.submitProgress({
-                        status:
-                            stage === 'download'
-                                ? t('splash.downloadingPython', 'Downloading Integrated Python...')
-                                : t('splash.extractingPython', 'Extracting downloaded files...'),
-                        totalProgress: stage === 'download' ? 0.3 : 0.4,
-                        statusProgress: percentage / 100,
-                    });
-                }
-            );
-        } catch (error) {
-            log.error(error);
 
-            throw new CriticalError({
-                title: 'Unable to install integrated Python',
-                message:
-                    `Chainner was unable to install its integrated Python environment.` +
-                    ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
-            });
-        }
+        return pythonInfo;
+    } catch (error) {
+        log.error(error);
+        throw new CriticalError({
+            title: 'Error checking for valid Python instance',
+            message:
+                'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
+                ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+            options: [
+                {
+                    title: 'Get Python',
+                    action: { type: 'open-url', url: 'https://www.python.org/downloads/' },
+                },
+            ],
+        });
     }
+};
+const getIntegratedPythonInfo = async (
+    token: ProgressToken,
+    config: PythonSetupConfig
+): Promise<PythonInfo> => {
+    log.info('Attempting to check integrated Python env...');
+
+    const { integratedPythonFolder } = config;
+
+    // User is using integrated python
+    try {
+        return await getIntegratedPython(integratedPythonFolder, (percentage, stage) => {
+            token.submitProgress({
+                status:
+                    stage === 'download'
+                        ? t('setup.downloadingPython', 'Downloading Integrated Python...')
+                        : t('setup.extractingPython', 'Extracting downloaded files...'),
+                totalProgress: stage === 'download' ? 0.3 : 0.4,
+                statusProgress: percentage / 100,
+            });
+        });
+    } catch (error) {
+        log.error(error);
+
+        enum Action {
+            Retry,
+            System,
+            Crash,
+        }
+        let action: Action = Action.Crash as Action;
+        await token.submitInterrupt({
+            type: 'warning',
+            title: 'Unable to install integrated Python',
+            message:
+                'ChaiNNer needs and active internet connection and access to the network to install its integrated Python environment. Please ensure an active internet connection and try again.' +
+                '\n\nAlternatively, chaiNNer can use your system Python environment instead if you have Python 3.8+ installed. (Note that chaiNNer will install packages into your system Python environment if you choose this option.)' +
+                '\n\nChaiNNer requires a valid Python environment to run. Please choose one of the following options:',
+            options: [
+                {
+                    title: 'Retry to install integrated Python',
+                    action: {
+                        type: 'run',
+                        action: () => {
+                            action = Action.Retry;
+                        },
+                    },
+                },
+                {
+                    title: 'Use System Python instead',
+                    action: {
+                        type: 'run',
+                        action: () => {
+                            action = Action.System;
+                        },
+                    },
+                },
+                {
+                    title: 'Exit',
+                    action: {
+                        type: 'run',
+                        action: () => {
+                            action = Action.Crash;
+                        },
+                    },
+                },
+            ],
+        });
+
+        if (action === Action.Retry) {
+            return getIntegratedPythonInfo(token, config);
+        }
+        if (action === Action.System) {
+            return getSystemPythonInfo(token, config);
+        }
+
+        throw new CriticalError({
+            title: 'Unable to install integrated Python',
+            message:
+                `Chainner was unable to install its integrated Python environment.` +
+                ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+        });
+    }
+};
+const getPythonInfo = async (
+    token: ProgressToken,
+    useSystemPython: boolean,
+    systemPythonLocation: string | undefined | null,
+    rootDir: string
+) => {
+    const config: PythonSetupConfig = {
+        integratedPythonFolder: path.normalize(path.join(rootDir, 'python')),
+        systemPythonLocation,
+    };
+
+    const pythonInfo = useSystemPython
+        ? await getSystemPythonInfo(token, config)
+        : await getIntegratedPythonInfo(token, config);
 
     log.info(`Final Python binary: ${pythonInfo.python}`);
     log.info(pythonInfo);
@@ -123,51 +198,12 @@ const getPythonInfo = async (
     return pythonInfo;
 };
 
-const getFfmpegInfo = async (token: ProgressToken, rootDir: string) => {
-    log.info('Attempting to check Ffmpeg env...');
-
-    let ffmpegInfo: FfmpegInfo;
-
-    const integratedFfmpegFolderPath = path.join(rootDir, '/ffmpeg');
-
+const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
     try {
-        ffmpegInfo = await getIntegratedFfmpeg(integratedFfmpegFolderPath, (percentage, stage) => {
-            token.submitProgress({
-                status:
-                    stage === 'download'
-                        ? t('splash.downloadingFfmpeg', 'Downloading ffmpeg...')
-                        : t('splash.extractingFfmpeg', 'Extracting downloaded files...'),
-                totalProgress: stage === 'download' ? 0.5 : 0.6,
-                statusProgress: percentage / 100,
-            });
-        });
-    } catch (error) {
-        log.error(error);
-
-        await token.submitInterrupt({
-            type: 'warning',
-            title: 'Unable to install integrated Ffmpeg',
-            message: `Chainner was unable to install FFMPEG. Please ensure that your computer is connected to the internet and that chainner has access to the network or some functionality may not work properly.`,
-        });
-
-        if (await hasSystemFfmpeg()) {
-            ffmpegInfo = { ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' };
-        } else {
-            ffmpegInfo = { ffmpeg: undefined, ffprobe: undefined };
-        }
-    }
-
-    log.info(`Final ffmpeg binary: ${ffmpegInfo.ffmpeg ?? 'Not found'}`);
-    log.info(`Final ffprobe binary: ${ffmpegInfo.ffprobe ?? 'Not found'}`);
-
-    return ffmpegInfo;
-};
-
-const spawnBackend = (port: number, pythonInfo: PythonInfo, ffmpegInfo: FfmpegInfo) => {
-    try {
-        const backend = OwnedBackendProcess.spawn(port, pythonInfo, {
-            STATIC_FFMPEG_PATH: ffmpegInfo.ffmpeg,
-            STATIC_FFPROBE_PATH: ffmpegInfo.ffprobe,
+        const backend = OwnedBackendProcess.spawn({
+            port,
+            python: pythonInfo,
+            storageDir: getBackendStorageFolder(),
         });
 
         return backend;
@@ -184,28 +220,22 @@ const setupOwnedBackend = async (
     rootDir: string
 ): Promise<OwnedBackendProcess> => {
     token.submitProgress({
-        status: t('splash.checkingPort', 'Checking for available port...'),
+        status: t('setup.checkingPort', 'Checking for available port...'),
         totalProgress: 0.1,
     });
     const port = await getValidPort();
 
     token.submitProgress({
-        status: t('splash.checkingPython', 'Checking system environment for valid Python...'),
-        totalProgress: 0.2,
+        status: t('setup.checkingPython', 'Checking system environment for valid Python...'),
+        totalProgress: 0.3,
     });
     const pythonInfo = await getPythonInfo(token, useSystemPython, systemPythonLocation, rootDir);
 
     token.submitProgress({
-        status: t('splash.checkingFfmpeg', 'Checking system environment for Ffmpeg...'),
-        totalProgress: 0.5,
+        status: t('setup.startingBackend', 'Starting up backend process...'),
+        totalProgress: 0.7,
     });
-    const ffmpegInfo = await getFfmpegInfo(token, rootDir);
-
-    token.submitProgress({
-        status: t('splash.startingBackend', 'Starting up backend process...'),
-        totalProgress: 0.8,
-    });
-    return spawnBackend(port, pythonInfo, ffmpegInfo);
+    return spawnBackend(port, pythonInfo);
 };
 
 const setupBorrowedBackend = async (
@@ -215,7 +245,7 @@ const setupBorrowedBackend = async (
     log.info(`Attempting to setup backend from ${url}...`);
 
     token.submitProgress({
-        status: t('splash.startingBackend', 'Starting up backend process...'),
+        status: t('setup.startingBackend', 'Starting up backend process...'),
         totalProgress: 0.8,
     });
     return BorrowedBackendProcess.fromUrl(url);

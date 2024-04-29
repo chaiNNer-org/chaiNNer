@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { SiKofi } from 'react-icons/si';
 import { links } from '../../../common/links';
 import { log } from '../../../common/log';
-import { ipcRenderer } from '../../../common/safeIpc';
+import { ipcRenderer } from '../../safeIpc';
 
 export const KoFiButton = memo(() => {
     return (
