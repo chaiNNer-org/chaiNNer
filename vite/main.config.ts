@@ -42,6 +42,7 @@ export default defineConfig((env) => {
                 'electron/common': 'electron',
                 'electron-log/main': 'electron-log',
             },
+            conditions: ['node', 'default'],
         },
         server: {
             watch: {
