@@ -115,5 +115,15 @@
   "stylelint.validate": [
     "css",
     "scss"
-  ]
+  ],
+  "[scss]": {
+    "editor.defaultFormatter": "stylelint.vscode-stylelint",
+    "editor.formatOnSave": true,
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+  },
+  "[javascript]": {
+    "editor.formatOnSave": true
+  }
 }
