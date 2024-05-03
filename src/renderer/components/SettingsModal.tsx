@@ -40,7 +40,8 @@ import { SettingContainer } from './settings/SettingContainer';
 import { SettingItem } from './settings/SettingItem';
 
 const AppearanceSettings = memo(() => {
-    const [theme, setTheme] = useMutSetting('theme');
+    const [colorMode, setColorMode] = useMutSetting('theme');
+    const [theme, setTheme] = useMutSetting('realTheme');
     const [animateChain, setAnimateChain] = useMutSetting('animateChain');
     const [viewportExportPadding, setViewportExportPadding] =
         useMutSetting('viewportExportPadding');
@@ -54,14 +55,28 @@ const AppearanceSettings = memo(() => {
             w="full"
         >
             <DropdownSetting
+                setValue={(value) => setColorMode(value as never)}
+                setting={{
+                    label: 'Select Color Mode',
+                    description: "Choose the color mode for chaiNNer's appearance.",
+                    options: [
+                        { label: 'Dark Mode', value: 'dark' },
+                        { label: 'Light Mode', value: 'light' },
+                        { label: 'System', value: 'system' },
+                    ],
+                    small: true,
+                }}
+                value={colorMode}
+            />
+
+            <DropdownSetting
                 setValue={(value) => setTheme(value as never)}
                 setting={{
                     label: 'Select Theme',
                     description: "Choose the Theme for chaiNNer's appearance.",
                     options: [
-                        { label: 'Dark Mode', value: 'dark' },
-                        { label: 'Light Mode', value: 'light' },
-                        { label: 'System', value: 'system' },
+                        { label: 'Default', value: 'default' },
+                        { label: 'Charcoal', value: 'charcoal' },
                     ],
                     small: true,
                 }}

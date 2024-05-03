@@ -69,6 +69,11 @@ export const SettingsProvider = memo(
             setColorMode(settings.theme);
         }, [setColorMode, settings.theme]);
 
+        // update real theme
+        useEffect(() => {
+            document.documentElement.setAttribute('data-realTheme', settings.realTheme);
+        }, [settings.realTheme]);
+
         const contextValue = useMemoObject<SettingsContextValue>({
             settings,
             updateSettings,
