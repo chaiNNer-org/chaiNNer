@@ -1,124 +1,110 @@
 @use 'sass:color';
+@use 'sass:map';
 
-// Default theme (copied from Chakra UI)
-$gray-50: #f7fafc;
-$gray-100: #edf2f7;
-$gray-200: #e2e8f0;
-$gray-300: #cbd5e0;
-$gray-400: #a0aec0;
-$gray-500: #718096;
-$gray-600: #4a5568;
-$gray-700: #2d3748;
-$gray-800: #1a202c;
-$gray-900: #171923;
+@mixin theme-variables($theme) {
+    @each $shade, $color in $theme {
+        $next-shade: map.get($theme, $shade + 100);
 
-// Charcoal theme
-$theme-charcoal-50: #e1e1e4;
-$theme-charcoal-100: #d3d3d9;
-$theme-charcoal-200: #a7a7b4;
-$theme-charcoal-300: #7b7b8e;
-$theme-charcoal-400: #545463;
-$theme-charcoal-500: #2e2e36;
-$theme-charcoal-600: #26262c;
-$theme-charcoal-700: #1c1c21;
-$theme-charcoal-800: #131316;
-$theme-charcoal-900: #09090b;
+        --theme-#{$shade}: #{$color};
+        @if $next-shade {
+            $twenty-five-percent: color.mix($color, $next-shade, 75%);
+            $fifty-percent: color.mix($color, $next-shade, 50%);
+            $seventy-five-percent: color.mix($color, $next-shade, 25%);
 
-:root[data-realTheme='default'] {
-    /* color palette */
-    --gray-50: #{$gray-50};
-    --gray-100: #{$gray-100};
-    --gray-125: #{color.mix($gray-100, $gray-200, 25%)};
-    --gray-150: #{color.mix($gray-100, $gray-200, 50%)};
-    --gray-175: #{color.mix($gray-100, $gray-200, 75%)};
-    --gray-200: #{$gray-200};
-    --gray-250: #{color.mix($gray-200, $gray-300, 50%)};
-    --gray-275: #{color.mix($gray-200, $gray-300, 75%)};
-    --gray-300: #{$gray-300};
-    --gray-325: #{color.mix($gray-300, $gray-400, 25%)};
-    --gray-400: #{$gray-400};
-    --gray-500: #{$gray-500};
-    --gray-600: #{$gray-600};
-    --gray-650: #{color.mix($gray-600, $gray-700, 50%)};
-    --gray-700: #{$gray-700};
-    --gray-750: #{color.mix($gray-700, $gray-800, 50%)};
-    --gray-800: #{$gray-800};
-    --gray-850: #{color.mix($gray-800, $gray-900, 50%)};
-    --gray-900: #{$gray-900};
+            --theme-#{$shade + 25}: #{$twenty-five-percent};
+            --theme-#{$shade + 50}: #{$fifty-percent};
+            --theme-#{$shade + 75}: #{$seventy-five-percent};
+        }
+    }
 }
 
+// Default theme (copied from Chakra UI)
+$default-theme: (
+    0: #fff,
+    // '50': #f7fafc,
+    100: #edf2f7,
+    200: #e2e8f0,
+    300: #cbd5e0,
+    400: #a0aec0,
+    500: #718096,
+    600: #4a5568,
+    700: #2d3748,
+    800: #1a202c,
+    900: #171923,
+);
+
+:root[data-realTheme='default'] {
+    @include theme-variables($default-theme);
+}
+
+// Charcoal theme
+$charcoal-theme: (
+    0: #fff,
+    // '50': #e1e1e4,
+    100: #d3d3d9,
+    200: #a7a7b4,
+    300: #7b7b8e,
+    400: #545463,
+    500: #2e2e36,
+    600: #26262c,
+    700: #1c1c21,
+    800: #131316,
+    900: #09090b,
+);
+
 :root[data-realTheme='charcoal'] {
-    /* color palette */
-    --gray-50: #{$theme-charcoal-50};
-    --gray-100: #{$theme-charcoal-100};
-    --gray-125: #{color.mix($theme-charcoal-100, $theme-charcoal-200, 25%)};
-    --gray-150: #{color.mix($theme-charcoal-100, $theme-charcoal-200, 50%)};
-    --gray-175: #{color.mix($theme-charcoal-100, $theme-charcoal-200, 75%)};
-    --gray-200: #{$theme-charcoal-200};
-    --gray-250: #{color.mix($theme-charcoal-200, $theme-charcoal-300, 50%)};
-    --gray-275: #{color.mix($theme-charcoal-200, $theme-charcoal-300, 75%)};
-    --gray-300: #{$theme-charcoal-300};
-    --gray-325: #{color.mix($theme-charcoal-300, $theme-charcoal-400, 25%)};
-    --gray-400: #{$theme-charcoal-400};
-    --gray-500: #{$theme-charcoal-500};
-    --gray-600: #{$theme-charcoal-600};
-    --gray-650: #{color.mix($theme-charcoal-600, $theme-charcoal-700, 50%)};
-    --gray-700: #{$theme-charcoal-700};
-    --gray-750: #{color.mix($theme-charcoal-700, $theme-charcoal-800, 50%)};
-    --gray-800: #{$theme-charcoal-800};
-    --gray-850: #{color.mix($theme-charcoal-800, $theme-charcoal-900, 50%)};
-    --gray-900: #{$theme-charcoal-900};
+    @include theme-variables($charcoal-theme);
 }
 
 :root[data-theme='dark'] {
     /* backgrounds */
-    --bg-800: var(--gray-800);
-    --bg-700: var(--gray-700);
-    --bg-600: var(--gray-600);
+    --bg-800: var(--theme-800);
+    --bg-700: var(--theme-700);
+    --bg-600: var(--theme-600);
 
     /* font colors */
     --fg-000: white;
-    --fg-300: var(--gray-300);
+    --fg-300: var(--theme-300);
 
     --link-color: var(--chakra-colors-blue-300);
 
     /* node colors */
-    --node-border-color: var(--gray-800);
-    --node-bg-color: var(--gray-750);
-    --node-icon-color: var(--gray-200);
+    --node-border-color: var(--theme-800);
+    --node-bg-color: var(--theme-750);
+    --node-icon-color: var(--theme-200);
 
-    --node-valid-bg: var(--gray-800);
-    --node-valid-fg: var(--gray-100);
+    --node-valid-bg: var(--theme-800);
+    --node-valid-fg: var(--theme-100);
     --node-invalid-bg: var(--chakra-colors-red-600);
-    --node-invalid-fg: var(--gray-800);
+    --node-invalid-fg: var(--theme-800);
 
-    --node-disable-bg: var(--gray-800);
-    --node-disable-fg: var(--gray-400);
+    --node-disable-bg: var(--theme-800);
+    --node-disable-fg: var(--theme-400);
 
-    --node-timer-bg: var(--gray-800);
-    --node-timer-fg: var(--gray-600);
+    --node-timer-bg: var(--theme-800);
+    --node-timer-fg: var(--theme-600);
 
     --node-image-preview-bg: var(--node-bg-color);
-    --node-image-preview-color: var(--gray-400);
+    --node-image-preview-color: var(--theme-400);
 
-    --node-image-preview-button-bg: var(--gray-750);
-    --node-image-preview-button-bg-hover: var(--gray-600);
-    --node-image-preview-button-fg: var(--gray-400);
+    --node-image-preview-button-bg: var(--theme-750);
+    --node-image-preview-button-bg-hover: var(--theme-600);
+    --node-image-preview-button-fg: var(--theme-400);
 
-    --tag-bg: var(--gray-750);
-    --tag-fg: var(--gray-300);
+    --custom-tag-bg: var(--theme-750);
+    --custom-tag-fg: var(--theme-300);
 
     --connection-color: #171923;
     --chain-hole-color: #1a202c;
 
     /* node selector colors */
-    --selector-node-bg: var(--gray-700);
-    --selector-icon: var(--gray-400);
-    --selector-text-bg: var(--gray-700);
-    --selector-text-bg-hover: var(--gray-600);
+    --selector-node-bg: var(--theme-700);
+    --selector-icon: var(--theme-400);
+    --selector-text-bg: var(--theme-700);
+    --selector-text-bg-hover: var(--theme-600);
 
     /* specific colors */
-    --window-bg: var(--gray-900);
+    --window-bg: var(--theme-900);
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
@@ -126,53 +112,54 @@ $theme-charcoal-900: #09090b;
 
 :root[data-theme='light'] {
     /* backgrounds */
-    --bg-800: var(--gray-50);
-    --bg-700: var(--gray-175);
-    --bg-600: var(--gray-200);
+    --bg-800: var(--theme-50);
+    --bg-700: var(--theme-175);
+    --bg-600: var(--theme-200);
 
     /* font colors */
     --fg-000: black;
-    --fg-300: var(--gray-500);
+    --fg-300: var(--theme-500);
 
     --link-color: var(--chakra-colors-blue-500);
 
     /* node colors */
-    --node-border-color: var(--gray-500);
-    --node-bg-color: var(--gray-250);
-    --node-icon-color: var(--gray-800);
+    --node-border-color: var(--theme-500);
+    --node-bg-color: var(--theme-250);
+    --node-icon-color: var(--theme-800);
 
-    --node-valid-bg: var(--gray-150);
-    --node-valid-fg: var(--gray-900);
+    --node-valid-bg: var(--theme-150);
+    --node-valid-fg: var(--theme-900);
     --node-invalid-bg: var(--chakra-colors-red-500);
-    --node-invalid-fg: var(--gray-200);
+    --node-invalid-fg: var(--theme-200);
 
-    --node-disable-bg: var(--gray-150);
-    --node-disable-fg: var(--gray-500);
+    --node-disable-bg: var(--theme-150);
+    --node-disable-fg: var(--theme-500);
 
-    --node-timer-bg: var(--gray-150);
-    --node-timer-fg: var(--gray-500);
+    --node-timer-bg: var(--theme-150);
+    --node-timer-fg: var(--theme-500);
 
     --node-image-preview-bg: var(--node-bg-color);
-    --node-image-preview-color: var(--gray-700);
+    --node-image-preview-color: var(--theme-700);
 
-    --node-image-preview-button-bg: var(--gray-300);
-    --node-image-preview-button-bg-hover: var(--gray-400);
-    --node-image-preview-button-fg: var(--gray-700);
+    --node-image-preview-button-bg: var(--theme-300);
+    --node-image-preview-button-bg-hover: var(--theme-400);
+    --node-image-preview-button-fg: var(--theme-700);
 
-    --tag-bg: var(--gray-300);
-    --tag-fg: var(--gray-700);
+    --custom-tag-bg: var(--theme-200) !important;
+    --custom-tag-fg: var(--theme-700);
 
-    --connection-color: var(--gray-50);
-    --chain-hole-color: var(--gray-50);
+    --connection-color: var(--theme-50);
+    --chain-hole-color: var(--theme-50);
 
     /* node selector colors */
-    --selector-node-bg: var(--gray-150);
-    --selector-icon: var(--gray-600);
-    --selector-text-bg: var(--gray-150);
-    --selector-text-bg-hover: var(--gray-250);
+    --selector-node-bg: var(--theme-150);
+    --selector-icon: var(--theme-600);
+    --selector-text-bg: var(--theme-150);
+    --selector-text-bg-hover: var(--theme-250);
 
     /* specific colors */
-    --window-bg: var(--gray-150);
+    --window-bg: var(--theme-150);
+    --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
 }

@@ -263,8 +263,8 @@ export const TypeTag = memo(
         const { isOptional, ...rest } = props;
         return (
             <Tag
-                bgColor="var(--tag-bg)"
-                color="var(--tag-fg)"
+                bgColor="var(--custom-tag-bg)"
+                color="var(--custom-tag-fg)"
                 display="inline-block"
                 fontSize="x-small"
                 fontStyle={isOptional ? 'italic' : undefined}
