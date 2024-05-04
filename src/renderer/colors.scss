@@ -19,41 +19,92 @@
 }
 
 // Default theme (copied from Chakra UI)
-$default-theme: (
-    0: #fff,
-    // '50': #f7fafc,
-    100: #edf2f7,
-    200: #e2e8f0,
-    300: #cbd5e0,
-    400: #a0aec0,
-    500: #718096,
-    600: #4a5568,
-    700: #2d3748,
-    800: #1a202c,
-    900: #171923,
-);
-
 :root[data-realTheme='default'] {
-    @include theme-variables($default-theme);
+    @include theme-variables(
+        (
+            000: #fff,
+            // '50': #f7fafc,
+            100: #edf2f7,
+            200: #e2e8f0,
+            300: #cbd5e0,
+            400: #a0aec0,
+            500: #718096,
+            600: #4a5568,
+            700: #2d3748,
+            800: #1a202c,
+            900: #171923,
+        )
+    );
 }
 
 // Charcoal theme
-$charcoal-theme: (
-    0: #fff,
-    // '50': #e1e1e4,
-    100: #d3d3d9,
-    200: #a7a7b4,
-    300: #7b7b8e,
-    400: #545463,
-    500: #2e2e36,
-    600: #26262c,
-    700: #1c1c21,
-    800: #131316,
-    900: #09090b,
-);
-
 :root[data-realTheme='charcoal'] {
-    @include theme-variables($charcoal-theme);
+    @include theme-variables(
+        (
+            000: #fff,
+            // '50': #e1e1e4,
+            100: #d3d3d9,
+            200: #a7a7b4,
+            300: #7b7b8e,
+            400: #545463,
+            500: #2e2e36,
+            600: #26262c,
+            700: #1c1c21,
+            800: #131316,
+            900: #09090b,
+        )
+    );
+}
+
+// Coffee theme
+:root[data-realTheme='coffee'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ddd2ce,
+            200: #bba69f,
+            300: #9a7d72,
+            500: #795548,
+            600: #5a4037,
+            700: #3d2c26,
+            800: #211a17,
+            900: #000000,
+        )
+    );
+}
+
+// Blueberry Theme
+:root[data-realTheme='blueberry'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #cdd2ec,
+            200: #9ba6d8,
+            300: #667dc4,
+            500: #1e56b0,
+            600: #204181,
+            700: #1c2c55,
+            800: #141a2c,
+            900: #000000,
+        )
+    );
+}
+
+// Dusk Theme
+:root[data-realTheme='dusk'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #c6c3da,
+            200: #908ab6,
+            300: #595593,
+            500: #1d2570,
+            600: #1b1e54,
+            700: #171639,
+            800: #110d20,
+            900: #000000,
+        )
+    );
 }
 
 :root[data-theme='dark'] {

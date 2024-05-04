@@ -77,6 +77,9 @@ const AppearanceSettings = memo(() => {
                     options: [
                         { label: 'Default', value: 'default' },
                         { label: 'Charcoal', value: 'charcoal' },
+                        { label: 'Coffee', value: 'coffee' },
+                        { label: 'Blueberry', value: 'blueberry' },
+                        { label: 'Dusk', value: 'dusk' },
                     ],
                     small: true,
                 }}
