@@ -77,11 +77,14 @@ const AppearanceSettings = memo(() => {
                     description: "Choose the Theme for chaiNNer's appearance when in Dark mode.",
                     options: [
                         { label: 'Default', value: 'default' },
+                        { label: 'Better Default', value: 'better-default' },
                         { label: 'Charcoal', value: 'charcoal' },
                         { label: 'Coffee', value: 'coffee' },
                         { label: 'Blueberry', value: 'blueberry' },
                         { label: 'Dusk', value: 'dusk' },
                         { label: 'OLED', value: 'oled' },
+                        { label: 'Mixer3D', value: 'mixer' },
+                        { label: 'NotRealEngine', value: 'notreal' },
                     ],
                     small: true,
                 }}
@@ -93,7 +96,10 @@ const AppearanceSettings = memo(() => {
                 setting={{
                     label: 'Preferred Light Theme',
                     description: "Choose the Theme for chaiNNer's appearance when in Light mode.",
-                    options: [{ label: 'Default', value: 'default' }],
+                    options: [
+                        { label: 'Default', value: 'default' },
+                        { label: 'Better Default', value: 'better-default' },
+                    ],
                     small: true,
                 }}
                 value={lightTheme}

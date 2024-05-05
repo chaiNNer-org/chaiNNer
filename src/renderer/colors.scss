@@ -38,12 +38,30 @@
     );
 }
 
+// BetterDefault theme
+:root[data-theme='dark'][data-darkTheme='better-default'],
+:root[data-theme='light'][data-lightTheme='better-default'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #e0e7ee,
+            200: #d2dae6,
+            300: #b8c8da,
+            400: #8da0b8,
+            500: #5b6988,
+            600: #3e455c,
+            700: #262d3f,
+            800: #12161f,
+            900: #0c0d13,
+        )
+    );
+}
+
 // Charcoal theme
 :root[data-theme='dark'][data-darkTheme='charcoal'] {
     @include theme-variables(
         (
             000: #ffffff,
-            // '50': #e1e1e4,
             100: #d3d3d9,
             200: #a7a7b4,
             300: #7b7b8e,
@@ -125,6 +143,44 @@
     );
 }
 
+// "Mixer" Theme
+:root[data-theme='dark'][data-darkTheme='mixer'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #5a5a5a,
+            700: #3f3f3f,
+            800: #232323,
+            900: #151515,
+        )
+    );
+}
+
+// "NotReal" Theme
+:root[data-theme='dark'][data-darkTheme='notreal'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #171916,
+            700: #10120f,
+            800: #171916,
+            900: #151515,
+        )
+    );
+    --chain-editor-bg: #272727;
+    --node-selector-bg: #202020;
+}
+
 :root[data-theme='dark'] {
     /* backgrounds */
     --bg-800: var(--theme-800);
@@ -163,8 +219,8 @@
     --custom-tag-bg: var(--theme-750);
     --custom-tag-fg: var(--theme-300);
 
-    --connection-color: #171923;
-    --chain-hole-color: #1a202c;
+    --connection-color: var(--theme-900); // #171923;
+    --chain-hole-color: var(--theme-800); // #1a202c;
 
     /* node selector colors */
     --selector-node-bg: var(--theme-700);
