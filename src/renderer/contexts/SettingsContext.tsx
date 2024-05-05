@@ -71,8 +71,12 @@ export const SettingsProvider = memo(
 
         // update real theme
         useEffect(() => {
-            document.documentElement.setAttribute('data-realTheme', settings.realTheme);
-        }, [settings.realTheme]);
+            document.documentElement.setAttribute('data-darkTheme', settings.darkTheme);
+        }, [settings.darkTheme]);
+
+        useEffect(() => {
+            document.documentElement.setAttribute('data-lightTheme', settings.lightTheme);
+        }, [settings.lightTheme]);
 
         const contextValue = useMemoObject<SettingsContextValue>({
             settings,

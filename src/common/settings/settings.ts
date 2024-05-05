@@ -6,7 +6,8 @@ export interface ChainnerSettings {
 
     // renderer
     theme: 'light' | 'dark' | 'system';
-    realTheme: 'default' | 'charcoal';
+    darkTheme: string;
+    lightTheme: string;
     checkForUpdatesOnStartup: boolean;
     startupTemplate: string;
     animateChain: boolean;
@@ -34,7 +35,8 @@ export const defaultSettings: Readonly<ChainnerSettings> = {
 
     // renderer
     theme: 'dark',
-    realTheme: 'default',
+    darkTheme: 'default',
+    lightTheme: 'default',
     checkForUpdatesOnStartup: true,
     startupTemplate: '',
     animateChain: true,

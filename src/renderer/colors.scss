@@ -19,10 +19,11 @@
 }
 
 // Default theme (copied from Chakra UI)
-:root[data-realTheme='default'] {
+:root[data-theme='dark'][data-darkTheme='default'],
+:root[data-theme='light'][data-lightTheme='default'] {
     @include theme-variables(
         (
-            000: #fff,
+            000: #ffffff,
             // '50': #f7fafc,
             100: #edf2f7,
             200: #e2e8f0,
@@ -38,10 +39,10 @@
 }
 
 // Charcoal theme
-:root[data-realTheme='charcoal'] {
+:root[data-theme='dark'][data-darkTheme='charcoal'] {
     @include theme-variables(
         (
-            000: #fff,
+            000: #ffffff,
             // '50': #e1e1e4,
             100: #d3d3d9,
             200: #a7a7b4,
@@ -57,7 +58,7 @@
 }
 
 // Coffee theme
-:root[data-realTheme='coffee'] {
+:root[data-theme='dark'][data-darkTheme='coffee'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -74,7 +75,7 @@
 }
 
 // Blueberry Theme
-:root[data-realTheme='blueberry'] {
+:root[data-theme='dark'][data-darkTheme='blueberry'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -91,7 +92,7 @@
 }
 
 // Dusk Theme
-:root[data-realTheme='dusk'] {
+:root[data-theme='dark'][data-darkTheme='dusk'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -103,6 +104,23 @@
             700: #171639,
             800: #0e0a1a,
             900: #08050f,
+        )
+    );
+}
+
+// OLED Theme
+:root[data-theme='dark'][data-darkTheme='oled'] {
+    @include theme-variables(
+        (
+            000: #d4d4d4,
+            100: #949494,
+            200: #646464,
+            300: #414141,
+            500: #363636,
+            600: #292929,
+            700: #181818,
+            800: #000000,
+            900: #000000,
         )
     );
 }
