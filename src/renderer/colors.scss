@@ -24,7 +24,6 @@
     @include theme-variables(
         (
             000: #ffffff,
-            // '50': #f7fafc,
             100: #edf2f7,
             200: #e2e8f0,
             300: #cbd5e0,
@@ -143,6 +142,35 @@
     );
 }
 
+// Cyberpunk Theme
+:root[data-theme='dark'][data-darkTheme='cyberpunk'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #f7edf5,
+            200: #f0e2ec,
+            300: #e0cbda,
+            400: #c0a0b8,
+            500: #96717f,
+            600: #684a63,
+            700: #002d30,
+            800: #3a0323,
+            900: #231721,
+        )
+    );
+    --chain-editor-bg: #000;
+    --header-bg: #000;
+    --window-bg: #140206;
+
+    --selector-node-bg: #16939c;
+    --node-selector-bg: #3b0b1a;
+    --selector-icon: #ef0;
+
+    --node-border-color: #ef0;
+    --node-bg-color: #000d0e;
+    --node-icon-color: var(--theme-200);
+}
+
 // "Mixer" Theme
 :root[data-theme='dark'][data-darkTheme='mixer'] {
     @include theme-variables(
@@ -179,6 +207,25 @@
     );
     --chain-editor-bg: #272727;
     --node-selector-bg: #202020;
+    --header-bg: #202020;
+}
+
+// "ComfortUI" Theme
+:root[data-theme='dark'][data-darkTheme='comfort'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #5a5a5a,
+            700: #363636,
+            800: #212121,
+            900: #151515,
+        )
+    );
 }
 
 :root[data-theme='dark'] {
