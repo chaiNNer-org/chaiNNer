@@ -19,8 +19,7 @@
 }
 
 // Default theme (copied from Chakra UI)
-:root[data-theme='dark'][data-darkTheme='default'],
-:root[data-theme='light'][data-lightTheme='default'] {
+:root[data-realTheme='default'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -37,27 +36,8 @@
     );
 }
 
-// BetterDefault theme
-:root[data-theme='dark'][data-darkTheme='better-default'],
-:root[data-theme='light'][data-lightTheme='better-default'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #e0e7ee,
-            200: #d2dae6,
-            300: #b8c8da,
-            400: #8da0b8,
-            500: #5b6988,
-            600: #3e455c,
-            700: #262d3f,
-            800: #12161f,
-            900: #0c0d13,
-        )
-    );
-}
-
 // Charcoal theme
-:root[data-theme='dark'][data-darkTheme='charcoal'] {
+:root[data-theme='dark'][data-realTheme='charcoal'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -75,7 +55,7 @@
 }
 
 // Coffee theme
-:root[data-theme='dark'][data-darkTheme='coffee'] {
+:root[data-theme='dark'][data-realTheme='coffee'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -92,7 +72,7 @@
 }
 
 // Blueberry Theme
-:root[data-theme='dark'][data-darkTheme='blueberry'] {
+:root[data-theme='dark'][data-realTheme='blueberry'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -109,7 +89,7 @@
 }
 
 // Dusk Theme
-:root[data-theme='dark'][data-darkTheme='dusk'] {
+:root[data-theme='dark'][data-realTheme='dusk'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -126,7 +106,7 @@
 }
 
 // OLED Theme
-:root[data-theme='dark'][data-darkTheme='oled'] {
+:root[data-theme='dark'][data-realTheme='oled'] {
     @include theme-variables(
         (
             000: #d4d4d4,
@@ -143,7 +123,7 @@
 }
 
 // Cyberpunk Theme
-:root[data-theme='dark'][data-darkTheme='cyberpunk'] {
+:root[data-theme='dark'][data-realTheme='cyberpunk'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -172,7 +152,7 @@
 }
 
 // "Mixer" Theme
-:root[data-theme='dark'][data-darkTheme='mixer'] {
+:root[data-theme='dark'][data-realTheme='mixer'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -190,7 +170,7 @@
 }
 
 // "NotReal" Theme
-:root[data-theme='dark'][data-darkTheme='notreal'] {
+:root[data-theme='dark'][data-realTheme='notreal'] {
     @include theme-variables(
         (
             000: #ffffff,
@@ -211,7 +191,7 @@
 }
 
 // "ComfortUI" Theme
-:root[data-theme='dark'][data-darkTheme='comfort'] {
+:root[data-theme='dark'][data-realTheme='comfort'] {
     @include theme-variables(
         (
             000: #ffffff,

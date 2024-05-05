@@ -40,9 +40,7 @@ import { SettingContainer } from './settings/SettingContainer';
 import { SettingItem } from './settings/SettingItem';
 
 const AppearanceSettings = memo(() => {
-    const [colorMode, setColorMode] = useMutSetting('theme');
-    const [darkTheme, setDarkTheme] = useMutSetting('darkTheme');
-    const [lightTheme, setLightTheme] = useMutSetting('lightTheme');
+    const [theme, setTheme] = useMutSetting('theme');
     const [animateChain, setAnimateChain] = useMutSetting('animateChain');
     const [viewportExportPadding, setViewportExportPadding] =
         useMutSetting('viewportExportPadding');
@@ -56,51 +54,26 @@ const AppearanceSettings = memo(() => {
             w="full"
         >
             <DropdownSetting
-                setValue={(value) => setColorMode(value as never)}
+                setValue={(value) => setTheme(value)}
                 setting={{
-                    label: 'Color Mode',
-                    description: "Choose the color mode for chaiNNer's appearance.",
-                    options: [
-                        { label: 'Dark Mode', value: 'dark' },
-                        { label: 'Light Mode', value: 'light' },
-                        { label: 'System', value: 'system' },
-                    ],
-                    small: true,
-                }}
-                value={colorMode}
-            />
-
-            <DropdownSetting
-                setValue={(value) => setDarkTheme(value as never)}
-                setting={{
-                    label: 'Preferred Dark Theme',
+                    label: 'Color Theme',
                     description: "Choose the Theme for chaiNNer's appearance when in Dark mode.",
                     options: [
-                        { label: 'Default', value: 'default' },
-                        { label: 'Charcoal', value: 'charcoal' },
-                        { label: 'Coffee', value: 'coffee' },
-                        { label: 'Blueberry', value: 'blueberry' },
-                        { label: 'Dusk', value: 'dusk' },
-                        { label: 'OLED', value: 'oled' },
-                        { label: 'Cyberpunk', value: 'cyberpunk' },
-                        { label: 'Mixer3D', value: 'mixer' },
-                        { label: 'NotRealEngine', value: 'notreal' },
-                        { label: 'ComfortUI', value: 'comfort' },
+                        { label: 'Default Dark', value: 'default-dark' },
+                        { label: 'Default Light', value: 'default-light' },
+                        { label: 'Charcoal', value: 'charcoal-dark' },
+                        { label: 'Coffee', value: 'coffee-dark' },
+                        { label: 'Blueberry', value: 'blueberry-dark' },
+                        { label: 'Dusk', value: 'dusk-dark' },
+                        { label: 'OLED', value: 'oled-dark' },
+                        { label: 'Cyberpunk', value: 'cyberpunk-dark' },
+                        { label: 'Mixer3D', value: 'mixer-dark' },
+                        { label: 'NotRealEngine', value: 'notreal-dark' },
+                        { label: 'ComfortUI', value: 'comfort-dark' },
                     ],
                     small: true,
                 }}
-                value={darkTheme}
-            />
-
-            <DropdownSetting
-                setValue={(value) => setLightTheme(value as never)}
-                setting={{
-                    label: 'Preferred Light Theme',
-                    description: "Choose the Theme for chaiNNer's appearance when in Light mode.",
-                    options: [{ label: 'Default', value: 'default' }],
-                    small: true,
-                }}
-                value={lightTheme}
+                value={theme}
             />
 
             <ToggleSetting

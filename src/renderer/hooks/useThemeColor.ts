@@ -8,10 +8,10 @@ const dark = lazy(() => getComputedStyle(document.documentElement));
 
 export const useThemeColor = (name: `--${string}`): string => {
     const { colorMode } = useColorMode();
-    const { lightTheme, darkTheme } = useSettings();
+    const { theme } = useSettings();
     return useMemo(() => {
         const styles = colorMode === 'dark' ? dark() : light();
         return styles.getPropertyValue(name).trim();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [colorMode, name, lightTheme, darkTheme]);
+    }, [colorMode, name, theme]);
 };

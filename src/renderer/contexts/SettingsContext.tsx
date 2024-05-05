@@ -66,17 +66,10 @@ export const SettingsProvider = memo(
         // update theme
         const { setColorMode } = useColorMode();
         useEffect(() => {
-            setColorMode(settings.theme);
+            const [themeName, darkOrLight] = settings.theme.split('-');
+            setColorMode(darkOrLight);
+            document.documentElement.setAttribute('data-realTheme', themeName);
         }, [setColorMode, settings.theme]);
-
-        // update real theme
-        useEffect(() => {
-            document.documentElement.setAttribute('data-darkTheme', settings.darkTheme);
-        }, [settings.darkTheme]);
-
-        useEffect(() => {
-            document.documentElement.setAttribute('data-lightTheme', settings.lightTheme);
-        }, [settings.lightTheme]);
 
         const contextValue = useMemoObject<SettingsContextValue>({
             settings,
