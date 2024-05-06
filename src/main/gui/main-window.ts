@@ -32,6 +32,25 @@ import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
 
+const getAllFiles = async (dirPath: string, fileList: string[] = []) => {
+    const files = await fs.readdir(dirPath);
+
+    await Promise.all(
+        files.map(async (file) => {
+            const filePath = path.join(dirPath, file);
+            const stat = await fs.stat(filePath);
+
+            if (stat.isDirectory()) {
+                await getAllFiles(filePath, fileList);
+            } else {
+                fileList.push(filePath);
+            }
+        })
+    );
+
+    return fileList;
+};
+
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
     args: OpenArguments,
@@ -572,6 +591,20 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             await mainWindow.loadFile(
                 path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
             );
+        }
+
+        // Scan install dir for chain files and warn user if they are found
+        const installDir = path.join(path.dirname(app.getPath('exe')), '..');
+        const chainFiles = await getAllFiles(installDir);
+        const chainFilesFiltered = chainFiles.filter((f) => f.endsWith('.chn'));
+        if (chainFilesFiltered.length > 0) {
+            dialog.showMessageBoxSync({
+                type: 'warning',
+                title: 'Found chain files in install directory',
+                message: `Found one or more chain (.chn) files in chaiNNer's install directory. Please move them to a different location or risk these files getting deleted.`,
+                detail: chainFilesFiltered.join('\n'),
+                buttons: ['OK'],
+            });
         }
     } catch (error) {
         if (error instanceof CriticalError) {
