@@ -94,10 +94,11 @@ const registerEventHandlerPreSetup = (
     // file IO
     ipcMain.handle('file-save-as-json', async (event, saveData, defaultPath) => {
         try {
+            const documentsDir = app.getPath('documents');
             const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
                 title: 'Save Chain File',
                 filters: [{ name: 'Chain File', extensions: ['chn'] }],
-                defaultPath,
+                defaultPath: defaultPath ?? documentsDir,
             });
             if (!canceled && filePath) {
                 await SaveFile.write(filePath, saveData, version);
