@@ -28,28 +28,11 @@ import { getRootDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
+import { getAllFiles } from '../util';
 import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
-
-const getAllFiles = async (dirPath: string, fileList: string[] = []) => {
-    const files = await fs.readdir(dirPath);
-
-    await Promise.all(
-        files.map(async (file) => {
-            const filePath = path.join(dirPath, file);
-            const stat = await fs.stat(filePath);
-
-            if (stat.isDirectory()) {
-                await getAllFiles(filePath, fileList);
-            } else {
-                fileList.push(filePath);
-            }
-        })
-    );
-
-    return fileList;
-};
+const installDir = path.join(path.dirname(app.getPath('exe')), '..');
 
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
@@ -119,6 +102,15 @@ const registerEventHandlerPreSetup = (
                 defaultPath,
             });
             if (!canceled && filePath) {
+                if (filePath.startsWith(installDir)) {
+                    dialog.showMessageBoxSync({
+                        type: 'error',
+                        title: 'Cannot save in install directory',
+                        message: `Cannot save chain files in chaiNNer's install directory. Please choose a different location.`,
+                        buttons: ['OK'],
+                    });
+                    return { kind: 'Canceled' };
+                }
                 await SaveFile.write(filePath, saveData, version);
                 return { kind: 'Success', path: filePath };
             }
@@ -594,7 +586,6 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
         }
 
         // Scan install dir for chain files and warn user if they are found
-        const installDir = path.join(path.dirname(app.getPath('exe')), '..');
         const chainFiles = await getAllFiles(installDir);
         const chainFilesFiltered = chainFiles.filter((f) => f.endsWith('.chn'));
         if (chainFilesFiltered.length > 0) {
