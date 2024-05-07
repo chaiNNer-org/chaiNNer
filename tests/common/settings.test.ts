@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { migrateOldStorageSettings } from '../../src/common/settings/migration';
+import { migrateOldStorageSettings, migrateSettings } from '../../src/common/settings/migration';
 
 const oldSettingData: Partial<Record<string, string>> = {
     'allow-multiple-instances': 'false',
@@ -78,13 +78,14 @@ const oldSettingData: Partial<Record<string, string>> = {
 
 test(`Migrate settings`, () => {
     const unusedKeys = new Set(Object.keys(oldSettingData));
-    const settings = migrateOldStorageSettings({
+    let settings = migrateOldStorageSettings({
         keys: Object.keys(oldSettingData),
         getItem: (key: string) => {
             unusedKeys.delete(key);
             return oldSettingData[key] ?? null;
         },
     });
+    settings = migrateSettings(settings);
 
     expect(settings).toMatchSnapshot();
     expect(unusedKeys).toMatchSnapshot();

@@ -55,3 +55,26 @@ export const migrateOldStorageSettings = (settings: ReadonlyStorage): Partial<Ch
         },
     };
 };
+
+const newThemeSystem: SettingsMigration = (settings) => {
+    const themeMap: Record<string, string> = {
+        dark: 'default-dark',
+        light: 'default-light',
+        system: 'default-dark',
+    };
+    if (settings.theme && Object.hasOwn(themeMap, settings.theme)) {
+        // eslint-disable-next-line no-param-reassign
+        settings.theme = themeMap[settings.theme];
+    }
+    return settings;
+};
+
+type SettingsMigration = (settings: Partial<ChainnerSettings>) => Partial<ChainnerSettings>;
+const migrations: SettingsMigration[] = [newThemeSystem];
+export const migrateSettings = (settings: Partial<ChainnerSettings>): ChainnerSettings => {
+    for (const migration of migrations) {
+        // eslint-disable-next-line no-param-reassign
+        settings = migration(settings);
+    }
+    return { ...defaultSettings, ...settings };
+};

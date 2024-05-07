@@ -43,6 +43,7 @@ exports[`Migrate settings 1`] = `
       "use_fp16": false,
     },
   },
+  "showMinimap": false,
   "snapToGrid": true,
   "snapToGridAmount": 16,
   "startupTemplate": "",
@@ -91,7 +92,7 @@ exports[`Migrate settings 1`] = `
     ],
   },
   "systemPythonLocation": "",
-  "theme": "dark",
+  "theme": "default-dark",
   "useSystemPython": false,
   "viewportExportPadding": 20,
 }
