@@ -33,7 +33,7 @@ import { MenuData, setMainMenu } from './menu';
 const version = app.getVersion() as Version;
 const documentsDir = app.getPath('documents');
 
-const askSaveLocation = async (
+const initiateSaveDialog = async (
     mainWindow: BrowserWindowWithSafeIpc,
     saveData: SaveData,
     defaultPath: string | undefined
@@ -45,13 +45,13 @@ const askSaveLocation = async (
     });
     if (!canceled && filePath) {
         if (filePath.startsWith(installDir)) {
-            dialog.showMessageBoxSync({
+            await dialog.showMessageBox({
                 type: 'error',
                 title: 'Cannot save in install directory',
                 message: `Cannot save chain files in chaiNNer's install directory. Please choose a different location.`,
                 buttons: ['OK'],
             });
-            return askSaveLocation(mainWindow, saveData, defaultPath);
+            return initiateSaveDialog(mainWindow, saveData, defaultPath);
         }
         await SaveFile.write(filePath, saveData, version);
         return { kind: 'Success', path: filePath };
@@ -123,7 +123,7 @@ const registerEventHandlerPreSetup = (
         'file-save-as-json',
         async (event, saveData, defaultPath): Promise<FileSaveResult> => {
             try {
-                return await askSaveLocation(mainWindow, saveData, defaultPath);
+                return await initiateSaveDialog(mainWindow, saveData, defaultPath);
             } catch (error) {
                 log.error(error);
                 throw error;
