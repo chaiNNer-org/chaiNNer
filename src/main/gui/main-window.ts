@@ -24,11 +24,10 @@ import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { isArmMac, isMac } from '../env';
 import { addBrowserWindow, addFile, addFiles, removeFile, removeFiles } from '../fileWatcher';
-import { getIsPortableSync, getRootDir, installDir } from '../platform';
+import { getRootDir, installDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { SaveData, SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
-import { getAllFiles } from '../util';
 import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
@@ -514,35 +513,6 @@ const setupProgressListeners = (
     });
 };
 
-const checkForChainFilesInInstallDir = async () => {
-    if (getIsPortableSync()) {
-        return;
-    }
-    // Scan install dir for chain files and warn user if they are found
-    const chainFiles = await getAllFiles(installDir);
-    const chainFilesFiltered = chainFiles.filter((f) => f.endsWith('.chn'));
-    if (chainFilesFiltered.length > 0) {
-        const result = dialog.showMessageBoxSync({
-            type: 'warning',
-            title: 'Found chain files in install directory',
-            message: `Found ${chainFilesFiltered.length} chain (.chn) file${
-                chainFilesFiltered.length === 1 ? '' : 's'
-            } in chaiNNer's install directory.`,
-            detail: `Please move them to a different location.\n\nChain files stored inside chaiNNer's install directory might be deleted *permanently* when chaiNNer is updated, re-installed, or uninstalled.\n\nStore chain files in a directory you control, for example your documents folder or your desktop.\n\nFiles:\n- ${chainFilesFiltered
-                .slice(0, 5)
-                .join('\n- ')}${
-                chainFilesFiltered.length > 5
-                    ? `\n- ...and ${chainFilesFiltered.length - 5} more.`
-                    : ''
-            }`,
-            buttons: ['Ignore', 'Open install folder'],
-        });
-        if (result === 1) {
-            await shell.openPath(installDir);
-        }
-    }
-};
-
 export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -624,8 +594,6 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
                 path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
             );
         }
-
-        await checkForChainFilesInInstallDir();
     } catch (error) {
         if (error instanceof CriticalError) {
             await progressController.submitInterrupt(error.interrupt);
