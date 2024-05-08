@@ -13,7 +13,7 @@ import os from 'os';
 import path from 'path';
 import { v4 as uuid4 } from 'uuid';
 import { BackendEventMap } from '../../common/Backend';
-import { Version } from '../../common/common-types';
+import { FileSaveResult, Version } from '../../common/common-types';
 import { log } from '../../common/log';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
@@ -24,13 +24,40 @@ import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { isArmMac, isMac } from '../env';
 import { addBrowserWindow, addFile, addFiles, removeFile, removeFiles } from '../fileWatcher';
-import { getRootDir } from '../platform';
+import { getRootDir, installDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
-import { SaveFile, openSaveFile } from '../SaveFile';
+import { SaveData, SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
 import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
+const documentsDir = app.getPath('documents');
+
+const initiateSaveDialog = async (
+    mainWindow: BrowserWindowWithSafeIpc,
+    saveData: SaveData,
+    defaultPath: string | undefined
+): Promise<FileSaveResult> => {
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+        title: 'Save Chain File',
+        filters: [{ name: 'Chain File', extensions: ['chn'] }],
+        defaultPath: defaultPath ?? documentsDir,
+    });
+    if (!canceled && filePath) {
+        if (filePath.startsWith(installDir)) {
+            await dialog.showMessageBox(mainWindow, {
+                type: 'error',
+                title: 'Cannot save in install directory',
+                message: `Cannot save chain files in chaiNNer's install directory. Please choose a different location.`,
+                buttons: ['OK'],
+            });
+            return initiateSaveDialog(mainWindow, saveData, defaultPath);
+        }
+        await SaveFile.write(filePath, saveData, version);
+        return { kind: 'Success', path: filePath };
+    }
+    return { kind: 'Canceled' };
+};
 
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
@@ -92,24 +119,17 @@ const registerEventHandlerPreSetup = (
     );
 
     // file IO
-    ipcMain.handle('file-save-as-json', async (event, saveData, defaultPath) => {
-        try {
-            const documentsDir = app.getPath('documents');
-            const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
-                title: 'Save Chain File',
-                filters: [{ name: 'Chain File', extensions: ['chn'] }],
-                defaultPath: defaultPath ?? documentsDir,
-            });
-            if (!canceled && filePath) {
-                await SaveFile.write(filePath, saveData, version);
-                return { kind: 'Success', path: filePath };
+    ipcMain.handle(
+        'file-save-as-json',
+        async (event, saveData, defaultPath): Promise<FileSaveResult> => {
+            try {
+                return await initiateSaveDialog(mainWindow, saveData, defaultPath);
+            } catch (error) {
+                log.error(error);
+                throw error;
             }
-            return { kind: 'Canceled' };
-        } catch (error) {
-            log.error(error);
-            throw error;
         }
-    });
+    );
 
     ipcMain.handle('file-save-json', async (event, saveData, savePath) => {
         try {
