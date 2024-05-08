@@ -45,7 +45,7 @@ const initiateSaveDialog = async (
     });
     if (!canceled && filePath) {
         if (filePath.startsWith(installDir)) {
-            await dialog.showMessageBox({
+            await dialog.showMessageBox(mainWindow, {
                 type: 'error',
                 title: 'Cannot save in install directory',
                 message: `Cannot save chain files in chaiNNer's install directory. Please choose a different location.`,
