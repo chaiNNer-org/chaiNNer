@@ -1,7 +1,4 @@
-import os from 'os';
-import path from 'path';
 import { Edge, Node, Project } from 'reactflow';
-import { v4 as uuid4 } from 'uuid';
 import { EdgeData, InputId, NodeData, SchemaId } from '../../common/common-types';
 import { log } from '../../common/log';
 import { createUniqueId, deriveUniqueId } from '../../common/util';
@@ -28,9 +25,13 @@ export const copyToClipboard = (
         nodes: nodes.filter((n) => copyIds.has(n.id)),
         edges: edges.filter((e) => copyIds.has(e.source) && copyIds.has(e.target)),
     };
-    const copyData = Buffer.from(JSON.stringify(data));
     ipcRenderer
-        .invoke('clipboard-writeBuffer', 'application/chainner.chain', copyData, 'clipboard')
+        .invoke(
+            'clipboard-writeBuffer-fromString',
+            'application/chainner.chain',
+            JSON.stringify(data),
+            'clipboard'
+        )
         .catch(log.error);
 };
 
@@ -64,10 +65,10 @@ export const pasteFromClipboard = async (
     if (availableFormats.length === 0) {
         try {
             const clipboardData = await ipcRenderer.invoke(
-                'clipboard-readBuffer',
+                'clipboard-readBuffer-toString',
                 'application/chainner.chain'
             );
-            const chain = JSON.parse(Buffer.from(clipboardData).toString()) as ClipboardChain;
+            const chain = JSON.parse(clipboardData) as ClipboardChain;
 
             const duplicationId = createUniqueId();
             const deriveId = (oldId: string) => deriveUniqueId(duplicationId + oldId);
@@ -110,44 +111,32 @@ export const pasteFromClipboard = async (
                 case 'image/tiff':
                 case 'image/png': {
                     ipcRenderer
-                        .invoke('clipboard-readImage')
-                        .then((clipboardData) => {
-                            const imgData = clipboardData.toPNG();
-                            const imgPath = path.join(
-                                os.tmpdir(),
-                                `chaiNNer-clipboard-${uuid4()}.png`
-                            );
-                            ipcRenderer
-                                .invoke('fs-write-file', imgPath, imgData)
-                                .then(() => {
-                                    log.debug('Clipboard image', imgPath);
-                                    let positionX = 0;
-                                    let positionY = 0;
-                                    if (reactFlowWrapper.current) {
-                                        const { height, width, x, y } =
-                                            reactFlowWrapper.current.getBoundingClientRect();
-                                        positionX = (width + x) / 2;
-                                        positionY = (height + y) / 2;
-                                    }
-                                    createNode({
-                                        position: screenToFlowPosition({
-                                            x: positionX,
-                                            y: positionY,
-                                        }),
-                                        data: {
-                                            schemaId: 'chainner:image:load' as SchemaId,
-                                            inputData: {
-                                                [0 as InputId]: imgPath,
-                                            },
-                                        },
-                                    });
-                                })
-                                .catch((e) => {
-                                    log.error('Failed to write clipboard image', e);
-                                });
+                        .invoke('clipboard-readImage-and-store')
+                        .then((imgPath) => {
+                            log.debug('Clipboard image', imgPath);
+                            let positionX = 0;
+                            let positionY = 0;
+                            if (reactFlowWrapper.current) {
+                                const { height, width, x, y } =
+                                    reactFlowWrapper.current.getBoundingClientRect();
+                                positionX = (width + x) / 2;
+                                positionY = (height + y) / 2;
+                            }
+                            createNode({
+                                position: screenToFlowPosition({
+                                    x: positionX,
+                                    y: positionY,
+                                }),
+                                data: {
+                                    schemaId: 'chainner:image:load' as SchemaId,
+                                    inputData: {
+                                        [0 as InputId]: imgPath,
+                                    },
+                                },
+                            });
                         })
                         .catch((e) => {
-                            log.error('Failed to read clipboard image', e);
+                            log.error('Failed to read clipboard image and save to disk', e);
                         });
                     break;
                 }

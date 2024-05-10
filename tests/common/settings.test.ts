@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { migrateOldStorageSettings } from '../../src/common/settings/migration';
 
 const oldSettingData: Partial<Record<string, string>> = {

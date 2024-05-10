@@ -1,6 +1,7 @@
 import { ChevronRightIcon, CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useRef } from 'react';
+import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { EdgeData, NodeData } from '../../common/common-types';
@@ -11,7 +12,7 @@ import { UseContextMenu, useContextMenu } from './useContextMenu';
 import './useNodeMenu.scss';
 
 export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
-    const { removeNodesById, resetInputs, resetConnections, duplicateNodes } =
+    const { removeNodesById, resetInputs, resetConnections, duplicateNodes, setNodeDisabled } =
         useContext(GlobalContext);
 
     const nodeIds = nodes.map((n) => n.id);
@@ -87,6 +88,29 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     </MenuItem>
                 </MenuList>
             </div>
+            <MenuDivider />
+            <MenuItem
+                icon={<MdPlayArrow />}
+                isDisabled={nodes.every((n) => !n.data.isDisabled)}
+                onClick={() => {
+                    for (const id of nodeIds) {
+                        setNodeDisabled(id, false);
+                    }
+                }}
+            >
+                Enable All
+            </MenuItem>
+            <MenuItem
+                icon={<MdPlayDisabled />}
+                isDisabled={nodes.every((n) => n.data.isDisabled)}
+                onClick={() => {
+                    for (const id of nodeIds) {
+                        setNodeDisabled(id, true);
+                    }
+                }}
+            >
+                Disable All
+            </MenuItem>
             <MenuDivider />
             <MenuItem
                 icon={<DeleteIcon />}

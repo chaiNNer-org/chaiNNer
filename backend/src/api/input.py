@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Literal, Optional, TypedDict, Union
+from typing import Any, Generic, Literal, Mapping, Optional, TypedDict, TypeVar, Union
 
 import navi
 
@@ -66,16 +66,24 @@ class FormattedErrorValue(TypedDict):
     formatString: str
 
 
+class PendingErrorValue(TypedDict):
+    type: Literal["pending"]
+
+
 class UnknownErrorValue(TypedDict):
     type: Literal["unknown"]
     typeName: str
     typeModule: str
 
 
-ErrorValue = Union[LiteralErrorValue, FormattedErrorValue, UnknownErrorValue]
+ErrorValue = Union[
+    LiteralErrorValue, FormattedErrorValue, UnknownErrorValue, PendingErrorValue
+]
+
+T = TypeVar("T")
 
 
-class BaseInput:
+class BaseInput(Generic[T]):
     def __init__(
         self,
         input_type: navi.ExpressionJson,
@@ -96,6 +104,7 @@ class BaseInput:
         self.associated_type: Any = associated_type
 
         self.fused: IOFusion | None = None
+        self.lazy: bool = False
 
         # Optional documentation
         self.description: str | None = None
@@ -103,12 +112,12 @@ class BaseInput:
         self.should_suggest: bool = False
 
     # This is the method that should be created by each input
-    def enforce(self, value: object):
+    def enforce(self, value: object) -> T:
         """Enforce the input type"""
-        return value
+        return value  # type: ignore
 
     # This is the method that should be called by the processing code
-    def enforce_(self, value: object | None):
+    def enforce_(self, value: object | None) -> T | None:
         if self.optional and value is None:
             return None
         assert value is not None, (
@@ -138,7 +147,7 @@ class BaseInput:
             "typeModule": type(value).__module__,
         }
 
-    def to_dict(self):
+    def to_dict(self) -> Mapping[str, Any]:
         actual_type = [self.input_type, "null"] if self.optional else self.input_type
         return {
             "id": self.id,
@@ -178,6 +187,10 @@ class BaseInput:
         if self.associated_type is not None:
             associated_type = self.associated_type
             self.associated_type = Optional[associated_type]
+        return self
+
+    def make_lazy(self):
+        self.lazy = True
         return self
 
     def make_fused(self, with_output: OutputId | int = 0):

@@ -10,7 +10,7 @@ from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 
 
-class NumberOutput(BaseOutput):
+class NumberOutput(BaseOutput[Union[int, float]]):
     def __init__(
         self,
         label: str,

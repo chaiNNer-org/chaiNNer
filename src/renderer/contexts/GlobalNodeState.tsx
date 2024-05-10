@@ -28,7 +28,6 @@ import { log } from '../../common/log';
 import { getEffectivelyDisabledNodes } from '../../common/nodes/disabled';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
-import { ParsedSaveData, SaveData } from '../../common/SaveFile';
 
 import {
     EMPTY_SET,
@@ -87,6 +86,7 @@ import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { useSettings } from './SettingsContext';
+import type { ParsedSaveData, SaveData } from '../../main/SaveFile';
 
 const EMPTY_CONNECTED: readonly [IdSet<InputId>, IdSet<OutputId>] = [IdSet.empty, IdSet.empty];
 
@@ -145,6 +145,7 @@ interface Global {
     getInputHash: (nodeId: string) => string;
     hasRelevantUnsavedChangesRef: React.MutableRefObject<boolean>;
     setNodeCollapsed: (id: string, isCollapsed: boolean) => void;
+    setNodePassthrough: (id: string, isPassthrough: boolean) => void;
     addEdgeBreakpoint: (id: string, position: XYPosition) => void;
     removeEdgeBreakpoint: (id: string) => void;
 }
@@ -169,7 +170,8 @@ interface GlobalProviderProps {
 export const GlobalProvider = memo(
     ({ children, reactFlowWrapper }: React.PropsWithChildren<GlobalProviderProps>) => {
         const { sendAlert, sendToast, showAlert } = useContext(AlertBoxContext);
-        const { schemata, functionDefinitions, scope, backend } = useContext(BackendContext);
+        const { schemata, functionDefinitions, passthrough, scope, backend } =
+            useContext(BackendContext);
         const { viewportExportPadding } = useSettings();
 
         const [nodeChanges, addNodeChanges, nodeChangesRef] = useChangeCounter();
@@ -271,6 +273,7 @@ export const GlobalProvider = memo(
                     getEdges(),
                     manualOutputTypes.map,
                     functionDefinitions,
+                    passthrough,
                     typeStateRef.current
                 );
                 setTypeState(types);
@@ -287,6 +290,7 @@ export const GlobalProvider = memo(
             manualOutputTypes,
             functionDefinitions,
             schemata,
+            passthrough,
             getEdges,
             getNodes,
         ]);
@@ -1147,6 +1151,15 @@ export const GlobalProvider = memo(
             [modifyNode]
         );
 
+        const setNodePassthrough = useCallback(
+            (id: string, isPassthrough: boolean): void => {
+                modifyNode(id, (n) => {
+                    return withNewData(n, 'isPassthrough', isPassthrough);
+                });
+            },
+            [modifyNode]
+        );
+
         const exportViewportScreenshotAs = useCallback(
             (saveAs: (dataUrl: PngDataUrl) => void) => {
                 const currentFlowWrapper = reactFlowWrapper.current;
@@ -1315,6 +1328,7 @@ export const GlobalProvider = memo(
             getInputHash,
             hasRelevantUnsavedChangesRef,
             setNodeCollapsed,
+            setNodePassthrough,
             addEdgeBreakpoint,
             removeEdgeBreakpoint,
         });

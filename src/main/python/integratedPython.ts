@@ -4,10 +4,10 @@ import Downloader from 'nodejs-file-downloader';
 import path from 'path';
 import semver from 'semver';
 import { PythonInfo } from '../../common/common-types';
-import { isArmMac } from '../../common/env';
 import { log } from '../../common/log';
-import { checkFileExists } from '../../common/util';
+import { isArmMac } from '../env';
 import { SupportedPlatform, getPlatform } from '../platform';
+import { checkFileExists } from '../util';
 import { checkPythonPaths } from './checkPythonPaths';
 
 interface PythonDownload {

@@ -143,7 +143,7 @@ LAPLACE_KERNEL = 0.25 * np.array(
             SliderInput("Radius 2", minimum=0, default=2, maximum=20, precision=3),
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def edge_detection_node(
     img: np.ndarray,

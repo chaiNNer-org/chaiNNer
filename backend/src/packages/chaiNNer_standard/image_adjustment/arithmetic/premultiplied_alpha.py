@@ -32,7 +32,7 @@ class AlphaAssociation(Enum):
             },
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def premultiplied_alpha_node(
     img: np.ndarray, alpha_association: AlphaAssociation

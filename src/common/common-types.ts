@@ -105,6 +105,7 @@ export interface TextInput extends InputBase {
     readonly placeholder?: string | null;
     readonly def?: string | null;
     readonly allowEmptyString?: boolean;
+    readonly invalidPattern?: string | null;
     readonly labelStyle: LabelStyle | undefined;
 }
 export interface NumberInput extends InputBase {
@@ -169,6 +170,7 @@ export interface Output {
     readonly label: string;
     readonly kind: OutputKind;
     readonly hasHandle: boolean;
+    readonly passthroughOf?: InputId | null;
     readonly description?: string | null;
     readonly suggest: boolean;
 }
@@ -335,6 +337,7 @@ export interface NodeData {
     readonly outputHeight?: OutputHeight;
     readonly nodeWidth?: number;
     readonly isCollapsed?: boolean;
+    readonly isPassthrough?: boolean;
     readonly nodeName?: string;
 }
 export interface EdgeData {
@@ -431,16 +434,6 @@ export interface PythonInfo {
     readonly python: string;
     readonly version: Version;
 }
-
-export type FfmpegInfo =
-    | {
-          readonly ffmpeg: string;
-          readonly ffprobe: string;
-      }
-    | {
-          readonly ffmpeg: undefined;
-          readonly ffprobe: undefined;
-      };
 
 export type FileSaveResult = FileSaveSuccess | FileSaveCanceled;
 export type FileSaveCanceled = { kind: 'Canceled' };

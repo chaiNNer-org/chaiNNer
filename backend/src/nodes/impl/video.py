@@ -1,4 +1,3 @@
-import os
 import subprocess
 from dataclasses import dataclass
 from io import BufferedIOBase
@@ -8,8 +7,7 @@ import ffmpeg
 import numpy as np
 from sanic.log import logger
 
-FFMPEG_PATH = os.environ.get("STATIC_FFMPEG_PATH", "ffmpeg")
-FFPROBE_PATH = os.environ.get("STATIC_FFPROBE_PATH", "ffprobe")
+from .ffmpeg import FFMpegEnv
 
 
 @dataclass(frozen=True)
@@ -20,8 +18,8 @@ class VideoMetadata:
     frame_count: int
 
     @staticmethod
-    def from_file(path: Path):
-        probe = ffmpeg.probe(path, cmd=FFPROBE_PATH)
+    def from_file(path: Path, ffmpeg_env: FFMpegEnv):
+        probe = ffmpeg.probe(path, cmd=ffmpeg_env.ffprobe)
         video_format = probe.get("format", None)
         if video_format is None:
             raise RuntimeError("Failed to get video format. Please report.")
@@ -70,9 +68,10 @@ class VideoMetadata:
 
 
 class VideoLoader:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, ffmpeg_env: FFMpegEnv):
         self.path = path
-        self.metadata = VideoMetadata.from_file(path)
+        self.ffmpeg_env = ffmpeg_env
+        self.metadata = VideoMetadata.from_file(path, ffmpeg_env)
 
     def get_audio_stream(self):
         return ffmpeg.input(self.path).audio
@@ -91,7 +90,7 @@ class VideoLoader:
                 sws_flags="lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact",
                 loglevel="error",
             )
-            .run_async(pipe_stdout=True, pipe_stderr=False, cmd=FFMPEG_PATH)
+            .run_async(pipe_stdout=True, pipe_stderr=False, cmd=self.ffmpeg_env.ffmpeg)
         )
         assert isinstance(ffmpeg_reader, subprocess.Popen)
 

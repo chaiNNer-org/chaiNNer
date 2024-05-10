@@ -87,7 +87,7 @@ def compile_type_string(s: str, filename: str = "<string>"):
     return compile(new_tree, filename, "eval")
 
 
-def eval_type(t: str | _Ty, __globals: dict[str, Any]):
+def eval_type(t: str | _Ty, __globals: dict[str, Any], /):
     if not isinstance(t, str):
         return t
 
@@ -134,16 +134,23 @@ def is_tuple(t: _Ty) -> bool:
     return s.startswith(("typing.Tuple[", "tuple["))
 
 
-def get_type_annotations(fn: Callable) -> dict[str, _Ty]:
+class FailedToParse:
+    pass
+
+
+def get_type_annotations(fn: Callable) -> dict[str, _Ty | FailedToParse]:
     """Get the annotations for a function, with support for Python 3.8+"""
     ann = getattr(fn, "__annotations__", None)
 
     if ann is None:
         return {}
 
-    type_annotations: dict[str, _Ty] = {}
+    type_annotations: dict[str, _Ty | FailedToParse] = {}
     for k, v in ann.items():
-        type_annotations[k] = eval_type(v, fn.__globals__)
+        try:
+            type_annotations[k] = eval_type(v, fn.__globals__)
+        except Exception:
+            type_annotations[k] = FailedToParse()
     return type_annotations
 
 
@@ -199,7 +206,9 @@ def check_schema_types(
 
     # check return type
     if "return" in ann:
-        validate_return_type(ann.pop("return"), node)
+        return_type = ann.pop("return")
+        if not isinstance(return_type, FailedToParse):
+            validate_return_type(return_type, node)
 
     # check arguments
     arg_spec = inspect.getfullargspec(wrapped_func)
@@ -235,7 +244,7 @@ def check_schema_types(
         for i in varargs_inputs:
             associated_type = i.associated_type
 
-            if associated_type is not None:
+            if associated_type is not None and not isinstance(va_type, FailedToParse):
                 if not is_subset_of(associated_type, va_type):
                     raise CheckFailedError(
                         f"Input type of {i.label} '{associated_type}' is not assignable to varargs type '{va_type}'"
@@ -248,7 +257,7 @@ def check_schema_types(
             else:
                 total = None
 
-        if total is not None:
+        if total is not None and not isinstance(va_type, FailedToParse):
             total_type = union_types(total)
             if total_type != va_type:
                 raise CheckFailedError(
@@ -261,7 +270,11 @@ def check_schema_types(
         )
     for (a_name, a_type), i in zip(ann.items(), inputs):
         associated_type = i.associated_type
-        if associated_type is not None and a_type != associated_type:
+        if (
+            associated_type is not None
+            and not isinstance(a_type, FailedToParse)
+            and a_type != associated_type
+        ):
             raise CheckFailedError(
                 f"Expected type of {i.label} ({a_name}) to be '{associated_type}' but found '{a_type}'"
             )

@@ -1,10 +1,12 @@
-import { type FileFilter, type OpenDialogReturnValue } from 'electron'; // TODO: replace with electron/common
-import { MakeDirectoryOptions } from 'fs';
-import { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
-import { ParsedSaveData, SaveData } from './SaveFile';
 import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
+import type { ParsedSaveData, SaveData } from '../main/SaveFile';
+// eslint-disable-next-line import/no-nodejs-modules
+import type { FileFilter, OpenDialogReturnValue } from 'electron/common';
+// eslint-disable-next-line import/no-nodejs-modules
+import type { MakeDirectoryOptions } from 'fs';
+import type { Mode, ObjectEncodingOptions, OpenMode, PathLike } from 'original-fs';
 
 interface ChannelInfo<ReturnType, Args extends unknown[] = []> {
     returnType: ReturnType;
@@ -35,6 +37,9 @@ export interface InvokeChannels {
     'quit-application': ChannelInfo<void>;
     'get-appdata': ChannelInfo<string>;
     'open-url': ChannelInfo<void, [url: string]>;
+    'get-is-mac': ChannelInfo<boolean>;
+    'get-is-arm-mac': ChannelInfo<boolean>;
+    'open-save-file': ChannelInfo<FileOpenResult<ParsedSaveData>, [path: string]>;
 
     // settings
     'get-settings': ChannelInfo<ChainnerSettings>;
@@ -89,13 +94,24 @@ export interface InvokeChannels {
         void,
         [format: string, buffer: Buffer, type?: 'selection' | 'clipboard' | undefined]
     >;
+    'clipboard-writeBuffer-fromString': ChannelInfo<
+        void,
+        [format: string, json: string, type?: 'selection' | 'clipboard' | undefined]
+    >;
     'clipboard-readBuffer': ChannelInfo<Buffer, [format: string]>;
+    'clipboard-readBuffer-toString': ChannelInfo<string, [format: string]>;
     'clipboard-availableFormats': ChannelInfo<string[]>;
     'clipboard-readHTML': ChannelInfo<string>;
     'clipboard-readRTF': ChannelInfo<string>;
-    'clipboard-readImage': ChannelInfo<Electron.NativeImage>;
+    'clipboard-readImage-and-store': ChannelInfo<string>;
     'clipboard-writeImage': ChannelInfo<void, [image: Electron.NativeImage]>;
     'clipboard-writeImageFromURL': ChannelInfo<void, [url: string]>;
+
+    // File watching
+    'watch-file': ChannelInfo<void, [path: string]>;
+    'watch-files': ChannelInfo<void, [paths: readonly string[]]>;
+    'unwatch-file': ChannelInfo<void, [path: string]>;
+    'unwatch-files': ChannelInfo<void, [paths: readonly string[]]>;
 }
 
 export interface SendChannels {
@@ -122,6 +138,7 @@ export interface SendChannels {
     'reboot-after-save': SendChannelInfo;
     'set-progress-bar': ChannelInfo<void, [progress: number | null]>;
     'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
+    'file-changed': SendChannelInfo<[eventType: 'add' | 'change' | 'unlink', path: string]>;
 
     // history
     'history-undo': SendChannelInfo;

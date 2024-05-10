@@ -33,8 +33,9 @@ import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accen
 import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { NodeState, useNodeStateFromData } from '../../helpers/nodeState';
-import { UseDisabled, useDisabled } from '../../hooks/useDisabled';
+import { NO_DISABLED, UseDisabled, useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
+import { NO_PASSTHROUGH, UsePassthrough, usePassthrough } from '../../hooks/usePassthrough';
 import { useRunNode } from '../../hooks/useRunNode';
 import { useValidity } from '../../hooks/useValidity';
 import { useWatchFiles } from '../../hooks/useWatchFiles';
@@ -68,6 +69,7 @@ export interface NodeViewProps {
     isCollapsed?: boolean;
     toggleCollapse?: () => void;
     disable?: UseDisabled;
+    passthrough?: UsePassthrough;
     nodeProgress?: NodeProgress;
     borderColor?: string;
 
@@ -85,7 +87,8 @@ export const NodeView = memo(
         animated = false,
         isCollapsed = false,
         toggleCollapse,
-        disable,
+        disable = NO_DISABLED,
+        passthrough = NO_PASSTHROUGH,
         nodeProgress,
         borderColor,
         targetRef,
@@ -105,7 +108,7 @@ export const NodeView = memo(
             return selected ? shadeColor(accentColor, 0) : regularBorderColor;
         }, [selected, accentColor, borderColor]);
 
-        const isEnabled = disable === undefined || disable.status === DisabledStatus.Enabled;
+        const isEnabled = disable.status === DisabledStatus.Enabled;
 
         return (
             <Center
@@ -156,6 +159,7 @@ export const NodeView = memo(
                             animated={animated}
                             disable={disable}
                             id={id}
+                            passthrough={passthrough}
                             validity={validity}
                         />
                     )}
@@ -279,7 +283,10 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
-    const menu = useNodeMenu(data, disabled, {
+    const passthrough = usePassthrough(data);
+    const menu = useNodeMenu(data, {
+        disabled,
+        passthrough,
         reload: startingNode ? reload : undefined,
     });
 
@@ -295,6 +302,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
             isCollapsed={isCollapsed}
             nodeProgress={nodeProgress}
             nodeState={nodeState}
+            passthrough={passthrough}
             selected={selected}
             targetRef={targetRef}
             toggleCollapse={toggleCollapse}

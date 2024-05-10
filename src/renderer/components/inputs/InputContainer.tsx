@@ -97,24 +97,32 @@ export const InputHandle = memo(
     }
 );
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface InputContainerProps {}
+export interface InputContainerProps {
+    passthroughIgnored: boolean;
+}
 
-export const InputContainer = memo(({ children }: React.PropsWithChildren<InputContainerProps>) => {
-    return (
-        <Box
-            bg="var(--bg-700)"
-            h="auto"
-            ml={0}
-            mr="auto"
-            px={2}
-            verticalAlign="middle"
-            w="full"
-        >
-            {children}
-        </Box>
-    );
-});
+export const InputContainer = memo(
+    ({ children, passthroughIgnored }: React.PropsWithChildren<InputContainerProps>) => {
+        if (passthroughIgnored) {
+            // eslint-disable-next-line no-param-reassign
+            children = <Box opacity="50%">{children}</Box>;
+        }
+
+        return (
+            <Box
+                bg="var(--bg-700)"
+                h="auto"
+                ml={0}
+                mr="auto"
+                px={2}
+                verticalAlign="middle"
+                w="full"
+            >
+                {children}
+            </Box>
+        );
+    }
+);
 
 interface WithLabelProps {
     input: {

@@ -22,7 +22,7 @@ class _PixTiler(Tiler):
     def allow_smaller_tile_size(self) -> bool:
         return False
 
-    def starting_tile_size(self, width: int, height: int, _channels: int) -> Size:
+    def starting_tile_size(self, width: int, height: int, channels: int) -> Size:
         square = min(width, height, self.max_tile_size)
         return square, square
 

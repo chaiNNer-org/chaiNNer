@@ -17,7 +17,6 @@ import { BsFileEarmarkPlus } from 'react-icons/bs';
 import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { log } from '../../../common/log';
-
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
@@ -134,7 +133,8 @@ export const FileInput = memo(
                     isDisabled={!filePath}
                     onClick={() => {
                         if (filePath) {
-                            navigator.clipboard.writeText(filePath).catch(log.error);
+                            const { name } = path.parse(filePath);
+                            navigator.clipboard.writeText(name).catch(log.error);
                         }
                     }}
                 >

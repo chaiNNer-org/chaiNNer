@@ -25,7 +25,7 @@ from .. import arithmetic_group
             scale="log",
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def divide_node(img: np.ndarray, divide: float) -> np.ndarray:
     if divide == 1.0:

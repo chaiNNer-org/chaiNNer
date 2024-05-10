@@ -3,7 +3,6 @@ import EventSource from 'eventsource';
 import { Backend, BackendEventMap, getBackend } from '../../common/Backend';
 import { EdgeData, NodeData, NodeSchema, SchemaId } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
-import { applyOverrides, readOverrideFile } from '../../common/input-override';
 import { log } from '../../common/log';
 import { checkNodeValidity } from '../../common/nodes/checkNodeValidity';
 import { getConnectedInputs } from '../../common/nodes/connectedInputs';
@@ -12,7 +11,7 @@ import { optimizeChain } from '../../common/nodes/optimize';
 import { parseFunctionDefinitions } from '../../common/nodes/parseFunctionDefinitions';
 import { toBackendJson } from '../../common/nodes/toBackendJson';
 import { TypeState } from '../../common/nodes/TypeState';
-import { SaveFile } from '../../common/SaveFile';
+import { PassthroughMap } from '../../common/PassthroughMap';
 import { SchemaMap } from '../../common/SchemaMap';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { FunctionDefinition } from '../../common/types/function';
@@ -21,7 +20,9 @@ import { assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
+import { applyOverrides, readOverrideFile } from '../input-override';
 import { getRootDir } from '../platform';
+import { SaveFile } from '../SaveFile';
 import { readSettings } from '../setting-storage';
 import { Exit } from './exit';
 import type { Edge, Node } from 'reactflow';
@@ -129,7 +130,8 @@ interface Chain {
 const ensureStaticCorrectness = (
     { nodes, edges }: Readonly<Chain>,
     schemata: SchemaMap,
-    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>
+    functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
+    passthrough: PassthroughMap
 ): void => {
     const unknown = nodes.filter((n) => !schemata.has(n.data.schemaId));
     if (unknown.length > 0) {
@@ -141,7 +143,7 @@ const ensureStaticCorrectness = (
     }
 
     const byId = new Map(nodes.map((n) => [n.id, n]));
-    const typeState = TypeState.create(byId, edges, new Map(), functionDefinitions);
+    const typeState = TypeState.create(byId, edges, new Map(), functionDefinitions, passthrough);
     const chainLineage = new ChainLineage(schemata, nodes, edges);
 
     const invalidNodes = nodes.flatMap((node) => {
@@ -217,7 +219,13 @@ export const runChainInCli = async (args: RunArguments) => {
         applyOverrides(saveFile.nodes, saveFile.edges, schemata, overrideFile);
     }
 
-    const { nodes, edges, report } = optimizeChain(saveFile.nodes, saveFile.edges, schemata);
+    const passthrough = PassthroughMap.create(functionDefinitions);
+    const { nodes, edges, report } = optimizeChain(
+        saveFile.nodes,
+        saveFile.edges,
+        schemata,
+        passthrough
+    );
 
     // show an error if there are no nodes to run
     if (nodes.length === 0) {
@@ -234,7 +242,7 @@ export const runChainInCli = async (args: RunArguments) => {
     }
 
     // check for static errors
-    ensureStaticCorrectness({ nodes, edges }, schemata, functionDefinitions);
+    ensureStaticCorrectness({ nodes, edges }, schemata, functionDefinitions, passthrough);
 
     // progress
     const nodeIds = new Set(nodes.map((n) => n.id));

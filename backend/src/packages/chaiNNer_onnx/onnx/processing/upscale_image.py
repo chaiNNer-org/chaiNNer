@@ -5,12 +5,13 @@ import onnxruntime as ort
 from sanic.log import logger
 
 from api import NodeContext
-from nodes.groups import Condition, if_group
+from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.session import get_onnx_session
 from nodes.impl.onnx.utils import get_input_shape, get_output_shape
 from nodes.impl.upscale.auto_split_tiles import (
+    CUSTOM,
     TILE_SIZE_256,
     TileSize,
     parse_tile_size_input,
@@ -20,6 +21,7 @@ from nodes.impl.upscale.tiler import ExactTileSize
 from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
+    NumberInput,
     OnnxGenericModelInput,
     TileSizeDropdown,
 )
@@ -75,6 +77,18 @@ def upscale(
             "ONNX upscaling does not support an automatic mode, meaning you may need to"
             " manually select a tile size for it to work.",
         ),
+        if_enum_group(2, CUSTOM)(
+            NumberInput(
+                "Custom Tile Size",
+                minimum=1,
+                maximum=None,
+                default=TILE_SIZE_256,
+                precision=0,
+                controls_step=1,
+                unit="px",
+                has_handle=False,
+            )
+        ),
         if_group(Condition.type(1, "Image { channels: 4 } "))(
             BoolInput("Separate Alpha", default=False).with_docs(
                 "Upscale alpha separately from color. Enabling this option will cause the alpha of"
@@ -97,6 +111,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: OnnxModel,
     tile_size: TileSize,
+    custom_tile_size: int | None,
     separate_alpha: bool,
 ) -> np.ndarray:
     settings = get_settings(context)
@@ -125,6 +140,14 @@ def upscale_image_node(
         img,
         in_nc,
         out_nc,
-        lambda i: upscale(i, session, tile_size, change_shape, exact_size),
+        lambda i: upscale(
+            i,
+            session,
+            TileSize(custom_tile_size)
+            if tile_size == CUSTOM and custom_tile_size is not None
+            else tile_size,
+            change_shape,
+            exact_size,
+        ),
         separate_alpha,
     )

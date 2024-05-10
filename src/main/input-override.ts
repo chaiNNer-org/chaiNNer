@@ -1,10 +1,17 @@
 import { readFile } from 'fs/promises';
 import { extname } from 'path';
-import { EdgeData, InputData, InputId, InputValue, Mutable, NodeData } from './common-types';
-import { InputOverrideId } from './input-override-common';
-import { log } from './log';
-import { SchemaMap } from './SchemaMap';
-import { joinEnglish } from './util';
+import {
+    EdgeData,
+    InputData,
+    InputId,
+    InputValue,
+    Mutable,
+    NodeData,
+} from '../common/common-types';
+import { InputOverrideId } from '../common/input-override-common';
+import { log } from '../common/log';
+import { SchemaMap } from '../common/SchemaMap';
+import { joinEnglish } from '../common/util';
 import type { Edge, Node } from 'reactflow';
 
 const isValidInputOverrideId = (id: InputOverrideId) => /^#[a-f0-9-]{36}:\d+$/.test(id);

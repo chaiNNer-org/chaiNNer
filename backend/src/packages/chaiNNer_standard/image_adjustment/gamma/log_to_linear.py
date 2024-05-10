@@ -44,7 +44,7 @@ from .. import gamma_group
             "When checked this will convert the input image back to the Kodak Cineon Logarithmic encoding"
         ),
     ],
-    outputs=[ImageOutput(image_type="Input0")],
+    outputs=[ImageOutput(shape_as=0)],
 )
 def log_to_linear_node(
     img: np.ndarray,

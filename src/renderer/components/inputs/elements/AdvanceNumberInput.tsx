@@ -140,7 +140,7 @@ export const AdvancedNumberInput = memo(
             const value = getNumericValue();
             if (value !== undefined) {
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
-                setImmediate(() => setValue(value));
+                setTimeout(() => setValue(value), 0);
             }
         };
         const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

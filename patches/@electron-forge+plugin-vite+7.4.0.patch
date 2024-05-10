@@ -1,0 +1,16 @@
+diff --git a/node_modules/@electron-forge/plugin-vite/dist/util/package.js b/node_modules/@electron-forge/plugin-vite/dist/util/package.js
+index be2a9f9..cf61a90 100644
+--- a/node_modules/@electron-forge/plugin-vite/dist/util/package.js
++++ b/node_modules/@electron-forge/plugin-vite/dist/util/package.js
+@@ -34,7 +34,10 @@ async function lookupNodeModulesPaths(root, paths = []) {
+ }
+ exports.lookupNodeModulesPaths = lookupNodeModulesPaths;
+ async function resolveDependencies(root) {
+-    const rootDependencies = Object.keys((await fs_extra_1.default.readJson(node_path_1.default.join(root, 'package.json'))).dependencies || {});
++    // FIXME: spm patch to allow tree shaking with vite and forge
++    //
++    // const rootDependencies = Object.keys((await fs_extra_1.default.readJson(node_path_1.default.join(root, 'package.json'))).dependencies || {});
++    const rootDependencies = [];
+     const resolve = async (prePath, dependencies, collected = new Map()) => await Promise.all(dependencies.map(async (name) => {
+         let curPath = prePath, depPath = null, packageJson = null;
+         while (!packageJson && !isRootPath(curPath)) {

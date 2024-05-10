@@ -1,5 +1,5 @@
-import { app } from 'electron';
-import electronLog from 'electron-log';
+import electronLog from 'electron-log/main';
+import { app } from 'electron/main';
 import { readdirSync, rmSync } from 'fs';
 import os from 'os';
 import path from 'path';
@@ -15,7 +15,8 @@ import { handleSquirrel } from './squirrel';
 const startApp = () => {
     const args = parseArgs(process.argv.slice(app.isPackaged ? 1 : 2));
 
-    electronLog.transports.file.resolvePath = (variables) =>
+    electronLog.initialize();
+    electronLog.transports.file.resolvePathFn = (variables) =>
         path.join(getLogsFolder(), variables.fileName!);
     electronLog.transports.file.level = 'info';
     electronLog.transports.console.level = 'debug';

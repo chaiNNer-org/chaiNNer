@@ -3,7 +3,7 @@ import os
 from sanic.log import logger
 
 from api import GB, KB, MB, Dependency, add_package
-from gpu import nvidia_is_available
+from gpu import nvidia
 from system import is_arm_mac
 
 general = "PyTorch uses .pth models to upscale images."
@@ -46,26 +46,26 @@ def get_pytorch():
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.1.2+cu121" if nvidia_is_available else "2.1.2",
-                size_estimate=2 * GB if nvidia_is_available else 140 * MB,
+                version="2.1.2+cu121" if nvidia.is_available else "2.1.2",
+                size_estimate=2 * GB if nvidia.is_available else 140 * MB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
-                    if nvidia_is_available
+                    if nvidia.is_available
                     else "https://download.pytorch.org/whl/cpu"
                 ),
-                auto_update=not nvidia_is_available,  # Too large to auto-update
+                auto_update=not nvidia.is_available,  # Too large to auto-update
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.16.2+cu121" if nvidia_is_available else "0.16.2",
-                size_estimate=2 * MB if nvidia_is_available else 800 * KB,
+                version="0.16.2+cu121" if nvidia.is_available else "0.16.2",
+                size_estimate=2 * MB if nvidia.is_available else 800 * KB,
                 extra_index_url=(
                     "https://download.pytorch.org/whl/cu121"
-                    if nvidia_is_available
+                    if nvidia.is_available
                     else "https://download.pytorch.org/whl/cpu"
                 ),
-                auto_update=not nvidia_is_available,  # Needs to match PyTorch version
+                auto_update=not nvidia.is_available,  # Needs to match PyTorch version
             ),
         ]
 
@@ -98,8 +98,8 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
-            version="0.3.1",
-            size_estimate=255 * KB,
+            version="0.3.2",
+            size_estimate=264 * KB,
         ),
         Dependency(
             display_name="Spandrel extra architectures",

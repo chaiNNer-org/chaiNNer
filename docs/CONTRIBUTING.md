@@ -132,7 +132,7 @@ from .. import blur_group
         NumberInput("Radius", minimum=0, default=2, precision=1),
     ],
     outputs=[
-        ImageOutput(image_type="Input0"),
+        ImageOutput(shape_as=0),
     ],
 )
 def gaussian_blur_node(img: np.ndarray, radius: float) -> np.ndarray:
@@ -144,7 +144,7 @@ Let's go through the metadata:
 -   `schema_id` is a unique identifier for the node. The schema ID currently doesn't have a defined format, but we typically use `chainner:<category>:<node_name>`. In our example, we use `chainner:image_filter:gaussian_blur`.
 -   `name`, `description`, and `icon` are all displayed in the UI.
 -   `inputs` declares all arguments of the python function. In our case, we have 2 inputs: `img` and `radius`. `ImageInput` and `NumberInput` are classes that define the type of the input. `ImageInput` is used for images, and `NumberInput` is used for numbers. `NumberInput` takes a few arguments. `minimum` and `maximum` define the range of the number, `default` defines the default value, and `precision` defines the number of decimal places.
--   `outputs` declares all return values of the python function. In our case, we return one image. `ImageOutput` is used for images. `image_type="Input0"` means that the output image has the same size and number of channels as the input image.
+-   `outputs` declares all return values of the python function. In our case, we return one image. `ImageOutput` is used for images. `shape_as=0` means that the output image has the same size and number of channels as the input image.
 
 For more information about metadata, see the [Node Metadata docs](nodes.md#node-metadata).
 

@@ -10,7 +10,10 @@ module.exports = {
         'unused-imports',
     ],
     globals: {
-        MAIN_WINDOW_WEBPACK_ENTRY: true,
+        MAIN_WINDOW_VITE_DEV_SERVER_URL: true,
+        MAIN_WINDOW_VITE_NAME: true,
+        VitePluginConfig: true,
+        VitePluginRuntimeKeys: true,
     },
     env: {
         browser: true,
@@ -137,6 +140,27 @@ module.exports = {
                 'react-hooks/exhaustive-deps': ['warn', { additionalHooks: '(useAsyncEffect)' }],
                 'unused-imports/no-unused-imports': 'error',
                 'regexp/prefer-d': ['warn', { insideCharacterClass: 'ignore' }],
+            },
+        },
+        {
+            files: ['src/common/**/*.ts', 'src/renderer/**/*.ts', 'src/renderer/**/*.tsx'],
+            env: {
+                browser: true,
+                node: false,
+            },
+            rules: {
+                'no-restricted-globals': [
+                    'error',
+                    'process',
+                    'global',
+                    '__dirname',
+                    '__filename',
+                    'require',
+                    'module',
+                    'exports',
+                    'setImmediate',
+                ],
+                'import/no-nodejs-modules': ['error', { allow: ['path'] }],
             },
         },
     ],

@@ -8,7 +8,12 @@ from safetensors.torch import save_file
 from sanic.log import logger
 from spandrel import ModelDescriptor
 
-from nodes.properties.inputs import DirectoryInput, EnumInput, ModelInput, TextInput
+from nodes.properties.inputs import (
+    DirectoryInput,
+    EnumInput,
+    ModelInput,
+    RelativePathInput,
+)
 
 from .. import io_group
 
@@ -28,8 +33,8 @@ class WeightFormat(Enum):
     icon="MdSave",
     inputs=[
         ModelInput(),
-        DirectoryInput(create=True),
-        TextInput("Model Name"),
+        DirectoryInput(must_exist=False),
+        RelativePathInput("Model Name"),
         EnumInput(
             WeightFormat,
             "Weight Format",
@@ -46,9 +51,9 @@ class WeightFormat(Enum):
 def save_model_node(
     model: ModelDescriptor, directory: Path, name: str, weight_format: WeightFormat
 ) -> None:
-    full_file = f"{name}.{weight_format.value}"
-    full_path = directory / full_file
+    full_path = (directory / f"{name}.{weight_format.value}").resolve()
     logger.debug(f"Writing model to path: {full_path}")
+    full_path.parent.mkdir(parents=True, exist_ok=True)
     if weight_format == WeightFormat.PTH:
         torch.save(model.model.state_dict(), full_path)
     elif weight_format == WeightFormat.ST:

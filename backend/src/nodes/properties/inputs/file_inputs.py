@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Literal, Union
 
+import navi
 from api import BaseInput
 
 # pylint: disable=relative-beyond-top-level
 from ...impl.image_formats import get_available_image_formats
+from .generic_inputs import TextInput
 from .label import LabelStyle
 
 FileInputKind = Union[
@@ -25,23 +28,27 @@ class FileInput(BaseInput):
 
     def __init__(
         self,
-        input_type_name: str,
         label: str,
         file_kind: FileInputKind,
         filetypes: list[str],
         has_handle: bool = False,
         primary_input: bool = False,
     ):
-        super().__init__(input_type_name, label, kind="file", has_handle=has_handle)
+        super().__init__(
+            navi.named("File", {"kind": navi.literal(file_kind)}),
+            label,
+            kind="file",
+            has_handle=has_handle,
+        )
         self.filetypes = filetypes
         self.file_kind = file_kind
         self.primary_input = primary_input
 
-        self.input_adapt = f"""
-            match Input {{
-                string as path => {input_type_name} {{ path: path }},
+        self.input_adapt = """
+            match Input {
+                string as path => File { path: path },
                 _ => never
-            }}
+            }
         """
 
         self.associated_type = Path
@@ -66,7 +73,6 @@ class FileInput(BaseInput):
 def ImageFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local image file"""
     return FileInput(
-        input_type_name="ImageFile",
         label="Image File",
         file_kind="image",
         filetypes=get_available_image_formats(),
@@ -78,7 +84,6 @@ def ImageFileInput(primary_input: bool = False) -> FileInput:
 def VideoFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local video file"""
     return FileInput(
-        input_type_name="VideoFile",
         label="Video File",
         file_kind="video",
         filetypes=[
@@ -102,7 +107,6 @@ def VideoFileInput(primary_input: bool = False) -> FileInput:
 def PthFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .pth file"""
     return FileInput(
-        input_type_name="PthFile",
         label="Model",
         file_kind="pth",
         filetypes=[".pt", ".pth", ".ckpt", ".safetensors"],
@@ -110,7 +114,7 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
     )
 
 
-class DirectoryInput(BaseInput):
+class DirectoryInput(BaseInput[Path]):
     """Input for submitting a local directory"""
 
     def __init__(
@@ -118,7 +122,6 @@ class DirectoryInput(BaseInput):
         label: str = "Directory",
         has_handle: bool = True,
         must_exist: bool = True,
-        create: bool = False,
         label_style: LabelStyle = "default",
     ):
         super().__init__("Directory", label, kind="directory", has_handle=has_handle)
@@ -131,7 +134,6 @@ class DirectoryInput(BaseInput):
         """
 
         self.must_exist: bool = must_exist
-        self.create: bool = create
         self.label_style: LabelStyle = label_style
 
         self.associated_type = Path
@@ -142,14 +144,12 @@ class DirectoryInput(BaseInput):
             "labelStyle": self.label_style,
         }
 
-    def enforce(self, value: object):
+    def enforce(self, value: object) -> Path:
         if isinstance(value, str):
             value = Path(value)
         assert isinstance(value, Path)
 
-        if self.create:
-            value.mkdir(parents=True, exist_ok=True)
-        elif self.must_exist:
+        if self.must_exist:
             assert value.exists(), f"Directory {value} does not exist"
 
         return value
@@ -158,7 +158,6 @@ class DirectoryInput(BaseInput):
 def BinFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .bin file"""
     return FileInput(
-        input_type_name="NcnnBinFile",
         label="NCNN Bin File",
         file_kind="bin",
         filetypes=[".bin"],
@@ -169,7 +168,6 @@ def BinFileInput(primary_input: bool = False) -> FileInput:
 def ParamFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .param file"""
     return FileInput(
-        input_type_name="NcnnParamFile",
         label="NCNN Param File",
         file_kind="param",
         filetypes=[".param"],
@@ -180,9 +178,52 @@ def ParamFileInput(primary_input: bool = False) -> FileInput:
 def OnnxFileInput(primary_input: bool = False) -> FileInput:
     """Input for submitting a local .onnx file"""
     return FileInput(
-        input_type_name="OnnxFile",
         label="ONNX Model File",
         file_kind="onnx",
         filetypes=[".onnx"],
         primary_input=primary_input,
     )
+
+
+_INVALID_PATH_CHARS = re.compile(r'[<>:"|?*\x00-\x1F]')
+
+
+def _is_abs_path(path: str) -> bool:
+    return path.startswith(("/", "\\")) or Path(path).is_absolute()
+
+
+class RelativePathInput(TextInput):
+    def __init__(
+        self,
+        label: str,
+        has_handle: bool = True,
+        placeholder: str | None = None,
+        allow_numbers: bool = True,
+        default: str | None = None,
+        label_style: LabelStyle = "default",
+    ):
+        super().__init__(
+            label,
+            has_handle=has_handle,
+            min_length=1,
+            max_length=None,
+            placeholder=placeholder,
+            multiline=False,
+            allow_numbers=allow_numbers,
+            default=default,
+            label_style=label_style,
+            allow_empty_string=False,
+            invalid_pattern=_INVALID_PATH_CHARS.pattern,
+        )
+
+    def enforce(self, value: object) -> str:
+        value = super().enforce(value)
+
+        if _is_abs_path(value):
+            raise ValueError(f"Absolute paths are not allowed for input {self.label}.")
+
+        invalid = _INVALID_PATH_CHARS.search(value)
+        if invalid is not None:
+            raise ValueError(f"Invalid character '{invalid.group()}' in {self.label}.")
+
+        return value

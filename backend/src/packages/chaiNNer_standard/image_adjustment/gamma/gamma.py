@@ -27,12 +27,7 @@ from .. import gamma_group
         ),
         BoolInput("Invert Gamma", default=False),
     ],
-    outputs=[
-        ImageOutput(
-            image_type="Input0",
-            assume_normalized=True,
-        )
-    ],
+    outputs=[ImageOutput(shape_as=0, assume_normalized=True)],
 )
 def gamma_node(img: np.ndarray, gamma: float, invert_gamma: bool) -> np.ndarray:
     if gamma == 1:

@@ -21,6 +21,7 @@ import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '
 import { EMPTY_MAP, assertNever, lazy, lazyKeyed, topologicalSort } from '../util';
 import { getChainnerScope } from './chainner-scope';
 import { fromJson } from './json';
+import type { PassthroughInfo } from '../PassthroughMap';
 
 const getConversionScope = lazyKeyed((parentScope: Scope) => {
     const scope = new ScopeBuilder('Conversion scope', parentScope);
@@ -550,7 +551,8 @@ export class FunctionInstance {
     static fromPartialInputs(
         definition: FunctionDefinition,
         partialInputs: (inputId: InputId) => NonNeverType | undefined,
-        outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP
+        outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP,
+        passthrough?: PassthroughInfo
     ): FunctionInstance {
         const inputErrors: FunctionInputAssignmentError[] = [];
         const outputErrors: FunctionOutputError[] = [];
@@ -599,7 +601,7 @@ export class FunctionInstance {
         }
 
         // we don't need to evaluate the outputs of if they aren't generic
-        if (definition.outputGenerics.size === 0 && outputNarrowing.size === 0) {
+        if (definition.outputGenerics.size === 0 && outputNarrowing.size === 0 && !passthrough) {
             return new FunctionInstance(
                 definition,
                 inputs,
@@ -611,41 +613,53 @@ export class FunctionInstance {
 
         // evaluate outputs
         const outputs = new Map<OutputId, NonNeverType>();
-        for (const id of definition.outputEvaluationOrder) {
-            let type: Type;
-            if (definition.outputGenerics.has(id)) {
-                type = evaluate(definition.outputExpressions.get(id)!, scope);
+        if (passthrough) {
+            // pass through the mapped inputs
+
+            for (const id of definition.outputEvaluationOrder) {
+                const mappedInput = passthrough.getInput(id);
+                const type = inputs.get(mappedInput)!; // we set all inputs
+                outputs.set(id, type);
+            }
+        } else {
+            // compute outputs normally
+
+            for (const id of definition.outputEvaluationOrder) {
+                let type: Type;
+                if (definition.outputGenerics.has(id)) {
+                    type = evaluate(definition.outputExpressions.get(id)!, scope);
+
+                    if (type.type === 'never') {
+                        const message =
+                            definition.schema.outputs.find((o) => o.id === id)?.neverReason ??
+                            undefined;
+                        outputErrors.push({ outputId: id, message });
+                    } else {
+                        let message;
+                        [type, message] = splitOutputTypeAndError(definition, type);
+                        if (type.type === 'never') {
+                            outputErrors.push({ outputId: id, message });
+                        }
+                    }
+                } else {
+                    type = definition.outputDefaults.get(id)!;
+                }
+
+                const narrowing = outputNarrowing.get(id);
+                if (narrowing) {
+                    type = intersect(narrowing, type);
+                }
 
                 if (type.type === 'never') {
-                    const message =
-                        definition.schema.outputs.find((o) => o.id === id)?.neverReason ??
-                        undefined;
-                    outputErrors.push({ outputId: id, message });
-                } else {
-                    let message;
-                    [type, message] = splitOutputTypeAndError(definition, type);
-                    if (type.type === 'never') {
-                        outputErrors.push({ outputId: id, message });
-                    }
+                    // If the output type is never, then there is some error with the input.
+                    // However, we don't have the means to communicate this error yet, so we'll just
+                    // ignore it for now.
+                    type = definition.outputDefaults.get(id)!;
                 }
-            } else {
-                type = definition.outputDefaults.get(id)!;
-            }
 
-            const narrowing = outputNarrowing.get(id);
-            if (narrowing) {
-                type = intersect(narrowing, type);
+                outputs.set(id, type);
+                scope.assignParameter(getOutputParamName(id), type);
             }
-
-            if (type.type === 'never') {
-                // If the output type is never, then there is some error with the input.
-                // However, we don't have the means to communicate this error yet, so we'll just
-                // ignore it for now.
-                type = definition.outputDefaults.get(id)!;
-            }
-
-            outputs.set(id, type);
-            scope.assignParameter(getOutputParamName(id), type);
         }
 
         return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);

@@ -88,7 +88,7 @@ def spec_to_metal(
         ),
     ],
     outputs=[
-        ImageOutput("Albedo", image_type="Input0"),
+        ImageOutput("Albedo", shape_as=0),
         ImageOutput(
             "Metal",
             image_type=navi.Image(size_as="Input1"),

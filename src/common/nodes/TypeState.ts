@@ -1,6 +1,7 @@
 import { EvaluationError, NonNeverType, Type, isSameType } from '@chainner/navi';
 import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
 import { log } from '../log';
+import { PassthroughMap } from '../PassthroughMap';
 import {
     FunctionDefinition,
     FunctionInputAssignmentError,
@@ -66,6 +67,7 @@ export class TypeState {
         rawEdges: readonly Edge<EdgeData>[],
         outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId, Type>>,
         functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
+        passthrough?: PassthroughMap,
         previousTypeState?: TypeState
     ): TypeState {
         const edges = EdgeState.create(rawEdges);
@@ -95,6 +97,10 @@ export class TypeState {
                 return undefined;
             }
 
+            const passthroughInfo = n.data.isPassthrough
+                ? passthrough?.get(n.data.schemaId)
+                : undefined;
+
             let instance;
             try {
                 instance = FunctionInstance.fromPartialInputs(
@@ -120,7 +126,8 @@ export class TypeState {
 
                         return undefined;
                     },
-                    outputNarrowing.get(n.id)
+                    outputNarrowing.get(n.id),
+                    passthroughInfo
                 );
             } catch (error) {
                 if (error instanceof EvaluationError) {
