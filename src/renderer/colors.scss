@@ -18,196 +18,6 @@
     }
 }
 
-// Default theme (copied from Chakra UI)
-:root[data-realTheme='default'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #edf2f7,
-            200: #e2e8f0,
-            300: #cbd5e0,
-            400: #a0aec0,
-            500: #718096,
-            600: #4a5568,
-            700: #2d3748,
-            800: #1a202c,
-            900: #171923,
-        )
-    );
-}
-
-// Charcoal theme
-:root[data-theme='dark'][data-realTheme='charcoal'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #d3d3d9,
-            200: #a7a7b4,
-            300: #7b7b8e,
-            400: #545463,
-            500: #2e2e36,
-            600: #26262c,
-            700: #1c1c21,
-            800: #0e0e10,
-            900: #09090b,
-        )
-    );
-}
-
-// Coffee theme
-:root[data-theme='dark'][data-realTheme='coffee'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #ddd2ce,
-            200: #bba69f,
-            300: #9a7d72,
-            500: #795548,
-            600: #5a4037,
-            700: #3d2c26,
-            800: #161210,
-            900: #0c0b0b,
-        )
-    );
-}
-
-// Blueberry Theme
-:root[data-theme='dark'][data-realTheme='blueberry'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #cdd2ec,
-            200: #9ba6d8,
-            300: #667dc4,
-            500: #1e56b0,
-            600: #204181,
-            700: #1c2c55,
-            800: #0f1422,
-            900: #0a0e18,
-        )
-    );
-}
-
-// Dusk Theme
-:root[data-theme='dark'][data-realTheme='dusk'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #c6c3da,
-            200: #908ab6,
-            300: #595593,
-            500: #1d2570,
-            600: #1b1e54,
-            700: #171639,
-            800: #0e0a1a,
-            900: #08050f,
-        )
-    );
-}
-
-// OLED Theme
-:root[data-theme='dark'][data-realTheme='oled'] {
-    @include theme-variables(
-        (
-            000: #d4d4d4,
-            100: #949494,
-            200: #646464,
-            300: #414141,
-            500: #363636,
-            600: #292929,
-            700: #181818,
-            800: #000000,
-            900: #000000,
-        )
-    );
-}
-
-// Cyberpunk Theme
-:root[data-theme='dark'][data-realTheme='cyberpunk'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #f7edf5,
-            200: #f0e2ec,
-            300: #e0cbda,
-            400: #c0a0b8,
-            500: #96717f,
-            600: #684a63,
-            700: #002d30,
-            800: #3a0323,
-            900: #231721,
-        )
-    );
-    --chain-editor-bg: #000;
-    --header-bg: #000;
-    --window-bg: #140206;
-
-    --selector-node-bg: #16939c;
-    --node-selector-bg: #3b0b1a;
-    --selector-icon: #ef0;
-
-    --node-border-color: #ef0;
-    --node-bg-color: #000d0e;
-    --node-icon-color: var(--theme-200);
-}
-
-// "Mixer" Theme
-:root[data-theme='dark'][data-realTheme='mixer'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #ebebeb,
-            200: #e0e0e0,
-            300: #d6d6d6,
-            400: #b1b1b1,
-            500: #585858,
-            600: #5a5a5a,
-            700: #3f3f3f,
-            800: #232323,
-            900: #151515,
-        )
-    );
-}
-
-// "NotReal" Theme
-:root[data-theme='dark'][data-realTheme='notreal'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #ebebeb,
-            200: #e0e0e0,
-            300: #d6d6d6,
-            400: #b1b1b1,
-            500: #585858,
-            600: #171916,
-            700: #10120f,
-            800: #171916,
-            900: #151515,
-        )
-    );
-    --chain-editor-bg: #272727;
-    --node-selector-bg: #202020;
-    --header-bg: #202020;
-}
-
-// "ComfortUI" Theme
-:root[data-theme='dark'][data-realTheme='comfort'] {
-    @include theme-variables(
-        (
-            000: #ffffff,
-            100: #ebebeb,
-            200: #e0e0e0,
-            300: #d6d6d6,
-            400: #b1b1b1,
-            500: #585858,
-            600: #5a5a5a,
-            700: #363636,
-            800: #212121,
-            900: #151515,
-        )
-    );
-}
-
 :root[data-theme='dark'] {
     /* backgrounds */
     --bg-800: var(--theme-800);
@@ -314,4 +124,196 @@
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
+}
+
+// Default theme (copied from Chakra UI)
+:root[data-custom-theme='default-dark'],
+:root[data-custom-theme='default-light'],
+:root[data-custom-theme='default-system'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #edf2f7,
+            200: #e2e8f0,
+            300: #cbd5e0,
+            400: #a0aec0,
+            500: #718096,
+            600: #4a5568,
+            700: #2d3748,
+            800: #1a202c,
+            900: #171923,
+        )
+    );
+}
+
+// Charcoal theme
+:root[data-custom-theme='charcoal-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #d3d3d9,
+            200: #a7a7b4,
+            300: #7b7b8e,
+            400: #545463,
+            500: #2e2e36,
+            600: #26262c,
+            700: #1c1c21,
+            800: #0e0e10,
+            900: #09090b,
+        )
+    );
+}
+
+// Coffee theme
+:root[data-custom-theme='coffee-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ddd2ce,
+            200: #bba69f,
+            300: #9a7d72,
+            500: #795548,
+            600: #5a4037,
+            700: #3d2c26,
+            800: #161210,
+            900: #0c0b0b,
+        )
+    );
+}
+
+// Blueberry Theme
+:root[data-custom-theme='blueberry-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #cdd2ec,
+            200: #9ba6d8,
+            300: #667dc4,
+            500: #1e56b0,
+            600: #204181,
+            700: #1c2c55,
+            800: #0f1422,
+            900: #0a0e18,
+        )
+    );
+}
+
+// Dusk Theme
+:root[data-custom-theme='dusk-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #c6c3da,
+            200: #908ab6,
+            300: #595593,
+            500: #1d2570,
+            600: #1b1e54,
+            700: #171639,
+            800: #0e0a1a,
+            900: #08050f,
+        )
+    );
+}
+
+// OLED Theme
+:root[data-custom-theme='oled-dark'] {
+    @include theme-variables(
+        (
+            000: #d4d4d4,
+            100: #949494,
+            200: #646464,
+            300: #414141,
+            500: #363636,
+            600: #292929,
+            700: #181818,
+            800: #000000,
+            900: #000000,
+        )
+    );
+}
+
+// Cyberpunk Theme
+:root[data-custom-theme='cyberpunk-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #f7edf5,
+            200: #f0e2ec,
+            300: #e0cbda,
+            400: #c0a0b8,
+            500: #96717f,
+            600: #684a63,
+            700: #002d30,
+            800: #3a0323,
+            900: #231721,
+        )
+    );
+    --chain-editor-bg: #000;
+    --header-bg: #000;
+    --window-bg: #140206;
+
+    --selector-node-bg: #16939c;
+    --node-selector-bg: #3b0b1a;
+    --selector-icon: #ef0;
+
+    --node-border-color: #ef0;
+    --node-bg-color: #000d0e;
+    --node-icon-color: var(--theme-200);
+}
+
+// "Mixer" Theme
+:root[data-custom-theme='mixer-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #5a5a5a,
+            700: #3f3f3f,
+            800: #232323,
+            900: #151515,
+        )
+    );
+}
+
+// "NotReal" Theme
+:root[data-custom-theme='notreal-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #171916,
+            700: #10120f,
+            800: #171916,
+            900: #151515,
+        )
+    );
+    --chain-editor-bg: #272727;
+    --node-selector-bg: #202020;
+    --header-bg: #202020;
+}
+
+// "ComfortUI" Theme
+:root[data-custom-theme='comfort-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #5a5a5a,
+            700: #363636,
+            800: #212121,
+            900: #151515,
+        )
+    );
 }
