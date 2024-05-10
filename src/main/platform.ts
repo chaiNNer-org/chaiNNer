@@ -40,3 +40,7 @@ export const getLogsFolder = lazy((): string => {
 export const getBackendStorageFolder = lazy((): string => {
     return path.join(getRootDir(), 'backend-storage');
 });
+
+export const installDir = getIsPortableSync()
+    ? path.dirname(app.getPath('exe'))
+    : path.join(path.dirname(app.getPath('exe')), '..');
