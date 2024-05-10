@@ -59,8 +59,8 @@ const AppearanceSettings = memo(() => {
                     label: 'Color Theme',
                     description: "Choose the Theme for chaiNNer's appearance when in Dark mode.",
                     options: [
-                        { label: 'Default Dark', value: 'default-dark' },
-                        { label: 'Default Light', value: 'default-light' },
+                        { label: 'Dark', value: 'default-dark' },
+                        { label: 'Light', value: 'default-light' },
                         { label: 'Charcoal', value: 'charcoal-dark' },
                         { label: 'Coffee', value: 'coffee-dark' },
                         { label: 'Blueberry', value: 'blueberry-dark' },
