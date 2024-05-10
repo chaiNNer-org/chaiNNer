@@ -9,13 +9,14 @@
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/344
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as transforms
+import torch.nn.functional as F  # noqa: N812
+from torch import nn
+from torchvision import transforms
+
 from .warplayer import warp
 
 
-def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
+def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):  # noqa: ANN001
     return nn.Sequential(
         nn.Conv2d(
             in_planes,
@@ -30,7 +31,7 @@ def conv(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
     )
 
 
-def conv_bn(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):
+def conv_bn(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=1):  # noqa: ANN001
     return nn.Sequential(
         nn.Conv2d(
             in_planes,
@@ -48,14 +49,14 @@ def conv_bn(in_planes, out_planes, kernel_size=3, stride=1, padding=1, dilation=
 
 class Head(nn.Module):
     def __init__(self):
-        super(Head, self).__init__()
+        super().__init__()
         self.cnn0 = nn.Conv2d(3, 32, 3, 2, 1)
         self.cnn1 = nn.Conv2d(32, 32, 3, 1, 1)
         self.cnn2 = nn.Conv2d(32, 32, 3, 1, 1)
         self.cnn3 = nn.ConvTranspose2d(32, 8, 4, 2, 1)
         self.relu = nn.LeakyReLU(0.2, True)
 
-    def forward(self, x, feat=False):
+    def forward(self, x, feat=False):  # noqa: ANN001
         x0 = self.cnn0(x)
         x = self.relu(x0)
         x1 = self.cnn1(x)
@@ -69,19 +70,19 @@ class Head(nn.Module):
 
 
 class ResConv(nn.Module):
-    def __init__(self, c, dilation=1):
-        super(ResConv, self).__init__()
+    def __init__(self, c, dilation=1):  # noqa: ANN001
+        super().__init__()
         self.conv = nn.Conv2d(c, c, 3, 1, dilation, dilation=dilation, groups=1)
         self.beta = nn.Parameter(torch.ones((1, c, 1, 1)), requires_grad=True)
         self.relu = nn.LeakyReLU(0.2, True)
 
-    def forward(self, x):
+    def forward(self, x):  # noqa: ANN001
         return self.relu(self.conv(x) * self.beta + x)
 
 
 class IFBlock(nn.Module):
-    def __init__(self, in_planes, c=64):
-        super(IFBlock, self).__init__()
+    def __init__(self, in_planes, c=64):  # noqa: ANN001
+        super().__init__()
         self.conv0 = nn.Sequential(
             conv(in_planes, c // 2, 3, 2, 1),
             conv(c // 2, c, 3, 2, 1),
@@ -100,7 +101,7 @@ class IFBlock(nn.Module):
             nn.ConvTranspose2d(c, 4 * 6, 4, 2, 1), nn.PixelShuffle(2)
         )
 
-    def forward(self, x, flow=None, scale=1):
+    def forward(self, x, flow=None, scale=1):  # noqa: ANN001
         x = F.interpolate(
             x, scale_factor=1.0 / scale, mode="bilinear", align_corners=False
         )
@@ -126,7 +127,7 @@ class IFBlock(nn.Module):
 
 class IFNet(nn.Module):
     def __init__(self):
-        super(IFNet, self).__init__()
+        super().__init__()
         self.block0 = IFBlock(7 + 16, c=192)
         self.block1 = IFBlock(8 + 4 + 16, c=128)
         self.block2 = IFBlock(8 + 4 + 16, c=96)
@@ -134,7 +135,14 @@ class IFNet(nn.Module):
         self.encode = Head()
 
     def align_images(
-        self, img0, img1, timestep, scale_list, blur_strength, ensemble, device
+        self,
+        img0,  # noqa: ANN001
+        img1,  # noqa: ANN001
+        timestep,  # noqa: ANN001
+        scale_list,  # noqa: ANN001
+        blur_strength,  # noqa: ANN001
+        ensemble,  # noqa: ANN001
+        device,  # noqa: ANN001
     ):
         # optional blur
         if blur_strength is not None and blur_strength > 0:
@@ -231,15 +239,15 @@ class IFNet(nn.Module):
 
     def forward(
         self,
-        x,
-        timestep=1,
-        training=False,
-        fastmode=True,
-        ensemble=True,
-        num_iterations=1,
-        multiplier=0.5,
-        blur_strength=0,
-        device="cuda",
+        x,  # noqa: ANN001
+        timestep=1,  # noqa: ANN001
+        training=False,  # noqa: ANN001
+        fastmode=True,  # noqa: ANN001
+        ensemble=True,  # noqa: ANN001
+        num_iterations=1,  # noqa: ANN001
+        multiplier=0.5,  # noqa: ANN001
+        blur_strength=0,  # noqa: ANN001
+        device="cuda",  # noqa: ANN001
     ):
         if not training:
             channel = x.shape[1] // 2
@@ -251,9 +259,9 @@ class IFNet(nn.Module):
         if not torch.is_tensor(timestep):
             timestep = (x[:, :1].clone() * 0 + 1) * timestep
         else:
-            timestep = timestep.repeat(1, 1, img0.shape[2], img0.shape[3])
+            timestep = timestep.repeat(1, 1, img0.shape[2], img0.shape[3])  # type: ignore
 
-        for iteration in range(num_iterations):
+        for _iteration in range(num_iterations):
             aligned_img0, flow = self.align_images(
                 img0, img1, timestep, scale_list, blur_strength, ensemble, device
             )

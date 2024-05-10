@@ -2,16 +2,19 @@
 
 # Node by tepete/pifroggi ('Enhance Everything!' Discord Server)
 
-import torch
-import torch.nn.functional as F
 import numpy as np
+import torch
+import torch.nn.functional as F  # noqa: N812
+
+from api import NodeContext
+from nodes.impl.pytorch.utils import np2tensor, tensor2np
+from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import get_h_w_c
+
 from ...settings import get_settings
 from .. import processing_group
-from nodes.impl.pytorch.utils import np2tensor, tensor2np
-from nodes.impl.resize import resize, ResizeFilter
-from nodes.utils.utils import get_h_w_c
 
 
 def wavelet_blur(image: torch.Tensor, radius: int) -> torch.Tensor:
@@ -27,7 +30,7 @@ def wavelet_blur(image: torch.Tensor, radius: int) -> torch.Tensor:
     return output
 
 
-def wavelet_decomposition(image: torch.Tensor, levels=5) -> tuple:
+def wavelet_decomposition(image: torch.Tensor, levels: int = 5) -> tuple:
     high_freq = torch.zeros_like(image)
     for i in range(levels):
         radius = 2**i
@@ -40,10 +43,10 @@ def wavelet_decomposition(image: torch.Tensor, levels=5) -> tuple:
 def wavelet_reconstruction(
     content_feat: torch.Tensor, style_feat: torch.Tensor, levels: int
 ) -> torch.Tensor:
-    content_high_freq, content_low_freq = wavelet_decomposition(
+    content_high_freq, content_low_freq = wavelet_decomposition(  # type: ignore
         content_feat, levels=levels
     )
-    style_high_freq, style_low_freq = wavelet_decomposition(style_feat, levels=levels)
+    style_high_freq, style_low_freq = wavelet_decomposition(style_feat, levels=levels)  # type: ignore
     return content_high_freq + style_low_freq
 
 
@@ -75,7 +78,7 @@ def wavelet_reconstruction(
     node_context=True,
 )
 def wavelet_color_fix_node(
-    context, target_img: np.ndarray, source_img: np.ndarray, levels: int
+    context: NodeContext, target_img: np.ndarray, source_img: np.ndarray, levels: int
 ) -> np.ndarray:
     target_h, target_w, _ = get_h_w_c(target_img)
 

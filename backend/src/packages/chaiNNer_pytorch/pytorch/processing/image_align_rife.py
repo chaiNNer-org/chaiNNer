@@ -9,23 +9,27 @@
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/344
 
 import os
-from appdirs import user_data_dir
-import torch
+import zipfile
+from enum import Enum
+from pathlib import Path
+
 import numpy as np
 import requests
-import zipfile
-from pathlib import Path
-from nodes.properties.inputs import ImageInput, EnumInput, NumberInput
-from nodes.properties.outputs import ImageOutput
-from ...settings import get_settings
-from .. import processing_group
+import torch
+from appdirs import user_data_dir
+
+from api import NodeContext
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
-from nodes.impl.resize import resize, ResizeFilter
+from nodes.impl.resize import ResizeFilter, resize
+from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
+from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
 from packages.chaiNNer_pytorch.pytorch.processing.rife.IFNet_HDv3_v4_14_align import (
     IFNet,
 )
-from enum import Enum
+
+from ...settings import get_settings
+from .. import processing_group
 
 
 class PrecisionMode(Enum):
@@ -36,7 +40,7 @@ class PrecisionMode(Enum):
     EIGHT_HUNDRED_PERCENT = 125
 
 
-def calculate_padding(height, width, precision_mode):
+def calculate_padding(height, width, precision_mode):  # noqa: ANN001
     if precision_mode == PrecisionMode.EIGHT_HUNDRED_PERCENT:
         pad_value = 4
     elif precision_mode == PrecisionMode.FOUR_HUNDRED_PERCENT:
@@ -53,7 +57,7 @@ def calculate_padding(height, width, precision_mode):
     return pad_height, pad_width
 
 
-def download_model(download_url, download_path, model_file, zip_inner_path):
+def download_model(download_url, download_path, model_file, zip_inner_path):  # noqa: ANN001
     model_dir = Path(download_path)
     model_dir.mkdir(parents=True, exist_ok=True)
     zip_path = model_dir / "model.zip"
@@ -82,15 +86,15 @@ def download_model(download_url, download_path, model_file, zip_inner_path):
 
 
 def align_images(
-    context,
+    context,  # noqa: ANN001
     target_img: np.ndarray,
     source_img: np.ndarray,
-    precision_mode,
-    model_file="flownet.pkl",
-    multiplier=1,
-    alignment_passes=1,
-    blur_strength=0,
-    ensemble=True,
+    precision_mode,  # noqa: ANN001
+    model_file="flownet.pkl",  # noqa: ANN001
+    multiplier=1,  # noqa: ANN001
+    alignment_passes=1,  # noqa: ANN001
+    blur_strength=0,  # noqa: ANN001
+    ensemble=True,  # noqa: ANN001
 ) -> np.ndarray:
     appdata_path = user_data_dir(roaming=True)
     path_str = "chaiNNer/python/rife_v4.14/weights"
@@ -100,7 +104,7 @@ def align_images(
     download_model(download_url, download_path, model_file, zip_inner_path)
 
     source_h, source_w, _ = get_h_w_c(source_img)
-    target_h, target_w, _ = get_h_w_c(target_img)
+    target_h, target_w, _ = get_h_w_c(target_img)  # type: ignore
 
     # resize, then shift reference left because rife shifts slightly to the right
     target_img_resized = resize(
@@ -218,7 +222,7 @@ def align_images(
     node_context=True,
 )
 def image_aligner_node(
-    context,
+    context: NodeContext,
     target_img: np.ndarray,
     source_img: np.ndarray,
     precision: PrecisionMode,
@@ -231,8 +235,8 @@ def image_aligner_node(
         target_img,
         source_img,
         precision,
-        multiplier=multiplier,
+        multiplier=multiplier,  # type: ignore
         alignment_passes=alignment_passes,
-        blur_strength=blur_strength,
-        ensemble=1,
+        blur_strength=blur_strength,  # type: ignore
+        ensemble=1,  # type: ignore
     )
