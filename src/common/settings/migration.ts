@@ -60,7 +60,7 @@ const newThemeSystem: SettingsMigration = (settings) => {
     const themeMap: Record<string, string> = {
         dark: 'default-dark',
         light: 'default-light',
-        system: 'default-dark',
+        system: 'default-system',
     };
     if (settings.theme && Object.hasOwn(themeMap, settings.theme)) {
         // eslint-disable-next-line no-param-reassign
