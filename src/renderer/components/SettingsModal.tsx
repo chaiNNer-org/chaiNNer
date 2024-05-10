@@ -57,7 +57,7 @@ const AppearanceSettings = memo(() => {
                 setValue={(value) => setTheme(value)}
                 setting={{
                     label: 'Color Theme',
-                    description: "Choose the Theme for chaiNNer's appearance when in Dark mode.",
+                    description: "Choose the Theme for chaiNNer's appearance.",
                     options: [
                         { label: 'Dark', value: 'default-dark' },
                         { label: 'Light', value: 'default-light' },
