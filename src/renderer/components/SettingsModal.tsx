@@ -61,6 +61,7 @@ const AppearanceSettings = memo(() => {
                     options: [
                         { label: 'Dark', value: 'default-dark' },
                         { label: 'Light', value: 'default-light' },
+                        { label: 'System', value: 'default-system' },
                         { label: 'Charcoal', value: 'charcoal-dark' },
                         { label: 'Coffee', value: 'coffee-dark' },
                         { label: 'Blueberry', value: 'blueberry-dark' },
