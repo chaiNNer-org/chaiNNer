@@ -66,7 +66,9 @@ export const SettingsProvider = memo(
         // update theme
         const { setColorMode } = useColorMode();
         useEffect(() => {
-            setColorMode(settings.theme);
+            const [, darkOrLight] = settings.theme.split('-');
+            setColorMode(darkOrLight);
+            document.documentElement.setAttribute('data-custom-theme', settings.theme);
         }, [setColorMode, settings.theme]);
 
         const contextValue = useMemoObject<SettingsContextValue>({

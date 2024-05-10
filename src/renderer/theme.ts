@@ -27,7 +27,7 @@ const system = {
 
 const grays = [50, 100, 200, 300, 400, 500, 600, 650, 700, 750, 800, 850, 900];
 const colors = {
-    gray: Object.fromEntries(grays.map((v) => [v, `var(--gray-${v})`])),
+    gray: Object.fromEntries(grays.map((v) => [v, `var(--theme-${v})`])),
 };
 
 const fonts = {

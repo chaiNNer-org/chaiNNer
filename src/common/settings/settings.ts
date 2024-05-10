@@ -5,7 +5,7 @@ export interface ChainnerSettings {
     systemPythonLocation: string;
 
     // renderer
-    theme: 'light' | 'dark' | 'system';
+    theme: string;
     checkForUpdatesOnStartup: boolean;
     startupTemplate: string;
     animateChain: boolean;
@@ -32,7 +32,7 @@ export const defaultSettings: Readonly<ChainnerSettings> = {
     systemPythonLocation: '',
 
     // renderer
-    theme: 'dark',
+    theme: 'default-dark',
     checkForUpdatesOnStartup: true,
     startupTemplate: '',
     animateChain: true,

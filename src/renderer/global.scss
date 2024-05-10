@@ -98,7 +98,7 @@ body {
     }
 
     &:disabled > svg {
-        fill: var(--gray-600);
+        fill: var(--theme-600);
     }
 }
 
@@ -120,7 +120,7 @@ body {
 
 [data-theme='light'] {
     .react-flow__controls:hover {
-        background: var(--gray-300) !important;
+        background: var(--theme-300) !important;
     }
 
     .react-flow__minimap {
@@ -145,19 +145,19 @@ body {
         background: rgb(203 213 224 / 66%) !important;
 
         &:not(:disabled):hover {
-            background: var(--gray-400) !important;
-            border: 0 solid var(--gray-500) !important;
+            background: var(--theme-400) !important;
+            border: 0 solid var(--theme-500) !important;
         }
 
         &:disabled > svg {
-            fill: var(--gray-400);
+            fill: var(--theme-400);
         }
     }
 }
 
 [data-theme='dark'] {
     .react-flow__controls:hover {
-        background: var(--gray-700) !important;
+        background: var(--theme-700) !important;
     }
 
     .react-flow__controls-button {
@@ -165,8 +165,8 @@ body {
         background: rgb(45 55 72 / 66%) !important;
 
         &:not(:disabled):hover {
-            background: var(--gray-600) !important;
-            border: 0 solid var(--gray-600) !important;
+            background: var(--theme-600) !important;
+            border: 0 solid var(--theme-600) !important;
         }
 
         &:not(:disabled) > svg {
@@ -205,12 +205,12 @@ body {
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: var(--gray-700);
+    background-color: var(--theme-700);
 }
 
 [data-theme='light'] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: var(--gray-300);
+    background-color: var(--theme-300);
 }
 
 #menu-button-global-context-menu {
