@@ -1,3 +1,4 @@
+# type: ignore
 # Original Rife Frame Interpolation by hzwer
 # https://github.com/megvii-research/ECCV2022-RIFE
 # https://github.com/hzwer/Practical-RIFE

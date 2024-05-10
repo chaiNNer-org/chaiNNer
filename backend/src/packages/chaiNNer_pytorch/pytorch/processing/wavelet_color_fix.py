@@ -32,6 +32,7 @@ def wavelet_blur(image: torch.Tensor, radius: int) -> torch.Tensor:
 
 def wavelet_decomposition(image: torch.Tensor, levels: int = 5) -> tuple:
     high_freq = torch.zeros_like(image)
+    low_freq = None
     for i in range(levels):
         radius = 2**i
         low_freq = wavelet_blur(image, radius)
