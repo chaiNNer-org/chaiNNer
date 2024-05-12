@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Tuple
 
 import numpy as np
+import psutil
 from sanic.log import logger
 
 Size = Tuple[int, int]
@@ -38,6 +39,26 @@ def get_h_w_c(image: np.ndarray) -> tuple[int, int, int]:
     h, w = image.shape[:2]
     c = 1 if image.ndim == 2 else image.shape[2]
     return h, w, c
+
+
+IMAGE_SIZE_LIMIT = int(psutil.virtual_memory().total * 0.5)
+"""
+The maximum size of an image in bytes that can be processed by the backend.
+"""
+
+
+def assert_image_dimensions(shape: tuple[int, int] | tuple[int, int, int]):
+    h, w = shape[:2]
+    c = 1 if len(shape) == 2 else shape[2]
+
+    size_in_bytes = h * w * c * 4
+
+    if size_in_bytes > IMAGE_SIZE_LIMIT:
+        size_format = f"{round(size_in_bytes / 1024 / 1024 / 1024, 1)} GB"
+        raise AssertionError(
+            f"Your machine does not have enough RAM for a {w}x{h}x{c} image ({size_format}). "
+            f"Please reduce the size of the image."
+        )
 
 
 def alphanumeric_sort(value: str) -> list[str | int]:

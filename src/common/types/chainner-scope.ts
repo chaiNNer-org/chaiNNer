@@ -47,6 +47,18 @@ struct Image {
     channels: int(1..),
 }
 struct Color { channels: int(1..) }
+def assert_image_size(value: any, max_size: uint): any {
+    match value {
+        Image as image => {
+            if image.width * image.height * image.channels * 4 > max_size {
+                error("The output image of this operation is too large for your machine. Please reduce the size of the image.")
+            } else {
+                image
+            }
+        },
+        _ => value,
+    }
+}
 
 struct Video;
 

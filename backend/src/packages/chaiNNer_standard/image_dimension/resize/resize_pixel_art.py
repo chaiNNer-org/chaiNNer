@@ -10,6 +10,7 @@ from nodes.properties.inputs import (
     ImageInput,
 )
 from nodes.properties.outputs import ImageOutput
+from nodes.utils.utils import assert_image_dimensions, get_h_w_c
 
 from .. import resize_group
 
@@ -106,4 +107,8 @@ def resize_pixel_art_node(
     img: np.ndarray,
     algorithm: ResizeAlgorithm,
 ) -> np.ndarray:
+    h, w, c = get_h_w_c(img)
+
+    assert_image_dimensions((h * algorithm.scale, w * algorithm.scale, c))
+
     return pixel_art_upscale(img, algorithm.algorithm, algorithm.scale)
