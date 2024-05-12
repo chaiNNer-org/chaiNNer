@@ -81,7 +81,7 @@ class Operation(Enum):
                     0 => neutral,
                     uint => match op {
                         Operation::Sum     => x * length,
-                        Operation::Product => number::pow(x, length),
+                        Operation::Product => x ** length,
                         Operation::Maximum => x,
                         Operation::Minimum => x,
                     }

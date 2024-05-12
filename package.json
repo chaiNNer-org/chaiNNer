@@ -99,7 +99,7 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
-    "@chainner/navi": "^0.7.2",
+    "@chainner/navi": "^0.8.0",
     "@chainner/node-path": "^0.1.1",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",

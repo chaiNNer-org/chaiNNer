@@ -95,7 +95,7 @@ class ColorType(Enum):
                     ColorType::Rgb => 3,
                     ColorType::Rgba => 4,
                 };
-                Color { channels: channels }
+                Color { channels }
             """
         )
     ],

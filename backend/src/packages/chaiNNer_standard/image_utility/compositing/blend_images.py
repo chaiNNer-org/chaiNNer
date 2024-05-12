@@ -130,10 +130,10 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
             let base = Input0;
             let overlay = Input1;
             let position:BlendOverlayPosition = Input3;
-            let cropToFit = bool::and(bothImages, Input8);
+            let cropToFit = bothImages and Input8;
 
             def isImage(x: any) = match x { Image => true, _ => false };
-            let bothImages = bool::and(isImage(base), isImage(overlay));
+            let bothImages = isImage(base) and isImage(overlay);
 
             def getWidth(img: any) = match img { Image => img.width, _ => -inf };
             def getHeight(img: any) = match img { Image => img.height, _ => -inf };

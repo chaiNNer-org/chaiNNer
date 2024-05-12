@@ -49,15 +49,15 @@ from .. import processing_group
                 let source = Input0;
                 let guide = Input1;
 
-                let kScale = bool::and(
+                let kScale = (
                     // guide image's size must be `k * source.size` for `k>1`
-                    guide.width / source.width == int,
-                    guide.width / source.width == guide.height / source.height
+                    guide.width / source.width == int
+                    and guide.width / source.width == guide.height / source.height
                 );
 
                 if guide.width <= source.width {
                     error("The guide image must be larger than the source image.")
-                } else if bool::not(kScale) {
+                } else if not kScale {
                     error("The size of the guide image must be an integer multiple of the size of the source image (e.g. 2x, 3x, 4x, ...).")
                 } else {
                     Image {
