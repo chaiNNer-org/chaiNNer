@@ -104,7 +104,7 @@ from .. import modification_group
                 // account for fast paths
                 let size = match angleDeg {
                     0 | 180 | 360 => imgSize,
-                    90 | 270 => if bool::or(Input3 == RotateSizeChange::Expand, w == h) {
+                    90 | 270 => if Input3 == RotateSizeChange::Expand or w == h {
                         Size { w: h, h: w }
                     } else {
                         transformedSize

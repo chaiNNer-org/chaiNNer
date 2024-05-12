@@ -35,9 +35,9 @@ from .. import all_group
         ImageOutput(
             image_type="""
                 def isImage(i: any) = match i { Image => true, _ => false };
-                let anyImages = bool::or(isImage(Input0), isImage(Input1), isImage(Input2), isImage(Input3));
+                let anyImages = isImage(Input0) or isImage(Input1) or isImage(Input2) or isImage(Input3);
 
-                if bool::not(anyImages) {
+                if not anyImages {
                     error("At least one channel must be an image.")
                 } else {
                     def getWidth(i: any) = match i { Image => i.width, _ => Image.width };

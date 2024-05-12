@@ -83,7 +83,7 @@ class CoordinateType(Enum):
 
                 let valid = match coords {
                     CoordinateType::Relative => true,
-                    CoordinateType::Absolute => bool::and(x < image.width, y < image.height),
+                    CoordinateType::Absolute => x < image.width and y < image.height,
                 };
 
                 if valid {

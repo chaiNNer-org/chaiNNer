@@ -349,7 +349,7 @@ Let's look at a few examples to see this in action:
 - `1 | 2 == 1` is `true | false` which is `bool`.
 - `1 & 2 == 1` is `true & false` which is `never`.
 
-Lastly, `A != B` is defined as `bool::not(A == B)`.
+Lastly, `A != B` is defined as `not A == B`.
 
 Note: When comparing values, `nan` is equal to itself. So `nan == nan` is `true`.
 
