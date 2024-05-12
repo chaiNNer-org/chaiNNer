@@ -95,7 +95,7 @@ from .. import modification_group
                 );
 
                 struct Size { w: number, h: number }
-                let imgSize = Size { w: w, h: h };
+                let imgSize = Size { w, h };
                 let transformedSize = match Input3 {
                     RotateSizeChange::Crop => imgSize,
                     RotateSizeChange::Expand => Size { w: expandWidth, h: expandHeight },

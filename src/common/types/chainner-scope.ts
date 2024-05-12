@@ -27,7 +27,7 @@ struct null;
 
 struct Error { message: string }
 def error(message: invStrSet("")): Error {
-    Error { message: message }
+    Error { message }
 }
 
 struct Seed;
