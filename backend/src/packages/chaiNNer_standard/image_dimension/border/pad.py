@@ -86,8 +86,8 @@ class BorderMode(Enum):
                         height: i.height + top + bottom,
                     },
                     BorderMode::Offsets => Image {
-                        width: width,
-                        height: height,
+                        width,
+                        height,
                     },
                 };
 

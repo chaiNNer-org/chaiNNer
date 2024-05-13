@@ -49,7 +49,7 @@ from .. import miscellaneous_group
 
                 if fg <= bg {
                     error("The foreground threshold must be greater than the background threshold.")
-                } else if bool::or(image.width != trimap.width, image.height != trimap.height) {
+                } else if image.width != trimap.width or image.height != trimap.height {
                     error("The image and trimap must have the same size.")
                 } else {
                     Image { width: image.width, height: image.height }

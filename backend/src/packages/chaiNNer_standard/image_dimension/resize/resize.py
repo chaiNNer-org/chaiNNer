@@ -81,8 +81,8 @@ class ImageResizeMode(Enum):
                         channels: i.channels,
                     },
                     ImageResizeMode::Absolute => Image {
-                        width: width,
-                        height: height,
+                        width,
+                        height,
                         channels: i.channels,
                     },
                 }

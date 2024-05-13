@@ -23,9 +23,9 @@ from .. import transparency_group
         ImageOutput(
             image_type="""
                 def isImage(i: any) = match i { Image => true, _ => false };
-                let anyImages = bool::or(isImage(Input0), isImage(Input1));
+                let anyImages = isImage(Input0) or isImage(Input1);
 
-                if bool::not(anyImages) {
+                if not anyImages {
                     error("At least one input must be an image.")
                 } else {
                     def getWidth(i: any) = match i { Image => i.width, _ => Image.width };

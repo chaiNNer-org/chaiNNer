@@ -218,7 +218,7 @@ def upscale(
 
                 let singleUpscale = convenientUpscale(model, img);
 
-                if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+                if useCustomScale and model.scale >= 2 and model.inputChannels == model.outputChannels {
                     Image {
                         width: img.width * customScale,
                         height: img.height * customScale,
@@ -239,7 +239,7 @@ def upscale(
 
         let singleUpscale = convenientUpscale(model, img);
 
-        let scale = if bool::and(useCustomScale, model.scale >= 2, model.inputChannels == model.outputChannels) {
+        let scale = if useCustomScale and model.scale >= 2 and model.inputChannels == model.outputChannels {
             customScale
         } else {
             model.scale

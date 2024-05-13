@@ -48,7 +48,7 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
             image_type=navi.Image(
                 size_as="Input0",
                 channels="""
-                    if bool::and(Input2.supportsAlpha, Input3) {
+                    if Input2.supportsAlpha and Input3 {
                         4
                     } else {
                         Input2.channels

@@ -109,7 +109,7 @@ UPSCALER_MODE_LABELS = {
 
                 match mode {
                     UpscalerMode::ScaleTo => if crop {
-                        Image { width: width, height: height }
+                        Image { width, height }
                     } else {
                         Image {
                             width: nearest_valid(in_w*larger_ratio),

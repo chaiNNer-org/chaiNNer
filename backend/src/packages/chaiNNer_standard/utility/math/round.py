@@ -89,9 +89,9 @@ class RoundScale(Enum):
                         RoundOperation::Round => round(x/m) * m,
                     },
                     RoundScale::Power => match Input1 {
-                        RoundOperation::Floor => number::pow(p, floor(number::log(x)/number::log(p))),
-                        RoundOperation::Ceiling => number::pow(p, ceil(number::log(x)/number::log(p))),
-                        RoundOperation::Round => number::pow(p, round(number::log(x)/number::log(p))),
+                        RoundOperation::Floor => p ** floor(number::log(x)/number::log(p)),
+                        RoundOperation::Ceiling => p ** ceil(number::log(x)/number::log(p)),
+                        RoundOperation::Round => p ** round(number::log(x)/number::log(p)),
                     },
                 }
                 """,
