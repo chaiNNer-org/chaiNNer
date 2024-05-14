@@ -82,7 +82,7 @@ export const CustomEdge = memo(
             (c) => c.effectivelyDisabledNodes
         );
         const { paused, getNodeStatus } = useContext(ExecutionContext);
-        const { animateChain } = useSettings();
+        const { animateChain, theme } = useSettings();
 
         const sourceStatus = getNodeStatus(source);
         const targetStatus = getNodeStatus(target);
@@ -179,7 +179,11 @@ export const CustomEdge = memo(
             c.typeState.functions.get(source)?.outputs.get(outputId)
         );
 
-        const [accentColor] = getTypeAccentColors(type || definitionType);
+        const [accentColor] = useMemo(
+            () => getTypeAccentColors(type || definitionType),
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            [type, definitionType, theme]
+        );
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const buttonSize = 32;

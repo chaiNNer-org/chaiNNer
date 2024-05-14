@@ -14,7 +14,7 @@ import {
     VStack,
     useMediaQuery,
 } from '@chakra-ui/react';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { useContext } from 'use-context-selector';
 import { Condition, Input, NodeSchema, Output, TextInput } from '../../../common/common-types';
 import { isTautology } from '../../../common/nodes/condition';
@@ -25,6 +25,7 @@ import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutError, withoutNull } from '../../../common/types/util';
 import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { IconFactory } from '../CustomIcons';
 import { Markdown } from '../Markdown';
@@ -101,6 +102,8 @@ interface OutputItemProps extends InputOutputItemProps {
 
 const InputOutputItem = memo(
     ({ type, kind, item, condition, schema }: InputItemProps | OutputItemProps) => {
+        const { theme } = useSettings();
+
         const isOptional = 'optional' in item && item.optional;
         if (isOptional) {
             // eslint-disable-next-line no-param-reassign
@@ -112,7 +115,8 @@ const InputOutputItem = memo(
                 ? schema.iteratorInputs.some((i) => i.inputs.includes(item.id))
                 : schema.iteratorOutputs.some((i) => i.outputs.includes(item.id));
 
-        const handleColors = getTypeAccentColors(type);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const handleColors = useMemo(() => getTypeAccentColors(type), [type, theme]);
 
         const isFileInput = item.kind === 'file';
         const supportedFileTypes = isFileInput ? item.filetypes : [];

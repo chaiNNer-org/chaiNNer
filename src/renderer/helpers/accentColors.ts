@@ -9,22 +9,39 @@ import {
 import { CategoryMap } from '../../common/CategoryMap';
 import { CategoryId } from '../../common/common-types';
 import { getChainnerScope } from '../../common/types/chainner-scope';
-import { lazy } from '../../common/util';
 
 export const defaultColor = '#718096';
 
-const colorList = lazy(() => {
+const getComputedColor = (color: string) =>
+    getComputedStyle(document.documentElement).getPropertyValue(color);
+
+const colorList = () => {
     const scope = getChainnerScope();
     return [
-        { type: evaluate(new NamedExpression('Directory'), scope), color: '#805AD5' },
-        { type: evaluate(new NamedExpression('Image'), scope), color: '#D69E2E' },
-        { type: NumberType.instance, color: '#3182CE' },
-        { type: StringType.instance, color: '#10b52c' },
-        { type: evaluate(new NamedExpression('PyTorchModel'), scope), color: '#DD6B20' },
-        { type: evaluate(new NamedExpression('OnnxModel'), scope), color: '#63B3ED' },
-        { type: evaluate(new NamedExpression('NcnnNetwork'), scope), color: '#ED64A6' },
+        {
+            type: evaluate(new NamedExpression('Directory'), scope),
+            color: getComputedColor('--type-color-directory'),
+        },
+        {
+            type: evaluate(new NamedExpression('Image'), scope),
+            color: getComputedColor('--type-color-image'),
+        },
+        { type: NumberType.instance, color: getComputedColor('--type-color-number') },
+        { type: StringType.instance, color: getComputedColor('--type-color-string') },
+        {
+            type: evaluate(new NamedExpression('PyTorchModel'), scope),
+            color: getComputedColor('--type-color-torch'),
+        },
+        {
+            type: evaluate(new NamedExpression('OnnxModel'), scope),
+            color: getComputedColor('--type-color-onnx'),
+        },
+        {
+            type: evaluate(new NamedExpression('NcnnNetwork'), scope),
+            color: getComputedColor('--type-color-ncnn'),
+        },
     ];
-});
+};
 
 const defaultColorList = [defaultColor] as const;
 

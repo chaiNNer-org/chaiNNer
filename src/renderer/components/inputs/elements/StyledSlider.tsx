@@ -10,6 +10,7 @@ import {
     useColorModeValue,
 } from '@chakra-ui/react';
 import { MouseEventHandler, memo, useMemo, useState } from 'react';
+import { useSettings } from '../../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../../helpers/accentColors';
 
 export interface Scale {
@@ -142,8 +143,10 @@ export const StyledSlider = memo(
         onContextMenu,
     }: StyledSliderProps) => {
         const [showTooltip, setShowTooltip] = useState(false);
+        const { theme } = useSettings();
 
-        const [typeAccentColor] = useMemo(() => getTypeAccentColors(NumberType.instance), []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        const [typeAccentColor] = useMemo(() => getTypeAccentColors(NumberType.instance), [theme]);
 
         let customBackground;
         if (style.type === 'gradient') {

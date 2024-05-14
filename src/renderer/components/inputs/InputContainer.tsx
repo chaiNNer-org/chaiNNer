@@ -9,6 +9,7 @@ import { assertNever, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputContext } from '../../contexts/InputContext';
+import { useSettings } from '../../contexts/SettingsContext';
 import { getTypeAccentColors } from '../../helpers/accentColors';
 import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
 import { Handle } from '../Handle';
@@ -33,6 +34,7 @@ export const InputHandle = memo(
         isConnected,
     }: React.PropsWithChildren<InputHandleProps>) => {
         const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
+        const { theme } = useSettings();
         const [connectingFrom] = useConnectingFrom;
 
         const targetHandle = stringifyTargetHandle({ nodeId: id, inputId });
@@ -64,7 +66,11 @@ export const InputHandle = memo(
             });
         }, [connectingFrom, id, targetHandle, isValidConnection]);
 
-        const handleColors = getTypeAccentColors(connectableType);
+        const handleColors = useMemo(
+            () => getTypeAccentColors(connectableType),
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            [connectableType, theme]
+        );
 
         const sourceTypeColor = useSourceTypeColor(targetHandle);
 
