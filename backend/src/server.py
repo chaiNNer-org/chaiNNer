@@ -189,6 +189,7 @@ async def run(request: Request):
 
     executor_id = ExecutionId("main-executor " + uuid.uuid4().hex)
 
+    tracer = None
     try:
         if ctx.config.trace:
             logger.info("Starting VizTracer...")
@@ -260,7 +261,7 @@ async def run(request: Request):
         await ctx.queue.put({"event": "execution-error", "data": error})
         return json(error_response("Error running nodes!", exception), status=500)
     finally:
-        if ctx.config.trace:
+        if ctx.config.trace and tracer is not None:
             logger.info("Stopping VizTracer...")
             tracer.stop()
             tracer.save(f"../traces/trace_{executor_id}.json")
