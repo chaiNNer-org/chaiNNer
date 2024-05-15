@@ -40,6 +40,8 @@ class AppContext:
         worker_flags: list[str] = []
         if self.config.storage_dir is not None:
             worker_flags.extend(["--storage-dir", self.config.storage_dir])
+        if self.config.trace:
+            worker_flags.append("--trace")
 
         self._worker: Final[WorkerServer] = WorkerServer(worker_flags)
         self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)

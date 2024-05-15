@@ -4,6 +4,7 @@ import asyncio
 import gc
 import importlib
 import logging
+import subprocess
 import sys
 import tempfile
 import traceback
@@ -186,7 +187,16 @@ async def run(request: Request):
         logger.warning(message)
         return json(already_running_response(message), status=500)
 
+    executor_id = ExecutionId("main-executor " + uuid.uuid4().hex)
+
     try:
+        if ctx.config.trace:
+            logger.info("Starting VizTracer...")
+            from viztracer import VizTracer
+
+            tracer = VizTracer()
+            tracer.start()
+
         # wait until all previews are done
         await run_individual_counter.wait_zero()
 
@@ -197,7 +207,7 @@ async def run(request: Request):
 
         logger.info("Running new executor...")
         executor = Executor(
-            id=ExecutionId("main-executor " + uuid.uuid4().hex),
+            id=executor_id,
             chain=chain,
             send_broadcast_data=full_data["sendBroadcastData"],
             options=ExecutionOptions.parse(full_data["options"]),
@@ -249,6 +259,12 @@ async def run(request: Request):
 
         await ctx.queue.put({"event": "execution-error", "data": error})
         return json(error_response("Error running nodes!", exception), status=500)
+    finally:
+        if ctx.config.trace:
+            logger.info("Stopping VizTracer...")
+            tracer.stop()
+            tracer.save(f"../traces/trace_{executor_id}.json")
+            subprocess.check_call(["vizviewer", f"../traces/trace_{executor_id}.json"])
 
 
 class RunIndividualRequest(TypedDict):

@@ -39,6 +39,13 @@ class ServerConfig:
     Usage: `--storage-dir /foo/bar`
     """
 
+    trace: bool
+    """
+    Whether to enable tracing using VizTracer.
+
+    Usage: `--trace`
+    """
+
     @staticmethod
     def parse_argv() -> ServerConfig:
         parser = argparse.ArgumentParser(description="ChaiNNer's server.")
@@ -69,6 +76,11 @@ class ServerConfig:
             type=str,
             help="Directory to store for nodes to store files in.",
         )
+        parser.add_argument(
+            "--trace",
+            action="store_true",
+            help="Enable tracing using VizTracer.",
+        )
 
         parsed = parser.parse_args()
 
@@ -78,4 +90,5 @@ class ServerConfig:
             install_builtin_packages=parsed.install_builtin_packages,
             error_on_failed_node=parsed.error_on_failed_node,
             storage_dir=parsed.storage_dir or None,
+            trace=parsed.trace,
         )
