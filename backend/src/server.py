@@ -4,7 +4,6 @@ import asyncio
 import gc
 import importlib
 import logging
-import subprocess
 import sys
 import tempfile
 import traceback
@@ -196,6 +195,7 @@ async def run(request: Request):
             from viztracer import VizTracer
 
             tracer = VizTracer()
+            tracer.log_async = True
             tracer.start()
 
         # wait until all previews are done
@@ -265,7 +265,6 @@ async def run(request: Request):
             logger.info("Stopping VizTracer...")
             tracer.stop()
             tracer.save(f"../traces/trace_{executor_id}.json")
-            subprocess.check_call(["vizviewer", f"../traces/trace_{executor_id}.json"])
 
 
 class RunIndividualRequest(TypedDict):
