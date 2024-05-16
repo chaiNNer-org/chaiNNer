@@ -332,6 +332,8 @@ class Package:
     features: list[Feature] = field(default_factory=list)
     settings: list[Setting] = field(default_factory=list)
 
+    on_chain_finish: Callable[[], None] | None = None
+
     def add_category(
         self,
         name: str,
@@ -398,6 +400,9 @@ class Package:
             features=[Feature.from_dict(f) for f in data["features"]],
             settings=[],
         )
+
+    def set_on_chain_finish(self, fn: Callable[[], None]):
+        self.on_chain_finish = fn
 
 
 def _iter_py_files(directory: str):

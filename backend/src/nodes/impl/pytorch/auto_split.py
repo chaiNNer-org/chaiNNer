@@ -104,7 +104,4 @@ def pytorch_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    try:
-        return auto_split(img, upscale, tiler)
-    finally:
-        safe_cuda_cache_empty()
+    return auto_split(img, upscale, tiler)

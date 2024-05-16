@@ -224,6 +224,15 @@ async def run(request: Request):
         except Aborted:
             pass
         finally:
+            for package in api.registry.packages.values():
+                if package.on_chain_finish is not None:
+                    try:
+                        package.on_chain_finish()
+                    except Exception as e:
+                        logger.error(
+                            f"Error in on_chain_finish for package {package.id}: {e}"
+                        )
+
             ctx.executor = None
             gc.collect()
 
