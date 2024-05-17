@@ -72,9 +72,13 @@ def pytorch_auto_split(
         try:
             # convert to tensor
             img = np.ascontiguousarray(img)
-            if not img.flags.writeable:
+            if not img.flags.writeable and device == torch.device("cpu"):
                 img = np.copy(img)
+            else:
+                # since we are going to copy the image to the GPU, we can skip the copy here
+                img.flags.writeable = True
             input_tensor = torch.from_numpy(img).to(device, dtype)
+            img.flags.writeable = False
             input_tensor = _rgb_to_bgr(input_tensor)
             input_tensor = _into_batched_form(input_tensor)
 
