@@ -310,8 +310,8 @@ class TextInput(BaseInput[str]):
         self.invalid_pattern = invalid_pattern
 
         if default is not None:
-            assert default != ""
-            assert min_length < len(default)
+            assert default != "" or allow_empty_string
+            assert min_length <= len(default)
             assert max_length is None or len(default) < max_length
 
         self.associated_type = str
