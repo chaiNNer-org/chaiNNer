@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from enum import Enum
 
-from chainner_ext import MatchGroup, RustRegex
+from chainner_ext import RustRegex
 
+from nodes.impl.rust_regex import match_to_replacements_dict
 from nodes.properties.inputs import EnumInput, TextInput
 from nodes.properties.outputs import TextOutput
 from nodes.utils.replacement import ReplacementString
@@ -68,24 +69,11 @@ def regex_replace_node(
     if mode == ReplacementMode.REPLACE_FIRST:
         matches = matches[:1]
 
-    def get_group_text(group: MatchGroup | None) -> str:
-        if group is not None:
-            return text[group.start : group.end]
-        else:
-            return ""
-
     result = ""
     last_end = 0
     for match in matches:
         result += text[last_end : match.start]
-
-        replacements: dict[str, str] = {}
-        for i in range(r.groups + 1):
-            replacements[str(i)] = get_group_text(match.get(i))
-        for name, i in r.groupindex.items():
-            replacements[name] = get_group_text(match.get(i))
-
-        result += replacement.replace(replacements)
+        result += replacement.replace(match_to_replacements_dict(r, match, text))
         last_end = match.end
 
     result += text[last_end:]
