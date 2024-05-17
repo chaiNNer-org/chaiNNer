@@ -342,7 +342,7 @@ class _ExecutorNodeContext(NodeContext):
         self.__settings = settings
         self._storage_dir = storage_dir
 
-        self.cleanup_fns: set[Callable] = set()
+        self.cleanup_fns: set[Callable[[], None]] = set()
 
     @property
     def aborted(self) -> bool:
