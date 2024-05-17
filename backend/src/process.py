@@ -369,7 +369,7 @@ class _ExecutorNodeContext(NodeContext):
     def storage_dir(self) -> Path:
         return self._storage_dir
 
-    def add_cleanup(self, fn: Callable[..., Any]) -> None:
+    def add_cleanup(self, fn: Callable[[], None]) -> None:
         self.cleanup_fns.add(fn)
 
 
