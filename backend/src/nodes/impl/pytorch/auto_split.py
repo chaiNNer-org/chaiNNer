@@ -58,7 +58,8 @@ def pytorch_auto_split(
     progress: Progress,
 ) -> np.ndarray:
     dtype = torch.float16 if use_fp16 else torch.float32
-    model = model.to(device, dtype)
+    if model.dtype != dtype or model.device != device:
+        model = model.to(device, dtype)
 
     def upscale(img: np.ndarray, _: object):
         progress.check_aborted()
