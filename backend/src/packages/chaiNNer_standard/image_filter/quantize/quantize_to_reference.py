@@ -76,9 +76,9 @@ def quantize_image(image: np.ndarray, palette: np.ndarray):
             image_type="""
             if Input0.channels != Input1.channels {
                 error("The target image and reference image must have the same number of channels.")
-            } else if bool::or(Input0.width < Input1.width, Input0.height < Input1.height) {
+            } else if Input0.width < Input1.width or Input0.height < Input1.height {
                 error("The target image must be larger than the reference image.")
-            } else if bool::or(number::mod(Input0.width, Input1.width) != 0, number::mod(Input0.height, Input1.height) != 0) {
+            } else if number::mod(Input0.width, Input1.width) != 0 or number::mod(Input0.height, Input1.height) != 0 {
                 error("The size of the target image must be an integer multiple of the size of the reference image (e.g. 2x, 3x, 4x, 8x).")
             } else {
                 Image {

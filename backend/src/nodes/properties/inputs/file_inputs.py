@@ -46,7 +46,7 @@ class FileInput(BaseInput):
 
         self.input_adapt = """
             match Input {
-                string as path => File { path: path },
+                string as path => File { path },
                 _ => never
             }
         """
@@ -128,7 +128,7 @@ class DirectoryInput(BaseInput[Path]):
 
         self.input_adapt = """
             match Input {
-                string as path => Directory { path: path },
+                string as path => Directory { path },
                 _ => never
             }
         """

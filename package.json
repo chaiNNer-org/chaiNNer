@@ -10,7 +10,9 @@
     "start": "electron-forge start -- --devtools",
     "frontend": "electron-forge start -- --remote-backend=http://127.0.0.1:8000 --devtools",
     "dev": "concurrently \"npm run dev:py\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
+    "dev:profile": "concurrently \"npm run dev:py:profile\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
     "dev:py": "cd backend/src && cross-env CHECK_LEVEL=fix nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
+    "dev:py:profile": "cd backend/src && cross-env CHECK_LEVEL=fix nodemon --exec \"python ./run.py 8000 --trace",
     "package": "cross-env NODE_ENV=production electron-forge package",
     "make": "cross-env NODE_ENV=production electron-forge make",
     "make-linux-zip": "cross-env NODE_ENV=production electron-forge make --targets @electron-forge/maker-zip --platform linux",
@@ -99,7 +101,7 @@
     "vitest": "^1.4.0"
   },
   "dependencies": {
-    "@chainner/navi": "^0.7.2",
+    "@chainner/navi": "^0.8.0",
     "@chainner/node-path": "^0.1.1",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
