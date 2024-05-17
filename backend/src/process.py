@@ -348,6 +348,7 @@ class _ExecutorNodeContext(NodeContext):
 
     @property
     def paused(self) -> bool:
+        time.sleep(0)
         return self.progress.paused
 
     def set_progress(self, progress: float) -> None:
