@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, NewType, Sequence, Union
+from typing import Callable, Iterable, List, NewType, Sequence, Union
 
 from sanic.log import logger
 
