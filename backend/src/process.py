@@ -348,6 +348,10 @@ class _ExecutorNodeContext(NodeContext):
 
     @property
     def paused(self) -> bool:
+        # Python is single-threaded, so it's necessary for this thread to yield, so other threads can do some work.
+        # This is necessary because the thread for accepting the `/pause` endpoint would not be able to accept requests otherwise.
+        # This in turn would mean that `self.progress.paused` would never be set to True.
+        # For more information, see https://github.com/chaiNNer-org/chaiNNer/pull/2853
         time.sleep(0)
         return self.progress.paused
 
