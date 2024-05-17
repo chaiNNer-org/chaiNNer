@@ -120,17 +120,4 @@ pytorch_category = package.add_category(
     install_hint=inst_hint,
 )
 
-
-def on_chain_finish():
-    try:
-        import torch
-
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
-    except Exception:
-        pass
-
-
-package.set_on_chain_finish(on_chain_finish)
-
 logger.debug(f"Loaded package {package.name}")

@@ -1,7 +1,7 @@
 import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Literal
+from typing import Callable, Literal
 
 from .settings import SettingsParser
 
@@ -145,4 +145,12 @@ class NodeContext(Progress, ABC):
         The path of a directory where nodes can store files.
 
         This directory persists between node executions, and its contents are shared between different nodes.
+        """
+
+    @abstractmethod
+    def add_cleanup(self, fn: Callable) -> None:
+        """
+        Registers a function that will be called when the chain execution is finished.
+
+        The function will be called with no arguments.
         """
