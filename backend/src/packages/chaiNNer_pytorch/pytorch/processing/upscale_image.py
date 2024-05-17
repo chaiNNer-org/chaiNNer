@@ -59,8 +59,8 @@ def upscale(
             tile_size = NO_TILING
 
         def estimate():
-            model_byes = MODEL_BYTES_CACHE.get(model)
-            if model_byes is None:
+            model_bytes = MODEL_BYTES_CACHE.get(model)
+            if model_bytes is None:
                 model_bytes = sum(p.numel() * 4 for p in model.model.parameters())
                 MODEL_BYTES_CACHE[model] = model_bytes
             if options.use_fp16:
