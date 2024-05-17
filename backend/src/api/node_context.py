@@ -131,6 +131,8 @@ class NodeContext(Progress, ABC):
     The execution context of the current node.
     """
 
+    cache: dict
+
     @property
     @abstractmethod
     def settings(self) -> SettingsParser:

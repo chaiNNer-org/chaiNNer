@@ -342,6 +342,8 @@ class _ExecutorNodeContext(NodeContext):
         self.__settings = settings
         self._storage_dir = storage_dir
 
+        self.cache = {}
+
     @property
     def aborted(self) -> bool:
         return self.progress.aborted

@@ -6,7 +6,7 @@ import torch
 from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
-from api import KeyInfo, NodeContext, Progress
+from api import KeyInfo, NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.upscale.auto_split_tiles import (
@@ -39,7 +39,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
-    progress: Progress,
+    context: NodeContext,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
@@ -54,6 +54,22 @@ def upscale(
             tile_size = NO_TILING
 
         def estimate():
+            h, w, c = get_h_w_c(img)
+            unique_things = [
+                model.architecture,
+                model.scale,
+                model.input_channels,
+                model.output_channels,
+                w,
+                h,
+                c,
+                *model.tags,
+            ]
+            unique_str = "-".join(str(t) for t in unique_things)
+            cached_estimate = context.cache.get(f"pytorch-tile-size-{unique_str}")
+            if cached_estimate is not None:
+                return MaxTileSize(cached_estimate)
+
             element_size = 2 if use_fp16 else 4
             model_bytes = sum(
                 p.numel() * element_size for p in model.model.parameters()
@@ -67,27 +83,28 @@ def upscale(
                     free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
 
-                return MaxTileSize(
-                    estimate_tile_size(
-                        budget,
-                        model_bytes,
-                        img,
-                        element_size,
-                    )
+                value = estimate_tile_size(
+                    budget,
+                    model_bytes,
+                    img,
+                    element_size,
                 )
+                context.cache[f"pytorch-tile-size-{unique_str}"] = value
+                return MaxTileSize(value)
             elif device.type == "cpu":
                 free = psutil.virtual_memory().available
                 if options.budget_limit > 0:
                     free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
-                return MaxTileSize(
-                    estimate_tile_size(
-                        budget,
-                        model_bytes,
-                        img,
-                        element_size,
-                    )
+                value = estimate_tile_size(
+                    budget,
+                    model_bytes,
+                    img,
+                    element_size,
                 )
+                context.cache[f"pytorch-tile-size-{unique_str}"] = value
+                return MaxTileSize(value)
+            context.cache[f"pytorch-tile-size-{unique_str}"] = MaxTileSize().tile_size
             return MaxTileSize()
 
         img_out = pytorch_auto_split(
@@ -96,7 +113,7 @@ def upscale(
             device=device,
             use_fp16=use_fp16,
             tiler=parse_tile_size_input(tile_size, estimate),
-            progress=progress,
+            progress=context,
         )
         logger.debug("Done upscaling")
 
