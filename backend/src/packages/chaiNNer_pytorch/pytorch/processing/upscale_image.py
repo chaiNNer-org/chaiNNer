@@ -9,6 +9,7 @@ from spandrel import ImageModelDescriptor, ModelTiling
 from api import KeyInfo, NodeContext, Progress
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
+from nodes.impl.pytorch.utils import safe_cuda_cache_empty
 from nodes.impl.upscale.auto_split_tiles import (
     CUSTOM,
     NO_TILING,
@@ -261,6 +262,8 @@ def upscale_image_node(
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
+
+    context.add_cleanup(safe_cuda_cache_empty)
 
     in_nc = model.input_channels
     out_nc = model.output_channels
