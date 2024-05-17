@@ -61,16 +61,16 @@ class ReplacementString {
                 if (interpolation === '') {
                     throw new Error(
                         'Invalid replacement pattern. {} is not a valid replacement.' +
-                        ` Either specify a name or id number, or escape a single "{" as "{{".` +
-                        ` Full pattern: ${pattern}`
+                            ` Either specify a name or id number, or escape a single "{" as "{{".` +
+                            ` Full pattern: ${pattern}`
                     );
                 }
                 if (!contentPattern.test(interpolation)) {
                     throw new Error(
                         'Invalid replacement pattern.' +
-                        ` "{${interpolation}}" is not a valid replacement.` +
-                        ' Names and ids only allow letters and digits.' +
-                        ` Full pattern: ${pattern}`
+                            ` "{${interpolation}}" is not a valid replacement.` +
+                            ' Names and ids only allow letters and digits.' +
+                            ` Full pattern: ${pattern}`
                     );
                 }
 
@@ -102,8 +102,8 @@ class ReplacementString {
                 } else {
                     throw new Error(
                         'Unknown replacement.' +
-                        ` There is no replacement with the name or id ${token.name}.` +
-                        ` Available replacements: ${[...replacements.keys()].join(', ')}.`
+                            ` There is no replacement with the name or id ${token.name}.` +
+                            ` Available replacements: ${[...replacements.keys()].join(', ')}.`
                     );
                 }
             }
@@ -167,8 +167,8 @@ const validateReplacementForRegex = (regex: RRegex, replacement: ReplacementStri
         if (!availableNames.has(name)) {
             throw new Error(
                 'Invalid replacement pattern.' +
-                ` "{${name}}" is not a valid replacement.` +
-                ` Available replacements: ${[...availableNames].join(', ')}.`
+                    ` "{${name}}" is not a valid replacement.` +
+                    ` Available replacements: ${[...availableNames].join(', ')}.`
             );
         }
     }
