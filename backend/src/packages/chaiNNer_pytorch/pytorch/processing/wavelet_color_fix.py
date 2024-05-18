@@ -59,16 +59,9 @@ def wavelet_reconstruction(
     ],
     icon="MdAutoFixHigh",
     inputs=[
-        ImageInput(label="Image", channels=3),
-        ImageInput(label="Reference Image", channels=3),
-        NumberInput(
-            "Number of Wavelets",
-            controls_step=1,
-            minimum=1,
-            maximum=10,
-            default=5,
-            unit="#",
-        ).with_docs(
+        ImageInput("Image", channels=3),
+        ImageInput("Reference Image", channels=3),
+        NumberInput("Number of Wavelets", min=1, max=10, default=5, unit="#").with_docs(
             "Around 5 seems to work best in most cases.",
             "**Higher** means a more global color match. Wider bloom/bleed and less local color precision.",
             "**Lower** means a more local color match. Smaller bloom/bleed and more artifacts. Too low and the reference image will become visible.",

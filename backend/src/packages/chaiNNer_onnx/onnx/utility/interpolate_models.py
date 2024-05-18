@@ -68,9 +68,9 @@ def check_will_upscale(context: NodeContext, model: OnnxModel):
         OnnxModelInput("Model B"),
         SliderInput(
             "Weights",
-            controls_step=5,
+            step=5,
             slider_step=1,
-            maximum=100,
+            max=100,
             default=50,
             unit="%",
             note_expression="`Model A ${100 - value}% ― Model B ${value}%`",

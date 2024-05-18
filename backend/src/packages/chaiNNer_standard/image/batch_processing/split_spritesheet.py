@@ -20,20 +20,10 @@ from .. import batch_processing_group
     icon="BsFillGrid3X3GapFill",
     inputs=[
         ImageInput("Spritesheet"),
-        NumberInput(
-            "Number of rows (height)",
-            controls_step=1,
-            minimum=1,
-            default=1,
-        ).with_docs(
+        NumberInput("Number of rows (height)", min=1, default=1).with_docs(
             "The number of rows to split the image into. The height of the image must be a multiple of this number."
         ),
-        NumberInput(
-            "Number of columns (width)",
-            controls_step=1,
-            minimum=1,
-            default=1,
-        ).with_docs(
+        NumberInput("Number of columns (width)", min=1, default=1).with_docs(
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
     ],

@@ -16,15 +16,7 @@ from .. import utility_group
     icon="BsBoundingBox",
     inputs=[
         ImageInput(channels=1),
-        SliderInput(
-            "Threshold",
-            precision=1,
-            minimum=0,
-            maximum=100,
-            controls_step=1,
-            slider_step=1,
-            default=0,
-        ),
+        SliderInput("Threshold", precision=1, min=0, max=100, step=1, default=0),
     ],
     outputs=[
         NumberOutput("X", output_type="min(uint, Input0.width - 1) & 0.."),

@@ -29,8 +29,8 @@ from .. import processing_group
         ImageInput("Guide"),
         SliderInput(
             "Iterations",
-            minimum=0.1,
-            maximum=100,
+            min=0.1,
+            max=100,
             default=1,
             precision=1,
             scale="log",
@@ -39,7 +39,7 @@ from .. import processing_group
         EnumInput(
             SplitMode,
             "Channel split mode",
-            SplitMode.LAB,
+            default=SplitMode.LAB,
             option_labels={SplitMode.RGB: "RGB", SplitMode.LAB: "L*a*b"},
         ),
     ],

@@ -14,17 +14,8 @@ from .. import random_group
     description="Generate a random integer.",
     icon="MdCalculate",
     inputs=[
-        NumberInput(
-            "Min",
-            minimum=None,
-            maximum=None,
-        ),
-        NumberInput(
-            "Max",
-            minimum=None,
-            maximum=None,
-            default=100,
-        ),
+        NumberInput("Min", min=None, max=None, default=0),
+        NumberInput("Max", min=None, max=None, default=100),
         seed_group(SeedInput()),
     ],
     outputs=[

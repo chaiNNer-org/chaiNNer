@@ -21,10 +21,10 @@ from .. import adjustments_group
         ImageInput(),
         SliderInput(
             "Opacity",
-            maximum=100,
+            max=100,
             default=100,
             precision=1,
-            controls_step=1,
+            step=1,
             unit="%",
         ),
     ],

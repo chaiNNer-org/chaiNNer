@@ -41,12 +41,12 @@ class StretchMode(Enum):
         ),
         if_enum_group(1, StretchMode.PERCENTILE)(
             SliderInput(
-                "Percentile", minimum=0, maximum=50, default=1, precision=2, scale="log"
+                "Percentile", min=0, max=50, default=1, precision=2, scale="log"
             ),
         ),
         if_enum_group(1, StretchMode.MANUAL)(
-            SliderInput("Minimum", minimum=0, maximum=255, default=0, precision=1),
-            SliderInput("Maximum", minimum=0, maximum=255, default=255, precision=1),
+            SliderInput("Minimum", min=0, max=255, default=0, precision=1),
+            SliderInput("Maximum", min=0, max=255, default=255, precision=1),
         ),
     ],
     outputs=[

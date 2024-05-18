@@ -94,7 +94,7 @@ def resize_to_side_conditional(
         NumberInput(
             "Size Target",
             default=2160,
-            minimum=1,
+            min=1,
             unit="px",
         ),
         EnumInput(SideSelection, label="Resize To"),

@@ -116,17 +116,14 @@ def upscale(
         ImageInput().with_id(1),
         FaceModelInput("Model").with_id(0),
         ImageInput("Upscaled Background").with_id(2).make_optional(),
-        NumberInput(
-            label="Output Scale", default=8, minimum=1, maximum=8, unit="x"
-        ).with_id(3),
+        NumberInput("Output Scale", default=8, min=1, max=8, unit="x").with_id(3),
         if_group(Condition.type(0, 'PyTorchModel { arch: "CodeFormer" }'))(
             SliderInput(
-                label="Weight",
+                "Weight",
                 default=0.7,
-                minimum=0.0,
-                maximum=1.0,
-                controls_step=0.1,
-                slider_step=0.1,
+                min=0.0,
+                max=1.0,
+                step=0.1,
                 precision=1,
             )
         ),

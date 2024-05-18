@@ -42,10 +42,10 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
         ImageInput(),
         SliderInput(
             "Threshold",
-            maximum=100,
+            max=100,
             default=50,
             precision=1,
-            controls_step=1,
+            step=1,
         ),
         EnumInput(
             ThresholdType,
@@ -56,10 +56,10 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
         if_enum_group(3, (ThresholdType.BINARY, ThresholdType.BINARY_INV))(
             SliderInput(
                 "Maximum Value",
-                maximum=100,
+                max=100,
                 default=100,
                 precision=1,
-                controls_step=1,
+                step=1,
             ).with_id(2),
         ),
         BoolInput("Anti-aliasing", default=False)
@@ -69,7 +69,7 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
         )
         .with_id(4),
         if_enum_group(4, 1)(
-            SliderInput("Softness", default=0, minimum=0, maximum=10)
+            SliderInput("Softness", default=0, min=0, max=10)
             .with_docs(
                 "The strength of a sub-pixel blur applied to be anti-aliased image. This can be be used to make the anti-aliasing even softer.",
                 "The blur is very small and higher-quality than a simple Gaussian blur. 0 means that no additional blur will be applied. 10 means that the anti-aliasing will be very soft.",

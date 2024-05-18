@@ -13,15 +13,7 @@ from .. import value_group
     description="Outputs the given percent.",
     icon="MdCalculate",
     inputs=[
-        SliderInput(
-            "Percent",
-            minimum=0,
-            maximum=100,
-            default=50,
-            precision=0,
-            controls_step=1,
-            unit="%",
-        ).make_fused(),
+        SliderInput("Percent", min=0, max=100, default=50, unit="%").make_fused(),
     ],
     outputs=[
         NumberOutput("Percent", output_type="Input0"),

@@ -27,8 +27,8 @@ from .. import correction_group
         NumberInput(
             "Reference Image Scale Factor",
             precision=4,
-            controls_step=12.5,
-            maximum=100.0,
+            step=12.5,
+            max=100.0,
             default=12.5,
             unit="%",
         ),
