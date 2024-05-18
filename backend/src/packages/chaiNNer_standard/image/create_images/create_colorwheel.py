@@ -21,7 +21,7 @@ from .. import create_images_group
     description="Create an image with a color wheel.",
     icon="MdLens",
     inputs=[
-        NumberInput("Size", minimum=1, unit="px", default=512),
+        NumberInput("Size", min=1, unit="px", default=512),
     ],
     outputs=[
         ImageOutput(

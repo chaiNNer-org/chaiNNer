@@ -16,15 +16,15 @@ from .. import create_images_group
     description="Create a Checkerboard of specified dimensions filled with the given colors for the squares.",
     icon="MdBorderAll",
     inputs=[
-        NumberInput("Width", minimum=1, unit="px", default=1024),
-        NumberInput("Height", minimum=1, unit="px", default=1024),
+        NumberInput("Width", min=1, unit="px", default=1024),
+        NumberInput("Height", min=1, unit="px", default=1024),
         ColorInput(
             "Color 1", channels=[1, 3, 4], default=Color.bgr((0.75, 0.75, 0.75))
         ).with_id(2),
         ColorInput(
             "Color 2", channels=[1, 3, 4], default=Color.bgr((0.35, 0.35, 0.35))
         ).with_id(3),
-        NumberInput("Square Size", minimum=1, default=32),
+        NumberInput("Square Size", min=1, default=32),
     ],
     outputs=[
         ImageOutput(

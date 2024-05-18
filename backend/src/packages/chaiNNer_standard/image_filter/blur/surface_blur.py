@@ -17,30 +17,9 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Radius",
-            minimum=0,
-            maximum=100,
-            default=4,
-            controls_step=1,
-            scale="sqrt",
-        ),
-        SliderInput(
-            "Color Sigma",
-            controls_step=1,
-            default=25,
-            scale="log",
-            minimum=0,
-            maximum=1000,
-        ),
-        SliderInput(
-            "Space Sigma",
-            controls_step=1,
-            default=25,
-            scale="log",
-            minimum=0,
-            maximum=1000,
-        ),
+        SliderInput("Radius", min=0, max=100, default=4, scale="sqrt"),
+        SliderInput("Color Sigma", default=25, scale="log", min=0, max=1000),
+        SliderInput("Space Sigma", default=25, scale="log", min=0, max=1000),
     ],
     outputs=[ImageOutput(shape_as=0)],
 )

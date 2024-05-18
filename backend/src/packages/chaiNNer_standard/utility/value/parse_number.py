@@ -13,7 +13,7 @@ from .. import value_group
     icon="MdCalculate",
     inputs=[
         TextInput("Text", label_style="inline"),
-        NumberInput("Base", default=10, minimum=2, maximum=36),
+        NumberInput("Base", default=10, min=2, max=36),
     ],
     outputs=[
         NumberOutput(
