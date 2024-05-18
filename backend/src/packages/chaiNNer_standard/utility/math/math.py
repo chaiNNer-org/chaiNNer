@@ -91,7 +91,7 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
         .as_passthrough_of(0)
     ],
 )
-def math_node(a: float, op: MathOperation, b: float) -> int | float:
+def math_node(op: MathOperation, a: float, b: float) -> int | float:
     if op == MathOperation.ADD:
         return a + b
     elif op == MathOperation.SUBTRACT:
