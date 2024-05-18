@@ -147,7 +147,7 @@ class DropDownInput(BaseInput[T]):
         return group("conditional", {"condition": condition})(self)
 
 
-class BoolInput(DropDownInput[bool]):
+class _BoolEnumInput(DropDownInput[bool]):
     def __init__(self, label: str, *, default: bool = True, icon: str | None = None):
         super().__init__(
             input_type="bool",
@@ -173,6 +173,34 @@ class BoolInput(DropDownInput[bool]):
     def enforce(self, value: object) -> bool:
         value = super().enforce(value)
         return bool(value)
+
+
+class _BoolGenericInput(BaseInput[bool]):
+    def __init__(self, label: str):
+        super().__init__(input_type="bool", label=label)
+        self.associated_type = bool
+
+    def enforce(self, value: object) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            return bool(value)
+
+        raise ValueError(
+            f"The value of input '{self.label}' should have been either True or False."
+        )
+
+
+def BoolInput(
+    label: str,
+    *,
+    default: bool = True,
+    icon: str | None = None,
+    has_handle: bool = False,
+):
+    if has_handle:
+        return _BoolGenericInput(label)
+    return _BoolEnumInput(label, default=default, icon=icon)
 
 
 E = TypeVar("E", bound=Enum)
