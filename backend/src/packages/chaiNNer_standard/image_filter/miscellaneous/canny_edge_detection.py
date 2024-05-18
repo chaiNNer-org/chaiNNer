@@ -20,8 +20,8 @@ from .. import miscellaneous_group
     icon="MdAutoFixHigh",
     inputs=[
         ImageInput(),
-        NumberInput("Lower Threshold", minimum=0, default=100),
-        NumberInput("Upper Threshold", minimum=0, default=300),
+        NumberInput("Lower Threshold", min=0, default=100),
+        NumberInput("Upper Threshold", min=0, default=300),
     ],
     outputs=[ImageOutput(image_type=navi.Image(size_as="Input0"), channels=1)],
 )

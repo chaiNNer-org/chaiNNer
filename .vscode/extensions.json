@@ -3,6 +3,7 @@
 		"ms-python.vscode-pylance",
 		"streetsidesoftware.code-spell-checker",
 		"dbaeumer.vscode-eslint",
-		"charliermarsh.ruff"
+		"charliermarsh.ruff",
+		"esbenp.prettier-vscode"
 	]
 }

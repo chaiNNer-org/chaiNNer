@@ -41,8 +41,8 @@ class GradientStyle(Enum):
     description="Create an image with a gradient.",
     icon="MdFormatColorFill",
     inputs=[
-        NumberInput("Width", minimum=1, unit="px", default=64),
-        NumberInput("Height", minimum=1, unit="px", default=64),
+        NumberInput("Width", min=1, unit="px", default=64),
+        NumberInput("Height", min=1, unit="px", default=64),
         ColorInput("Color 1", default=Color.gray(0)).with_id(9),
         ColorInput("Color 2", default=Color.gray(1)).with_id(10),
         BoolInput("Reverse", default=False).with_id(2),
@@ -50,14 +50,14 @@ class GradientStyle(Enum):
         if_enum_group(3, GradientStyle.DIAGONAL)(
             SliderInput(
                 "Angle",
-                minimum=0,
-                maximum=360,
+                min=0,
+                max=360,
                 default=45,
                 unit="deg",
             ).with_id(4),
             NumberInput(
                 "Width",
-                minimum=0,
+                min=0,
                 default=100,
                 unit="px",
             ).with_id(5),
@@ -65,15 +65,15 @@ class GradientStyle(Enum):
         if_enum_group(3, GradientStyle.RADIAL)(
             SliderInput(
                 "Inner Radius",
-                minimum=0,
-                maximum=100,
+                min=0,
+                max=100,
                 default=0,
                 unit="%",
             ).with_id(6),
             SliderInput(
                 "Outer Radius",
-                minimum=0,
-                maximum=100,
+                min=0,
+                max=100,
                 default=100,
                 unit="%",
             ).with_id(7),
@@ -81,8 +81,8 @@ class GradientStyle(Enum):
         if_enum_group(3, GradientStyle.CONIC)(
             SliderInput(
                 "Rotation",
-                minimum=0,
-                maximum=360,
+                min=0,
+                max=360,
                 default=0,
                 unit="deg",
             ).with_id(8),

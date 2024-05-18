@@ -263,11 +263,8 @@ class Writer:
         if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9))(
             SliderInput(
                 "Quality (CRF)",
-                precision=0,
-                controls_step=1,
-                slider_step=1,
-                minimum=0,
-                maximum=51,
+                min=0,
+                max=51,
                 default=23,
                 ends=("Best", "Worst"),
             )
@@ -292,9 +289,7 @@ class Writer:
             .make_optional()
             .with_id(13)
         ),
-        NumberInput(
-            "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=4
-        ).with_id(14),
+        NumberInput("FPS", default=30, min=1, step=1, precision=4).with_id(14),
         if_group(~Condition.enum(4, VideoFormat.GIF))(
             AudioStreamInput().make_optional().with_id(15).suggest(),
             if_group(Condition.type(15, "AudioStream"))(

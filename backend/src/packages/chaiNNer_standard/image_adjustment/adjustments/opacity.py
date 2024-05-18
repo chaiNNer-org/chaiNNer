@@ -19,14 +19,7 @@ from .. import adjustments_group
     icon="MdOutlineOpacity",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Opacity",
-            maximum=100,
-            default=100,
-            precision=1,
-            controls_step=1,
-            unit="%",
-        ),
+        SliderInput("Opacity", max=100, default=100, precision=1, step=1, unit="%"),
     ],
     outputs=[
         ImageOutput(

@@ -31,9 +31,9 @@ class SelectMode(Enum):
         SliderInput(
             "Tolerance",
             default=5,
-            minimum=0,
-            maximum=30,
-            controls_step=1,
+            min=0,
+            max=30,
+            step=1,
             precision=1,
             unit="%",
         ),
@@ -47,7 +47,7 @@ class SelectMode(Enum):
             "- Largest Section: The largest section will be returned.",
             "So if the image has a border and a caption, *All* will return the inner image + caption, *Center*/*Largest* will return only the inner image (assuming the caption isn't larger than the inner image).",
         ),
-        NumberInput("Padding", default=0, minimum=0, maximum=1000, unit="px").with_docs(
+        NumberInput("Padding", default=0, min=0, max=1000, unit="px").with_docs(
             "Additional padding around the selected section.",
             "This can be used to avoid cutting off parts of the image that are close to the border.",
         ),

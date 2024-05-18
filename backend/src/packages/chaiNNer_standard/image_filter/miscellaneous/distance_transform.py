@@ -52,7 +52,7 @@ def binary_sdf(img: np.ndarray, spread: float) -> np.ndarray:
     icon="MdBlurOff",
     inputs=[
         ImageInput(channels=1),
-        NumberInput("Spread", minimum=1, default=4),
+        NumberInput("Spread", min=1, default=4),
         BoolInput("Sub-pixel precision", default=False).with_docs(
             "If enabled, then anti-aliasing will be accounted for. If not enabled, then the image will be converted to binary (either black or white) before processing.",
             "Enabling this option will significantly improve the results of anti-aliased shapes, but it cannot be used on anything else. It assumes strictly binary shapes (with optional anti-aliasing), and will return incorrect results for e.g. blurry images. If you cannot guarantee binary image, use the `chainner:image:threshold` node with *Anti-aliasing* enabled.",

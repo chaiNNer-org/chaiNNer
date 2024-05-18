@@ -49,10 +49,10 @@ _ADAPTIVE_METHOD_LABELS: dict[AdaptiveMethod, str] = {
         ).with_id(3),
         SliderInput(
             "Maximum Value",
-            maximum=100,
+            max=100,
             default=100,
             precision=1,
-            controls_step=1,
+            step=1,
         ).with_id(1),
         EnumInput(
             AdaptiveMethod,
@@ -60,11 +60,11 @@ _ADAPTIVE_METHOD_LABELS: dict[AdaptiveMethod, str] = {
             default=AdaptiveMethod.MEAN,
             option_labels=_ADAPTIVE_METHOD_LABELS,
         ).with_id(2),
-        NumberInput("Block Radius", default=1, minimum=1).with_id(4),
+        NumberInput("Block Radius", default=1, min=1).with_id(4),
         NumberInput(
             "Constant Subtraction",
-            minimum=-100,
-            maximum=100,
+            min=-100,
+            max=100,
             default=0,
             precision=1,
         )

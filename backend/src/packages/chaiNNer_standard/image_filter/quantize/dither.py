@@ -54,7 +54,7 @@ UNIFORM_DITHER_ALGORITHM_LABELS = {
     icon="MdShowChart",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        NumberInput("Colors per channel", minimum=2, default=8),
+        NumberInput("Colors per channel", min=2, default=8),
         EnumInput(
             UniformDitherAlgorithm,
             option_labels=UNIFORM_DITHER_ALGORITHM_LABELS,
@@ -75,11 +75,7 @@ UNIFORM_DITHER_ALGORITHM_LABELS = {
             ).with_id(4),
         ),
         if_enum_group(2, UniformDitherAlgorithm.RIEMERSMA)(
-            NumberInput(
-                "History Length",
-                minimum=2,
-                default=16,
-            ).with_id(5),
+            NumberInput("History Length", min=2, default=16).with_id(5),
         ),
     ],
     outputs=[ImageOutput(shape_as=0)],

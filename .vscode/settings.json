@@ -121,6 +121,7 @@
     "editor.formatOnSave": true,
   },
   "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.formatOnSave": true,
   },
   "[javascript]": {

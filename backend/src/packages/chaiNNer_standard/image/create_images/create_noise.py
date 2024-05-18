@@ -86,8 +86,8 @@ def _generate_noise(
     description="Create an image of specified dimensions filled with one of a variety of noises.",
     icon="MdFormatColorFill",
     inputs=[
-        NumberInput("Width", minimum=1, unit="px", default=256),
-        NumberInput("Height", minimum=1, unit="px", default=256),
+        NumberInput("Width", min=1, unit="px", default=256),
+        NumberInput("Height", min=1, unit="px", default=256),
         seed_group(SeedInput()),
         EnumInput(
             NoiseMethod,
@@ -102,32 +102,28 @@ def _generate_noise(
                 NoiseMethod.SMOOTH_VALUE_NOISE,
             ),
         )(
-            NumberInput("Scale", minimum=1, default=50, precision=1).with_id(4),
-            SliderInput(
-                "Brightness", minimum=0, default=100, maximum=100, precision=2
-            ).with_id(5),
+            NumberInput("Scale", min=1, default=50, precision=1).with_id(4),
+            SliderInput("Brightness", min=0, default=100, max=100, precision=2).with_id(
+                5
+            ),
             BoolInput("Tile Horizontal", default=False).with_id(10),
             BoolInput("Tile Vertical", default=False).with_id(11),
             BoolInput("Tile Spherical", default=False).with_id(12),
             EnumInput(FractalMethod, default=FractalMethod.NONE).with_id(6),
             if_enum_group(6, FractalMethod.PINK_NOISE)(
-                NumberInput(
-                    "Layers", minimum=2, maximum=20, default=3, precision=0
-                ).with_id(7),
-                NumberInput("Scale Ratio", minimum=1, default=2, precision=2).with_id(
-                    8
+                NumberInput("Layers", min=2, max=20, default=3).with_id(7),
+                NumberInput("Scale Ratio", min=1, default=2, precision=2).with_id(8),
+                NumberInput("Brightness Ratio", min=1, default=2, precision=2).with_id(
+                    9
                 ),
-                NumberInput(
-                    "Brightness Ratio", minimum=1, default=2, precision=2
-                ).with_id(9),
                 BoolInput("Increment Seed", default=True).with_id(13),
             ),
         ),
         if_enum_group(3, NoiseMethod.BLUE_NOISE)(
             SliderInput(
                 "Standard Deviation",
-                minimum=1,
-                maximum=100,
+                min=1,
+                max=100,
                 default=1.5,
                 precision=3,
                 scale="log-offset",

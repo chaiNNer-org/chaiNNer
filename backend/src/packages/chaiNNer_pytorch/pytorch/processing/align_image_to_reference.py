@@ -22,7 +22,7 @@ from api import NodeContext
 from nodes.impl.pytorch.rife.IFNet_HDv3_v4_14_align import (
     IFNet,
 )
-from nodes.impl.pytorch.utils import np2tensor, tensor2np
+from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
@@ -173,8 +173,8 @@ def align_images(
     description="Aligns an Image with a Reference Image using Rife. Images should have vague alignment before using this Node. Output Image will have the same dimensions as Reference Image. Resize Reference Image to get desired output scale.",
     icon="BsRulers",
     inputs=[
-        ImageInput(label="Image", channels=3),
-        ImageInput(label="Reference Image", channels=3),
+        ImageInput("Image", channels=3),
+        ImageInput("Reference Image", channels=3),
         EnumInput(
             PrecisionMode,
             label="Precision",
@@ -192,25 +192,18 @@ def align_images(
             "Higher values will internally align at higher resolutions to increase precision, which will in turn increase processing time and VRAM usage. Lower values are less precise, but can align over larger distances.",
             hint=True,
         ),
-        NumberInput(
-            "Alignment Passes",
-            controls_step=1,
-            minimum=1,
-            maximum=1000,
-            default=1,
-            unit="#",
-        ).with_docs(
+        NumberInput("Alignment Passes", min=1, max=1000, default=1, unit="#").with_docs(
             "Runs the alignment multiple times.",
             "With more than around 4 passes, artifacts can appear. Try to keep it low.",
             hint=True,
         ),
         NumberInput(
             "Blur Strength",
-            minimum=0,
-            maximum=100,
+            min=0,
+            max=100,
             default=0,
             precision=1,
-            controls_step=1,
+            step=1,
             unit="⌀",
         ).with_docs(
             "Blur is only used internally and will not be visible on the Output Image. It will reduce accuracy, try to keep it **low**. The **best** alignment will be at **Blur 0**.",
@@ -229,6 +222,7 @@ def align_image_to_reference_node(
     alignment_passes: int,
     blur_strength: float,
 ) -> np.ndarray:
+    context.add_cleanup(safe_cuda_cache_empty)
     multiplier = precision.value / 1000
     return align_images(
         context,

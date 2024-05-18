@@ -13,15 +13,12 @@ from .. import text_group
     icon="MdOutlineStickyNote2",
     inputs=[
         TextInput(
-            label="Note Text",
+            "Note Text",
             multiline=True,
             has_handle=False,
             label_style="hidden",
         ).make_optional(),
-        BoolInput(
-            label="Display Markdown",
-            default=False,
-        ),
+        BoolInput("Display Markdown", default=False),
     ],
     outputs=[],
 )

@@ -205,13 +205,7 @@ def DdsMipMapsDropdown() -> DropDownInput:
             | Condition.enum(4, ImageFormat.AVIF)
             | (Condition.enum(4, ImageFormat.WEBP) & Condition.enum(14, 0))
         )(
-            SliderInput(
-                "Quality",
-                minimum=0,
-                maximum=100,
-                default=95,
-                slider_step=1,
-            ).with_id(5),
+            SliderInput("Quality", min=0, max=100, default=95).with_id(5),
         ),
         if_enum_group(4, ImageFormat.JPG)(
             EnumInput(

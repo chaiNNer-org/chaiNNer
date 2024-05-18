@@ -157,16 +157,7 @@ export const formatTextPattern = (
     return Intrinsic.concat(...concatArgs);
 };
 
-const regexReplaceImpl = (
-    text: string,
-    regexPattern: string,
-    replacementPattern: string,
-    count: number
-): string => {
-    // parse and validate before doing actual work
-    const regex = new RRegex(regexPattern);
-    const replacement = new ReplacementString(replacementPattern);
-
+const validateReplacementForRegex = (regex: RRegex, replacement: ReplacementString): void => {
     // check replacement keys
     const availableNames = new Set<string>([
         ...regex.captureNames().filter(isNotNullish),
@@ -181,7 +172,13 @@ const regexReplaceImpl = (
             );
         }
     }
-
+};
+const regexReplaceImpl = (
+    text: string,
+    regex: RRegex,
+    replacement: ReplacementString,
+    count: number
+): string => {
     // do actual work
     if (count === 0) {
         return text;
@@ -220,19 +217,99 @@ export const regexReplace = wrapQuaternary<
     NumberPrimitive,
     StringPrimitive
 >((text, regexPattern, replacementPattern, count) => {
-    if (
-        text.type === 'literal' &&
-        regexPattern.type === 'literal' &&
-        replacementPattern.type === 'literal' &&
-        count.type === 'literal'
-    ) {
+    let regex;
+    if (regexPattern.type === 'literal') {
         try {
-            const result = regexReplaceImpl(
-                text.value,
-                regexPattern.value,
-                replacementPattern.value,
-                count.value
-            );
+            regex = new RRegex(regexPattern.value);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+
+    let replacement;
+    if (replacementPattern.type === 'literal') {
+        try {
+            replacement = new ReplacementString(replacementPattern.value);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+
+    if (regex && replacement) {
+        try {
+            validateReplacementForRegex(regex, replacement);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+
+    if (text.type === 'literal' && count.type === 'literal' && regex && replacement) {
+        try {
+            const result = regexReplaceImpl(text.value, regex, replacement, count.value);
+            return new StringLiteralType(result);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+    return StringType.instance;
+});
+export const regexFindImpl = (
+    text: string,
+    regex: RRegex,
+    replacement: ReplacementString
+): string => {
+    const match = regex.captures(text);
+    if (!match) {
+        throw new Error('No match found.');
+    }
+
+    const replacements = new Map<string, string>();
+    match.get.forEach((m, i) => replacements.set(String(i), m.value));
+    Object.entries(match.name).forEach(([name, m]) => replacements.set(name, m.value));
+    return replacement.replace(replacements);
+};
+export const regexFind = wrapTernary<
+    StringPrimitive,
+    StringPrimitive,
+    StringPrimitive,
+    StringPrimitive
+>((text, regexPattern, replacementPattern) => {
+    let regex;
+    if (regexPattern.type === 'literal') {
+        try {
+            regex = new RRegex(regexPattern.value);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+
+    let replacement;
+    if (replacementPattern.type === 'literal') {
+        try {
+            replacement = new ReplacementString(replacementPattern.value);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+
+    if (regex && replacement) {
+        try {
+            validateReplacementForRegex(regex, replacement);
+        } catch (error) {
+            log.debug('regexReplaceImpl', error);
+            return NeverType.instance;
+        }
+    }
+
+    if (text.type === 'literal' && regex && replacement) {
+        try {
+            const result = regexFindImpl(text.value, regex, replacement);
             return new StringLiteralType(result);
         } catch (error) {
             log.debug('regexReplaceImpl', error);

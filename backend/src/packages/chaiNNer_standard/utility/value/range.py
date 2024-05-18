@@ -13,9 +13,9 @@ from .. import value_group
     description="Iterates through all integers in the given range.",
     icon="MdCalculate",
     inputs=[
-        NumberInput("Start", default=0, minimum=None, maximum=None),
+        NumberInput("Start", default=0, min=None, max=None),
         BoolInput("Start Inclusive", default=True),
-        NumberInput("Stop", default=10, minimum=None, maximum=None),
+        NumberInput("Stop", default=10, min=None, max=None),
         BoolInput("Stop Inclusive", default=False),
     ],
     outputs=[

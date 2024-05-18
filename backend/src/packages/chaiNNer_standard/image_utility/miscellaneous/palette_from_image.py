@@ -56,9 +56,7 @@ MAX_COLORS = 4096
             1,
             (PaletteExtractionMethod.KMEANS, PaletteExtractionMethod.MEDIAN_CUT),
         )(
-            NumberInput(
-                "Palette Size", minimum=2, maximum=MAX_COLORS, default=8
-            ).with_id(2),
+            NumberInput("Palette Size", min=2, max=MAX_COLORS, default=8).with_id(2),
         ),
     ],
     outputs=[

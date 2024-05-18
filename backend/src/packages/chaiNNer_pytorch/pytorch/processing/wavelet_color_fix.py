@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F  # noqa: N812
 
 from api import NodeContext
-from nodes.impl.pytorch.utils import np2tensor, tensor2np
+from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
@@ -59,16 +59,9 @@ def wavelet_reconstruction(
     ],
     icon="MdAutoFixHigh",
     inputs=[
-        ImageInput(label="Image", channels=3),
-        ImageInput(label="Reference Image", channels=3),
-        NumberInput(
-            "Number of Wavelets",
-            controls_step=1,
-            minimum=1,
-            maximum=10,
-            default=5,
-            unit="#",
-        ).with_docs(
+        ImageInput("Image", channels=3),
+        ImageInput("Reference Image", channels=3),
+        NumberInput("Number of Wavelets", min=1, max=10, default=5, unit="#").with_docs(
             "Around 5 seems to work best in most cases.",
             "**Higher** means a more global color match. Wider bloom/bleed and less local color precision.",
             "**Lower** means a more local color match. Smaller bloom/bleed and more artifacts. Too low and the reference image will become visible.",
@@ -89,6 +82,7 @@ def wavelet_color_fix_node(
     )
 
     exec_options = get_settings(context)
+    context.add_cleanup(safe_cuda_cache_empty)
     device = exec_options.device
 
     # convert to tensors
