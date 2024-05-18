@@ -18,6 +18,17 @@
     }
 }
 
+:root {
+    /* type colors */
+    --type-color-directory: #805ad5;
+    --type-color-image: #d69e2e;
+    --type-color-number: #3182ce;
+    --type-color-string: #10b52c;
+    --type-color-torch: #dd6b20;
+    --type-color-onnx: #63b3ed;
+    --type-color-ncnn: #ed64a6;
+}
+
 :root[data-theme='dark'] {
     /* backgrounds */
     --bg-800: var(--theme-800);
@@ -70,15 +81,6 @@
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
-
-    /* type colors */
-    --type-color-directory: #805ad5;
-    --type-color-image: #d69e2e;
-    --type-color-number: #3182ce;
-    --type-color-string: #10b52c;
-    --type-color-torch: #dd6b20;
-    --type-color-onnx: #63b3ed;
-    --type-color-ncnn: #ed64a6;
 }
 
 :root[data-theme='light'] {
@@ -133,15 +135,6 @@
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
-
-    /* type colors */
-    --type-color-directory: #805ad5;
-    --type-color-image: #d69e2e;
-    --type-color-number: #3182ce;
-    --type-color-string: #10b52c;
-    --type-color-torch: #dd6b20;
-    --type-color-onnx: #63b3ed;
-    --type-color-ncnn: #ed64a6;
 }
 
 // Default theme (copied from Chakra UI)
