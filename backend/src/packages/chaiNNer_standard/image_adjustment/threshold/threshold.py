@@ -86,17 +86,17 @@ def threshold_node(
     thresh_type: ThresholdType,
     max_value: float,
     anti_aliasing: bool,
-    extra_smoothness: float,
+    extra_smoothness: int,
 ) -> np.ndarray:
     threshold /= 100
     max_value /= 100
-    extra_smoothness /= 10
+    smoothness = extra_smoothness / 10
 
     if not anti_aliasing:
         _, result = cv2.threshold(img, threshold, max_value, thresh_type.value)
         return result
 
-    binary = binary_threshold(img, threshold, True, extra_smoothness)
+    binary = binary_threshold(img, threshold, True, smoothness)
     if get_h_w_c(binary)[2] == 1:
         binary = as_2d_grayscale(binary)
 
