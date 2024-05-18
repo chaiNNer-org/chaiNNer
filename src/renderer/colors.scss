@@ -9,6 +9,7 @@
 
         // Generate 50% alphas
         --theme-#{$shade}-a50: #{color.adjust($color, $alpha: -0.5)};
+        --theme-#{$shade}-a75: #{color.adjust($color, $alpha: -0.25)};
 
         // Generate 25%, 50%, 75% shades
         @if $next-shade {
@@ -141,13 +142,13 @@
     --node-selector-bg: var(--bg-800);
 
     /* minimap */
-    --minimap-bg: var(--theme-400-a50);
-    --minimap-node: var(--theme-0-a50);
-    --minimap-mask-fill: var(--theme-400-a50);
-    --minimap-mask-stroke: var(--theme-0-a50);
+    --minimap-bg: var(--theme-300-a75);
+    --minimap-node: var(--theme-0-a75);
+    --minimap-mask-fill: var(--theme-300-a75);
+    --minimap-mask-stroke: var(--theme-0-a75);
 
     /* controls */
-    --controls-bg: var(--theme-400-a50);
+    --controls-bg: var(--theme-300-a75);
     --controls-bg-hover: var(--theme-400);
 }
 

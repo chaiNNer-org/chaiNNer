@@ -124,16 +124,16 @@ body {
     }
 
     .react-flow__controls-button {
-        border: 0 solid white !important;
+        border: 0 solid black !important;
         background: var(--controls-bg) !important;
 
         &:not(:disabled):hover {
             background: var(--controls-bg-hover) !important;
-            border: 0 solid white !important;
+            border: 0 solid black !important;
         }
 
         &:not(:disabled) > svg {
-            fill: white;
+            fill: black;
         }
     }
 
