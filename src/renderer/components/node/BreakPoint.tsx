@@ -7,7 +7,6 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData, OutputId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { useSettings } from '../../contexts/SettingsContext';
 import { UseContextMenu, useContextMenu } from '../../hooks/useContextMenu';
 import { useTypeColor } from '../../hooks/useTypeColor';
 
@@ -52,7 +51,6 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
     const { edgeChanges } = useContext(GlobalVolatileContext);
     const { removeNodesById, removeEdgeBreakpoint } = useContext(GlobalContext);
     const { functionDefinitions } = useContext(BackendContext);
-    const { theme } = useSettings();
 
     const menu = useBreakPointMenu(id);
 

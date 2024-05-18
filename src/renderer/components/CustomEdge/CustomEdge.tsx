@@ -82,7 +82,7 @@ export const CustomEdge = memo(
             (c) => c.effectivelyDisabledNodes
         );
         const { paused, getNodeStatus } = useContext(ExecutionContext);
-        const { animateChain, theme } = useSettings();
+        const { animateChain } = useSettings();
 
         const sourceStatus = getNodeStatus(source);
         const targetStatus = getNodeStatus(target);
