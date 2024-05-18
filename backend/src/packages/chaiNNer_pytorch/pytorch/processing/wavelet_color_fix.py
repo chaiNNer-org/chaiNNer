@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F  # noqa: N812
 
 from api import NodeContext
-from nodes.impl.pytorch.utils import np2tensor, tensor2np
+from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
@@ -82,6 +82,7 @@ def wavelet_color_fix_node(
     )
 
     exec_options = get_settings(context)
+    context.add_cleanup(safe_cuda_cache_empty)
     device = exec_options.device
 
     # convert to tensors

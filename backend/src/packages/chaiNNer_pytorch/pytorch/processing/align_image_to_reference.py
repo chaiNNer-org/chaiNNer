@@ -22,7 +22,7 @@ from api import NodeContext
 from nodes.impl.pytorch.rife.IFNet_HDv3_v4_14_align import (
     IFNet,
 )
-from nodes.impl.pytorch.utils import np2tensor, tensor2np
+from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput
@@ -222,6 +222,7 @@ def align_image_to_reference_node(
     alignment_passes: int,
     blur_strength: float,
 ) -> np.ndarray:
+    context.add_cleanup(safe_cuda_cache_empty)
     multiplier = precision.value / 1000
     return align_images(
         context,

@@ -115,4 +115,6 @@ def inpaint_node(
 
     exec_options = get_settings(context)
 
+    context.add_cleanup(safe_cuda_cache_empty)
+
     return inpaint(img, mask, model, exec_options)
