@@ -63,7 +63,7 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
         )
         .with_id(4),
         if_enum_group(4, 1)(
-            SliderInput("Softness", default=0, min=0, max=10, precision=1)
+            SliderInput("Softness", default=0, min=0, max=10)
             .with_docs(
                 "The strength of a sub-pixel blur applied to be anti-aliased image. This can be be used to make the anti-aliasing even softer.",
                 "The blur is very small and higher-quality than a simple Gaussian blur. 0 means that no additional blur will be applied. 10 means that the anti-aliasing will be very soft.",
@@ -86,17 +86,17 @@ def threshold_node(
     thresh_type: ThresholdType,
     max_value: float,
     anti_aliasing: bool,
-    extra_smoothness: float,
+    extra_smoothness: int,
 ) -> np.ndarray:
     threshold /= 100
     max_value /= 100
-    extra_smoothness /= 10
+    smoothness = extra_smoothness / 10
 
     if not anti_aliasing:
         _, result = cv2.threshold(img, threshold, max_value, thresh_type.value)
         return result
 
-    binary = binary_threshold(img, threshold, True, extra_smoothness)
+    binary = binary_threshold(img, threshold, True, smoothness)
     if get_h_w_c(binary)[2] == 1:
         binary = as_2d_grayscale(binary)
 
