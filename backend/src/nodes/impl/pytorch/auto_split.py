@@ -52,8 +52,9 @@ def _into_tensor(
     img: np.ndarray, device: torch.device, dtype: torch.dtype
 ) -> torch.Tensor:
     img = np.ascontiguousarray(img)
+    writeable = img.flags.writeable
     try:
-        if not img.flags.writeable and device == torch.device("cpu"):
+        if not writeable and device == torch.device("cpu"):
             img = np.copy(img)
         else:
             # since we are going to copy the image to the GPU, we can skip the copy here
@@ -61,7 +62,7 @@ def _into_tensor(
         input_tensor = torch.from_numpy(img).to(device, dtype)
         return input_tensor
     finally:
-        img.flags.writeable = False
+        img.flags.writeable = writeable
 
 
 @torch.inference_mode()
