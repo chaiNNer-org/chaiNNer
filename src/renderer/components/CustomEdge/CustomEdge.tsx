@@ -11,7 +11,6 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { useSettings } from '../../contexts/SettingsContext';
-import { getTypeAccentColors } from '../../helpers/accentColors';
 import { shadeColor } from '../../helpers/colorTools';
 import {
     BREAKPOINT_RADIUS,
@@ -21,6 +20,7 @@ import {
 } from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
 import './CustomEdge.scss';
+import { useTypeColor } from '../../hooks/useTypeColor';
 
 const EDGE_CLASS = {
     RUNNING: 'running',
@@ -179,11 +179,7 @@ export const CustomEdge = memo(
             c.typeState.functions.get(source)?.outputs.get(outputId)
         );
 
-        const [accentColor] = useMemo(
-            () => getTypeAccentColors(type || definitionType),
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            [type, definitionType, theme]
-        );
+        const [accentColor] = useTypeColor(type || definitionType);
         const currentColor = selected ? shadeColor(accentColor, -40) : accentColor;
 
         const buttonSize = 32;

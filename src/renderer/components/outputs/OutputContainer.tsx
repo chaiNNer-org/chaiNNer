@@ -7,8 +7,7 @@ import { Output, OutputId } from '../../../common/common-types';
 import { stringifySourceHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { useSettings } from '../../contexts/SettingsContext';
-import { getTypeAccentColors } from '../../helpers/accentColors';
+import { useTypeColor } from '../../hooks/useTypeColor';
 import { Handle } from '../Handle';
 import { TypeTags } from '../TypeTag';
 
@@ -23,7 +22,6 @@ export interface OutputHandleProps {
 
 export const OutputHandle = memo(
     ({ id, outputId, isIterated, definitionType, type, isConnected }: OutputHandleProps) => {
-        const { theme } = useSettings();
         const { isValidConnection, useConnectingFrom } = useContext(GlobalVolatileContext);
         const [connectingFrom] = useConnectingFrom;
 
@@ -55,11 +53,7 @@ export const OutputHandle = memo(
             });
         }, [connectingFrom, id, sourceHandle, isValidConnection]);
 
-        const handleColors = useMemo(
-            () => getTypeAccentColors(type || definitionType),
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-            [type, definitionType, theme]
-        );
+        const handleColors = useTypeColor(type || definitionType);
 
         return (
             <Center

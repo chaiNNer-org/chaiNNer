@@ -3,11 +3,13 @@ import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
 import { Handle, Position } from 'reactflow';
 import { useContextSelector } from 'use-context-selector';
+import { Output } from '../../../common/common-types';
+import { FunctionDefinition } from '../../../common/types/function';
 import { stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { defaultColor, getTypeAccentColors } from '../../helpers/accentColors';
 import { NodeState } from '../../helpers/nodeState';
 import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
+import { useTypeColor } from '../../hooks/useTypeColor';
 import { getBackground } from '../Handle';
 
 interface InputHandleProps {
@@ -31,7 +33,7 @@ const InputHandle = memo(({ isIterated, targetHandle }: InputHandleProps) => {
                 isConnectable={false}
                 position={Position.Left}
                 style={{
-                    borderColor: sourceTypeColor || defaultColor,
+                    borderColor: sourceTypeColor,
                     borderRadius: isIterated ? '10%' : '50%',
                 }}
                 type="target"
@@ -39,6 +41,46 @@ const InputHandle = memo(({ isIterated, targetHandle }: InputHandleProps) => {
         </Box>
     );
 });
+
+interface OutputHandleProps {
+    output: Output;
+    nodeState: NodeState;
+    functionDefinition: FunctionDefinition | undefined;
+    isIterated: boolean;
+    sourceHandle: string;
+}
+
+const OutputHandle = memo(
+    ({ output, nodeState, functionDefinition, isIterated, sourceHandle }: OutputHandleProps) => {
+        const functions = functionDefinition?.outputDefaults;
+        const definitionType = functions?.get(output.id) ?? NeverType.instance;
+        const type = nodeState.type.instance?.outputs.get(output.id);
+
+        const handleColors = useTypeColor(type || definitionType);
+
+        return (
+            <Box
+                h="6px"
+                key={sourceHandle}
+                ml="auto"
+                position="relative"
+                w="6px"
+            >
+                <Handle
+                    className="output-handle"
+                    id={sourceHandle}
+                    isConnectable={false}
+                    position={Position.Right}
+                    style={{
+                        borderColor: getBackground(handleColors),
+                        borderRadius: isIterated ? '10%' : '50%',
+                    }}
+                    type="source"
+                />
+            </Box>
+        );
+    }
+);
 
 interface CollapsedHandlesProps {
     nodeState: NodeState;
@@ -98,36 +140,17 @@ export const CollapsedHandles = memo(({ nodeState }: CollapsedHandlesProps) => {
                         if (!isConnected) {
                             return null;
                         }
-
-                        const functions = functionDefinition?.outputDefaults;
-                        const definitionType = functions?.get(output.id) ?? NeverType.instance;
-                        const type = nodeState.type.instance?.outputs.get(output.id);
-                        const handleColors = getTypeAccentColors(type || definitionType);
-
                         const isIterated = iteratedOutputs.has(output.id);
-
                         const sourceHandle = stringifySourceHandle({ nodeId, outputId: output.id });
-
                         return (
-                            <Box
-                                h="6px"
-                                key={sourceHandle}
-                                ml="auto"
-                                position="relative"
-                                w="6px"
-                            >
-                                <Handle
-                                    className="output-handle"
-                                    id={sourceHandle}
-                                    isConnectable={false}
-                                    position={Position.Right}
-                                    style={{
-                                        borderColor: getBackground(handleColors),
-                                        borderRadius: isIterated ? '10%' : '50%',
-                                    }}
-                                    type="source"
-                                />
-                            </Box>
+                            <OutputHandle
+                                functionDefinition={functionDefinition}
+                                isIterated={isIterated}
+                                key={output.id}
+                                nodeState={nodeState}
+                                output={output}
+                                sourceHandle={sourceHandle}
+                            />
                         );
                     })}
                 </Box>
