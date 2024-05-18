@@ -23,7 +23,7 @@ from .. import miscellaneous_group
             has_handle=False,
             min_length=1,
         ),
-        NumberInput("Padding", minimum=0, default=0),
+        NumberInput("Padding", min=0, default=0),
     ],
     outputs=[
         ImageOutput(

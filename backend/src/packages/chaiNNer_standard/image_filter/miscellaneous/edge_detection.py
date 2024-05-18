@@ -123,9 +123,7 @@ LAPLACE_KERNEL = 0.25 * np.array(
     icon="MdAutoFixHigh",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Amount", minimum=0, default=1, maximum=10, precision=2, scale="log"
-        ),
+        SliderInput("Amount", min=0, default=1, max=10, precision=2, scale="log"),
         EnumInput(Algorithm).with_id(2),
         if_enum_group(
             2,
@@ -139,8 +137,8 @@ LAPLACE_KERNEL = 0.25 * np.array(
             EnumInput(GradientComponent),
         ),
         if_enum_group(2, Algorithm.DIFFERENCE_OF_GAUSSIAN)(
-            SliderInput("Radius 1", minimum=0, default=1, maximum=10, precision=3),
-            SliderInput("Radius 2", minimum=0, default=2, maximum=20, precision=3),
+            SliderInput("Radius 1", min=0, default=1, max=10, precision=3),
+            SliderInput("Radius 2", min=0, default=2, max=20, precision=3),
         ),
     ],
     outputs=[ImageOutput(shape_as=0)],

@@ -141,32 +141,17 @@ def lens_blur(
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Radius",
-            minimum=0,
-            maximum=1000,
-            default=3,
-            precision=0,
-            controls_step=1,
-            scale="log",
-        ),
-        SliderInput(
-            "Components",
-            minimum=1,
-            maximum=6,
-            default=5,
-            precision=0,
-            controls_step=1,
-        ).with_docs(
+        SliderInput("Radius", min=0, max=1000, default=3, scale="log"),
+        SliderInput("Components", min=1, max=6, default=5).with_docs(
             "This controls the quality of the lens blur. More components will result in a more realistic blur, but will also be slower to compute."
         ),
         SliderInput(
             "Exposure Gamma",
-            minimum=0.01,
-            maximum=100,
+            min=0.01,
+            max=100,
             default=5,
             precision=4,
-            controls_step=0.1,
+            step=0.1,
             scale="log",
         ),
     ],

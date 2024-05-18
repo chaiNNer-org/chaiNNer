@@ -85,7 +85,7 @@ def inpaint(
     icon="PyTorch",
     inputs=[
         ImageInput(channels=3),
-        ImageInput(label="Mask", channels=1).with_docs(
+        ImageInput("Mask", channels=1).with_docs(
             "An inpainting mask is a grayscale image where white represents what to inpaint and black represents what to keep.",
             "This must typically be made outside of chaiNNer.",
             hint=True,
@@ -114,5 +114,7 @@ def inpaint_node(
     ), "Input image and mask must have the same resolution"
 
     exec_options = get_settings(context)
+
+    context.add_cleanup(safe_cuda_cache_empty)
 
     return inpaint(img, mask, model, exec_options)

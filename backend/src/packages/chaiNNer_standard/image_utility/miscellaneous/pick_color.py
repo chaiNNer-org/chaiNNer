@@ -34,40 +34,18 @@ class CoordinateType(Enum):
             CoordinateType, default=CoordinateType.ABSOLUTE, preferred_style="tabs"
         ).with_id(3),
         if_enum_group(3, CoordinateType.RELATIVE)(
-            SliderInput(
-                "X",
-                maximum=100,
-                default=0,
-                controls_step=1,
-                unit="%",
-            )
+            SliderInput("X", max=100, default=0, unit="%")
             .with_docs("Relative X coordinate.")
             .with_id(4),
-            SliderInput(
-                "Y",
-                maximum=100,
-                default=0,
-                controls_step=1,
-                unit="%",
-            )
+            SliderInput("Y", max=100, default=0, unit="%")
             .with_docs("Relative Y coordinate.")
             .with_id(5),
         ),
         if_enum_group(3, CoordinateType.ABSOLUTE)(
-            NumberInput(
-                "X",
-                default=0,
-                minimum=0,
-                unit="px",
-            )
+            NumberInput("X", default=0, min=0, unit="px")
             .with_docs("Absolute X coordinate.")
             .with_id(1),
-            NumberInput(
-                "Y",
-                default=0,
-                minimum=0,
-                unit="px",
-            )
+            NumberInput("Y", default=0, min=0, unit="px")
             .with_docs("Absolute Y coordinate.")
             .with_id(2),
         ),

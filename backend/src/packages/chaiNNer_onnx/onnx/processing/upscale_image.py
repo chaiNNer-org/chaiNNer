@@ -80,11 +80,9 @@ def upscale(
         if_enum_group(2, CUSTOM)(
             NumberInput(
                 "Custom Tile Size",
-                minimum=1,
-                maximum=None,
+                min=1,
+                max=None,
                 default=TILE_SIZE_256,
-                precision=0,
-                controls_step=1,
                 unit="px",
                 has_handle=False,
             )
@@ -111,7 +109,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: OnnxModel,
     tile_size: TileSize,
-    custom_tile_size: int | None,
+    custom_tile_size: int,
     separate_alpha: bool,
 ) -> np.ndarray:
     settings = get_settings(context)
@@ -143,9 +141,7 @@ def upscale_image_node(
         lambda i: upscale(
             i,
             session,
-            TileSize(custom_tile_size)
-            if tile_size == CUSTOM and custom_tile_size is not None
-            else tile_size,
+            TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
             change_shape,
             exact_size,
         ),

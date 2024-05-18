@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import weakref
+
 import numpy as np
 import psutil
 import torch
@@ -9,6 +11,7 @@ from spandrel import ImageModelDescriptor, ModelTiling
 from api import KeyInfo, NodeContext, Progress
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
+from nodes.impl.pytorch.utils import safe_cuda_cache_empty
 from nodes.impl.upscale.auto_split_tiles import (
     CUSTOM,
     NO_TILING,
@@ -33,6 +36,8 @@ from nodes.utils.utils import get_h_w_c
 from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
 
+MODEL_BYTES_CACHE = weakref.WeakKeyDictionary()
+
 
 def upscale(
     img: np.ndarray,
@@ -54,15 +59,16 @@ def upscale(
             tile_size = NO_TILING
 
         def estimate():
-            element_size = 2 if use_fp16 else 4
-            model_bytes = sum(
-                p.numel() * element_size for p in model.model.parameters()
-            )
+            model_bytes = MODEL_BYTES_CACHE.get(model)
+            if model_bytes is None:
+                model_bytes = sum(p.numel() * 4 for p in model.model.parameters())
+                MODEL_BYTES_CACHE[model] = model_bytes
 
             if "cuda" in device.type:
+                if options.use_fp16:
+                    model_bytes = model_bytes // 2
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
-                element_size = 2 if use_fp16 else 4
                 if options.budget_limit > 0:
                     free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
@@ -72,7 +78,7 @@ def upscale(
                         budget,
                         model_bytes,
                         img,
-                        element_size,
+                        2 if use_fp16 else 4,
                     )
                 )
             elif device.type == "cpu":
@@ -85,7 +91,7 @@ def upscale(
                         budget,
                         model_bytes,
                         img,
-                        element_size,
+                        4,
                     )
                 )
             return MaxTileSize()
@@ -144,7 +150,7 @@ def upscale(
             ),
             if_group(Condition.bool(4, True))(
                 NumberInput(
-                    "Scale", default=4, minimum=1, maximum=32, label_style="hidden"
+                    "Scale", default=4, min=1, max=32, label_style="hidden"
                 ).with_id(5),
             ),
         ),
@@ -174,11 +180,9 @@ def upscale(
         if_enum_group(2, CUSTOM)(
             NumberInput(
                 "Custom Tile Size",
-                minimum=1,
-                maximum=None,
+                min=1,
+                max=None,
                 default=TILE_SIZE_256,
-                precision=0,
-                controls_step=1,
                 unit="px",
                 has_handle=False,
             ).with_id(6),
@@ -257,10 +261,12 @@ def upscale_image_node(
     use_custom_scale: bool,
     custom_scale: int,
     tile_size: TileSize,
-    custom_tile_size: int | None,
+    custom_tile_size: int,
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
+
+    context.add_cleanup(safe_cuda_cache_empty)
 
     in_nc = model.input_channels
     out_nc = model.output_channels
@@ -280,9 +286,7 @@ def upscale_image_node(
             lambda i: upscale(
                 i,
                 model,
-                TileSize(custom_tile_size)
-                if tile_size == CUSTOM and custom_tile_size is not None
-                else tile_size,
+                TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
                 exec_options,
                 context,
             ),

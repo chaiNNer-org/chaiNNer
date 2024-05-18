@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, NewType, Sequence, Union
+from typing import Callable, Iterable, List, NewType, Sequence, Union
 
 from sanic.log import logger
 
@@ -342,13 +342,19 @@ class _ExecutorNodeContext(NodeContext):
         self.__settings = settings
         self._storage_dir = storage_dir
 
+        self.cleanup_fns: set[Callable[[], None]] = set()
+
     @property
     def aborted(self) -> bool:
         return self.progress.aborted
 
     @property
     def paused(self) -> bool:
-        time.sleep(0.001)
+        # Python is single-threaded, so it's necessary for this thread to yield, so other threads can do some work.
+        # This is necessary because the thread for accepting the `/pause` endpoint would not be able to accept requests otherwise.
+        # This in turn would mean that `self.progress.paused` would never be set to True.
+        # For more information, see https://github.com/chaiNNer-org/chaiNNer/pull/2853
+        time.sleep(0)
         return self.progress.paused
 
     def set_progress(self, progress: float) -> None:
@@ -366,6 +372,9 @@ class _ExecutorNodeContext(NodeContext):
     @property
     def storage_dir(self) -> Path:
         return self._storage_dir
+
+    def add_cleanup(self, fn: Callable[[], None]) -> None:
+        self.cleanup_fns.add(fn)
 
 
 class Executor:
@@ -804,6 +813,14 @@ class Executor:
 
         # clear cache after the chain is done
         self.cache.clear()
+
+        # Run cleanup functions
+        for context in self.__context_cache.values():
+            for fn in context.cleanup_fns:
+                try:
+                    fn()
+                except Exception as e:
+                    logger.error(f"Error running cleanup function: {e}")
 
         # await all broadcasts
         tasks = self.__broadcast_tasks
