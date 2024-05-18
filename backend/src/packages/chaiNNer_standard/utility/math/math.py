@@ -48,21 +48,9 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
     ],
     icon="MdCalculate",
     inputs=[
-        NumberInput(
-            "Operand a",
-            minimum=None,
-            maximum=None,
-            precision=100,
-            controls_step=1,
-        ),
+        NumberInput("Operand a", min=None, max=None, precision=100, step=1),
         EnumInput(MathOperation, "Math Operation", option_labels=OP_LABEL),
-        NumberInput(
-            "Operand b",
-            minimum=None,
-            maximum=None,
-            precision=100,
-            controls_step=1,
-        ),
+        NumberInput("Operand b", min=None, max=None, precision=100, step=1),
     ],
     outputs=[
         NumberOutput(

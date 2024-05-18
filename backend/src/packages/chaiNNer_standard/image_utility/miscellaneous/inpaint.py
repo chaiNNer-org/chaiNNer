@@ -28,7 +28,7 @@ class InpaintAlgorithm(Enum):
     icon="MdOutlineAutoFixHigh",
     inputs=[
         ImageInput(channels=[1, 3]),
-        ImageInput(label="Mask", channels=1).with_docs(
+        ImageInput("Mask", channels=1).with_docs(
             "An inpainting mask is a grayscale image where white represents what to inpaint and black represents what to keep.",
             "This must typically be made outside of chaiNNer.",
             hint=True,
@@ -40,13 +40,7 @@ class InpaintAlgorithm(Enum):
                 InpaintAlgorithm.TELEA: "Telea",
             },
         ),
-        NumberInput(
-            "Search Radius",
-            minimum=0,
-            default=1,
-            precision=1,
-            controls_step=1,
-        ),
+        NumberInput("Search Radius", min=0, default=1, precision=1, step=1),
     ],
     outputs=[
         ImageOutput(

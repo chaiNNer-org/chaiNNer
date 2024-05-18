@@ -78,7 +78,7 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
         ),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(4, True))(
-            NumberInput("Limit", default=10, minimum=1).with_docs(
+            NumberInput("Limit", default=10, min=1).with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
         ),

@@ -26,6 +26,7 @@ class ImageInput(BaseInput):
     def __init__(
         self,
         label: str = "Image",
+        *,
         image_type: navi.ExpressionJson = "Image | Color",
         channels: int | list[int] | None = None,
         allow_colors: bool = False,

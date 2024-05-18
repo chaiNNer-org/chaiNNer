@@ -148,7 +148,7 @@ class DropDownInput(BaseInput[T]):
 
 
 class BoolInput(DropDownInput[bool]):
-    def __init__(self, label: str, default: bool = True, icon: str | None = None):
+    def __init__(self, label: str, *, default: bool = True, icon: str | None = None):
         super().__init__(
             input_type="bool",
             label=label,
@@ -203,6 +203,7 @@ class EnumInput(DropDownInput[E]):
         self,
         enum: type[E],
         label: str | None = None,
+        *,
         default: E | None = None,
         type_name: str | None = None,
         option_labels: dict[E, str] | None = None,
@@ -283,6 +284,7 @@ class TextInput(BaseInput[str]):
     def __init__(
         self,
         label: str,
+        *,
         has_handle: bool = True,
         min_length: int = 0,
         max_length: int | None = None,
@@ -388,11 +390,11 @@ class AnyInput(BaseInput[object]):
 
 
 class SeedInput(NumberInput):
-    def __init__(self, label: str = "Seed", has_handle: bool = True):
+    def __init__(self, label: str = "Seed", *, has_handle: bool = True):
         super().__init__(
             label=label,
-            minimum=None,
-            maximum=None,
+            min=None,
+            max=None,
             precision=0,
             default=0,
             label_style="default",
@@ -425,6 +427,7 @@ class ColorInput(BaseInput[Color]):
     def __init__(
         self,
         label: str = "Color",
+        *,
         default: Color | None = None,
         channels: int | list[int] | None = None,
     ):
@@ -529,7 +532,7 @@ def FillColorDropdown() -> DropDownInput:
 
 
 def TileSizeDropdown(
-    label: str = "Tile Size", estimate: bool = True, default: TileSize | None = None
+    label: str = "Tile Size", *, estimate: bool = True, default: TileSize | None = None
 ) -> DropDownInput:
     options = []
     if estimate:

@@ -15,10 +15,10 @@ from .. import value_group
     inputs=[
         NumberInput(
             "Number",
-            minimum=None,
-            maximum=None,
+            min=None,
+            max=None,
             precision=100,
-            controls_step=1,
+            step=1,
             label_style="hidden",
         ).make_fused(),
     ],

@@ -80,11 +80,9 @@ def upscale(
         if_enum_group(2, CUSTOM)(
             NumberInput(
                 "Custom Tile Size",
-                minimum=1,
-                maximum=None,
+                min=1,
+                max=None,
                 default=TILE_SIZE_256,
-                precision=0,
-                controls_step=1,
                 unit="px",
                 has_handle=False,
             )

@@ -150,7 +150,7 @@ def upscale(
             ),
             if_group(Condition.bool(4, True))(
                 NumberInput(
-                    "Scale", default=4, minimum=1, maximum=32, label_style="hidden"
+                    "Scale", default=4, min=1, max=32, label_style="hidden"
                 ).with_id(5),
             ),
         ),
@@ -180,11 +180,9 @@ def upscale(
         if_enum_group(2, CUSTOM)(
             NumberInput(
                 "Custom Tile Size",
-                minimum=1,
-                maximum=None,
+                min=1,
+                max=None,
                 default=TILE_SIZE_256,
-                precision=0,
-                controls_step=1,
                 unit="px",
                 has_handle=False,
             ).with_id(6),
