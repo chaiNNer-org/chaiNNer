@@ -48,21 +48,26 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
     ],
     icon="MdCalculate",
     inputs=[
+        EnumInput(
+            MathOperation,
+            "Math Operation",
+            option_labels=OP_LABEL,
+            label_style="hidden",
+        ).with_id(1),
         NumberInput(
-            "Operand a",
+            "A",
             minimum=None,
             maximum=None,
             precision=100,
             controls_step=1,
-        ),
-        EnumInput(MathOperation, "Math Operation", option_labels=OP_LABEL),
+        ).with_id(0),
         NumberInput(
-            "Operand b",
+            "B",
             minimum=None,
             maximum=None,
             precision=100,
             controls_step=1,
-        ),
+        ).with_id(2),
     ],
     outputs=[
         NumberOutput(
@@ -91,9 +96,11 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
                     MathOperation::Percent  => a * b / 100,
                 }
                 """,
-        ).with_never_reason(
+        )
+        .with_never_reason(
             "The mathematical operation is not defined. This is most likely a divide by zero error."
         )
+        .as_passthrough_of(0)
     ],
 )
 def math_node(a: float, op: MathOperation, b: float) -> int | float:
