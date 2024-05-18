@@ -5,6 +5,7 @@ import numpy as np
 from api import NodeContext
 from nodes.impl.pytorch.pix_transform.auto_split import pix_transform_auto_split
 from nodes.impl.pytorch.pix_transform.pix_transform import Params
+from nodes.impl.pytorch.utils import safe_cuda_cache_empty
 from nodes.impl.upscale.grayscale import SplitMode
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -78,6 +79,7 @@ def guided_upscale_node(
     iterations: float,
     split_mode: SplitMode,
 ) -> np.ndarray:
+    context.add_cleanup(safe_cuda_cache_empty)
     return pix_transform_auto_split(
         source=source,
         guide=guide,
