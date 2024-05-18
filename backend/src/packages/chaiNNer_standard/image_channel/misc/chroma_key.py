@@ -47,20 +47,14 @@ class KeyMethod(Enum):
         ColorInput(channels=3),
         EnumInput(KeyMethod).with_id(2),
         if_enum_group(2, KeyMethod.BINARY)(
-            SliderInput(
-                "Threshold", maximum=100, default=1, precision=1, controls_step=1
-            )
+            SliderInput("Threshold", max=100, default=1, precision=1, step=1)
         ),
         if_enum_group(2, KeyMethod.TRIMAP_MATTING)(
-            SliderInput(
-                "Threshold BG", maximum=100, default=2, precision=1, controls_step=1
-            ),
-            SliderInput(
-                "Threshold FG", maximum=100, default=10, precision=1, controls_step=1
-            ),
+            SliderInput("Threshold BG", max=100, default=2, precision=1, step=1),
+            SliderInput("Threshold FG", max=100, default=10, precision=1, step=1),
             linked_inputs_group(
-                SliderInput("Confusion BG", maximum=100, default=4, scale="log"),
-                SliderInput("Confusion FG", maximum=100, default=4, scale="log"),
+                SliderInput("Confusion BG", max=100, default=4, scale="log"),
+                SliderInput("Confusion FG", max=100, default=4, scale="log"),
             ),
             BoolInput("Output Trimap", default=False).with_docs(
                 "If enabled, the generated trimap will be used as alpha. No alpha matting will be performed."

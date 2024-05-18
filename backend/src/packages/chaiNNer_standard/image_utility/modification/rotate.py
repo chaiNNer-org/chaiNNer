@@ -31,9 +31,9 @@ from .. import modification_group
         SliderInput(
             "Rotation Angle",
             default=0,
-            maximum=360,
+            max=360,
             precision=1,
-            controls_step=45,
+            step=45,
             slider_step=1,
             unit="°",
         ),

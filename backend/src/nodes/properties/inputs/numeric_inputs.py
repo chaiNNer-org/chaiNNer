@@ -49,11 +49,12 @@ class NumberInput(BaseInput):
     def __init__(
         self,
         label: str,
+        *,
         precision: int = 0,
-        controls_step: float | int | None = None,
+        step: float | int | None = None,
         default: float | int = 0,
-        minimum: float | int | None = 0,
-        maximum: float | int | None = None,
+        min: float | int | None = 0,
+        max: float | int | None = None,
         unit: str | None = None,
         note_expression: str | None = None,
         kind: InputKind = "number",
@@ -64,12 +65,10 @@ class NumberInput(BaseInput):
         super().__init__("number", label, kind=kind, has_handle=has_handle)
         self.precision = precision
         # controls_step is for increment/decrement arrows.
-        self.controls_step: float | int = (
-            controls_step if controls_step is not None else 10**-precision
-        )
+        self.step: float | int = step if step is not None else 10**-precision
         self.default = default
-        self.minimum = minimum
-        self.maximum = maximum
+        self.min = min
+        self.max = max
         self.unit = unit
         self.note_expression = note_expression
         self.hide_trailing_zeros = hide_trailing_zeros
@@ -77,23 +76,19 @@ class NumberInput(BaseInput):
 
         self.associated_type = float if precision > 0 else int
 
-        self.input_type = get_number_type(
-            self.minimum,
-            self.maximum,
-            self.precision,
-        )
+        self.input_type = get_number_type(self.min, self.max, self.precision)
         if self.precision == 0:
             self.input_conversions = [InputConversion("number", "round(Input)")]
 
     def to_dict(self):
         return {
             **super().to_dict(),
-            "min": self.minimum,
-            "max": self.maximum,
+            "min": self.min,
+            "max": self.max,
             "noteExpression": self.note_expression,
             "def": self.default,
             "precision": self.precision,
-            "controlsStep": self.controls_step,
+            "controlsStep": self.step,
             "unit": self.unit,
             "hideTrailingZeros": self.hide_trailing_zeros,
             "labelStyle": self.label_style,
@@ -109,7 +104,7 @@ class NumberInput(BaseInput):
         if math.isnan(value):
             raise ValueError("NaN is not a valid number")
 
-        return clamp_number(value, self.precision, self.minimum, self.maximum)
+        return clamp_number(value, self.precision, self.min, self.max)
 
 
 class SliderInput(NumberInput):
@@ -118,11 +113,12 @@ class SliderInput(NumberInput):
     def __init__(
         self,
         label: str,
+        *,
         precision: int = 0,
-        controls_step: float | int | None = None,
+        step: float | int | None = None,
         slider_step: float | int | None = None,
-        minimum: float | int = 0,
-        maximum: float | int = 100,
+        min: float | int = 0,
+        max: float | int = 100,
         default: float | int = 50,
         unit: str | None = None,
         note_expression: str | None = None,
@@ -135,10 +131,10 @@ class SliderInput(NumberInput):
         super().__init__(
             label,
             precision=precision,
-            controls_step=controls_step,
+            step=step,
             default=default,
-            minimum=minimum,
-            maximum=maximum,
+            min=min,
+            max=max,
             unit=unit,
             note_expression=note_expression,
             kind="slider",
@@ -149,7 +145,7 @@ class SliderInput(NumberInput):
         self.slider_step = (
             slider_step
             if slider_step is not None
-            else (controls_step if controls_step is not None else 10**-precision)
+            else (step if step is not None else 10**-precision)
         )
         self.gradient = gradient
         self.scale = scale

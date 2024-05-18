@@ -45,7 +45,7 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
     icon="MdShowChart",
     inputs=[
         ImageInput(channels=[1, 3, 4]),
-        ImageInput(label="Palette", image_type=navi.Image(channels_as="Input0")),
+        ImageInput("Palette", image_type=navi.Image(channels_as="Input0")),
         EnumInput(
             PaletteDitherAlgorithm,
             option_labels=PALETTE_DITHER_ALGORITHM_LABELS,
@@ -59,11 +59,7 @@ PALETTE_DITHER_ALGORITHM_LABELS = {
             ).with_id(3),
         ),
         if_enum_group(2, PaletteDitherAlgorithm.RIEMERSMA)(
-            NumberInput(
-                "History Length",
-                minimum=2,
-                default=16,
-            ).with_id(4),
+            NumberInput("History Length", min=2, default=16).with_id(4),
         ),
     ],
     outputs=[ImageOutput(shape_as=0)],

@@ -45,7 +45,7 @@ class NoiseType(Enum):
                 NoiseColor.GRAY: "Monochrome",
             },
         ),
-        SliderInput("Amount", minimum=0, maximum=100, default=50),
+        SliderInput("Amount", min=0, max=100, default=50),
         seed_group(SeedInput()),
     ],
     outputs=[
