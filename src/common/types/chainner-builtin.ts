@@ -4,6 +4,7 @@ import {
     Intrinsic,
     NeverType,
     NumberPrimitive,
+    Scope,
     StringLiteralType,
     StringPrimitive,
     StringType,
@@ -16,14 +17,14 @@ import {
     literal,
     union,
     wrapBinary,
-    wrapQuaternary,
     wrapScopedBinary,
+    wrapScopedQuaternary,
+    wrapScopedTernary,
     wrapScopedUnary,
     wrapTernary,
 } from '@chainner/navi';
 import path from 'path';
 import { ColorJson } from '../common-types';
-import { log } from '../log';
 import { RRegex } from '../rust-regex';
 import { isNotNullish } from '../util';
 
@@ -113,11 +114,30 @@ class ReplacementString {
     }
 }
 
+type ErrorFactor = ((message: string) => StructInstanceType) & { default: StructInstanceType };
+const createError = (scope: Scope): ErrorFactor => {
+    const errorDesc = getStructDescriptor(scope, 'Error');
+
+    const factory = (message: string) => {
+        return createInstance(errorDesc, {
+            message: literal(message),
+        });
+    };
+
+    const result = factory as ErrorFactor;
+    result.default = errorDesc.default;
+
+    return result;
+};
+
 export const formatTextPattern = (
+    scope: Scope,
     pattern: Arg<StringPrimitive>,
     ...args: Arg<StringPrimitive | StructType>[]
-): Arg<StringPrimitive> => {
+): Arg<StringPrimitive | StructInstanceType> => {
     if (pattern.type === 'never') return NeverType.instance;
+
+    const newError = createError(scope);
 
     const argsMap = new Map<string, Arg<StringPrimitive>>();
     for (const [arg, name] of args.map((a, i) => [a, String(i + 1)] as const)) {
@@ -130,14 +150,13 @@ export const formatTextPattern = (
         }
     }
 
-    if (pattern.type !== 'literal') return StringType.instance;
+    if (pattern.type !== 'literal') return union(StringType.instance, newError.default);
 
     let parsed;
     try {
         parsed = new ReplacementString(pattern.value);
-    } catch {
-        // Invalid pattern
-        return NeverType.instance;
+    } catch (e) {
+        return newError(String(e));
     }
 
     const concatArgs: Arg<StringPrimitive>[] = [];
@@ -148,7 +167,7 @@ export const formatTextPattern = (
             const arg = argsMap.get(token.name);
             if (arg === undefined) {
                 // invalid reference
-                return NeverType.instance;
+                return newError(`Invalid reference {${token.name}} in pattern.`);
             }
             concatArgs.push(arg);
         }
@@ -157,6 +176,15 @@ export const formatTextPattern = (
     return Intrinsic.concat(...concatArgs);
 };
 
+const formatRRegexError = (error: unknown): string => {
+    let s = String(error);
+    const m = /\berror: (.+)$/.exec(s);
+    if (m) {
+        // eslint-disable-next-line prefer-destructuring
+        s = m[1];
+    }
+    return `Invalid regex: ${s}`;
+};
 const validateReplacementForRegex = (regex: RRegex, replacement: ReplacementString): void => {
     // check replacement keys
     const availableNames = new Set<string>([
@@ -210,20 +238,21 @@ const regexReplaceImpl = (
 
     return result;
 };
-export const regexReplace = wrapQuaternary<
+export const regexReplace = wrapScopedQuaternary<
     StringPrimitive,
     StringPrimitive,
     StringPrimitive,
     NumberPrimitive,
-    StringPrimitive
->((text, regexPattern, replacementPattern, count) => {
+    StringPrimitive | StructInstanceType
+>((scope, text, regexPattern, replacementPattern, count) => {
+    const newError = createError(scope);
+
     let regex;
     if (regexPattern.type === 'literal') {
         try {
             regex = new RRegex(regexPattern.value);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(formatRRegexError(error));
         }
     }
 
@@ -232,8 +261,7 @@ export const regexReplace = wrapQuaternary<
         try {
             replacement = new ReplacementString(replacementPattern.value);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(String(error));
         }
     }
 
@@ -241,8 +269,7 @@ export const regexReplace = wrapQuaternary<
         try {
             validateReplacementForRegex(regex, replacement);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(String(error));
         }
     }
 
@@ -251,11 +278,10 @@ export const regexReplace = wrapQuaternary<
             const result = regexReplaceImpl(text.value, regex, replacement, count.value);
             return new StringLiteralType(result);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(String(error));
         }
     }
-    return StringType.instance;
+    return union(StringType.instance, newError.default);
 });
 export const regexFindImpl = (
     text: string,
@@ -272,19 +298,20 @@ export const regexFindImpl = (
     Object.entries(match.name).forEach(([name, m]) => replacements.set(name, m.value));
     return replacement.replace(replacements);
 };
-export const regexFind = wrapTernary<
+export const regexFind = wrapScopedTernary<
     StringPrimitive,
     StringPrimitive,
     StringPrimitive,
-    StringPrimitive
->((text, regexPattern, replacementPattern) => {
+    StringPrimitive | StructInstanceType
+>((scope, text, regexPattern, replacementPattern) => {
+    const newError = createError(scope);
+
     let regex;
     if (regexPattern.type === 'literal') {
         try {
             regex = new RRegex(regexPattern.value);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(formatRRegexError(error));
         }
     }
 
@@ -293,8 +320,7 @@ export const regexFind = wrapTernary<
         try {
             replacement = new ReplacementString(replacementPattern.value);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(String(error));
         }
     }
 
@@ -302,8 +328,7 @@ export const regexFind = wrapTernary<
         try {
             validateReplacementForRegex(regex, replacement);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(String(error));
         }
     }
 
@@ -312,11 +337,10 @@ export const regexFind = wrapTernary<
             const result = regexFindImpl(text.value, regex, replacement);
             return new StringLiteralType(result);
         } catch (error) {
-            log.debug('regexReplaceImpl', error);
-            return NeverType.instance;
+            return newError(String(error));
         }
     }
-    return StringType.instance;
+    return union(StringType.instance, newError.default);
 });
 
 // Python-conform padding implementations.
@@ -517,15 +541,13 @@ export const goIntoDirectory = wrapScopedBinary(
         basePath: StringPrimitive,
         relPath: StringPrimitive
     ): Arg<StringPrimitive | StructInstanceType> => {
-        const errorDesc = getStructDescriptor(scope, 'Error');
+        const newError = createError(scope);
 
         try {
             if (relPath.type === 'literal') {
                 const error = validateRelPath(relPath.value);
                 if (error) {
-                    return createInstance(errorDesc, {
-                        message: literal(error),
-                    });
+                    return newError(error);
                 }
 
                 if (basePath.type === 'literal') {
@@ -534,11 +556,9 @@ export const goIntoDirectory = wrapScopedBinary(
                 }
             }
         } catch (e) {
-            return createInstance(errorDesc, {
-                message: literal(String(e)),
-            });
+            return newError(String(e));
         }
 
-        return union(StringType.instance, errorDesc.default);
+        return union(StringType.instance, newError.default);
     }
 );
