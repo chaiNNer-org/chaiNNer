@@ -14,7 +14,15 @@ import { Tag, Tooltip, forwardRef } from '@chakra-ui/react';
 import React, { ReactNode, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { explain } from '../../common/types/explain';
-import { getFields, isColor, isDirectory, isImage, withoutNull } from '../../common/types/util';
+import {
+    getFields,
+    isColor,
+    isDirectory,
+    isFalse,
+    isImage,
+    isTrue,
+    withoutNull,
+} from '../../common/types/util';
 import { assertNever } from '../../common/util';
 
 const getColorMode = (channels: number) => {
@@ -213,6 +221,13 @@ const getTypeText = (type: Type): TagValue[] => {
         if (isStringLiteral(path)) {
             tags.push({ kind: 'path', value: path.value });
         }
+    }
+
+    if (isTrue(type)) {
+        tags.push({ kind: 'literal', value: 'True' });
+    }
+    if (isFalse(type)) {
+        tags.push({ kind: 'literal', value: 'False' });
     }
 
     if (isStructInstance(type)) {

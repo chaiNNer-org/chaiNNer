@@ -97,6 +97,20 @@ class ColorOutput(BaseOutput):
         return value
 
 
+class BoolOutput(BaseOutput):
+    def __init__(
+        self,
+        label: str = "Logical",
+        *,
+        output_type: navi.ExpressionJson = "bool",
+    ):
+        super().__init__(
+            output_type=navi.intersect_with_error("bool", output_type),
+            label=label,
+            kind="generic",
+        )
+
+
 class AudioStreamOutput(BaseOutput):
     def __init__(self, label: str = "Audio Stream"):
         super().__init__(

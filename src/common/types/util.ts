@@ -30,6 +30,9 @@ interface KnownStructDefinitions {
     Directory: {
         readonly path: StringPrimitive;
     };
+
+    true: Record<string, never>;
+    false: Record<string, never>;
 }
 interface KnownInstance<N extends keyof KnownStructDefinitions> {
     readonly descriptor: StructDescriptor & { readonly name: N };
@@ -44,6 +47,8 @@ const createAssertFn = <N extends keyof KnownStructDefinitions>(
 export const isImage = createAssertFn('Image');
 export const isColor = createAssertFn('Color');
 export const isDirectory = createAssertFn('Directory');
+export const isTrue = createAssertFn('true');
+export const isFalse = createAssertFn('false');
 
 export const getFields = <N extends keyof KnownStructDefinitions>(
     type: StructInstanceType & KnownInstance<N>
