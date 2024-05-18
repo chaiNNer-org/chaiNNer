@@ -48,6 +48,23 @@ def _rgb_to_bgr(t: torch.Tensor) -> torch.Tensor:
         return t
 
 
+def _into_tensor(
+    img: np.ndarray, device: torch.device, dtype: torch.dtype
+) -> torch.Tensor:
+    img = np.ascontiguousarray(img)
+    writeable = img.flags.writeable
+    try:
+        if not writeable and device == torch.device("cpu"):
+            img = np.copy(img)
+        else:
+            # since we are going to copy the image to the GPU, we can skip the copy here
+            img.flags.writeable = True
+        input_tensor = torch.from_numpy(img).to(device, dtype)
+        return input_tensor
+    finally:
+        img.flags.writeable = writeable
+
+
 @torch.inference_mode()
 def pytorch_auto_split(
     img: np.ndarray,
@@ -72,10 +89,7 @@ def pytorch_auto_split(
         input_tensor = None
         try:
             # convert to tensor
-            img = np.ascontiguousarray(img)
-            if not img.flags.writeable:
-                img = np.copy(img)
-            input_tensor = torch.from_numpy(img).to(device, dtype)
+            input_tensor = _into_tensor(img, device, dtype)
             input_tensor = _rgb_to_bgr(input_tensor)
             input_tensor = _into_batched_form(input_tensor)
 
