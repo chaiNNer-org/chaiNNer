@@ -261,7 +261,7 @@ def upscale_image_node(
     use_custom_scale: bool,
     custom_scale: int,
     tile_size: TileSize,
-    custom_tile_size: int | None,
+    custom_tile_size: int,
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
@@ -286,9 +286,7 @@ def upscale_image_node(
             lambda i: upscale(
                 i,
                 model,
-                TileSize(custom_tile_size)
-                if tile_size == CUSTOM and custom_tile_size is not None
-                else tile_size,
+                TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
                 exec_options,
                 context,
             ),

@@ -202,7 +202,7 @@ def upscale_image_node(
     img: np.ndarray,
     model: NcnnModelWrapper,
     tile_size: TileSize,
-    custom_tile_size: int | None,
+    custom_tile_size: int,
     separate_alpha: bool,
 ) -> np.ndarray:
     settings = get_settings(context)
@@ -219,9 +219,7 @@ def upscale_image_node(
             model,
             model.model.layers[0].outputs[0],
             model.model.layers[-1].outputs[0],
-            TileSize(custom_tile_size)
-            if tile_size == CUSTOM and custom_tile_size is not None
-            else tile_size,
+            TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
         )
         if ic == 3:
             i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
