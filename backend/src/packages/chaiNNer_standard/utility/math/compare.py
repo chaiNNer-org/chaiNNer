@@ -47,17 +47,17 @@ class Comparison(Enum):
         ).with_id(0),
         NumberInput(
             label="Left",
-            minimum=None,
-            maximum=None,
+            min=None,
+            max=None,
             precision=100,
-            controls_step=1,
+            step=1,
         ).with_id(1),
         NumberInput(
             label="Right",
-            minimum=None,
-            maximum=None,
+            min=None,
+            max=None,
             precision=100,
-            controls_step=1,
+            step=1,
         ).with_id(2),
     ],
     outputs=[
