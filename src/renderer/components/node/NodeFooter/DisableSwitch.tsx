@@ -9,6 +9,7 @@ import {
     PopoverContent,
     PopoverTrigger,
     Portal,
+    Text,
     Tooltip,
     useDisclosure,
 } from '@chakra-ui/react';
@@ -66,6 +67,10 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
         ? DisableMode.Skipped
         : DisableMode.Enabled;
 
+    const availableModes: readonly DisableMode[] = passthrough.canPassthrough
+        ? [DisableMode.Enabled, DisableMode.Disabled, DisableMode.Skipped]
+        : [DisableMode.Enabled, DisableMode.Disabled];
+
     const { isOpen, onToggle, onClose } = useDisclosure();
 
     const lastMouseDownRef = useRef<number | null>(null);
@@ -90,6 +95,12 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
         }
 
         onClose();
+    };
+
+    const cycleMode = () => {
+        const index = availableModes.indexOf(mode);
+        const nextIndex = (index + 1) % availableModes.length;
+        setMode(availableModes[nextIndex]);
     };
 
     const tooltipState = {
@@ -129,7 +140,11 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
                     cursor="pointer"
                     h={6}
                     w={7}
-                    onClick={() => {
+                    onClick={(e) => {
+                        if (e.ctrlKey) {
+                            cycleMode();
+                            return;
+                        }
                         if (
                             lastMouseDownRef.current &&
                             lastOnCloseRef.current &&
@@ -150,9 +165,14 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
                         isDisabled={isOpen}
                         label={
                             <>
-                                {tooltipState}
-                                <Box h={2} />
-                                {tooltipActions}
+                                <Text>{tooltipState}</Text>
+                                <Text mt={2}>{tooltipActions}</Text>
+                                <Text
+                                    fontSize="small"
+                                    mt={3}
+                                >
+                                    Hint: Use Ctrl+Click to cycle through options.
+                                </Text>
                             </>
                         }
                         openDelay={500}
@@ -205,7 +225,7 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
                                 label="Disable"
                                 onClick={() => setMode(DisableMode.Disabled)}
                             />
-                            {passthrough.canPassthrough && (
+                            {availableModes.includes(DisableMode.Skipped) && (
                                 <MenuOption
                                     icon={IoMdFastforward}
                                     isDisabled={mode === DisableMode.Skipped}
