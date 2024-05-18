@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import weakref
+
 import numpy as np
 import psutil
 import torch
@@ -34,6 +36,8 @@ from nodes.utils.utils import get_h_w_c
 from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
 
+MODEL_BYTES_CACHE = weakref.WeakKeyDictionary()
+
 
 def upscale(
     img: np.ndarray,
@@ -55,15 +59,16 @@ def upscale(
             tile_size = NO_TILING
 
         def estimate():
-            element_size = 2 if use_fp16 else 4
-            model_bytes = sum(
-                p.numel() * element_size for p in model.model.parameters()
-            )
+            model_bytes = MODEL_BYTES_CACHE.get(model)
+            if model_bytes is None:
+                model_bytes = sum(p.numel() * 4 for p in model.model.parameters())
+                MODEL_BYTES_CACHE[model] = model_bytes
 
             if "cuda" in device.type:
+                if options.use_fp16:
+                    model_bytes = model_bytes // 2
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 free, _total = mem_info
-                element_size = 2 if use_fp16 else 4
                 if options.budget_limit > 0:
                     free = min(options.budget_limit * 1024**3, free)
                 budget = int(free * 0.8)
@@ -73,7 +78,7 @@ def upscale(
                         budget,
                         model_bytes,
                         img,
-                        element_size,
+                        2 if use_fp16 else 4,
                     )
                 )
             elif device.type == "cpu":
@@ -86,7 +91,7 @@ def upscale(
                         budget,
                         model_bytes,
                         img,
-                        element_size,
+                        4,
                     )
                 )
             return MaxTileSize()
