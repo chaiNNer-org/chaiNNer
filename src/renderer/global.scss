@@ -123,35 +123,35 @@ body {
         background: var(--theme-300) !important;
     }
 
+    .react-flow__controls-button {
+        border: 0 solid white !important;
+        background: var(--controls-bg) !important;
+
+        &:not(:disabled):hover {
+            background: var(--controls-bg-hover) !important;
+            border: 0 solid white !important;
+        }
+
+        &:not(:disabled) > svg {
+            fill: white;
+        }
+    }
+
     .react-flow__minimap {
-        background-color: rgb(
-            220 227 234 / 80%
+        background-color: var(
+            --minimap-bg
         ); /* - defines base minimap opacity, everything sits on top of this */
     }
 
     .react-flow__minimap-node {
-        fill: rgb(255 255 255 / 75%);
+        fill: var(--minimap-node);
         stroke: none;
     }
 
     .react-flow__minimap-mask {
-        fill: rgb(220 227 234 / 50%);
-        stroke: rgb(255 255 255 / 100%);
+        fill: var(--minimap-mask-fill);
+        stroke: var(--minimap-mask-stroke);
         stroke-width: 15;
-    }
-
-    .react-flow__controls-button {
-        border: 0 solid rgb(113 128 150 / 66%) !important;
-        background: rgb(203 213 224 / 66%) !important;
-
-        &:not(:disabled):hover {
-            background: var(--theme-400) !important;
-            border: 0 solid var(--theme-500) !important;
-        }
-
-        &:disabled > svg {
-            fill: var(--theme-400);
-        }
     }
 }
 
@@ -161,12 +161,12 @@ body {
     }
 
     .react-flow__controls-button {
-        border: 0 solid rgb(74 85 104 / 66%) !important;
-        background: rgb(45 55 72 / 66%) !important;
+        border: 0 solid white !important;
+        background: var(--controls-bg) !important;
 
         &:not(:disabled):hover {
-            background: var(--theme-600) !important;
-            border: 0 solid var(--theme-600) !important;
+            background: var(--controls-bg-hover) !important;
+            border: 0 solid white !important;
         }
 
         &:not(:disabled) > svg {
@@ -175,19 +175,19 @@ body {
     }
 
     .react-flow__minimap {
-        background-color: rgb(
-            49 58 72 / 80%
+        background-color: var(
+            --minimap-bg
         ); /* - defines base minimap opacity, everything sits on top of this */
     }
 
     .react-flow__minimap-node {
-        fill: rgb(255 255 255 / 50%);
+        fill: var(--minimap-node);
         stroke: none;
     }
 
     .react-flow__minimap-mask {
-        fill: rgb(49 58 72 / 80%);
-        stroke: rgb(255 255 255 / 50%);
+        fill: var(--minimap-mask-fill);
+        stroke: var(--minimap-mask-stroke);
         stroke-width: 15;
     }
 }

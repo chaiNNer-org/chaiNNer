@@ -6,6 +6,11 @@
         $next-shade: map.get($theme, $shade + 100);
 
         --theme-#{$shade}: #{$color};
+
+        // Generate 50% alphas
+        --theme-#{$shade}-a50: #{color.adjust($color, $alpha: -0.5)};
+
+        // Generate 25%, 50%, 75% shades
         @if $next-shade {
             $twenty-five-percent: color.mix($color, $next-shade, 75%);
             $fifty-percent: color.mix($color, $next-shade, 50%);
@@ -70,6 +75,16 @@
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
+
+    /* minimap */
+    --minimap-bg: var(--theme-700-a50);
+    --minimap-node: var(--theme-0-a50);
+    --minimap-mask-fill: var(--theme-700-a50);
+    --minimap-mask-stroke: var(--theme-0-a50);
+
+    /* controls */
+    --controls-bg: var(--theme-600-a50);
+    --controls-bg-hover: var(--theme-600);
 }
 
 :root[data-theme='light'] {
@@ -124,6 +139,16 @@
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
+
+    /* minimap */
+    --minimap-bg: var(--theme-400-a50);
+    --minimap-node: var(--theme-0-a50);
+    --minimap-mask-fill: var(--theme-400-a50);
+    --minimap-mask-stroke: var(--theme-0-a50);
+
+    /* controls */
+    --controls-bg: var(--theme-400-a50);
+    --controls-bg-hover: var(--theme-400);
 }
 
 // Default theme (copied from Chakra UI)
