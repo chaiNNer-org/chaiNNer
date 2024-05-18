@@ -49,7 +49,7 @@ def perform_interp(
 
 def check_will_upscale(context: NodeContext, model: OnnxModel):
     fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-    result = upscale_image_node(context, fake_img, model, NO_TILING, None, False)
+    result = upscale_image_node(context, fake_img, model, NO_TILING, 0, False)
 
     mean_color = np.mean(result)
     del result
