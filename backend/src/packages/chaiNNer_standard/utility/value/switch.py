@@ -31,8 +31,8 @@ class ValueIndex(Enum):
     icon="BsShuffle",
     inputs=[
         EnumInput(ValueIndex).with_id(0),
-        AnyInput("Value A"),
-        AnyInput("Value B"),
+        AnyInput("Value A").make_optional(),
+        AnyInput("Value B").make_optional(),
         optional_list_group(
             *[AnyInput(f"Value {letter}").make_optional() for letter in ALPHABET[2:10]],
         ),
