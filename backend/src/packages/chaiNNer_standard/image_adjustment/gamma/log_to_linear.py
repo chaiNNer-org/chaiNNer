@@ -15,22 +15,8 @@ from .. import gamma_group
     icon="ImBrightnessContrast",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Black",
-            min=0.0,
-            max=1023,
-            default=95.0,
-            precision=1,
-            step=1.0,
-        ),
-        SliderInput(
-            "White",
-            min=0.0,
-            max=1023,
-            default=685.0,
-            precision=1,
-            step=1.0,
-        ),
+        SliderInput("Black", min=0.0, max=1023, default=95.0, precision=1, step=1),
+        SliderInput("White", min=0.0, max=1023, default=685.0, precision=1, step=1),
         SliderInput(
             "Gamma",
             min=0.0001,

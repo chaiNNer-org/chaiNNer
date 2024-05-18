@@ -40,13 +40,7 @@ _THRESHOLD_TYPE_LABELS: dict[ThresholdType, str] = {
     icon="MdShowChart",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Threshold",
-            max=100,
-            default=50,
-            precision=1,
-            step=1,
-        ),
+        SliderInput("Threshold", max=100, default=50, precision=1, step=1),
         EnumInput(
             ThresholdType,
             "Threshold Type",

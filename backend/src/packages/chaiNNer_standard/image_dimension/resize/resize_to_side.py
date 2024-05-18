@@ -91,12 +91,7 @@ def resize_to_side_conditional(
     icon="MdOutlinePhotoSizeSelectLarge",
     inputs=[
         ImageInput(),
-        NumberInput(
-            "Size Target",
-            default=2160,
-            min=1,
-            unit="px",
-        ),
+        NumberInput("Size Target", default=2160, min=1, unit="px"),
         EnumInput(SideSelection, label="Resize To"),
         EnumInput(
             ResizeCondition,

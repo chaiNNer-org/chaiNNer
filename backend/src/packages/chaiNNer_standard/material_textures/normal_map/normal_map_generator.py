@@ -88,13 +88,7 @@ def normalize(x: np.ndarray, y: np.ndarray):
             "- Alpha: `Height = A`",
         )
         .with_id(1),
-        SliderInput(
-            "Blur/Sharp",
-            min=-20,
-            max=20,
-            default=0,
-            precision=1,
-        )
+        SliderInput("Blur/Sharp", min=-20, max=20, default=0, precision=1)
         .with_docs(
             "A quick way to blur or sharpen the height map. Negative values blur, positive values sharpen."
         )
