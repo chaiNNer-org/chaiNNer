@@ -32,9 +32,9 @@ from .. import processing_group
         BoolInput("Post-process Mask", default=False),
         BoolInput("Alpha Matting", default=False),
         if_group(Condition.bool(3, True))(
-            SliderInput("Foreground Threshold", minimum=1, maximum=255, default=240),
-            SliderInput("Background Threshold", maximum=254, default=10),
-            NumberInput("Erode Size", minimum=1, default=10),
+            SliderInput("Foreground Threshold", min=1, max=255, default=240),
+            SliderInput("Background Threshold", max=254, default=10),
+            NumberInput("Erode Size", min=1, default=10),
         ),
     ],
     outputs=[

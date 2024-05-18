@@ -17,7 +17,7 @@ from .. import compositing_group
     inputs=[
         ImageInput(),
         TextInput("Caption"),
-        NumberInput("Size", minimum=20, default=42, unit="px"),
+        NumberInput("Size", min=20, default=42, unit="px"),
         EnumInput(
             CaptionPosition,
             "Position",

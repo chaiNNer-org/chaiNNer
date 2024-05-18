@@ -276,16 +276,17 @@ export interface TypeTagProps {
 export const TypeTag = memo(
     forwardRef<TypeTagProps, 'span'>((props, ref) => {
         const { isOptional, ...rest } = props;
+        const height = '17px';
         return (
             <Tag
                 bgColor="var(--custom-tag-bg)"
                 color="var(--custom-tag-fg)"
                 display="inline-block"
-                fontSize="x-small"
+                fontSize="xs"
                 fontStyle={isOptional ? 'italic' : undefined}
-                height="15px"
+                height={height}
                 lineHeight="auto"
-                minHeight="15px"
+                minHeight={height}
                 minWidth={0}
                 ml={1}
                 px={1}

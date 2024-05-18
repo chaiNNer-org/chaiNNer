@@ -54,18 +54,18 @@ def quantize_image(image: np.ndarray, palette: np.ndarray):
             channels=[3, 4],
             image_type=navi.Image(channels_as="Input0"),
         ),
-        SliderInput("Kernel Radius", minimum=1, maximum=5, default=1).with_docs(
+        SliderInput("Kernel Radius", min=1, max=5, default=1).with_docs(
             "Determines the size of the region around each pixel in the reference image that is used to determine the local color palette.",
             "The size of the region will be `2 * radius + 1`. So a radius of 1 will be a 3x3 region, a radius of 2 will be a 5x5 region, etc.",
         ),
         SliderInput(
             "Spatial Weight",
-            minimum=0,
-            maximum=100,
+            min=0,
+            max=100,
             precision=1,
             default=0,
             unit="%",
-            controls_step=1,
+            step=1,
         ).with_docs(
             "When picking a color from the local color palette, this node not only considers the color but also the position of the pixel in the reference image. This value determines how much weight is given to the positions of the pixels in the local color palette. 0% means that the position is ignored, and 100% means that the position is the primary determining factor.",
             """Which value is best depends on the image. E.g. 0% is best when the reference image contains dithering. Values >70% are typically not very useful.""",

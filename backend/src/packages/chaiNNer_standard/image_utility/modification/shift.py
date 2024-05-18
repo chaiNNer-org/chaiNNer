@@ -34,12 +34,12 @@ class ShiftCoordMode(Enum):
             ShiftCoordMode, default=ShiftCoordMode.ABSOLUTE, preferred_style="tabs"
         ).with_id(4),
         if_enum_group(4, ShiftCoordMode.RELATIVE)(
-            SliderInput("X", minimum=-100, maximum=100, default=0, unit="%").with_id(5),
-            SliderInput("Y", minimum=-100, maximum=100, default=0, unit="%").with_id(6),
+            SliderInput("X", min=-100, max=100, default=0, unit="%").with_id(5),
+            SliderInput("Y", min=-100, max=100, default=0, unit="%").with_id(6),
         ),
         if_enum_group(4, ShiftCoordMode.ABSOLUTE)(
-            NumberInput("X", minimum=None, unit="px").with_id(1),
-            NumberInput("Y", minimum=None, unit="px").with_id(2),
+            NumberInput("X", min=None, unit="px").with_id(1),
+            NumberInput("Y", min=None, unit="px").with_id(2),
         ),
         EnumInput(
             ShiftFill,

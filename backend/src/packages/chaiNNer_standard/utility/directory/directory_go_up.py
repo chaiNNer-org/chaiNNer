@@ -15,7 +15,7 @@ from .. import directory_group
     icon="BsFolder",
     inputs=[
         DirectoryInput(must_exist=False, label_style="hidden"),
-        NumberInput("Times", minimum=0, default=1, label_style="inline").with_docs(
+        NumberInput("Times", min=0, default=1, label_style="inline").with_docs(
             "How many times to go up.",
             "- 0 will return the given directory as is.",
             "- 1 will return the parent directory.",

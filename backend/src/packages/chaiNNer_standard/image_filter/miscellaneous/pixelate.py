@@ -20,8 +20,8 @@ from .. import miscellaneous_group
     inputs=[
         ImageInput(),
         linked_inputs_group(
-            SliderInput("Size X", minimum=1, maximum=1024, default=10, scale="log"),
-            SliderInput("Size Y", minimum=1, maximum=1024, default=10, scale="log"),
+            SliderInput("Size X", min=1, max=1024, default=10, scale="log"),
+            SliderInput("Size Y", min=1, max=1024, default=10, scale="log"),
         ),
     ],
     outputs=[ImageOutput(shape_as=0)],

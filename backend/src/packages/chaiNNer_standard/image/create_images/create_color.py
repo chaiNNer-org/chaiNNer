@@ -17,8 +17,8 @@ from .. import create_images_group
     icon="MdFormatColorFill",
     inputs=[
         ColorInput(),
-        NumberInput("Width", minimum=1, unit="px", default=1),
-        NumberInput("Height", minimum=1, unit="px", default=1),
+        NumberInput("Width", min=1, unit="px", default=1),
+        NumberInput("Height", min=1, unit="px", default=1),
     ],
     outputs=[
         ImageOutput(
