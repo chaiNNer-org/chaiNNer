@@ -7,8 +7,8 @@ import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData, OutputId } from '../../../common/common-types';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { getTypeAccentColors } from '../../helpers/accentColors';
 import { UseContextMenu, useContextMenu } from '../../hooks/useContextMenu';
+import { useTypeColor } from '../../hooks/useTypeColor';
 
 const useBreakPointMenu = (id: string): UseContextMenu => {
     const { removeNodesById, removeEdgeBreakpoint } = useContext(GlobalContext);
@@ -96,10 +96,7 @@ const BreakPointInner = memo(({ id }: NodeProps) => {
         [leftEdge, typeState]
     );
 
-    const [accentColor] = useMemo(
-        () => getTypeAccentColors(type || definitionType),
-        [type, definitionType]
-    );
+    const [accentColor] = useTypeColor(type || definitionType);
 
     return (
         <Box

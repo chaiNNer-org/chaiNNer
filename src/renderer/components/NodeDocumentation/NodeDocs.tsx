@@ -25,7 +25,8 @@ import { prettyPrintType } from '../../../common/types/pretty';
 import { withoutError, withoutNull } from '../../../common/types/util';
 import { capitalize, isAutoInput } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
+import { getCategoryAccentColor } from '../../helpers/accentColors';
+import { useTypeColor } from '../../hooks/useTypeColor';
 import { IconFactory } from '../CustomIcons';
 import { Markdown } from '../Markdown';
 import { TypeTag } from '../TypeTag';
@@ -112,7 +113,7 @@ const InputOutputItem = memo(
                 ? schema.iteratorInputs.some((i) => i.inputs.includes(item.id))
                 : schema.iteratorOutputs.some((i) => i.outputs.includes(item.id));
 
-        const handleColors = getTypeAccentColors(type);
+        const handleColors = useTypeColor(type);
 
         const isFileInput = item.kind === 'file';
         const supportedFileTypes = isFileInput ? item.filetypes : [];

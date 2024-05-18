@@ -5,7 +5,7 @@ import { NodeData } from '../../common/common-types';
 import { parseSourceHandle } from '../../common/util';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
-import { defaultColor, getTypeAccentColors } from '../helpers/accentColors';
+import { useTypeColor } from './useTypeColor';
 
 export const useSourceTypeColor = (targetHandle: string) => {
     const { functionDefinitions } = useContext(BackendContext);
@@ -17,27 +17,24 @@ export const useSourceTypeColor = (targetHandle: string) => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [edgeChanges, getEdges, targetHandle]);
 
-    const sourceTypeColor = useMemo(() => {
+    const sourceType = useMemo(() => {
         if (sourceHandle) {
             const source = parseSourceHandle(sourceHandle);
             const sourceNode: Node<NodeData> | undefined = getNode(source.nodeId);
             if (sourceNode) {
                 const sourceDef = functionDefinitions.get(sourceNode.data.schemaId);
                 if (!sourceDef) {
-                    return defaultColor;
+                    return;
                 }
-                const sourceType =
+                return (
                     typeState.functions.get(source.nodeId)?.outputs.get(source.outputId) ??
-                    sourceDef.outputDefaults.get(source.outputId);
-                if (!sourceType) {
-                    return defaultColor;
-                }
-                return getTypeAccentColors(sourceType)[0];
+                    sourceDef.outputDefaults.get(source.outputId)
+                );
             }
-            return defaultColor;
         }
-        return null;
     }, [sourceHandle, functionDefinitions, typeState, getNode]);
 
-    return sourceTypeColor;
+    const sourceTypeColor = useTypeColor(sourceType);
+
+    return sourceTypeColor[0];
 };

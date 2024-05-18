@@ -18,6 +18,17 @@
     }
 }
 
+:root {
+    /* type colors */
+    --type-color-directory: #805ad5;
+    --type-color-image: #d69e2e;
+    --type-color-number: #3182ce;
+    --type-color-string: #10b52c;
+    --type-color-torch: #dd6b20;
+    --type-color-onnx: #63b3ed;
+    --type-color-ncnn: #ed64a6;
+}
+
 :root[data-theme='dark'] {
     /* backgrounds */
     --bg-800: var(--theme-800);
@@ -316,4 +327,13 @@
             900: #151515,
         )
     );
+
+    /* type colors */
+    --type-color-directory: #db7f85;
+    --type-color-image: #67b6f4;
+    --type-color-number: #f9d600;
+    --type-color-string: #72e4b9;
+    --type-color-torch: #fbae2e;
+    --type-color-onnx: #ac9fdc;
+    --type-color-ncnn: #ae5354;
 }
