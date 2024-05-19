@@ -14,7 +14,7 @@ import { DragHandleSVG } from '../CustomIcons';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
-const DEFAULT_SIZE = { width: 240, height: 80 } as const;
+const DEFAULT_SIZE = { width: 222, height: 80 } as const;
 
 const invalidRegexCache = new Map<string | null | undefined, RegExp | undefined>();
 const getInvalidRegex = (pattern: string): RegExp | undefined => {
@@ -208,7 +208,7 @@ export const TextInput = memo(
                         ),
                     }}
                     minHeight={80}
-                    minWidth={240}
+                    minWidth={DEFAULT_SIZE.width}
                     scale={zoom}
                     size={size}
                     onResize={(e, direction, ref, d) => {
@@ -227,9 +227,12 @@ export const TextInput = memo(
                         className="nodrag"
                         disabled={isLocked || isConnected}
                         draggable={false}
+                        fontSize="14px"
                         h="100%"
                         maxLength={maxLength ?? undefined}
                         placeholder={placeholder ?? label}
+                        px={3}
+                        py={1}
                         resize="none"
                         value={displayText ?? ''}
                         w="full"
