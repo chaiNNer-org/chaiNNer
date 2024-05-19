@@ -112,11 +112,6 @@ class SimpleVideoFormat(Enum):
 def get_simple_format(
     simple_video_format: SimpleVideoFormat, quality: int
 ) -> tuple[VideoFormat, VideoEncoder, VideoPreset, int]:
-    container = None
-    encoder = None
-    video_preset = None
-    crf = None
-
     container = {
         SimpleVideoFormat.MP4_H264: VideoFormat.MP4,
         SimpleVideoFormat.MP4_H265: VideoFormat.MP4,
@@ -124,15 +119,13 @@ def get_simple_format(
         SimpleVideoFormat.GIF: VideoFormat.GIF,
     }[simple_video_format]
 
-    if simple_video_format != SimpleVideoFormat.GIF:
-        encoder = {
-            SimpleVideoFormat.MP4_H264: VideoEncoder.H264,
-            SimpleVideoFormat.MP4_H265: VideoEncoder.H265,
-            SimpleVideoFormat.WEBM: VideoEncoder.VP9,
-        }[simple_video_format]
-    else:
-        # Encoder will be ignored, it just needs to be a value in the case of GIF
-        encoder = VideoEncoder.H264
+    encoder = {
+        SimpleVideoFormat.MP4_H264: VideoEncoder.H264,
+        SimpleVideoFormat.MP4_H265: VideoEncoder.H265,
+        SimpleVideoFormat.WEBM: VideoEncoder.VP9,
+        # Encoder will be ignored when GIF, it just needs to be any value
+        SimpleVideoFormat.GIF: VideoEncoder.H264,
+    }[simple_video_format]
 
     crf = int((100 - quality) / 100 * 51)
 
