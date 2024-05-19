@@ -7,7 +7,7 @@ from typing import Callable, Iterable, Union
 
 import cv2
 import numpy as np
-import pillow_avif  # noqa: F401
+import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 from sanic.log import logger
 
