@@ -855,7 +855,7 @@ class Executor:
         nodes = set(self.chain.nodes.keys())
         nodes.difference_update(self.cache.keys())
 
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "chain-start",
                 "data": {
@@ -865,7 +865,7 @@ class Executor:
         )
 
     async def __send_node_start(self, node: Node):
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "node-start",
                 "data": {
@@ -890,7 +890,7 @@ class Executor:
             remaining = max(0, length - index)
             return avg_time * remaining
 
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "node-progress",
                 "data": {
@@ -904,7 +904,7 @@ class Executor:
         )
 
     async def __send_node_progress_done(self, node: Node, length: int):
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "node-progress",
                 "data": {
@@ -935,7 +935,7 @@ class Executor:
                 return
 
             data, types = result
-            await self.queue.put(
+            self.queue.put(
                 {
                     "event": "node-broadcast",
                     "data": {
@@ -956,7 +956,7 @@ class Executor:
         node: Node,
         execution_time: float,
     ):
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "node-finish",
                 "data": {
