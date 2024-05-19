@@ -184,7 +184,6 @@ def upscale(
                 max=None,
                 default=TILE_SIZE_256,
                 unit="px",
-                has_handle=True,
             ).with_id(6),
         ),
         if_group(
