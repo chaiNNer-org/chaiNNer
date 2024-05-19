@@ -438,9 +438,9 @@ def save_video_node(
         if "crf" in parameters:
             output_params["crf"] = crf
 
+    global_params: list[str] = []
     if simplicity == Simplicity.ADVANCED:
         # Append additional parameters
-        global_params: list[str] = []
         if advanced and additional_parameters is not None:
             additional_parameters = " " + " ".join(additional_parameters.split())
             additional_parameters_array = additional_parameters.split(" -")[1:]
