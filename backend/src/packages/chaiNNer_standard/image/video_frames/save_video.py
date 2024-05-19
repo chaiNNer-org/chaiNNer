@@ -330,13 +330,13 @@ class Writer:
             TextInput(
                 "Additional parameters",
                 multiline=True,
-                label_style="hidden",
                 allow_empty_string=True,
                 has_handle=False,
             )
             .make_optional()
             .with_docs(
-                "Allow user to add FFmpeg parameters. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html)."
+                "Allow adding extra FFmpeg parameters the same way you would in CLI. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html).",
+                hint=True,
             )
             .with_id(13),
         ),
