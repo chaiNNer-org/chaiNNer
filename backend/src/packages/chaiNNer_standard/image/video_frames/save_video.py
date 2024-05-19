@@ -110,6 +110,50 @@ class SimpleVideoFormat(Enum):
     GIF = "gif"
 
 
+def get_simple_format(
+    simple_video_format: SimpleVideoFormat, quality: int
+) -> tuple[VideoFormat, VideoEncoder, VideoPreset, int]:
+    container = None
+    encoder = None
+    video_preset = None
+    crf = None
+
+    container = {
+        SimpleVideoFormat.MP4_H264: VideoFormat.MP4,
+        SimpleVideoFormat.MP4_H265: VideoFormat.MP4,
+        SimpleVideoFormat.WEBM: VideoFormat.WEBM,
+        SimpleVideoFormat.GIF: VideoFormat.GIF,
+    }[simple_video_format]
+
+    if simple_video_format != SimpleVideoFormat.GIF:
+        encoder = {
+            SimpleVideoFormat.MP4_H264: VideoEncoder.H264,
+            SimpleVideoFormat.MP4_H265: VideoEncoder.H265,
+            SimpleVideoFormat.WEBM: VideoEncoder.VP9,
+        }[simple_video_format]
+    else:
+        # Encoder will be ignored, it just needs to be a value in the case of GIF
+        encoder = VideoEncoder.H264
+
+    crf = int((100 - quality) / 100 * 51)
+
+    if quality > 95:
+        video_preset = VideoPreset.VERY_SLOW
+    elif quality > 80:
+        video_preset = VideoPreset.SLOWER
+    elif quality > 60:
+        video_preset = VideoPreset.SLOW
+    elif quality >= 50:
+        video_preset = VideoPreset.MEDIUM
+    elif quality > 35:
+        video_preset = VideoPreset.FAST
+    elif quality > 20:
+        video_preset = VideoPreset.VERY_FAST
+    else:
+        video_preset = VideoPreset.ULTRA_FAST
+    return container, encoder, video_preset, crf
+
+
 PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
     VideoEncoder.H264: ["preset", "crf"],
     VideoEncoder.H265: ["preset", "crf"],
@@ -311,13 +355,15 @@ class Writer:
                 SimpleVideoFormat,
                 label="Video Format",
                 option_labels={
-                    SimpleVideoFormat.MP4_H264: "MP4 (H.264)",
-                    SimpleVideoFormat.MP4_H265: "MP4 (H.265)",
+                    SimpleVideoFormat.MP4_H264: "MP4 (H.264/AVC)",
+                    SimpleVideoFormat.MP4_H265: "MP4 (H.265/HEVC)",
                     SimpleVideoFormat.WEBM: "WebM",
                     SimpleVideoFormat.GIF: "GIF",
                 },
             ).with_id(17),
-            SliderInput("Quality", min=0, max=100, default=75).with_id(18),
+            if_group(~Condition.enum(17, SimpleVideoFormat.GIF))(
+                SliderInput("Quality", min=0, max=100, default=75).with_id(18),
+            ),
         ),
         NumberInput("FPS", default=30, min=1, step=1, precision=4).with_id(14),
         if_group(~Condition.enum(4, VideoFormat.GIF))(
@@ -367,35 +413,9 @@ def save_video_node(
     audio_settings: AudioSettings,
 ) -> Collector[np.ndarray, None]:
     if simplicity == Simplicity.SIMPLE:
-        container = {
-            SimpleVideoFormat.MP4_H264: VideoFormat.MP4,
-            SimpleVideoFormat.MP4_H265: VideoFormat.MP4,
-            SimpleVideoFormat.WEBM: VideoFormat.WEBM,
-            SimpleVideoFormat.GIF: VideoFormat.GIF,
-        }[simple_video_format]
-
-        encoder = {
-            SimpleVideoFormat.MP4_H264: VideoEncoder.H264,
-            SimpleVideoFormat.MP4_H265: VideoEncoder.H265,
-            SimpleVideoFormat.WEBM: VideoEncoder.VP9,
-        }[simple_video_format]
-
-        crf = int((100 - quality) / 100 * 51)
-
-        if quality > 95:
-            video_preset = VideoPreset.VERY_SLOW
-        elif quality > 80:
-            video_preset = VideoPreset.SLOWER
-        elif quality > 60:
-            video_preset = VideoPreset.SLOW
-        elif quality >= 50:
-            video_preset = VideoPreset.MEDIUM
-        elif quality > 35:
-            video_preset = VideoPreset.FAST
-        elif quality > 20:
-            video_preset = VideoPreset.VERY_FAST
-        else:
-            video_preset = VideoPreset.ULTRA_FAST
+        container, encoder, video_preset, crf = get_simple_format(
+            simple_video_format, quality
+        )
 
     save_path = (save_dir / f"{video_name}.{container.ext}").resolve()
     save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -418,27 +438,28 @@ def save_video_node(
         if "crf" in parameters:
             output_params["crf"] = crf
 
-    # Append additional parameters
-    global_params: list[str] = []
-    if advanced and additional_parameters is not None:
-        additional_parameters = " " + " ".join(additional_parameters.split())
-        additional_parameters_array = additional_parameters.split(" -")[1:]
-        non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
-        for parameter in additional_parameters_array:
-            key, value = parameter, None
-            try:
-                key, value = parameter.split(" ")
-            except Exception:
-                pass
+    if simplicity == Simplicity.ADVANCED:
+        # Append additional parameters
+        global_params: list[str] = []
+        if advanced and additional_parameters is not None:
+            additional_parameters = " " + " ".join(additional_parameters.split())
+            additional_parameters_array = additional_parameters.split(" -")[1:]
+            non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
+            for parameter in additional_parameters_array:
+                key, value = parameter, None
+                try:
+                    key, value = parameter.split(" ")
+                except Exception:
+                    pass
 
-            if value is not None:
-                for nop in non_overridable_params:
-                    if not key.startswith(nop):
-                        output_params[key] = value
-                    else:
-                        raise ValueError(f"Duplicate parameter: -{parameter}")
-            else:
-                global_params.append(f"-{parameter}")
+                if value is not None:
+                    for nop in non_overridable_params:
+                        if not key.startswith(nop):
+                            output_params[key] = value
+                        else:
+                            raise ValueError(f"Duplicate parameter: -{parameter}")
+                else:
+                    global_params.append(f"-{parameter}")
 
     # Audio
     if container == VideoFormat.GIF:
