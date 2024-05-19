@@ -58,7 +58,11 @@ def _into_tensor(
             img = np.copy(img)
         else:
             # since we are going to copy the image to the GPU, we can skip the copy here
-            img.flags.writeable = True
+            try:
+                img.flags.writeable = True
+            except Exception:
+                # Some arrays cannot be made writeable, and we need to copy them
+                img = np.copy(img)
         input_tensor = torch.from_numpy(img).to(device, dtype)
         return input_tensor
     finally:
