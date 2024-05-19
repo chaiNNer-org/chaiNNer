@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-from enum import Enum
-
 import numpy as np
 
 from api import Collector, IteratorInputInfo
-from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
+from nodes.properties.inputs import ImageInput, NumberInput, OrderEnum, RowOrderDropdown
 from nodes.properties.outputs import ImageOutput
 
 from .. import batch_processing_group
-
-
-class OrderEnum(Enum):
-    ROW_X_COLUMN = 0
-    COLUMN_X_ROW = 1
 
 
 @batch_processing_group.register(
@@ -31,8 +24,16 @@ class OrderEnum(Enum):
         NumberInput("Number of columns (width)", min=1, default=1).with_docs(
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
-        EnumInput(OrderEnum, label="Order", default=OrderEnum.ROW_X_COLUMN).with_docs(
-            "The order in which the images are combined."
+        RowOrderDropdown().with_docs(
+            """The order in which the images are combined.
+Examples:
+```
+Row major:    Column major:
+→ 0 1 2       ↓ 0 3 6
+  3 4 5         1 4 7
+  6 7 8         2 5 8
+```""",
+            hint=True,
         ),
     ],
     iterator_inputs=IteratorInputInfo(inputs=0),
@@ -60,13 +61,13 @@ def merge_spritesheet_node(
         results.append(tile)
 
     def on_complete():
-        if order == OrderEnum.ROW_X_COLUMN:
+        if order == OrderEnum.ROW_MAJOR:
             result_rows = []
             for i in range(rows):
                 row = np.concatenate(results[i * columns : (i + 1) * columns], axis=1)
                 result_rows.append(row)
             return np.concatenate(result_rows, axis=0)
-        elif order == OrderEnum.COLUMN_X_ROW:
+        elif order == OrderEnum.COLUMN_MAJOR:
             result_cols = []
             for i in range(columns):
                 column = np.concatenate(results[i * rows : (i + 1) * rows], axis=0)

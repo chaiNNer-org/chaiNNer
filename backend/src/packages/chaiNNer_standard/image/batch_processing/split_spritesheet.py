@@ -1,20 +1,13 @@
 from __future__ import annotations
 
-from enum import Enum
-
 import numpy as np
 
 from api import Iterator, IteratorOutputInfo
-from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
+from nodes.properties.inputs import ImageInput, NumberInput, OrderEnum, RowOrderDropdown
 from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import batch_processing_group
-
-
-class OrderEnum(Enum):
-    ROW_X_COLUMN = 0
-    COLUMN_X_ROW = 1
 
 
 @batch_processing_group.register(
@@ -33,8 +26,16 @@ class OrderEnum(Enum):
         NumberInput("Number of columns (width)", min=1, default=1).with_docs(
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
-        EnumInput(OrderEnum, label="Order", default=OrderEnum.ROW_X_COLUMN).with_docs(
-            "The order in which the images are separated."
+        RowOrderDropdown().with_docs(
+            """The order in which the images are separated.
+Examples:
+```
+Row major:    Column major:
+→ 0 1 2       ↓ 0 3 6
+  3 4 5         1 4 7
+  6 7 8         2 5 8
+```""",
+            hint=True,
         ),
     ],
     outputs=[
@@ -71,7 +72,7 @@ def split_spritesheet_node(
     individual_w = w // columns
 
     def get_sprite(index: int):
-        if order == OrderEnum.ROW_X_COLUMN:
+        if order == OrderEnum.ROW_MAJOR:
             row = index // columns
             col = index % columns
 
@@ -79,7 +80,7 @@ def split_spritesheet_node(
                 row * individual_h : (row + 1) * individual_h,
                 col * individual_w : (col + 1) * individual_w,
             ]
-        elif order == OrderEnum.COLUMN_X_ROW:
+        elif order == OrderEnum.COLUMN_MAJOR:
             col = index // rows
             row = index % rows
 

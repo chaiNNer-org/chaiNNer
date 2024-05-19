@@ -586,3 +586,16 @@ def TileSizeDropdown(
 class AudioStreamInput(BaseInput):
     def __init__(self, label: str = "Audio Stream"):
         super().__init__("AudioStream", label, kind="generic")
+
+
+class OrderEnum(Enum):
+    ROW_MAJOR = 0
+    COLUMN_MAJOR = 1
+
+
+def RowOrderDropdown() -> DropDownInput:
+    return EnumInput(
+        OrderEnum,
+        label="Order",
+        default=OrderEnum.ROW_MAJOR,
+    )
