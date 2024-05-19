@@ -100,7 +100,7 @@ const NodeDocumentationModal = memo(() => {
 
     // select highest scoring schema
     useEffect(() => {
-        if (searchScores && searchScores.size > 0) {
+        if (isOpen && searchScores && searchScores.size > 0) {
             const highestScore = Math.max(...searchScores.values());
             const highestScoreSchemaId = [...searchScores.entries()].find(
                 ([, score]) => score === highestScore
@@ -109,7 +109,7 @@ const NodeDocumentationModal = memo(() => {
                 openNodeDocumentation(highestScoreSchemaId);
             }
         }
-    }, [searchScores, openNodeDocumentation]);
+    }, [isOpen, searchScores, openNodeDocumentation]);
 
     return (
         <Modal
