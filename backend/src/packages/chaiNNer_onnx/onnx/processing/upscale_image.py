@@ -84,7 +84,6 @@ def upscale(
                 max=None,
                 default=TILE_SIZE_256,
                 unit="px",
-                has_handle=False,
             )
         ),
         if_group(Condition.type(1, "Image { channels: 4 } "))(

@@ -168,7 +168,6 @@ def upscale_impl(
                 max=None,
                 default=TILE_SIZE_256,
                 unit="px",
-                has_handle=False,
             )
         ),
         if_group(
