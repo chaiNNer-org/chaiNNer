@@ -34,7 +34,7 @@ class OrderEnum(Enum):
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
         ),
         EnumInput(OrderEnum, label="Order", default=OrderEnum.ROW_X_COLUMN).with_docs(
-            "The order in which the images are combined."
+            "The order in which the images are separated."
         ),
     ],
     outputs=[
