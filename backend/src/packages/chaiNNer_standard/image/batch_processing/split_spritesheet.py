@@ -1,13 +1,20 @@
 from __future__ import annotations
 
+from enum import Enum
+
 import numpy as np
 
 from api import Iterator, IteratorOutputInfo
-from nodes.properties.inputs import ImageInput, NumberInput
+from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
 from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
 
 from .. import batch_processing_group
+
+
+class OrderEnum(Enum):
+    ROW_X_COLUMN = 0
+    COLUMN_X_ROW = 1
 
 
 @batch_processing_group.register(
@@ -25,6 +32,9 @@ from .. import batch_processing_group
         ),
         NumberInput("Number of columns (width)", min=1, default=1).with_docs(
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
+        ),
+        EnumInput(OrderEnum, label="Order", default=OrderEnum.ROW_X_COLUMN).with_docs(
+            "The order in which the images are combined."
         ),
     ],
     outputs=[
@@ -47,6 +57,7 @@ def split_spritesheet_node(
     sprite_sheet: np.ndarray,
     rows: int,
     columns: int,
+    order: OrderEnum,
 ) -> Iterator[tuple[np.ndarray, int]]:
     h, w, _ = get_h_w_c(sprite_sheet)
     assert (
@@ -60,13 +71,24 @@ def split_spritesheet_node(
     individual_w = w // columns
 
     def get_sprite(index: int):
-        row = index // columns
-        col = index % columns
+        if order == OrderEnum.ROW_X_COLUMN:
+            row = index // columns
+            col = index % columns
 
-        sprite = sprite_sheet[
-            row * individual_h : (row + 1) * individual_h,
-            col * individual_w : (col + 1) * individual_w,
-        ]
+            sprite = sprite_sheet[
+                row * individual_h : (row + 1) * individual_h,
+                col * individual_w : (col + 1) * individual_w,
+            ]
+        elif order == OrderEnum.COLUMN_X_ROW:
+            col = index // rows
+            row = index % rows
+
+            sprite = sprite_sheet[
+                row * individual_h : (row + 1) * individual_h,
+                col * individual_w : (col + 1) * individual_w,
+            ]
+        else:
+            raise ValueError(f"Invalid order: {order}")
 
         return sprite, index
 
