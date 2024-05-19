@@ -16,7 +16,6 @@ from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
-    BoolInput,
     DirectoryInput,
     EnumInput,
     ImageInput,
@@ -279,9 +278,11 @@ class Writer:
         ImageInput("Image Sequence", channels=3),
         DirectoryInput(must_exist=False),
         RelativePathInput("Video Name"),
-        EnumInput(
-            Simplicity, default=Simplicity.SIMPLE, preferred_style="tabs"
-        ).with_id(16),
+        EnumInput(Simplicity, default=Simplicity.SIMPLE, preferred_style="tabs")
+        .with_id(16)
+        .with_docs(
+            "Simple mode offers a more user-friendly interface, while advanced mode allows for more customization of the underlying FFMPEG options."
+        ),
         if_enum_group(16, Simplicity.ADVANCED)(
             EnumInput(
                 VideoFormat,
@@ -333,22 +334,18 @@ class Writer:
                 )
                 .with_id(9),
             ),
-            BoolInput("Additional parameters", default=False)
+            TextInput(
+                "Additional parameters",
+                multiline=True,
+                label_style="hidden",
+                allow_empty_string=True,
+                has_handle=False,
+            )
+            .make_optional()
             .with_docs(
                 "Allow user to add FFmpeg parameters. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html)."
             )
-            .with_id(12),
-            if_group(Condition.bool(12, True))(
-                TextInput(
-                    "Additional parameters",
-                    multiline=True,
-                    label_style="hidden",
-                    allow_empty_string=True,
-                    has_handle=False,
-                )
-                .make_optional()
-                .with_id(13)
-            ),
+            .with_id(13),
         ),
         if_enum_group(16, Simplicity.SIMPLE)(
             EnumInput(
@@ -404,7 +401,6 @@ def save_video_node(
     encoder: VideoEncoder,
     video_preset: VideoPreset,
     crf: int,
-    advanced: bool,
     additional_parameters: str | None,
     simple_video_format: SimpleVideoFormat,
     quality: int,
@@ -438,28 +434,27 @@ def save_video_node(
         if "crf" in parameters:
             output_params["crf"] = crf
 
+    # Append additional parameters
     global_params: list[str] = []
-    if simplicity == Simplicity.ADVANCED:
-        # Append additional parameters
-        if advanced and additional_parameters is not None:
-            additional_parameters = " " + " ".join(additional_parameters.split())
-            additional_parameters_array = additional_parameters.split(" -")[1:]
-            non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
-            for parameter in additional_parameters_array:
-                key, value = parameter, None
-                try:
-                    key, value = parameter.split(" ")
-                except Exception:
-                    pass
+    if simplicity == Simplicity.ADVANCED and additional_parameters is not None:
+        additional_parameters = " " + " ".join(additional_parameters.split())
+        additional_parameters_array = additional_parameters.split(" -")[1:]
+        non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]
+        for parameter in additional_parameters_array:
+            key, value = parameter, None
+            try:
+                key, value = parameter.split(" ")
+            except Exception:
+                pass
 
-                if value is not None:
-                    for nop in non_overridable_params:
-                        if not key.startswith(nop):
-                            output_params[key] = value
-                        else:
-                            raise ValueError(f"Duplicate parameter: -{parameter}")
-                else:
-                    global_params.append(f"-{parameter}")
+            if value is not None:
+                for nop in non_overridable_params:
+                    if not key.startswith(nop):
+                        output_params[key] = value
+                    else:
+                        raise ValueError(f"Duplicate parameter: -{parameter}")
+            else:
+                global_params.append(f"-{parameter}")
 
     # Audio
     if container == VideoFormat.GIF:
