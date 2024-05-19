@@ -35,7 +35,6 @@ export const NodeBody = memo(({ nodeState, isCollapsed, animated }: NodeBodyProp
 
     return (
         <>
-            {!autoInput && inputs.length > 0 && <Box py={1} />}
             {!autoInput && (
                 <Box
                     bg="var(--bg-700)"
@@ -45,7 +44,7 @@ export const NodeBody = memo(({ nodeState, isCollapsed, animated }: NodeBodyProp
                 </Box>
             )}
 
-            {anyVisibleOutputs && <Box py={1} />}
+            {anyVisibleOutputs && <Box py={0.5} />}
             <Box
                 bg="var(--bg-700)"
                 w="full"

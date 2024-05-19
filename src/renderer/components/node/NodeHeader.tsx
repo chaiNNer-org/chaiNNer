@@ -244,9 +244,10 @@ export const NodeHeader = memo(
                     bgGradient={`linear(to-r, ${gradL}, ${gradR})`}
                     borderBottomColor={accentColor}
                     borderBottomWidth="2px"
+                    gap="2px"
                     h="auto"
                     minHeight={isCollapsed ? minHeight : undefined}
-                    p={1}
+                    p="2px"
                     verticalAlign="middle"
                     w="full"
                 >
