@@ -89,6 +89,10 @@ def _read_pil(path: Path) -> np.ndarray | None:
         return None
 
     im = Image.open(path)
+    if im.mode == "P":
+        # convert color palette to actual colors
+        im = im.convert(im.palette.mode)
+
     img = np.array(im)
     _, _, c = get_h_w_c(img)
     if c == 3:
