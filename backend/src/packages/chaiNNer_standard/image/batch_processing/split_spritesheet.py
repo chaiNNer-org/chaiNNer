@@ -75,22 +75,16 @@ def split_spritesheet_node(
         if order == OrderEnum.ROW_MAJOR:
             row = index // columns
             col = index % columns
-
-            sprite = sprite_sheet[
-                row * individual_h : (row + 1) * individual_h,
-                col * individual_w : (col + 1) * individual_w,
-            ]
         elif order == OrderEnum.COLUMN_MAJOR:
             col = index // rows
             row = index % rows
-
-            sprite = sprite_sheet[
-                row * individual_h : (row + 1) * individual_h,
-                col * individual_w : (col + 1) * individual_w,
-            ]
         else:
             raise ValueError(f"Invalid order: {order}")
 
+        sprite = sprite_sheet[
+            row * individual_h : (row + 1) * individual_h,
+            col * individual_w : (col + 1) * individual_w,
+        ]
         return sprite, index
 
     # We just need the index, so we can pass in a list of None's
