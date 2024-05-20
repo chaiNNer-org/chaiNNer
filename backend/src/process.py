@@ -574,9 +574,14 @@ class Executor:
         inputs = await self.__gather_inputs(node)
         context = self.__get_node_context(node)
 
+        def get_lazy_evaluation_time():
+            return sum(i.evaluation_time for i in inputs if isinstance(i, Lazy))
+
         await self.progress.suspend()
         self.__send_node_start(node)
         await self.progress.suspend()
+
+        lazy_time_before = get_lazy_evaluation_time()
 
         output, execution_time = await self.loop.run_in_executor(
             self.pool,
@@ -585,6 +590,9 @@ class Executor:
             ),
         )
         await self.progress.suspend()
+
+        lazy_time_after = get_lazy_evaluation_time()
+        execution_time -= lazy_time_after - lazy_time_before
 
         if isinstance(output, RegularOutput):
             await self.__send_node_broadcast(node, output.output)
