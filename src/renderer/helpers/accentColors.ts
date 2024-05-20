@@ -29,6 +29,10 @@ const colorList = () => {
         { type: NumberType.instance, color: getComputedColor('--type-color-number') },
         { type: StringType.instance, color: getComputedColor('--type-color-string') },
         {
+            type: evaluate(new NamedExpression('bool'), scope),
+            color: getComputedColor('--type-color-bool'),
+        },
+        {
             type: evaluate(new NamedExpression('PyTorchModel'), scope),
             color: getComputedColor('--type-color-torch'),
         },
