@@ -30,12 +30,11 @@ def wavelet_blur(image: torch.Tensor, radius: int) -> torch.Tensor:
     return output
 
 
-def wavelet_decomposition(image: torch.Tensor, levels: int = 5) -> tuple:
+def wavelet_decomposition(image: torch.Tensor, levels: int = 5):
     high_freq = torch.zeros_like(image)
-    low_freq = None
+    low_freq = image
     for i in range(levels):
-        radius = 2**i
-        low_freq = wavelet_blur(image, radius)
+        low_freq = wavelet_blur(image, radius=2**i)
         high_freq += image - low_freq
         image = low_freq
     return high_freq, low_freq
@@ -44,10 +43,8 @@ def wavelet_decomposition(image: torch.Tensor, levels: int = 5) -> tuple:
 def wavelet_reconstruction(
     content_feat: torch.Tensor, style_feat: torch.Tensor, levels: int
 ) -> torch.Tensor:
-    content_high_freq, content_low_freq = wavelet_decomposition(  # type: ignore
-        content_feat, levels=levels
-    )
-    style_high_freq, style_low_freq = wavelet_decomposition(style_feat, levels=levels)  # type: ignore
+    content_high_freq, _ = wavelet_decomposition(content_feat, levels=levels)
+    _, style_low_freq = wavelet_decomposition(style_feat, levels=levels)
     return content_high_freq + style_low_freq
 
 
@@ -68,7 +65,7 @@ def wavelet_reconstruction(
             hint=True,
         ),
     ],
-    outputs=[ImageOutput().with_never_reason("Returns the color-fixed image.")],
+    outputs=[ImageOutput(shape_as=0).with_docs("Returns the color-fixed image.")],
     node_context=True,
 )
 def wavelet_color_fix_node(
