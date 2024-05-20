@@ -49,6 +49,7 @@ class Lazy(Generic[T]):
         self._factory = _to_result(factory)
         self._value: _Result[T] | None = None
         self._evaluating = False
+        self._eval_time = 0
 
     @staticmethod
     def ready(value: T) -> Lazy[T]:
@@ -75,12 +76,17 @@ class Lazy(Generic[T]):
     @property
     def has_value(self) -> bool:
         """Returns True if the value has been computed, otherwise False."""
-        return self._value is not None
+        return self._value is not None and self._value.is_ok
 
     @property
     def has_error(self) -> bool:
         """Returns True if the value has been computed and it errored instead, otherwise False."""
-        return self._value is not None
+        return self._value is not None and not self._value.is_ok
+
+    @property
+    def evaluation_time(self) -> float:
+        """The time in seconds that it took to evaluate the value. If the value is not computed, returns 0."""
+        return self._eval_time
 
     @property
     def value(self) -> T:
@@ -94,7 +100,9 @@ class Lazy(Generic[T]):
             else:
                 self._evaluating = True
                 try:
+                    start = time.time()
                     self._value = self._factory()
+                    self._eval_time = time.time() - start
                 finally:
                     self._evaluating = False
 
