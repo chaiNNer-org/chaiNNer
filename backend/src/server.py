@@ -258,7 +258,7 @@ async def run(request: Request):
                 "inputs": exception.inputs,
             }
 
-        await ctx.queue.put({"event": "execution-error", "data": error})
+        ctx.queue.put({"event": "execution-error", "data": error})
         return json(error_response("Error running nodes!", exception), status=500)
     finally:
         if ctx.config.trace and tracer is not None:
