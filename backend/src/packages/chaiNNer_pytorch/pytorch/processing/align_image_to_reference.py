@@ -8,7 +8,6 @@
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/278
 # https://github.com/megvii-research/ECCV2022-RIFE/issues/344
 
-import os
 import zipfile
 from enum import Enum
 from pathlib import Path
@@ -16,12 +15,9 @@ from pathlib import Path
 import numpy as np
 import requests
 import torch
-from appdirs import user_data_dir
 
 from api import NodeContext
-from nodes.impl.pytorch.rife.IFNet_HDv3_v4_14_align import (
-    IFNet,
-)
+from nodes.impl.pytorch.rife.IFNet_HDv3_v4_14_align import IFNet
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import EnumInput, ImageInput, NumberInput
@@ -40,7 +36,7 @@ class PrecisionMode(Enum):
     EIGHT_HUNDRED_PERCENT = 125
 
 
-def calculate_padding(height, width, precision_mode):  # noqa: ANN001
+def calculate_padding(height: int, width: int, precision_mode: PrecisionMode):
     if precision_mode == PrecisionMode.EIGHT_HUNDRED_PERCENT:
         pad_value = 4
     elif precision_mode == PrecisionMode.FOUR_HUNDRED_PERCENT:
@@ -57,12 +53,14 @@ def calculate_padding(height, width, precision_mode):  # noqa: ANN001
     return pad_height, pad_width
 
 
-def download_model(download_url, download_path, model_file, zip_inner_path):  # noqa: ANN001
-    model_dir = Path(download_path)
+def download_model(
+    download_url: str, model_dir: Path, model_file: str, zip_inner_path: str
+):
     model_dir.mkdir(parents=True, exist_ok=True)
     zip_path = model_dir / "model.zip"
+    model_path = model_dir / model_file
 
-    if not (model_dir / model_file).exists():
+    if not model_path.exists():
         try:
             response = requests.get(download_url)
             response.raise_for_status()
@@ -72,8 +70,8 @@ def download_model(download_url, download_path, model_file, zip_inner_path):  # 
                 specific_file_path = zip_inner_path + "/" + model_file
                 zip_ref.extract(specific_file_path, model_dir)
             extracted_file_path = model_dir / specific_file_path
-            final_path = model_dir / model_file
-            if extracted_file_path != final_path:
+            final_path = model_path
+            if extracted_file_path != model_path:
                 extracted_file_path.rename(final_path)
 
             # cleanup empty folder
@@ -84,27 +82,28 @@ def download_model(download_url, download_path, model_file, zip_inner_path):  # 
         except requests.RequestException as e:
             print(f"Failed to download the model. Error: {e}")
 
+    return model_path
+
 
 def align_images(
-    context,  # noqa: ANN001
+    context: NodeContext,
     target_img: np.ndarray,
     source_img: np.ndarray,
-    precision_mode,  # noqa: ANN001
-    model_file="flownet.pkl",  # noqa: ANN001
-    multiplier=1,  # noqa: ANN001
-    alignment_passes=1,  # noqa: ANN001
-    blur_strength=0,  # noqa: ANN001
-    ensemble=True,  # noqa: ANN001
+    precision_mode: PrecisionMode,
+    model_file: str = "flownet.pkl",
+    multiplier: float = 1,
+    alignment_passes: int = 1,
+    blur_strength: float = 0,
+    ensemble: bool = True,
 ) -> np.ndarray:
-    appdata_path = user_data_dir(roaming=True)
-    path_str = "chaiNNer/python/rife_v4.14/weights"
-    download_path = os.path.join(appdata_path, path_str)
-    download_url = "https://drive.usercontent.google.com/download?id=1BjuEY7CHZv1wzmwXSQP9ZTj0mLWu_4xy&export=download&authuser=0"
-    zip_inner_path = "train_log"
-    download_model(download_url, download_path, model_file, zip_inner_path)
+    model_full_path = download_model(
+        download_url="https://drive.usercontent.google.com/download?id=1BjuEY7CHZv1wzmwXSQP9ZTj0mLWu_4xy&export=download&authuser=0",
+        model_dir=context.storage_dir / "rife_v4.14/weights",
+        model_file=model_file,
+        zip_inner_path="train_log",
+    )
 
     source_h, source_w, _ = get_h_w_c(source_img)
-    target_h, target_w, _ = get_h_w_c(target_img)  # type: ignore
 
     # resize, then shift reference left because rife shifts slightly to the right
     target_img_resized = resize(
@@ -132,7 +131,6 @@ def align_images(
     device = exec_options.device
 
     # load model
-    model_full_path = os.path.join(download_path, model_file)
     model = IFNet().to(device)
     state_dict = torch.load(model_full_path, map_location=device)
     new_state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
@@ -211,7 +209,7 @@ def align_images(
             hint=True,
         ),
     ],
-    outputs=[ImageOutput().with_never_reason("Returns the aligned image.")],
+    outputs=[ImageOutput(shape_as=1).with_docs("Returns the aligned image.")],
     node_context=True,
 )
 def align_image_to_reference_node(
@@ -229,8 +227,8 @@ def align_image_to_reference_node(
         target_img,
         source_img,
         precision,
-        multiplier=multiplier,  # type: ignore
+        multiplier=multiplier,
         alignment_passes=alignment_passes,
-        blur_strength=blur_strength,  # type: ignore
-        ensemble=1,  # type: ignore
+        blur_strength=blur_strength,
+        ensemble=True,
     )
