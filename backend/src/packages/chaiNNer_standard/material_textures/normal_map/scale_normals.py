@@ -21,7 +21,7 @@ from .. import normal_map_group
     icon="MdExpand",
     inputs=[
         ImageInput("Normal Map", channels=[3, 4]),
-        SliderInput("Strength", maximum=400, default=100),
+        SliderInput("Strength", max=400, default=100),
         EnumInput(
             AdditionMethod,
             label="Method",

@@ -7,7 +7,7 @@ from typing import Callable, Iterable, Union
 
 import cv2
 import numpy as np
-import pillow_avif  # noqa: F401
+import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 from sanic.log import logger
 
@@ -89,6 +89,10 @@ def _read_pil(path: Path) -> np.ndarray | None:
         return None
 
     im = Image.open(path)
+    if im.mode == "P":
+        # convert color palette to actual colors
+        im = im.convert(im.palette.mode)
+
     img = np.array(im)
     _, _, c = get_h_w_c(img)
     if c == 3:

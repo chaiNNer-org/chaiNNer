@@ -3,3 +3,4 @@ debugpy
 pyright==1.1.338
 pytest
 appdirs==1.4.4
+viztracer

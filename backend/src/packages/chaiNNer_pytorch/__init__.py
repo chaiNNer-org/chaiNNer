@@ -98,8 +98,8 @@ package = add_package(
         Dependency(
             display_name="Spandrel",
             pypi_name="spandrel",
-            version="0.3.1",
-            size_estimate=255 * KB,
+            version="0.3.4",
+            size_estimate=264 * KB,
         ),
         Dependency(
             display_name="Spandrel extra architectures",

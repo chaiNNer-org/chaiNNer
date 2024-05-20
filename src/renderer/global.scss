@@ -98,7 +98,7 @@ body {
     }
 
     &:disabled > svg {
-        fill: var(--gray-600);
+        fill: var(--theme-600);
     }
 }
 
@@ -120,53 +120,53 @@ body {
 
 [data-theme='light'] {
     .react-flow__controls:hover {
-        background: var(--gray-300) !important;
+        background: var(--theme-300) !important;
+    }
+
+    .react-flow__controls-button {
+        border: 0 solid black !important;
+        background: var(--controls-bg) !important;
+
+        &:not(:disabled):hover {
+            background: var(--controls-bg-hover) !important;
+            border: 0 solid black !important;
+        }
+
+        &:not(:disabled) > svg {
+            fill: black;
+        }
     }
 
     .react-flow__minimap {
-        background-color: rgb(
-            220 227 234 / 80%
+        background-color: var(
+            --minimap-bg
         ); /* - defines base minimap opacity, everything sits on top of this */
     }
 
     .react-flow__minimap-node {
-        fill: rgb(255 255 255 / 75%);
+        fill: var(--minimap-node);
         stroke: none;
     }
 
     .react-flow__minimap-mask {
-        fill: rgb(220 227 234 / 50%);
-        stroke: rgb(255 255 255 / 100%);
+        fill: var(--minimap-mask-fill);
+        stroke: var(--minimap-mask-stroke);
         stroke-width: 15;
-    }
-
-    .react-flow__controls-button {
-        border: 0 solid rgb(113 128 150 / 66%) !important;
-        background: rgb(203 213 224 / 66%) !important;
-
-        &:not(:disabled):hover {
-            background: var(--gray-400) !important;
-            border: 0 solid var(--gray-500) !important;
-        }
-
-        &:disabled > svg {
-            fill: var(--gray-400);
-        }
     }
 }
 
 [data-theme='dark'] {
     .react-flow__controls:hover {
-        background: var(--gray-700) !important;
+        background: var(--theme-700) !important;
     }
 
     .react-flow__controls-button {
-        border: 0 solid rgb(74 85 104 / 66%) !important;
-        background: rgb(45 55 72 / 66%) !important;
+        border: 0 solid white !important;
+        background: var(--controls-bg) !important;
 
         &:not(:disabled):hover {
-            background: var(--gray-600) !important;
-            border: 0 solid var(--gray-600) !important;
+            background: var(--controls-bg-hover) !important;
+            border: 0 solid white !important;
         }
 
         &:not(:disabled) > svg {
@@ -175,19 +175,19 @@ body {
     }
 
     .react-flow__minimap {
-        background-color: rgb(
-            49 58 72 / 80%
+        background-color: var(
+            --minimap-bg
         ); /* - defines base minimap opacity, everything sits on top of this */
     }
 
     .react-flow__minimap-node {
-        fill: rgb(255 255 255 / 50%);
+        fill: var(--minimap-node);
         stroke: none;
     }
 
     .react-flow__minimap-mask {
-        fill: rgb(49 58 72 / 80%);
-        stroke: rgb(255 255 255 / 50%);
+        fill: var(--minimap-mask-fill);
+        stroke: var(--minimap-mask-stroke);
         stroke-width: 15;
     }
 }
@@ -205,12 +205,12 @@ body {
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: var(--gray-700);
+    background-color: var(--theme-700);
 }
 
 [data-theme='light'] ::-webkit-scrollbar-thumb {
     border-radius: 8px;
-    background-color: var(--gray-300);
+    background-color: var(--theme-300);
 }
 
 #menu-button-global-context-menu {

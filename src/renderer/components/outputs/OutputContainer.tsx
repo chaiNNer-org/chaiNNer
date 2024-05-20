@@ -7,7 +7,7 @@ import { Output, OutputId } from '../../../common/common-types';
 import { stringifySourceHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { getTypeAccentColors } from '../../helpers/accentColors';
+import { useTypeColor } from '../../hooks/useTypeColor';
 import { Handle } from '../Handle';
 import { TypeTags } from '../TypeTag';
 
@@ -53,7 +53,7 @@ export const OutputHandle = memo(
             });
         }, [connectingFrom, id, sourceHandle, isValidConnection]);
 
-        const handleColors = getTypeAccentColors(type || definitionType);
+        const handleColors = useTypeColor(type || definitionType);
 
         return (
             <Center

@@ -186,7 +186,18 @@ async def run(request: Request):
         logger.warning(message)
         return json(already_running_response(message), status=500)
 
+    executor_id = ExecutionId("main-executor " + uuid.uuid4().hex)
+
+    tracer = None
     try:
+        if ctx.config.trace:
+            logger.info("Starting VizTracer...")
+            from viztracer import VizTracer
+
+            tracer = VizTracer()
+            tracer.log_async = True
+            tracer.start()
+
         # wait until all previews are done
         await run_individual_counter.wait_zero()
 
@@ -197,7 +208,7 @@ async def run(request: Request):
 
         logger.info("Running new executor...")
         executor = Executor(
-            id=ExecutionId("main-executor " + uuid.uuid4().hex),
+            id=executor_id,
             chain=chain,
             send_broadcast_data=full_data["sendBroadcastData"],
             options=ExecutionOptions.parse(full_data["options"]),
@@ -247,8 +258,13 @@ async def run(request: Request):
                 "inputs": exception.inputs,
             }
 
-        await ctx.queue.put({"event": "execution-error", "data": error})
+        ctx.queue.put({"event": "execution-error", "data": error})
         return json(error_response("Error running nodes!", exception), status=500)
+    finally:
+        if ctx.config.trace and tracer is not None:
+            logger.info("Stopping VizTracer...")
+            tracer.stop()
+            tracer.save(f"../traces/trace_{executor_id}.json")
 
 
 class RunIndividualRequest(TypedDict):

@@ -42,15 +42,15 @@ class ImageResizeMode(Enum):
             NumberInput(
                 "Percentage",
                 precision=4,
-                controls_step=25.0,
+                step=25.0,
                 default=100.0,
                 unit="%",
                 label_style="hidden",
             ).with_id(2),
         ),
         if_enum_group(1, ImageResizeMode.ABSOLUTE)(
-            NumberInput("Width", minimum=1, default=1, unit="px").with_id(3),
-            NumberInput("Height", minimum=1, default=1, unit="px").with_id(4),
+            NumberInput("Width", min=1, default=1, unit="px").with_id(3),
+            NumberInput("Height", min=1, default=1, unit="px").with_id(4),
         ),
         ResizeFilterInput().with_id(5),
         if_group(Condition.type(0, "Image { channels: 4 } "))(
@@ -81,8 +81,8 @@ class ImageResizeMode(Enum):
                         channels: i.channels,
                     },
                     ImageResizeMode::Absolute => Image {
-                        width: width,
-                        height: height,
+                        width,
+                        height,
                         channels: i.channels,
                     },
                 }

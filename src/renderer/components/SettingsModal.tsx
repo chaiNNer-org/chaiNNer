@@ -54,14 +54,23 @@ const AppearanceSettings = memo(() => {
             w="full"
         >
             <DropdownSetting
-                setValue={(value) => setTheme(value as never)}
+                setValue={(value) => setTheme(value)}
                 setting={{
-                    label: 'Select Theme',
+                    label: 'Color Theme',
                     description: "Choose the Theme for chaiNNer's appearance.",
                     options: [
-                        { label: 'Dark Mode', value: 'dark' },
-                        { label: 'Light Mode', value: 'light' },
-                        { label: 'System', value: 'system' },
+                        { label: 'Dark', value: 'default-dark' },
+                        { label: 'Light', value: 'default-light' },
+                        { label: 'System', value: 'default-system' },
+                        { label: 'Charcoal', value: 'charcoal-dark' },
+                        { label: 'Coffee', value: 'coffee-dark' },
+                        { label: 'Blueberry', value: 'blueberry-dark' },
+                        { label: 'Dusk', value: 'dusk-dark' },
+                        { label: 'OLED', value: 'oled-dark' },
+                        { label: 'Cyberpunk', value: 'cyberpunk-dark' },
+                        { label: 'Mixer3D', value: 'mixer-dark' },
+                        { label: 'NotRealEngine', value: 'notreal-dark' },
+                        { label: 'ComfortUI', value: 'comfort-dark' },
                     ],
                     small: true,
                 }}

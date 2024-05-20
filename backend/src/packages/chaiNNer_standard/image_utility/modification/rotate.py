@@ -31,9 +31,9 @@ from .. import modification_group
         SliderInput(
             "Rotation Angle",
             default=0,
-            maximum=360,
+            max=360,
             precision=1,
-            controls_step=45,
+            step=45,
             slider_step=1,
             unit="°",
         ),
@@ -95,7 +95,7 @@ from .. import modification_group
                 );
 
                 struct Size { w: number, h: number }
-                let imgSize = Size { w: w, h: h };
+                let imgSize = Size { w, h };
                 let transformedSize = match Input3 {
                     RotateSizeChange::Crop => imgSize,
                     RotateSizeChange::Expand => Size { w: expandWidth, h: expandHeight },
@@ -104,7 +104,7 @@ from .. import modification_group
                 // account for fast paths
                 let size = match angleDeg {
                     0 | 180 | 360 => imgSize,
-                    90 | 270 => if bool::or(Input3 == RotateSizeChange::Expand, w == h) {
+                    90 | 270 => if Input3 == RotateSizeChange::Expand or w == h {
                         Size { w: h, h: w }
                     } else {
                         transformedSize

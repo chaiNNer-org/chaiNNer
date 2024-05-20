@@ -20,9 +20,9 @@ from .. import normal_map_group
     icon="MdAddCircleOutline",
     inputs=[
         ImageInput("Normal Map 1", channels=[3, 4]),
-        SliderInput("Strength 1", maximum=200, default=100),
+        SliderInput("Strength 1", max=200, default=100),
         ImageInput("Normal Map 2", channels=[3, 4]),
-        SliderInput("Strength 2", maximum=200, default=100),
+        SliderInput("Strength 2", max=200, default=100),
         EnumInput(
             AdditionMethod,
             label="Method",

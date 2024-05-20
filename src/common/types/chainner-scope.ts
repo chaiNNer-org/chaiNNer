@@ -18,6 +18,7 @@ import {
     padEnd,
     padStart,
     parseColorJson,
+    regexFind,
     regexReplace,
     splitFilePath,
 } from './chainner-builtin';
@@ -27,7 +28,7 @@ struct null;
 
 struct Error { message: string }
 def error(message: invStrSet("")): Error {
-    Error { message: message }
+    Error { message }
 }
 
 struct Seed;
@@ -118,8 +119,9 @@ struct SplitFilePath {
     ext: string,
 }
 
-intrinsic def formatPattern(pattern: string, ...args: string | null): string;
-intrinsic def regexReplace(text: string, regex: string, replacement: string, count: uint | inf): string;
+intrinsic def formatPattern(pattern: string, ...args: string | null): string | Error;
+intrinsic def regexReplace(text: string, regex: string, replacement: string, count: uint | inf): string | Error;
+intrinsic def regexFind(text: string, regex: string, pattern: string): string | Error;
 intrinsic def padStart(text: string, width: uint, padding: string): string;
 intrinsic def padEnd(text: string, width: uint, padding: string): string;
 intrinsic def padCenter(text: string, width: uint, padding: string): string;
@@ -133,8 +135,9 @@ export const getChainnerScope = lazy((): Scope => {
     const builder = new ScopeBuilder('Chainner scope', globalScope);
 
     const intrinsic: Record<string, (scope: Scope, ...args: NeverType[]) => Type> = {
-        formatPattern: makeScoped(formatTextPattern),
-        regexReplace: makeScoped(regexReplace),
+        formatPattern: formatTextPattern,
+        regexReplace,
+        regexFind,
         padStart: makeScoped(padStart),
         padEnd: makeScoped(padEnd),
         padCenter: makeScoped(padCenter),

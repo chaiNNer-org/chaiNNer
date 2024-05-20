@@ -31,13 +31,7 @@ class RoundScale(Enum):
     description="Round an input number",
     icon="MdCalculate",
     inputs=[
-        NumberInput(
-            "Input",
-            minimum=None,
-            maximum=None,
-            precision=100,
-            controls_step=1,
-        ),
+        NumberInput("Input", min=None, max=None, precision=100, step=1),
         EnumInput(
             RoundOperation,
             "Operation",
@@ -52,20 +46,20 @@ class RoundScale(Enum):
             NumberInput(
                 "Multiple",
                 default=1,
-                minimum=1e-100,
-                maximum=None,
+                min=1e-100,
+                max=None,
                 precision=100,
-                controls_step=1,
+                step=1,
             )
         ),
         if_enum_group(2, RoundScale.POWER)(
             NumberInput(
                 "Power",
                 default=2,
-                minimum=np.nextafter(1.0, np.inf),
-                maximum=None,
+                min=np.nextafter(1.0, np.inf),
+                max=None,
                 precision=100,
-                controls_step=1,
+                step=1,
             )
         ),
     ],
@@ -89,9 +83,9 @@ class RoundScale(Enum):
                         RoundOperation::Round => round(x/m) * m,
                     },
                     RoundScale::Power => match Input1 {
-                        RoundOperation::Floor => number::pow(p, floor(number::log(x)/number::log(p))),
-                        RoundOperation::Ceiling => number::pow(p, ceil(number::log(x)/number::log(p))),
-                        RoundOperation::Round => number::pow(p, round(number::log(x)/number::log(p))),
+                        RoundOperation::Floor => p ** floor(number::log(x)/number::log(p)),
+                        RoundOperation::Ceiling => p ** ceil(number::log(x)/number::log(p)),
+                        RoundOperation::Round => p ** round(number::log(x)/number::log(p)),
                     },
                 }
                 """,

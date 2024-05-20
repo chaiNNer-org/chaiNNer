@@ -16,7 +16,6 @@ from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
-    BoolInput,
     DirectoryInput,
     EnumInput,
     ImageInput,
@@ -96,6 +95,55 @@ class AudioSettings(Enum):
     AUTO = "auto"
     COPY = "copy"
     TRANSCODE = "transcode"
+
+
+class Simplicity(Enum):
+    SIMPLE = 0
+    ADVANCED = 1
+
+
+class SimpleVideoFormat(Enum):
+    MP4_H264 = "mp4_h264"
+    MP4_H265 = "mp4_h265"
+    WEBM = "webm"
+    GIF = "gif"
+
+
+def get_simple_format(
+    simple_video_format: SimpleVideoFormat, quality: int
+) -> tuple[VideoFormat, VideoEncoder, VideoPreset, int]:
+    container = {
+        SimpleVideoFormat.MP4_H264: VideoFormat.MP4,
+        SimpleVideoFormat.MP4_H265: VideoFormat.MP4,
+        SimpleVideoFormat.WEBM: VideoFormat.WEBM,
+        SimpleVideoFormat.GIF: VideoFormat.GIF,
+    }[simple_video_format]
+
+    encoder = {
+        SimpleVideoFormat.MP4_H264: VideoEncoder.H264,
+        SimpleVideoFormat.MP4_H265: VideoEncoder.H265,
+        SimpleVideoFormat.WEBM: VideoEncoder.VP9,
+        # Encoder will be ignored when GIF, it just needs to be any value
+        SimpleVideoFormat.GIF: VideoEncoder.H264,
+    }[simple_video_format]
+
+    crf = int((100 - quality) / 100 * 51)
+
+    if quality > 95:
+        video_preset = VideoPreset.VERY_SLOW
+    elif quality > 80:
+        video_preset = VideoPreset.SLOWER
+    elif quality > 60:
+        video_preset = VideoPreset.SLOW
+    elif quality >= 50:
+        video_preset = VideoPreset.MEDIUM
+    elif quality > 35:
+        video_preset = VideoPreset.FAST
+    elif quality > 20:
+        video_preset = VideoPreset.VERY_FAST
+    else:
+        video_preset = VideoPreset.ULTRA_FAST
+    return container, encoder, video_preset, crf
 
 
 PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
@@ -223,78 +271,91 @@ class Writer:
         ImageInput("Image Sequence", channels=3),
         DirectoryInput(must_exist=False),
         RelativePathInput("Video Name"),
-        EnumInput(
-            VideoFormat,
-            label="Video Format",
-            option_labels={
-                VideoFormat.MKV: "mkv",
-                VideoFormat.MP4: "mp4",
-                VideoFormat.MOV: "mov",
-                VideoFormat.WEBM: "WebM",
-                VideoFormat.AVI: "avi",
-                VideoFormat.GIF: "GIF",
-            },
-        ).with_id(4),
-        EnumInput(
-            VideoEncoder,
-            label="Encoder",
-            option_labels={
-                VideoEncoder.H264: "H.264 (AVC)",
-                VideoEncoder.H265: "H.265 (HEVC)",
-                VideoEncoder.VP9: "VP9",
-                VideoEncoder.FFV1: "FFV1",
-            },
-            conditions={
-                VideoEncoder.H264: Condition.enum(4, VideoEncoder.H264.formats),
-                VideoEncoder.H265: Condition.enum(4, VideoEncoder.H265.formats),
-                VideoEncoder.VP9: Condition.enum(4, VideoEncoder.VP9.formats),
-                VideoEncoder.FFV1: Condition.enum(4, VideoEncoder.FFV1.formats),
-            },
-        )
-        .with_id(3)
-        .wrap_with_conditional_group(),
-        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265))(
-            EnumInput(VideoPreset, default=VideoPreset.MEDIUM)
-            .with_docs(
-                "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
-            )
-            .with_id(8),
-        ),
-        if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9))(
-            SliderInput(
-                "Quality (CRF)",
-                precision=0,
-                controls_step=1,
-                slider_step=1,
-                minimum=0,
-                maximum=51,
-                default=23,
-                ends=("Best", "Worst"),
-            )
-            .with_docs(
-                "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
-            )
-            .with_id(9),
-        ),
-        BoolInput("Additional parameters", default=False)
+        EnumInput(Simplicity, default=Simplicity.SIMPLE, preferred_style="tabs")
+        .with_id(16)
         .with_docs(
-            "Allow user to add FFmpeg parameters. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html)."
-        )
-        .with_id(12),
-        if_group(Condition.bool(12, True))(
+            "Simple mode offers a more user-friendly interface, while advanced mode allows for more customization of the underlying FFMPEG options."
+        ),
+        if_enum_group(16, Simplicity.ADVANCED)(
+            EnumInput(
+                VideoFormat,
+                label="Video Format",
+                option_labels={
+                    VideoFormat.MKV: "mkv",
+                    VideoFormat.MP4: "mp4",
+                    VideoFormat.MOV: "mov",
+                    VideoFormat.WEBM: "WebM",
+                    VideoFormat.AVI: "avi",
+                    VideoFormat.GIF: "GIF",
+                },
+            ).with_id(4),
+            EnumInput(
+                VideoEncoder,
+                label="Encoder",
+                option_labels={
+                    VideoEncoder.H264: "H.264 (AVC)",
+                    VideoEncoder.H265: "H.265 (HEVC)",
+                    VideoEncoder.VP9: "VP9",
+                    VideoEncoder.FFV1: "FFV1",
+                },
+                conditions={
+                    VideoEncoder.H264: Condition.enum(4, VideoEncoder.H264.formats),
+                    VideoEncoder.H265: Condition.enum(4, VideoEncoder.H265.formats),
+                    VideoEncoder.VP9: Condition.enum(4, VideoEncoder.VP9.formats),
+                    VideoEncoder.FFV1: Condition.enum(4, VideoEncoder.FFV1.formats),
+                },
+            )
+            .with_id(3)
+            .wrap_with_conditional_group(),
+            if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265))(
+                EnumInput(VideoPreset, default=VideoPreset.MEDIUM)
+                .with_docs(
+                    "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
+                )
+                .with_id(8),
+            ),
+            if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265, VideoEncoder.VP9))(
+                SliderInput(
+                    "CRF",
+                    min=0,
+                    max=51,
+                    default=23,
+                    ends=("Best", "Worst"),
+                )
+                .with_docs(
+                    "For more information on CRF, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#crf)."
+                )
+                .with_id(9),
+            ),
             TextInput(
                 "Additional parameters",
                 multiline=True,
-                label_style="hidden",
                 allow_empty_string=True,
                 has_handle=False,
             )
             .make_optional()
-            .with_id(13)
+            .with_docs(
+                "Allow adding extra FFmpeg parameters the same way you would in CLI. [Link to FFmpeg documentation](https://ffmpeg.org/documentation.html).",
+                hint=True,
+            )
+            .with_id(13),
         ),
-        NumberInput(
-            "FPS", default=30, minimum=1, controls_step=1, has_handle=True, precision=4
-        ).with_id(14),
+        if_enum_group(16, Simplicity.SIMPLE)(
+            EnumInput(
+                SimpleVideoFormat,
+                label="Video Format",
+                option_labels={
+                    SimpleVideoFormat.MP4_H264: "MP4 (H.264/AVC)",
+                    SimpleVideoFormat.MP4_H265: "MP4 (H.265/HEVC)",
+                    SimpleVideoFormat.WEBM: "WebM",
+                    SimpleVideoFormat.GIF: "GIF",
+                },
+            ).with_id(17),
+            if_group(~Condition.enum(17, SimpleVideoFormat.GIF))(
+                SliderInput("Quality", min=0, max=100, default=75).with_id(18),
+            ),
+        ),
+        NumberInput("FPS", default=30, min=1, step=1, precision=4).with_id(14),
         if_group(~Condition.enum(4, VideoFormat.GIF))(
             AudioStreamInput().make_optional().with_id(15).suggest(),
             if_group(Condition.type(15, "AudioStream"))(
@@ -328,16 +389,23 @@ def save_video_node(
     _: None,
     save_dir: Path,
     video_name: str,
+    simplicity: Simplicity,
     container: VideoFormat,
     encoder: VideoEncoder,
     video_preset: VideoPreset,
     crf: int,
-    advanced: bool,
     additional_parameters: str | None,
+    simple_video_format: SimpleVideoFormat,
+    quality: int,
     fps: float,
     audio: Any,
     audio_settings: AudioSettings,
 ) -> Collector[np.ndarray, None]:
+    if simplicity == Simplicity.SIMPLE:
+        container, encoder, video_preset, crf = get_simple_format(
+            simple_video_format, quality
+        )
+
     save_path = (save_dir / f"{video_name}.{container.ext}").resolve()
     save_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -361,7 +429,7 @@ def save_video_node(
 
     # Append additional parameters
     global_params: list[str] = []
-    if advanced and additional_parameters is not None:
+    if simplicity == Simplicity.ADVANCED and additional_parameters is not None:
         additional_parameters = " " + " ".join(additional_parameters.split())
         additional_parameters_array = additional_parameters.split(" -")[1:]
         non_overridable_params = ["filename", "vcodec", "crf", "preset", "c:"]

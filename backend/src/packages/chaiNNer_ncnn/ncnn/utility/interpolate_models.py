@@ -14,7 +14,7 @@ from ..processing.upscale_image import upscale_image_node
 
 def check_will_upscale(context: NodeContext, interp: NcnnModelWrapper):
     fake_img = np.ones((3, 3, 3), dtype=np.float32, order="F")
-    result = upscale_image_node(context, fake_img, interp, NO_TILING, None, False)
+    result = upscale_image_node(context, fake_img, interp, NO_TILING, 0, False)
 
     mean_color = np.mean(result)
     del result
@@ -32,9 +32,9 @@ def check_will_upscale(context: NodeContext, interp: NcnnModelWrapper):
         NcnnModelInput("Model B"),
         SliderInput(
             "Weights",
-            controls_step=5,
+            step=5,
             slider_step=1,
-            maximum=100,
+            max=100,
             default=50,
             unit="%",
             note_expression="`Model A ${100 - value}% ― Model B ${value}%`",

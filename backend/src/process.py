@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, NewType, Sequence, Union
+from typing import Callable, Iterable, List, NewType, Sequence, Union
 
 from sanic.log import logger
 
@@ -342,13 +342,19 @@ class _ExecutorNodeContext(NodeContext):
         self.__settings = settings
         self._storage_dir = storage_dir
 
+        self.cleanup_fns: set[Callable[[], None]] = set()
+
     @property
     def aborted(self) -> bool:
         return self.progress.aborted
 
     @property
     def paused(self) -> bool:
-        time.sleep(0.001)
+        # Python is single-threaded, so it's necessary for this thread to yield, so other threads can do some work.
+        # This is necessary because the thread for accepting the `/pause` endpoint would not be able to accept requests otherwise.
+        # This in turn would mean that `self.progress.paused` would never be set to True.
+        # For more information, see https://github.com/chaiNNer-org/chaiNNer/pull/2853
+        time.sleep(0)
         return self.progress.paused
 
     def set_progress(self, progress: float) -> None:
@@ -366,6 +372,9 @@ class _ExecutorNodeContext(NodeContext):
     @property
     def storage_dir(self) -> Path:
         return self._storage_dir
+
+    def add_cleanup(self, fn: Callable[[], None]) -> None:
+        self.cleanup_fns.add(fn)
 
 
 class Executor:
@@ -565,9 +574,14 @@ class Executor:
         inputs = await self.__gather_inputs(node)
         context = self.__get_node_context(node)
 
+        def get_lazy_evaluation_time():
+            return sum(i.evaluation_time for i in inputs if isinstance(i, Lazy))
+
         await self.progress.suspend()
-        await self.__send_node_start(node)
+        self.__send_node_start(node)
         await self.progress.suspend()
+
+        lazy_time_before = get_lazy_evaluation_time()
 
         output, execution_time = await self.loop.run_in_executor(
             self.pool,
@@ -577,9 +591,12 @@ class Executor:
         )
         await self.progress.suspend()
 
+        lazy_time_after = get_lazy_evaluation_time()
+        execution_time -= lazy_time_after - lazy_time_before
+
         if isinstance(output, RegularOutput):
             await self.__send_node_broadcast(node, output.output)
-            await self.__send_node_finish(node, execution_time)
+            self.__send_node_finish(node, execution_time)
         elif isinstance(output, IteratorOutput):
             await self.__send_node_broadcast(node, output.partial_output)
             # TODO: execution time
@@ -693,7 +710,7 @@ class Executor:
         async def update_progress():
             iter_times.add()
             iterations = iter_times.iterations
-            await self.__send_node_progress(
+            self.__send_node_progress(
                 node,
                 iter_times.times,
                 iterations,
@@ -701,7 +718,7 @@ class Executor:
             )
 
         # iterate
-        await self.__send_node_progress(node, [], 0, expected_length)
+        self.__send_node_progress(node, [], 0, expected_length)
 
         deferred_errors: list[str] = []
         for values in iterator_output.iterator.iter_supplier():
@@ -756,8 +773,8 @@ class Executor:
         await self.__send_node_broadcast(node, iterator_output.partial_output)
 
         # finish iterator
-        await self.__send_node_progress_done(node, iter_times.iterations)
-        await self.__send_node_finish(node, iter_times.get_time_since_start())
+        self.__send_node_progress_done(node, iter_times.iterations)
+        self.__send_node_finish(node, iter_times.get_time_since_start())
 
         # finalize collectors
         for collector, timer, collector_node in collectors:
@@ -769,7 +786,7 @@ class Executor:
 
             await self.__send_node_broadcast(collector_node, collector_output.output)
             # TODO: execution time
-            await self.__send_node_finish(collector_node, timer.duration)
+            self.__send_node_finish(collector_node, timer.duration)
 
             self.cache.set(
                 collector_node.id,
@@ -782,7 +799,7 @@ class Executor:
             raise Exception(f"Errors occurred during iteration:\n{error_string}")
 
     async def __process_nodes(self):
-        await self.__send_chain_start()
+        self.__send_chain_start()
 
         # we first need to run iterator nodes in topological order
         for node_id in self.chain.topological_order():
@@ -804,6 +821,14 @@ class Executor:
 
         # clear cache after the chain is done
         self.cache.clear()
+
+        # Run cleanup functions
+        for context in self.__context_cache.values():
+            for fn in context.cleanup_fns:
+                try:
+                    fn()
+                except Exception as e:
+                    logger.error(f"Error running cleanup function: {e}")
 
         # await all broadcasts
         tasks = self.__broadcast_tasks
@@ -833,12 +858,12 @@ class Executor:
 
     # events
 
-    async def __send_chain_start(self):
+    def __send_chain_start(self):
         # all nodes except the cached ones
         nodes = set(self.chain.nodes.keys())
         nodes.difference_update(self.cache.keys())
 
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "chain-start",
                 "data": {
@@ -847,8 +872,8 @@ class Executor:
             }
         )
 
-    async def __send_node_start(self, node: Node):
-        await self.queue.put(
+    def __send_node_start(self, node: Node):
+        self.queue.put(
             {
                 "event": "node-start",
                 "data": {
@@ -857,7 +882,7 @@ class Executor:
             }
         )
 
-    async def __send_node_progress(
+    def __send_node_progress(
         self, node: Node, times: Sequence[float], index: int, length: int
     ):
         def get_eta(times: Sequence[float]) -> float:
@@ -873,7 +898,7 @@ class Executor:
             remaining = max(0, length - index)
             return avg_time * remaining
 
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "node-progress",
                 "data": {
@@ -886,8 +911,8 @@ class Executor:
             }
         )
 
-    async def __send_node_progress_done(self, node: Node, length: int):
-        await self.queue.put(
+    def __send_node_progress_done(self, node: Node, length: int):
+        self.queue.put(
             {
                 "event": "node-progress",
                 "data": {
@@ -918,7 +943,7 @@ class Executor:
                 return
 
             data, types = result
-            await self.queue.put(
+            self.queue.put(
                 {
                     "event": "node-broadcast",
                     "data": {
@@ -934,12 +959,12 @@ class Executor:
             # broadcasts are done is parallel, so don't wait
             self.__broadcast_tasks.append(self.loop.create_task(send_broadcast()))
 
-    async def __send_node_finish(
+    def __send_node_finish(
         self,
         node: Node,
         execution_time: float,
     ):
-        await self.queue.put(
+        self.queue.put(
             {
                 "event": "node-finish",
                 "data": {

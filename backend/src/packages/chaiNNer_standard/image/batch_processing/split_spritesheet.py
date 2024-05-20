@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from api import Iterator, IteratorOutputInfo
-from nodes.properties.inputs import ImageInput, NumberInput
+from nodes.properties.inputs import ImageInput, NumberInput, OrderEnum, RowOrderDropdown
 from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
 
@@ -20,21 +20,22 @@ from .. import batch_processing_group
     icon="BsFillGrid3X3GapFill",
     inputs=[
         ImageInput("Spritesheet"),
-        NumberInput(
-            "Number of rows (height)",
-            controls_step=1,
-            minimum=1,
-            default=1,
-        ).with_docs(
+        NumberInput("Number of rows (height)", min=1, default=1).with_docs(
             "The number of rows to split the image into. The height of the image must be a multiple of this number."
         ),
-        NumberInput(
-            "Number of columns (width)",
-            controls_step=1,
-            minimum=1,
-            default=1,
-        ).with_docs(
+        NumberInput("Number of columns (width)", min=1, default=1).with_docs(
             "The number of columns to split the image into. The width of the image must be a multiple of this number."
+        ),
+        RowOrderDropdown().with_docs(
+            """The order in which the images are separated.
+Examples:
+```
+Row major:    Column major:
+→ 0 1 2       ↓ 0 3 6
+  3 4 5         1 4 7
+  6 7 8         2 5 8
+```""",
+            hint=True,
         ),
     ],
     outputs=[
@@ -57,6 +58,7 @@ def split_spritesheet_node(
     sprite_sheet: np.ndarray,
     rows: int,
     columns: int,
+    order: OrderEnum,
 ) -> Iterator[tuple[np.ndarray, int]]:
     h, w, _ = get_h_w_c(sprite_sheet)
     assert (
@@ -70,14 +72,19 @@ def split_spritesheet_node(
     individual_w = w // columns
 
     def get_sprite(index: int):
-        row = index // columns
-        col = index % columns
+        if order == OrderEnum.ROW_MAJOR:
+            row = index // columns
+            col = index % columns
+        elif order == OrderEnum.COLUMN_MAJOR:
+            col = index // rows
+            row = index % rows
+        else:
+            raise ValueError(f"Invalid order: {order}")
 
         sprite = sprite_sheet[
             row * individual_h : (row + 1) * individual_h,
             col * individual_w : (col + 1) * individual_w,
         ]
-
         return sprite, index
 
     # We just need the index, so we can pass in a list of None's

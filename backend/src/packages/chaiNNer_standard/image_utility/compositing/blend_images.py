@@ -84,42 +84,12 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
                 default=BlendOverlayPosition.CENTERED,
             ),
             if_enum_group(3, (BlendOverlayPosition.PERCENT_OFFSET))(
-                SliderInput(
-                    "X offset",
-                    precision=0,
-                    controls_step=1,
-                    minimum=-200,
-                    maximum=200,
-                    default=0,
-                    unit="%",
-                ),
-                SliderInput(
-                    "Y offset",
-                    precision=0,
-                    controls_step=1,
-                    minimum=-200,
-                    maximum=200,
-                    default=0,
-                    unit="%",
-                ),
+                SliderInput("X offset", min=-200, max=200, default=0, unit="%"),
+                SliderInput("Y offset", min=-200, max=200, default=0, unit="%"),
             ),
             if_enum_group(3, (BlendOverlayPosition.PIXEL_OFFSET))(
-                NumberInput(
-                    "X offset",
-                    controls_step=1,
-                    minimum=None,
-                    maximum=None,
-                    default=0,
-                    unit="px",
-                ),
-                NumberInput(
-                    "Y offset",
-                    controls_step=1,
-                    minimum=None,
-                    maximum=None,
-                    default=0,
-                    unit="px",
-                ),
+                NumberInput("X offset", min=None, max=None, default=0, unit="px"),
+                NumberInput("Y offset", min=None, max=None, default=0, unit="px"),
             ),
             BoolInput("Crop to fit base layer", default=False),
         ),
@@ -130,10 +100,10 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
             let base = Input0;
             let overlay = Input1;
             let position:BlendOverlayPosition = Input3;
-            let cropToFit = bool::and(bothImages, Input8);
+            let cropToFit = bothImages and Input8;
 
             def isImage(x: any) = match x { Image => true, _ => false };
-            let bothImages = bool::and(isImage(base), isImage(overlay));
+            let bothImages = isImage(base) and isImage(overlay);
 
             def getWidth(img: any) = match img { Image => img.width, _ => -inf };
             def getHeight(img: any) = match img { Image => img.height, _ => -inf };

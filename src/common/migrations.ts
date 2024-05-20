@@ -1958,6 +1958,16 @@ const saveVideoInputPatchMigration: ModernMigration = (data) => {
     return data;
 };
 
+const saveVideoAdvancedModeMigration: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:save_video') {
+            node.data.inputData[16] = 1;
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -2017,6 +2027,7 @@ const migrations = [
     saveVideoInputPR2514,
     normalMapGeneratorInvert,
     saveVideoInputPatchMigration,
+    saveVideoAdvancedModeMigration,
 ];
 
 export const currentMigration = migrations.length;

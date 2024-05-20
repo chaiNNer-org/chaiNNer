@@ -56,8 +56,8 @@ class BorderMode(Enum):
             NumberInput("Bottom", unit="px").with_id(8),
         ),
         if_enum_group(3, BorderMode.OFFSETS)(
-            NumberInput("Width", unit="px", minimum=1, default=100).with_id(9),
-            NumberInput("Height", unit="px", minimum=1, default=100).with_id(10),
+            NumberInput("Width", unit="px", min=1, default=100).with_id(9),
+            NumberInput("Height", unit="px", min=1, default=100).with_id(10),
         ),
     ],
     outputs=[
@@ -86,8 +86,8 @@ class BorderMode(Enum):
                         height: i.height + top + bottom,
                     },
                     BorderMode::Offsets => Image {
-                        width: width,
-                        height: height,
+                        width,
+                        height,
                     },
                 };
 

@@ -53,17 +53,17 @@ UPSCALER_MODE_LABELS = {
         if_enum_group(1, UpscalerMode.SCALE_BY)(
             SliderInput(
                 "Resize multiplier",
-                minimum=1.0,
+                min=1.0,
                 default=4.0,
-                maximum=8.0,
+                max=8.0,
                 slider_step=0.1,
-                controls_step=0.1,
+                step=0.1,
                 precision=1,
             ).with_id(2),
         ),
         if_enum_group(1, UpscalerMode.SCALE_TO)(
-            NumberInput("Width", controls_step=1, minimum=1, default=512).with_id(3),
-            NumberInput("Height", controls_step=1, minimum=1, default=512).with_id(4),
+            NumberInput("Width", min=1, default=512).with_id(3),
+            NumberInput("Height", min=1, default=512).with_id(4),
             BoolInput("Crop to fit", default=True).with_id(5),
         ),
         EnumInput(
@@ -80,11 +80,11 @@ UPSCALER_MODE_LABELS = {
             ),
             SliderInput(
                 "Upscaler 2 visibility",
-                minimum=0.0,
+                min=0.0,
                 default=0.0,
-                maximum=1.0,
+                max=1.0,
                 slider_step=0.001,
-                controls_step=0.001,
+                step=0.001,
                 precision=3,
             ),
         ),
@@ -109,7 +109,7 @@ UPSCALER_MODE_LABELS = {
 
                 match mode {
                     UpscalerMode::ScaleTo => if crop {
-                        Image { width: width, height: height }
+                        Image { width, height }
                     } else {
                         Image {
                             width: nearest_valid(in_w*larger_ratio),

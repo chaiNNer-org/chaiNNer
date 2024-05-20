@@ -19,13 +19,7 @@ from .. import crop_group
     icon="MdCrop",
     inputs=[
         ImageInput(),
-        SliderInput(
-            "Threshold",
-            precision=1,
-            controls_step=1,
-            slider_step=1,
-            default=0,
-        ),
+        SliderInput("Threshold", precision=1, step=1, default=0),
     ],
     outputs=[
         ImageOutput(

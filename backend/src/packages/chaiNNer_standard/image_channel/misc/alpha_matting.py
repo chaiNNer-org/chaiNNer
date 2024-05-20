@@ -28,14 +28,10 @@ from .. import miscellaneous_group
             "If the image has an alpha channel, it will be ignored."
         ),
         ImageInput("Trimap", channels=1),
-        SliderInput(
-            "Foreground Threshold", minimum=1, maximum=255, default=240
-        ).with_docs(
+        SliderInput("Foreground Threshold", min=1, max=255, default=240).with_docs(
             "All pixels in the trimap brighter than this value are considered to be part of the foreground."
         ),
-        SliderInput(
-            "Background Threshold", minimum=0, maximum=254, default=15
-        ).with_docs(
+        SliderInput("Background Threshold", min=0, max=254, default=15).with_docs(
             "All pixels in the trimap darker than this value are considered to be part of the background."
         ),
     ],
@@ -49,7 +45,7 @@ from .. import miscellaneous_group
 
                 if fg <= bg {
                     error("The foreground threshold must be greater than the background threshold.")
-                } else if bool::or(image.width != trimap.width, image.height != trimap.height) {
+                } else if image.width != trimap.width or image.height != trimap.height {
                     error("The image and trimap must have the same size.")
                 } else {
                     Image { width: image.width, height: image.height }

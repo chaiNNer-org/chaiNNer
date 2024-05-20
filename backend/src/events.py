@@ -121,7 +121,7 @@ Event = Union[ExecutionEvent, BackendEvent]
 
 class EventConsumer(ABC):
     @abstractmethod
-    async def put(self, event: Event) -> None: ...
+    def put(self, event: Event) -> None: ...
 
     @staticmethod
     def filter(queue: EventConsumer, allowed: set[str]) -> EventConsumer:
@@ -133,9 +133,9 @@ class _FilteredEventConsumer(EventConsumer):
     queue: EventConsumer
     allowed: set[str]
 
-    async def put(self, event: Event) -> None:
+    def put(self, event: Event) -> None:
         if event["event"] in self.allowed:
-            await self.queue.put(event)
+            self.queue.put(event)
 
 
 class EventQueue(EventConsumer):
@@ -145,8 +145,8 @@ class EventQueue(EventConsumer):
     async def get(self) -> Event:
         return await self.queue.get()
 
-    async def put(self, event: Event) -> None:
-        await self.queue.put(event)
+    def put(self, event: Event) -> None:
+        self.queue.put_nowait(event)
 
     async def wait_until_empty(self, timeout: float) -> None:
         while timeout > 0:

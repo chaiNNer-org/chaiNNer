@@ -1,137 +1,365 @@
 @use 'sass:color';
+@use 'sass:map';
+
+@mixin theme-variables($theme) {
+    @each $shade, $color in $theme {
+        $next-shade: map.get($theme, $shade + 100);
+
+        --theme-#{$shade}: #{$color};
+
+        // Generate 50% alphas
+        --theme-#{$shade}-a50: #{color.adjust($color, $alpha: -0.5)};
+        --theme-#{$shade}-a75: #{color.adjust($color, $alpha: -0.25)};
+
+        // Generate 25%, 50%, 75% shades
+        @if $next-shade {
+            $twenty-five-percent: color.mix($color, $next-shade, 75%);
+            $fifty-percent: color.mix($color, $next-shade, 50%);
+            $seventy-five-percent: color.mix($color, $next-shade, 25%);
+
+            --theme-#{$shade + 25}: #{$twenty-five-percent};
+            --theme-#{$shade + 50}: #{$fifty-percent};
+            --theme-#{$shade + 75}: #{$seventy-five-percent};
+        }
+    }
+}
 
 :root {
-    $gray-100: #edf2f7;
-    $gray-200: #e2e8f0;
-    $gray-300: #cbd5e0;
-    $gray-400: #a0aec0;
-    $gray-500: #718096;
-    $gray-600: #4a5568;
-    $gray-700: #2d3748;
-    $gray-800: #1a202c;
-    $gray-900: #171923;
+    /* type colors */
+    --type-color-directory: #805ad5;
+    --type-color-image: #d69e2e;
+    --type-color-number: #3182ce;
+    --type-color-string: #10b52c;
+    --type-color-torch: #dd6b20;
+    --type-color-onnx: #63b3ed;
+    --type-color-ncnn: #ed64a6;
+}
 
-    /* color palette */
-    --gray-50: #f7fafc;
-    --gray-100: #{$gray-100};
-    --gray-125: #{color.mix($gray-100, $gray-200, 25%)};
-    --gray-150: #{color.mix($gray-100, $gray-200, 50%)};
-    --gray-175: #{color.mix($gray-100, $gray-200, 75%)};
-    --gray-200: #{$gray-200};
-    --gray-250: #{color.mix($gray-200, $gray-300, 50%)};
-    --gray-275: #{color.mix($gray-200, $gray-300, 75%)};
-    --gray-300: #{$gray-300};
-    --gray-325: #{color.mix($gray-300, $gray-400, 25%)};
-    --gray-400: #{$gray-400};
-    --gray-500: #{$gray-500};
-    --gray-600: #{$gray-600};
-    --gray-650: #{color.mix($gray-600, $gray-700, 50%)};
-    --gray-700: #{$gray-700};
-    --gray-750: #{color.mix($gray-700, $gray-800, 50%)};
-    --gray-800: #{$gray-800};
-    --gray-850: #{color.mix($gray-800, $gray-900, 50%)};
-    --gray-900: #{$gray-900};
-
+:root[data-theme='dark'] {
     /* backgrounds */
-    --bg-800: var(--gray-800);
-    --bg-700: var(--gray-700);
-    --bg-600: var(--gray-600);
+    --bg-800: var(--theme-800);
+    --bg-700: var(--theme-700);
+    --bg-600: var(--theme-600);
 
     /* font colors */
     --fg-000: white;
-    --fg-300: var(--gray-300);
+    --fg-300: var(--theme-300);
 
     --link-color: var(--chakra-colors-blue-300);
 
     /* node colors */
-    --node-border-color: var(--gray-800);
-    --node-bg-color: var(--gray-750);
-    --node-icon-color: var(--gray-200);
+    --node-border-color: var(--theme-800);
+    --node-bg-color: var(--theme-750);
+    --node-icon-color: var(--theme-200);
 
-    --node-valid-bg: var(--gray-800);
-    --node-valid-fg: var(--gray-100);
+    --node-valid-bg: var(--theme-800);
+    --node-valid-fg: var(--theme-100);
     --node-invalid-bg: var(--chakra-colors-red-600);
-    --node-invalid-fg: var(--gray-800);
+    --node-invalid-fg: var(--theme-800);
 
-    --node-disable-bg: var(--gray-800);
-    --node-disable-fg: var(--gray-400);
+    --node-disable-bg: var(--theme-800);
+    --node-disable-fg: var(--theme-400);
 
-    --node-timer-bg: var(--gray-800);
-    --node-timer-fg: var(--gray-600);
+    --node-timer-bg: var(--theme-800);
+    --node-timer-fg: var(--theme-600);
 
     --node-image-preview-bg: var(--node-bg-color);
-    --node-image-preview-color: var(--gray-400);
+    --node-image-preview-color: var(--theme-400);
 
-    --node-image-preview-button-bg: var(--gray-750);
-    --node-image-preview-button-bg-hover: var(--gray-600);
-    --node-image-preview-button-fg: var(--gray-400);
+    --node-image-preview-button-bg: var(--theme-750);
+    --node-image-preview-button-bg-hover: var(--theme-600);
+    --node-image-preview-button-fg: var(--theme-400);
 
-    --tag-bg: var(--gray-750);
-    --tag-fg: var(--gray-300);
+    --custom-tag-bg: var(--theme-750);
+    --custom-tag-fg: var(--theme-300);
 
-    --connection-color: #171923;
-    --chain-hole-color: #1a202c;
+    --connection-color: var(--theme-900); // #171923;
+    --chain-hole-color: var(--theme-800); // #1a202c;
 
     /* node selector colors */
-    --selector-node-bg: var(--gray-700);
-    --selector-icon: var(--gray-400);
-    --selector-text-bg: var(--gray-700);
-    --selector-text-bg-hover: var(--gray-600);
+    --selector-node-bg: var(--theme-700);
+    --selector-icon: var(--theme-400);
+    --selector-text-bg: var(--theme-700);
+    --selector-text-bg-hover: var(--theme-600);
 
     /* specific colors */
-    --window-bg: var(--gray-900);
+    --window-bg: var(--theme-900);
     --header-bg: var(--bg-800);
     --chain-editor-bg: var(--bg-800);
     --node-selector-bg: var(--bg-800);
+
+    /* minimap */
+    --minimap-bg: var(--theme-700-a50);
+    --minimap-node: var(--theme-0-a50);
+    --minimap-mask-fill: var(--theme-700-a50);
+    --minimap-mask-stroke: var(--theme-0-a50);
+
+    /* controls */
+    --controls-bg: var(--theme-600-a50);
+    --controls-bg-hover: var(--theme-600);
 }
 
 :root[data-theme='light'] {
     /* backgrounds */
-    --bg-800: var(--gray-50);
-    --bg-700: var(--gray-175);
-    --bg-600: var(--gray-200);
+    --bg-800: var(--theme-50);
+    --bg-700: var(--theme-175);
+    --bg-600: var(--theme-200);
 
     /* font colors */
     --fg-000: black;
-    --fg-300: var(--gray-500);
+    --fg-300: var(--theme-500);
 
     --link-color: var(--chakra-colors-blue-500);
 
     /* node colors */
-    --node-border-color: var(--gray-500);
-    --node-bg-color: var(--gray-250);
-    --node-icon-color: var(--gray-800);
+    --node-border-color: var(--theme-500);
+    --node-bg-color: var(--theme-250);
+    --node-icon-color: var(--theme-800);
 
-    --node-valid-bg: var(--gray-150);
-    --node-valid-fg: var(--gray-900);
+    --node-valid-bg: var(--theme-150);
+    --node-valid-fg: var(--theme-900);
     --node-invalid-bg: var(--chakra-colors-red-500);
-    --node-invalid-fg: var(--gray-200);
+    --node-invalid-fg: var(--theme-200);
 
-    --node-disable-bg: var(--gray-150);
-    --node-disable-fg: var(--gray-500);
+    --node-disable-bg: var(--theme-150);
+    --node-disable-fg: var(--theme-500);
 
-    --node-timer-bg: var(--gray-150);
-    --node-timer-fg: var(--gray-500);
+    --node-timer-bg: var(--theme-150);
+    --node-timer-fg: var(--theme-500);
 
     --node-image-preview-bg: var(--node-bg-color);
-    --node-image-preview-color: var(--gray-700);
+    --node-image-preview-color: var(--theme-700);
 
-    --node-image-preview-button-bg: var(--gray-300);
-    --node-image-preview-button-bg-hover: var(--gray-400);
-    --node-image-preview-button-fg: var(--gray-700);
+    --node-image-preview-button-bg: var(--theme-300);
+    --node-image-preview-button-bg-hover: var(--theme-400);
+    --node-image-preview-button-fg: var(--theme-700);
 
-    --tag-bg: var(--gray-300);
-    --tag-fg: var(--gray-700);
+    --custom-tag-bg: var(--theme-200) !important;
+    --custom-tag-fg: var(--theme-700);
 
-    --connection-color: var(--gray-50);
-    --chain-hole-color: var(--gray-50);
+    --connection-color: var(--theme-50);
+    --chain-hole-color: var(--theme-50);
 
     /* node selector colors */
-    --selector-node-bg: var(--gray-150);
-    --selector-icon: var(--gray-600);
-    --selector-text-bg: var(--gray-150);
-    --selector-text-bg-hover: var(--gray-250);
+    --selector-node-bg: var(--theme-150);
+    --selector-icon: var(--theme-600);
+    --selector-text-bg: var(--theme-150);
+    --selector-text-bg-hover: var(--theme-250);
 
     /* specific colors */
-    --window-bg: var(--gray-150);
+    --window-bg: var(--theme-150);
+    --header-bg: var(--bg-800);
+    --chain-editor-bg: var(--bg-800);
+    --node-selector-bg: var(--bg-800);
+
+    /* minimap */
+    --minimap-bg: var(--theme-300-a75);
+    --minimap-node: var(--theme-0-a75);
+    --minimap-mask-fill: var(--theme-300-a75);
+    --minimap-mask-stroke: var(--theme-0-a75);
+
+    /* controls */
+    --controls-bg: var(--theme-300-a75);
+    --controls-bg-hover: var(--theme-400);
+}
+
+// Default theme (copied from Chakra UI)
+:root[data-custom-theme='default-dark'],
+:root[data-custom-theme='default-light'],
+:root[data-custom-theme='default-system'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #edf2f7,
+            200: #e2e8f0,
+            300: #cbd5e0,
+            400: #a0aec0,
+            500: #718096,
+            600: #4a5568,
+            700: #2d3748,
+            800: #1a202c,
+            900: #171923,
+        )
+    );
+}
+
+// Charcoal theme
+:root[data-custom-theme='charcoal-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #d3d3d9,
+            200: #a7a7b4,
+            300: #7b7b8e,
+            400: #545463,
+            500: #2e2e36,
+            600: #26262c,
+            700: #1c1c21,
+            800: #0e0e10,
+            900: #09090b,
+        )
+    );
+}
+
+// Coffee theme
+:root[data-custom-theme='coffee-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ddd2ce,
+            200: #bba69f,
+            300: #9a7d72,
+            500: #795548,
+            600: #5a4037,
+            700: #3d2c26,
+            800: #161210,
+            900: #0c0b0b,
+        )
+    );
+}
+
+// Blueberry Theme
+:root[data-custom-theme='blueberry-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #cdd2ec,
+            200: #9ba6d8,
+            300: #667dc4,
+            500: #1e56b0,
+            600: #204181,
+            700: #1c2c55,
+            800: #0f1422,
+            900: #0a0e18,
+        )
+    );
+}
+
+// Dusk Theme
+:root[data-custom-theme='dusk-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #c6c3da,
+            200: #908ab6,
+            300: #595593,
+            500: #1d2570,
+            600: #1b1e54,
+            700: #171639,
+            800: #0e0a1a,
+            900: #08050f,
+        )
+    );
+}
+
+// OLED Theme
+:root[data-custom-theme='oled-dark'] {
+    @include theme-variables(
+        (
+            000: #d4d4d4,
+            100: #949494,
+            200: #646464,
+            300: #414141,
+            500: #363636,
+            600: #292929,
+            700: #181818,
+            800: #000000,
+            900: #000000,
+        )
+    );
+}
+
+// Cyberpunk Theme
+:root[data-custom-theme='cyberpunk-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #f7edf5,
+            200: #f0e2ec,
+            300: #e0cbda,
+            400: #c0a0b8,
+            500: #96717f,
+            600: #684a63,
+            700: #002d30,
+            800: #3a0323,
+            900: #231721,
+        )
+    );
+    --chain-editor-bg: #000;
+    --header-bg: #000;
+    --window-bg: #140206;
+
+    --selector-node-bg: #16939c;
+    --node-selector-bg: #3b0b1a;
+    --selector-icon: #ef0;
+
+    --node-border-color: #ef0;
+    --node-bg-color: #000d0e;
+    --node-icon-color: var(--theme-200);
+}
+
+// "Mixer" Theme
+:root[data-custom-theme='mixer-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #5a5a5a,
+            700: #3f3f3f,
+            800: #232323,
+            900: #151515,
+        )
+    );
+}
+
+// "NotReal" Theme
+:root[data-custom-theme='notreal-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #171916,
+            700: #10120f,
+            800: #171916,
+            900: #151515,
+        )
+    );
+    --chain-editor-bg: #272727;
+    --node-selector-bg: #202020;
+    --header-bg: #202020;
+}
+
+// "ComfortUI" Theme
+:root[data-custom-theme='comfort-dark'] {
+    @include theme-variables(
+        (
+            000: #ffffff,
+            100: #ebebeb,
+            200: #e0e0e0,
+            300: #d6d6d6,
+            400: #b1b1b1,
+            500: #585858,
+            600: #5a5a5a,
+            700: #363636,
+            800: #212121,
+            900: #151515,
+        )
+    );
+
+    /* type colors */
+    --type-color-directory: #db7f85;
+    --type-color-image: #67b6f4;
+    --type-color-number: #f9d600;
+    --type-color-string: #72e4b9;
+    --type-color-torch: #fbae2e;
+    --type-color-onnx: #ac9fdc;
+    --type-color-ncnn: #ae5354;
 }

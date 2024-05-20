@@ -17,7 +17,7 @@ from .. import blur_group
     icon="MdBlurOn",
     inputs=[
         ImageInput(),
-        SliderInput("Radius", minimum=0, maximum=1000, default=1, scale="log"),
+        SliderInput("Radius", min=0, max=1000, default=1, scale="log"),
     ],
     outputs=[ImageOutput(shape_as=0)],
     limited_to_8bpc=True,

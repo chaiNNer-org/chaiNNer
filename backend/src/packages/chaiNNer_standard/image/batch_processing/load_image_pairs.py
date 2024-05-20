@@ -31,7 +31,7 @@ from ..io.load_image import load_image_node
         DirectoryInput("Directory B"),
         BoolInput("Use limit", default=False),
         if_group(Condition.bool(2, True))(
-            NumberInput("Limit", default=10, minimum=1).with_docs(
+            NumberInput("Limit", default=10, min=1).with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
         ),

@@ -29,11 +29,11 @@ class KernelType(Enum):
         EnumInput(KernelType, label="Filter Type"),
         SliderInput(
             "Amount",
-            minimum=0,
-            maximum=100,
+            min=0,
+            max=100,
             default=2,
             precision=1,
-            controls_step=1,
+            step=1,
             scale="log",
         ),
         BoolInput("Contrast Adaptive", default=False)
@@ -45,11 +45,11 @@ class KernelType(Enum):
         if_enum_group(3, 1)(
             SliderInput(
                 "Contrast Bias",
-                minimum=1,
-                maximum=3,
+                min=1,
+                max=3,
                 default=2,
                 precision=2,
-                controls_step=0.1,
+                step=0.1,
                 slider_step=0.1,
             ).with_docs(
                 "A bias that controls the strength of the contrast adaptiveness. A bias of 2 is recommended, because it offers a good trade-off between sharpening and contrast adaptiveness.",
