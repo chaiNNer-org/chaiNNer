@@ -100,8 +100,15 @@ class Chain:
         get_or_add(self.__edges_by_source, edge.source.id, list).append(edge)
         get_or_add(self.__edges_by_target, edge.target.id, list).append(edge)
 
-    def edges_from(self, source: NodeId) -> list[Edge]:
-        return self.__edges_by_source.get(source, [])
+    def edges_from(
+        self,
+        source: NodeId,
+        output_id: OutputId | None = None,
+    ) -> list[Edge]:
+        edges = self.__edges_by_source.get(source, [])
+        if output_id is not None:
+            return [e for e in edges if e.source.output_id == output_id]
+        return edges
 
     def edges_to(self, target: NodeId) -> list[Edge]:
         return self.__edges_by_target.get(target, [])
