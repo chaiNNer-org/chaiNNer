@@ -31,7 +31,7 @@ class RoundScale(Enum):
     description="Round an input number",
     icon="MdCalculate",
     inputs=[
-        NumberInput("Input", min=None, max=None, precision=100, step=1),
+        NumberInput("Input", min=None, max=None, precision="unlimited", step=1),
         EnumInput(
             RoundOperation,
             "Operation",
@@ -48,7 +48,7 @@ class RoundScale(Enum):
                 default=1,
                 min=1e-100,
                 max=None,
-                precision=100,
+                precision="unlimited",
                 step=1,
             )
         ),
@@ -58,7 +58,7 @@ class RoundScale(Enum):
                 default=2,
                 min=np.nextafter(1.0, np.inf),
                 max=None,
-                precision=100,
+                precision="unlimited",
                 step=1,
             )
         ),
