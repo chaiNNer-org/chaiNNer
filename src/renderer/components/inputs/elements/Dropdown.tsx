@@ -127,7 +127,7 @@ export const DropDown = memo(
                 disabled={isDisabled}
                 draggable={false}
                 size="sm"
-                style={{ contain: 'size' }}
+                style={{ contain: 'size', paddingRight: '1.75rem' }}
                 value={selection}
                 onChange={handleChange}
             >
