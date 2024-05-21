@@ -54,8 +54,8 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
             option_labels=OP_LABEL,
             label_style="hidden",
         ).with_id(1),
-        NumberInput("A", min=None, max=None, precision=100, step=1).with_id(0),
-        NumberInput("B", min=None, max=None, precision=100, step=1).with_id(2),
+        NumberInput("A", min=None, max=None, precision="unlimited", step=1).with_id(0),
+        NumberInput("B", min=None, max=None, precision="unlimited", step=1).with_id(2),
     ],
     outputs=[
         NumberOutput(

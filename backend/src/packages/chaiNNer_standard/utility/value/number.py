@@ -17,7 +17,7 @@ from .. import value_group
             "Number",
             min=None,
             max=None,
-            precision=100,
+            precision="unlimited",
             step=1,
             label_style="hidden",
         ).make_fused(),
