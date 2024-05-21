@@ -3,9 +3,10 @@ import React, { memo } from 'react';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { Validity } from '../../common/Validity';
-import { useIsCollapsedNode } from '../contexts/CollapsedNodeContext';
 import { FakeNodeContext } from '../contexts/FakeExampleContext';
+import { createConicGradient } from '../helpers/colorTools';
 import { noContextMenu } from '../hooks/useContextMenu';
+import { useIsCollapsedNode } from '../hooks/useIsCollapsedNode';
 import { Markdown } from './Markdown';
 
 export type HandleType = 'input' | 'output';
@@ -101,19 +102,6 @@ export interface HandleProps {
     isIterated: boolean;
 }
 
-export const getBackground = (colors: readonly string[]): string => {
-    if (colors.length === 1) return colors[0];
-
-    const handleColorString = colors
-        .map((color, index) => {
-            const percent = index / colors.length;
-            const nextPercent = (index + 1) / colors.length;
-            return `${color} ${percent * 100}% ${nextPercent * 100}%`;
-        })
-        .join(', ');
-    return `conic-gradient(from 90deg, ${handleColorString})`;
-};
-
 export const Handle = memo(
     ({
         id,
@@ -161,7 +149,7 @@ export const Handle = memo(
                     borderWidth: isConnected ? '2px' : '0px',
                     borderColor: isConnected ? connectedColor : 'transparent',
                     transition: '0.15s ease-in-out',
-                    background: isConnected ? connectedBg : getBackground(handleColors),
+                    background: isConnected ? connectedBg : createConicGradient(handleColors),
                     boxShadow: `${type === 'input' ? '+' : '-'}2px 2px 2px #00000014`,
                     filter: validity.isValid ? undefined : 'grayscale(100%)',
                     opacity: validity.isValid ? 1 : 0.3,

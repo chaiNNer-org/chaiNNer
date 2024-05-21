@@ -57,3 +57,16 @@ const interpolateColorImpl = (
 
 export const interpolateColor = (color1: string, color2: string, factor = 0.5): string =>
     rgbToHex(interpolateColorImpl(hexToRgb(color1), hexToRgb(color2), factor));
+
+export const createConicGradient = (colors: readonly string[]): string => {
+    if (colors.length === 1) return colors[0];
+
+    const handleColorString = colors
+        .map((color, index) => {
+            const percent = index / colors.length;
+            const nextPercent = (index + 1) / colors.length;
+            return `${color} ${percent * 100}% ${nextPercent * 100}%`;
+        })
+        .join(', ');
+    return `conic-gradient(from 90deg, ${handleColorString})`;
+};

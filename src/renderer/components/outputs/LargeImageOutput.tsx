@@ -7,9 +7,9 @@ import { useTranslation } from 'react-i18next';
 import { useContextSelector } from 'use-context-selector';
 import { Size } from '../../../common/common-types';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { useSettings } from '../../contexts/SettingsContext';
 import { useDevicePixelRatio } from '../../hooks/useDevicePixelRatio';
 import { useMemoArray } from '../../hooks/useMemo';
+import { useSettings } from '../../hooks/useSettings';
 import { DragHandleSVG } from '../CustomIcons';
 import { OutputProps } from './props';
 

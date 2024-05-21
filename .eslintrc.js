@@ -65,7 +65,7 @@ module.exports = {
         'react/function-component-definition': 'off',
         'react-memo/require-memo': ['error', { strict: true }],
         'unused-imports/no-unused-imports': 'error',
-        'react-refresh/only-export-components': 'warn',
+        'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
     settings: {
         'import/core-modules': ['electron'],

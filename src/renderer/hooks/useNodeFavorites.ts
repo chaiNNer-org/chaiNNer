@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { SchemaId } from '../../common/common-types';
-import { useMutSetting } from '../contexts/SettingsContext';
 import { useMemoObject } from './useMemo';
+import { useMutSetting } from './useSettings';
 
 export interface UseNodeFavorites {
     readonly favorites: ReadonlySet<SchemaId>;

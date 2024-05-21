@@ -1,6 +1,6 @@
 import { useColorMode } from '@chakra-ui/react';
 import React, { SetStateAction, memo, useCallback, useEffect, useState } from 'react';
-import { createContext, useContext } from 'use-context-selector';
+import { createContext } from 'use-context-selector';
 import { log } from '../../common/log';
 import { ChainnerSettings, defaultSettings } from '../../common/settings/settings';
 import { noop } from '../../common/util';
@@ -80,20 +80,3 @@ export const SettingsProvider = memo(
         return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
     }
 );
-
-export const useSettings = () => {
-    return useContext(SettingsContext).settings;
-};
-
-export const useMutSetting = <K extends keyof ChainnerSettings>(key: K) => {
-    const { settings, setSetting } = useContext(SettingsContext);
-
-    const set = useCallback(
-        (update: SetStateAction<ChainnerSettings[K]>) => {
-            setSetting(key, update);
-        },
-        [key, setSetting]
-    );
-
-    return [settings[key], set] as const;
-};

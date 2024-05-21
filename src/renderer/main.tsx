@@ -18,9 +18,9 @@ import { DependencyProvider } from './contexts/DependencyContext';
 import { ExecutionProvider } from './contexts/ExecutionContext';
 import { GlobalProvider } from './contexts/GlobalNodeState';
 import { NodeDocumentationProvider } from './contexts/NodeDocumentationContext';
-import { useSettings } from './contexts/SettingsContext';
 import { useIpcRendererListener } from './hooks/useIpcRendererListener';
 import { useLastWindowSize } from './hooks/useLastWindowSize';
+import { useSettings } from './hooks/useSettings';
 import { ipcRenderer } from './safeIpc';
 
 const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {

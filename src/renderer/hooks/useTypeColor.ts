@@ -1,7 +1,7 @@
 import { Type } from '@chainner/navi';
 import { useMemo } from 'react';
-import { useSettings } from '../contexts/SettingsContext';
 import { defaultColor, getTypeAccentColors } from '../helpers/accentColors';
+import { useSettings } from './useSettings';
 
 export const useTypeColor = (type: Type | undefined) => {
     const { theme } = useSettings();

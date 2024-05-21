@@ -8,8 +8,7 @@ import {
     NumberInputStepper,
 } from '@chakra-ui/react';
 import { evaluate, isBigNumber, isComplex, isFraction, isNumber, isUnit, number } from 'mathjs';
-import { MouseEventHandler, memo, useCallback, useEffect, useRef } from 'react';
-import { areApproximatelyEqual } from '../../../../common/util';
+import { CSSProperties, MouseEventHandler, memo, useCallback, useEffect, useRef } from 'react';
 import './AdvancedNumberInput.scss';
 
 const validChars = /^[\w.+\-*()^!%&|~ /]$/iu;
@@ -37,16 +36,6 @@ const clamp = (value: number, min?: number | null, max?: number | null): number 
     return value;
 };
 
-export const getPrecision = (n: number) => {
-    if (n >= 1) {
-        // eslint-disable-next-line no-param-reassign
-        n %= 1;
-        if (areApproximatelyEqual(n, 0)) return 0;
-    }
-    if (n === 0) return 0;
-    return Math.min(10, n.toFixed(100).replace(/0+$/, '').split('.')[1]?.length ?? 0);
-};
-
 interface AdvancedNumberInputProps {
     unit?: string | null;
     max: number;
@@ -67,6 +56,8 @@ interface AdvancedNumberInputProps {
     inputWidth?: string;
     inputHeight?: string;
     noRepeatOnBlur?: boolean;
+
+    alignSelf?: CSSProperties['alignSelf'];
 }
 
 export const AdvancedNumberInput = memo(
@@ -90,6 +81,8 @@ export const AdvancedNumberInput = memo(
         inputWidth,
         inputHeight,
         noRepeatOnBlur = false,
+
+        alignSelf,
     }: AdvancedNumberInputProps) => {
         const getNumericValue = (): number | undefined => {
             const rawNumber = inputString.trim() ? parseNumberString(inputString) : defaultValue;
@@ -165,6 +158,7 @@ export const AdvancedNumberInput = memo(
         if (small) {
             return (
                 <InputGroup
+                    alignSelf={alignSelf}
                     mx={0}
                     size="xs"
                     w="fit-content"
@@ -223,6 +217,7 @@ export const AdvancedNumberInput = memo(
 
         return (
             <InputGroup
+                alignSelf={alignSelf}
                 size="sm"
                 w="full"
                 onClick={onClick}

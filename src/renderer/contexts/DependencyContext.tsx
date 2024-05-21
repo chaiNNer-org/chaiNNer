@@ -57,10 +57,10 @@ import {
     useBackendSetupEventSource,
 } from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
+import { useSettings } from '../hooks/useSettings';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
-import { useSettings } from './SettingsContext';
 
 export interface DependencyContextValue {
     openDependencyManager: () => void;

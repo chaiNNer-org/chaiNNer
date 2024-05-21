@@ -10,18 +10,11 @@ import { log } from '../../../common/log';
 import { assertNever } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { InputContext } from '../../contexts/InputContext';
+import { LINEAR_SCALE, LogScale, PowerScale, Scale } from '../../helpers/sliderScale';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { AdvancedNumberInput } from './elements/AdvanceNumberInput';
-import {
-    LINEAR_SCALE,
-    LogScale,
-    PowerScale,
-    Scale,
-    SliderStyle,
-    StyledSlider,
-    getSliderHeight,
-} from './elements/StyledSlider';
+import { SliderStyle, StyledSlider } from './elements/StyledSlider';
 import { WithLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
@@ -214,12 +207,11 @@ export const SliderInput = memo(
                     {ends[1] && <Text fontSize="xs">{ends[1]}</Text>}
                     <AdvancedNumberInput
                         small
+                        alignSelf={sliderStyle.type === 'label' ? 'stretch' : undefined}
                         controlsStep={controlsStep}
                         defaultValue={def}
                         hideTrailingZeros={hideTrailingZeros}
-                        inputHeight={
-                            sliderStyle.type === 'label' ? getSliderHeight(sliderStyle) : undefined
-                        }
+                        inputHeight={sliderStyle.type === 'label' ? 'full' : undefined}
                         inputString={isConnected ? typeNumberString : inputString}
                         inputWidth={`${inputWidthRem}rem`}
                         isDisabled={isLocked || isConnected}
