@@ -279,7 +279,8 @@ class Writer:
         if_enum_group(16, Simplicity.ADVANCED)(
             EnumInput(
                 VideoFormat,
-                label="Video Format",
+                label="Format",
+                label_style="inline",
                 option_labels={
                     VideoFormat.MKV: "mkv",
                     VideoFormat.MP4: "mp4",
@@ -292,6 +293,7 @@ class Writer:
             EnumInput(
                 VideoEncoder,
                 label="Encoder",
+                label_style="inline",
                 option_labels={
                     VideoEncoder.H264: "H.264 (AVC)",
                     VideoEncoder.H265: "H.265 (HEVC)",
@@ -308,7 +310,12 @@ class Writer:
             .with_id(3)
             .wrap_with_conditional_group(),
             if_enum_group(3, (VideoEncoder.H264, VideoEncoder.H265))(
-                EnumInput(VideoPreset, default=VideoPreset.MEDIUM)
+                EnumInput(
+                    VideoPreset,
+                    label="Preset",
+                    label_style="inline",
+                    default=VideoPreset.MEDIUM,
+                )
                 .with_docs(
                     "For more information on presets, see [here](https://trac.ffmpeg.org/wiki/Encode/H.264#Preset)."
                 )
@@ -366,6 +373,7 @@ class Writer:
                     conditions={
                         AudioSettings.COPY: ~Condition.enum(4, VideoFormat.WEBM)
                     },
+                    label_style="inline",
                 )
                 .with_docs(
                     "The first audio stream can be discarded, copied or transcoded at 320 kb/s."
