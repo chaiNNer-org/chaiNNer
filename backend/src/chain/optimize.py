@@ -58,23 +58,45 @@ def __removed_dead_nodes(chain: Chain, mutation: _Mutation):
             logger.debug(f"Chain optimization: Removed {node.schema_id} node {node.id}")
 
 
+def __removed_pass_through(chain: Chain, mutation: _Mutation):
+    """
+    Remove Passthrough nodes where possible.
+    """
+
+    # We only remove Passthrough nodes with a single input-output pair
+    # For more information, see:
+    #   https://github.com/chaiNNer-org/chaiNNer/issues/2555
+    #   https://github.com/chaiNNer-org/chaiNNer/issues/2556
+    for node in chain.nodes_with_schema_id("chainner:utility:pass_through"):
+        out_edges = chain.edges_from(node.id)
+        if len(out_edges) == 1 and len(chain.edges_to(node.id)) == 1:
+            edge = out_edges[0]
+            __passthrough(
+                chain,
+                node,
+                input_id=InputId(edge.source.output_id),
+                output_id=edge.source.output_id,
+            )
+            chain.remove_node(node.id)
+            mutation.signal()
+
+
 def __static_switch(chain: Chain, mutation: _Mutation):
     """
     If the selected variant of the Switch node is statically known (which should always be the case), then we can statically resolve and remove the Switch node.
     """
 
-    for node in list(chain.nodes.values()):
-        if node.schema_id == "chainner:utility:switch":
-            value_index = chain.inputs.get(node.id, node.data.inputs[0].id)
-            if isinstance(value_index, int):
-                passed = False
-                for index, i in enumerate(node.data.inputs[1:]):
-                    if index == value_index:
-                        passed = __passthrough(chain, node, i.id)
+    for node in chain.nodes_with_schema_id("chainner:utility:switch"):
+        value_index = chain.inputs.get(node.id, node.data.inputs[0].id)
+        if isinstance(value_index, int):
+            passed = False
+            for index, i in enumerate(node.data.inputs[1:]):
+                if index == value_index:
+                    passed = __passthrough(chain, node, i.id)
 
-                if passed:
-                    chain.remove_node(node.id)
-                    mutation.signal()
+            if passed:
+                chain.remove_node(node.id)
+                mutation.signal()
 
 
 def __useless_conditional(chain: Chain, mutation: _Mutation):
@@ -95,31 +117,30 @@ def __useless_conditional(chain: Chain, mutation: _Mutation):
                 return True
         return None
 
-    for node in list(chain.nodes.values()):
-        if node.schema_id == "chainner:utility:conditional":
-            # the condition is a constant
-            const_condition = as_bool(chain.inputs.get(node.id, InputId(0)))
-            if const_condition is not None:
-                __passthrough(
-                    chain,
-                    node,
-                    input_id=if_true if const_condition else if_false,
-                )
-                chain.remove_node(node.id)
-                mutation.signal()
-                continue
+    for node in chain.nodes_with_schema_id("chainner:utility:conditional"):
+        # the condition is a constant
+        const_condition = as_bool(chain.inputs.get(node.id, InputId(0)))
+        if const_condition is not None:
+            __passthrough(
+                chain,
+                node,
+                input_id=if_true if const_condition else if_false,
+            )
+            chain.remove_node(node.id)
+            mutation.signal()
+            continue
 
-            # identical true and false branches
-            true_edge = chain.edge_to(node.id, if_true)
-            false_edge = chain.edge_to(node.id, if_false)
-            if (
-                true_edge is not None
-                and false_edge is not None
-                and true_edge.source == false_edge.source
-            ):
-                __passthrough(chain, node, if_true)
-                chain.remove_node(node.id)
-                mutation.signal()
+        # identical true and false branches
+        true_edge = chain.edge_to(node.id, if_true)
+        false_edge = chain.edge_to(node.id, if_false)
+        if (
+            true_edge is not None
+            and false_edge is not None
+            and true_edge.source == false_edge.source
+        ):
+            __passthrough(chain, node, if_true)
+            chain.remove_node(node.id)
+            mutation.signal()
 
 
 def optimize(chain: Chain):
@@ -129,6 +150,7 @@ def optimize(chain: Chain):
 
         __removed_dead_nodes(chain, mutation)
         __static_switch(chain, mutation)
+        __removed_pass_through(chain, mutation)
         __useless_conditional(chain, mutation)
 
         if not mutation.changed:
