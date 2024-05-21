@@ -14,8 +14,8 @@ from .. import value_group
     icon="BsShuffle",
     inputs=[
         BoolInput("Condition", default=True, has_handle=True).with_id(0),
-        AnyInput(label="If True").make_lazy(),
-        AnyInput(label="If False").make_lazy(),
+        AnyInput(label="If True").with_id(1).make_lazy(),
+        AnyInput(label="If False").with_id(2).make_lazy(),
     ],
     outputs=[
         BaseOutput(
