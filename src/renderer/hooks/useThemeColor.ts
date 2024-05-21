@@ -1,7 +1,7 @@
 import { useColorMode } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { lazy } from '../../common/util';
-import { useSettings } from '../contexts/SettingsContext';
+import { useSettings } from './useSettings';
 
 const light = lazy(() => getComputedStyle(document.documentElement));
 const dark = lazy(() => getComputedStyle(document.documentElement));

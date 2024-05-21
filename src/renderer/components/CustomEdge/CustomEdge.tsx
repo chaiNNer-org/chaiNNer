@@ -10,7 +10,6 @@ import { assertNever, parseSourceHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { ExecutionContext, NodeExecutionStatus } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
-import { useSettings } from '../../contexts/SettingsContext';
 import { shadeColor } from '../../helpers/colorTools';
 import {
     BREAKPOINT_RADIUS,
@@ -19,8 +18,9 @@ import {
     getCustomBezierPath,
 } from '../../helpers/graphUtils';
 import { useEdgeMenu } from '../../hooks/useEdgeMenu';
-import './CustomEdge.scss';
+import { useSettings } from '../../hooks/useSettings';
 import { useTypeColor } from '../../hooks/useTypeColor';
+import './CustomEdge.scss';
 
 const EDGE_CLASS = {
     RUNNING: 'running',

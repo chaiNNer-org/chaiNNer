@@ -8,6 +8,7 @@ module.exports = {
         'prefer-arrow-functions',
         'eslint-plugin-react-memo',
         'unused-imports',
+        'react-refresh',
     ],
     globals: {
         MAIN_WINDOW_VITE_DEV_SERVER_URL: true,
@@ -64,6 +65,7 @@ module.exports = {
         'react/function-component-definition': 'off',
         'react-memo/require-memo': ['error', { strict: true }],
         'unused-imports/no-unused-imports': 'error',
+        'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
     settings: {
         'import/core-modules': ['electron'],
@@ -94,6 +96,7 @@ module.exports = {
                 'react-hooks',
                 'unused-imports',
                 'regexp',
+                'react-refresh',
             ],
             parserOptions: {
                 project: './tsconfig.json',
@@ -140,6 +143,7 @@ module.exports = {
                 'react-hooks/exhaustive-deps': ['warn', { additionalHooks: '(useAsyncEffect)' }],
                 'unused-imports/no-unused-imports': 'error',
                 'regexp/prefer-d': ['warn', { insideCharacterClass: 'ignore' }],
+                'react-refresh/only-export-components': 'warn',
             },
         },
         {

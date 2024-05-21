@@ -35,6 +35,7 @@ interface AlertBox {
     showAlert: (message: AlertOptions) => Promise<number>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export enum AlertType {
     INFO = 'Info',
     WARN = 'Warning',

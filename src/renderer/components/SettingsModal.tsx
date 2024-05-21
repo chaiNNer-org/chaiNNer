@@ -32,7 +32,7 @@ import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
 import { log } from '../../common/log';
 import { BackendContext } from '../contexts/BackendContext';
-import { useMutSetting } from '../contexts/SettingsContext';
+import { useMutSetting } from '../hooks/useSettings';
 import { ipcRenderer } from '../safeIpc';
 import { IconFactory } from './CustomIcons';
 import { DropdownSetting, NumberSetting, ToggleSetting } from './settings/components';

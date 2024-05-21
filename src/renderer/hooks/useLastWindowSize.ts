@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { debounce } from '../../common/util';
-import { useMutSetting } from '../contexts/SettingsContext';
 import { useIpcRendererListener } from './useIpcRendererListener';
+import { useMutSetting } from './useSettings';
 
 export const useLastWindowSize = () => {
     const [, setSize] = useMutSetting('lastWindowSize');

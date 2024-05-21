@@ -28,12 +28,13 @@ import {
 } from '../hooks/useBackendEventSource';
 import { EventBacklog, useEventBacklog } from '../hooks/useEventBacklog';
 import { useMemoObject } from '../hooks/useMemo';
+import { useSettings } from '../hooks/useSettings';
 import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext, GlobalVolatileContext } from './GlobalNodeState';
-import { useSettings } from './SettingsContext';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export enum ExecutionStatus {
     READY,
     RUNNING,
@@ -41,6 +42,7 @@ export enum ExecutionStatus {
     KILLING,
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export enum NodeExecutionStatus {
     /**
      * The node has not been run yet and is awaiting execution.

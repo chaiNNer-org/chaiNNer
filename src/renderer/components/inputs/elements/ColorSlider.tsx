@@ -2,8 +2,9 @@ import { HStack, Text } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
 import { HsvColor, RgbColor } from 'react-colorful';
 import { hsvToRgb, rgbToHex } from '../../../helpers/colorUtil';
+import { LINEAR_SCALE } from '../../../helpers/sliderScale';
 import { AdvancedNumberInput } from './AdvanceNumberInput';
-import { LINEAR_SCALE, SliderStyle, StyledSlider } from './StyledSlider';
+import { SliderStyle, StyledSlider } from './StyledSlider';
 
 interface ColorSliderProps {
     label: string;

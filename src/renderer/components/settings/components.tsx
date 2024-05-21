@@ -174,6 +174,7 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
     );
 });
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const SettingComponents: {
     readonly [K in Setting['type']]: React.MemoExoticComponent<
         (props: SettingsProps<K>) => JSX.Element

@@ -6,8 +6,8 @@ import { delay, mapInputValues } from '../../common/util';
 import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
-import { useSettings } from '../contexts/SettingsContext';
 import { useAsyncEffect } from './useAsyncEffect';
+import { useSettings } from './useSettings';
 
 /**
  * Runs the given node as soon as it should.

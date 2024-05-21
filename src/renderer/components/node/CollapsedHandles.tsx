@@ -7,10 +7,10 @@ import { Output } from '../../../common/common-types';
 import { FunctionDefinition } from '../../../common/types/function';
 import { stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
+import { createConicGradient } from '../../helpers/colorTools';
 import { NodeState } from '../../helpers/nodeState';
 import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
 import { useTypeColor } from '../../hooks/useTypeColor';
-import { getBackground } from '../Handle';
 
 interface InputHandleProps {
     isIterated: boolean;
@@ -72,7 +72,7 @@ const OutputHandle = memo(
                     isConnectable={false}
                     position={Position.Right}
                     style={{
-                        borderColor: getBackground(handleColors),
+                        borderColor: createConicGradient(handleColors),
                         borderRadius: isIterated ? '10%' : '50%',
                     }}
                     type="source"
