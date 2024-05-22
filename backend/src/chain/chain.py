@@ -92,6 +92,9 @@ class Chain:
         self.__edges_by_source: dict[NodeId, list[Edge]] = {}
         self.__edges_by_target: dict[NodeId, list[Edge]] = {}
 
+    def nodes_with_schema_id(self, schema_id: str) -> list[Node]:
+        return [node for node in self.nodes.values() if node.schema_id == schema_id]
+
     def add_node(self, node: Node):
         assert node.id not in self.nodes, f"Duplicate node id {node.id}"
         self.nodes[node.id] = node
