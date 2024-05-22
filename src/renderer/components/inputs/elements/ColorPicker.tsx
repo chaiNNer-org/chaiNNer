@@ -3,17 +3,15 @@ import { memo, useMemo, useRef } from 'react';
 import {
     HsvColorPicker as BuggedHsvColorPicker,
     RgbColorPicker as BuggedRgbColorPicker,
-    HsvColor,
-    RgbColor,
 } from 'react-colorful';
-import { hsvColorId, rgbColorId } from '../../../helpers/colorUtil';
+import { Color, HsvColor } from '../../../helpers/color';
 
 interface PickerProps<T> {
     color: T;
     onChange: (value: T) => void;
 }
 
-export const RgbColorPicker = memo(({ color, onChange }: PickerProps<RgbColor>) => {
+export const RgbColorPicker = memo(({ color, onChange }: PickerProps<Color>) => {
     // The react-colorful color picker has a pretty major bug: rounding.
     // It uses HSV internally to represent color, but it seems to round those values.
     // This results in the picker sometimes immediately changing the given input color.
@@ -24,7 +22,7 @@ export const RgbColorPicker = memo(({ color, onChange }: PickerProps<RgbColor>) 
     const pickerLastSet = useRef(0);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const lastColorChange = useMemo(Date.now, [rgbColorId(color)]);
+    const lastColorChange = useMemo(Date.now, [color.id]);
 
     return (
         <Box
@@ -42,7 +40,7 @@ export const RgbColorPicker = memo(({ color, onChange }: PickerProps<RgbColor>) 
                         (sinceLastSet < 200 || sinceLastChange > 200)
                     ) {
                         pickerLastSet.current = Date.now();
-                        onChange(value);
+                        onChange(Color.from(value));
                     }
                 }}
             />
@@ -61,7 +59,7 @@ export const HsvColorPicker = memo(({ color, onChange }: PickerProps<HsvColor>) 
     const pickerLastSet = useRef(0);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const lastColorChange = useMemo(Date.now, [hsvColorId(color)]);
+    const lastColorChange = useMemo(Date.now, [color.id]);
 
     return (
         <Box
@@ -79,7 +77,7 @@ export const HsvColorPicker = memo(({ color, onChange }: PickerProps<HsvColor>) 
                         (sinceLastSet < 200 || sinceLastChange > 200)
                     ) {
                         pickerLastSet.current = Date.now();
-                        onChange(value);
+                        onChange(HsvColor.from(value));
                     }
                 }}
             />

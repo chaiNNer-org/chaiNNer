@@ -1,27 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { HsvColor, RgbColor } from 'react-colorful';
-import { hsvEqual, hsvToRgb, rgbEqual, rgbToHsv } from '../helpers/colorUtil';
+import { Color, HsvColor, HsvColorLike, RgbColorLike } from '../helpers/color';
 
-const updateRgbX = (o: RgbColor, n: RgbColor): RgbColor => {
-    return rgbEqual(o, n) ? o : n;
+const updateRgbX = (o: Color, n: Color): Color => {
+    return o.equals(n) ? o : n;
 };
 const updateHsvX = (o: HsvColor, n: HsvColor): HsvColor => {
-    return hsvEqual(o, n) ? o : n;
+    return o.equals(n) ? o : n;
 };
-const updateHsvFromRgbX = (oldHsv: HsvColor, newRgb: RgbColor): HsvColor => {
-    const oldRgb = hsvToRgb(oldHsv);
-    if (!rgbEqual(newRgb, oldRgb)) {
-        const newHsv = rgbToHsv(newRgb);
+const updateHsvFromRgbX = (oldHsv: HsvColor, newRgb: Color): HsvColor => {
+    const oldRgb = oldHsv.rgb();
+    if (!newRgb.equals(oldRgb)) {
+        const newHsv = newRgb.hsv();
 
         // check to see whether we actually need to change H and S
-        if (rgbEqual(newRgb, hsvToRgb({ ...newHsv, h: oldHsv.h }))) {
+        if (newRgb.equals(newHsv.with({ h: oldHsv.h }).rgb())) {
             newHsv.h = oldHsv.h;
         }
-        if (rgbEqual(newRgb, hsvToRgb({ ...newHsv, s: oldHsv.s }))) {
+        if (newRgb.equals(newHsv.with({ s: oldHsv.s }).rgb())) {
             newHsv.s = oldHsv.s;
         }
 
-        if (!hsvEqual(newHsv, oldHsv)) {
+        if (!newHsv.equals(oldHsv)) {
             return newHsv;
         }
     }
@@ -29,33 +28,33 @@ const updateHsvFromRgbX = (oldHsv: HsvColor, newRgb: RgbColor): HsvColor => {
 };
 
 interface UseColorMode {
-    rgb: RgbColor;
+    rgb: Color;
     hsv: HsvColor;
-    changeRgb: (value: RgbColor) => void;
-    changeHsv: (value: HsvColor) => void;
+    changeRgb: (value: RgbColorLike) => void;
+    changeHsv: (value: HsvColorLike) => void;
 }
 export const useColorModels = <T>(
     color: T,
-    toRgbColor: (color: T) => RgbColor,
-    onChange: (value: RgbColor) => void
+    toRgbColor: (color: T) => Color,
+    onChange: (value: Color) => void
 ): UseColorMode => {
-    const [state, setState] = useState<readonly [RgbColor, HsvColor]>(() => {
+    const [state, setState] = useState<readonly [Color, HsvColor]>(() => {
         const rgb = toRgbColor(color);
-        return [rgb, rgbToHsv(rgb)];
+        return [rgb, rgb.hsv()];
     });
     const lastChangeRef = useRef(0);
 
-    const updateFromRgb = useCallback((newRgb: RgbColor): void => {
+    const updateFromRgb = useCallback((newRgb: Color): void => {
         setState((old) => {
             const [oldRgb, oldHsv] = old;
 
-            if (!rgbEqual(oldRgb, newRgb)) {
+            if (!oldRgb.equals(newRgb)) {
                 return [newRgb, updateHsvFromRgbX(oldHsv, newRgb)];
             }
             return old;
         });
     }, []);
-    const updateFromHsv = useCallback((newHsv: HsvColor, newRgb: RgbColor): void => {
+    const updateFromHsv = useCallback((newHsv: HsvColor, newRgb: Color): void => {
         setState((old) => {
             const [oldRgb, oldHsv] = old;
 
@@ -79,18 +78,20 @@ export const useColorModels = <T>(
     }, [color, updateFromRgb, toRgbColor]);
 
     const changeRgb = useCallback(
-        (newRgb: RgbColor): void => {
+        (newRgb: RgbColorLike): void => {
             lastChangeRef.current = Date.now();
-            updateFromRgb(newRgb);
-            onChange(newRgb);
+            const rgb = Color.from(newRgb);
+            updateFromRgb(rgb);
+            onChange(rgb);
         },
         [onChange, updateFromRgb]
     );
     const changeHsv = useCallback(
-        (newHsv: HsvColor): void => {
+        (newHsv: HsvColorLike): void => {
             lastChangeRef.current = Date.now();
-            const newRgb = hsvToRgb(newHsv);
-            updateFromHsv(newHsv, newRgb);
+            const hsv = HsvColor.from(newHsv);
+            const newRgb = hsv.rgb();
+            updateFromHsv(hsv, newRgb);
             onChange(newRgb);
         },
         [onChange, updateFromHsv]

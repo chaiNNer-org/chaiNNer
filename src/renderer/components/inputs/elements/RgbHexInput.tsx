@@ -1,21 +1,24 @@
 import { HStack, Input, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { RgbColor } from 'react-colorful';
-import { parseRgbHex, rgbToHex } from '../../../helpers/colorUtil';
+import { Color } from '../../../helpers/color';
 
 interface RgbHexInputProps {
-    rgb: RgbColor;
-    onChange: (value: RgbColor) => void;
+    rgb: Color;
+    onChange: (value: Color) => void;
 }
 export const RgbHexInput = memo(({ rgb, onChange }: RgbHexInputProps) => {
-    const currentHex = rgbToHex(rgb);
+    const currentHex = rgb.hex();
 
-    const [inputString, setInputString] = useState(currentHex);
+    const [inputString, setInputString] = useState<string>(currentHex);
     useEffect(() => {
         setInputString((old) => {
-            const parsed = parseRgbHex(old);
-            if (parsed && rgbToHex(parsed) === currentHex) {
-                return old;
+            try {
+                const parsed = Color.fromHex(old);
+                if (parsed.hex() === currentHex) {
+                    return old;
+                }
+            } catch {
+                // ignore error
             }
             return currentHex;
         });
@@ -24,9 +27,13 @@ export const RgbHexInput = memo(({ rgb, onChange }: RgbHexInputProps) => {
     const changeInputString = (s: string) => {
         setInputString(s);
 
-        const parsed = parseRgbHex(s);
-        if (parsed && rgbToHex(parsed) !== currentHex) {
-            onChange(parsed);
+        try {
+            const parsed = Color.fromHex(s);
+            if (parsed.hex() !== currentHex) {
+                onChange(parsed);
+            }
+        } catch {
+            // ignore error
         }
     };
 
