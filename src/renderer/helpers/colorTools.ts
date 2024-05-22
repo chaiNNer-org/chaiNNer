@@ -1,5 +1,7 @@
 // From https://stackoverflow.com/questions/5560248/programmatically-lighten-or-darken-a-hex-color-or-rgb-and-blend-colors
 
+import { parseRgbHex } from './colorUtil';
+
 /**
  * Lightens (percentage > 0) or darkens (percentage < 0) the given hex color.
  *
@@ -25,11 +27,11 @@ export const shadeColor = (color: string, percent: number): `#${string}` => {
 
 // Converts a #ffffff hex string into an [r,g,b] array
 const hexToRgb = (hex: string): [number, number, number] => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) {
+    const color = parseRgbHex(hex);
+    if (!color) {
         throw new Error(`Invalid hex color: ${hex}`);
     }
-    return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
+    return [color.r, color.g, color.b];
 };
 
 // Inverse of the above
