@@ -4,7 +4,6 @@ import ignore from 'rollup-plugin-ignore';
 import { defineConfig, mergeConfig } from 'vite';
 import { external, getBuildConfig, getBuildDefine } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
-
 import './forge-types';
 
 // https://vitejs.dev/config
@@ -29,7 +28,7 @@ export default defineConfig((env) => {
                 },
             },
         },
-        plugins: [...(os.platform() === 'darwin' ? [ignore(['fsevents'])] : [])],
+        plugins: os.platform() === 'darwin' ? [ignore(['fsevents'])] : [],
         define,
         resolve: {
             // Load the Node.js entry.
