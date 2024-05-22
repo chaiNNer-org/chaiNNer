@@ -33,6 +33,10 @@ const colorList = () => {
             color: getComputedColor('--type-color-bool'),
         },
         {
+            type: evaluate(new NamedExpression('Color'), scope),
+            color: getComputedColor('--type-color-color'),
+        },
+        {
             type: evaluate(new NamedExpression('PyTorchModel'), scope),
             color: getComputedColor('--type-color-torch'),
         },
