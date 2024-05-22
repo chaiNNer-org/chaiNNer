@@ -14,11 +14,18 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { VscLightbulbAutofix } from 'react-icons/vsc';
 import { CategoryMap } from '../../common/CategoryMap';
-import { Category, CategoryId, NodeSchema, SchemaId } from '../../common/common-types';
-import { assertNever, groupBy, stopPropagation } from '../../common/util';
+import {
+    Category,
+    CategoryId,
+    FeatureId,
+    FeatureState,
+    NodeSchema,
+    SchemaId,
+} from '../../common/common-types';
+import { assertNever, cacheLast, groupBy, stopPropagation } from '../../common/util';
 import { getCategoryAccentColor } from '../helpers/accentColors';
 import { interpolateColor } from '../helpers/colorTools';
-import { getMatchingNodes } from '../helpers/nodeSearchFuncs';
+import { getBestMatch, getMatchingNodes } from '../helpers/nodeSearchFuncs';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { IconFactory } from './CustomIcons';
 import { IfVisible } from './IfVisible';
@@ -188,33 +195,72 @@ const renderGroupIcon = (categories: CategoryMap, group: SchemaGroup) => {
     }
 };
 
+const createMatcher = (
+    schemata: readonly NodeSchema[],
+    categories: CategoryMap,
+    favorites: ReadonlySet<SchemaId>,
+    suggestions: ReadonlySet<SchemaId>,
+    featureStates: ReadonlyMap<FeatureId, FeatureState>
+) => {
+    return cacheLast((searchQuery: string) => {
+        const matchingNodes = getMatchingNodes(searchQuery, schemata, categories);
+        const groups = groupSchemata(matchingNodes, categories, favorites, suggestions);
+        const flatGroups = groups.flatMap((group) => group.schemata);
+
+        const bestMatch = getBestMatch(searchQuery, matchingNodes, categories, (schema) => {
+            const isFeatureEnabled = schema.features.every((f) => {
+                return featureStates.get(f)?.enabled ?? false;
+            });
+            if (!isFeatureEnabled) {
+                // don't suggest nodes that are not available
+                return 0;
+            }
+
+            if (favorites.has(schema.schemaId)) {
+                // boost favorites
+                return 2;
+            }
+            return 1;
+        });
+
+        return { groups, flatGroups, bestMatch };
+    });
+};
+
 interface MenuProps {
     onSelect: (schema: NodeSchema) => void;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: CategoryMap;
     suggestions: ReadonlySet<SchemaId>;
+    featureStates: ReadonlyMap<FeatureId, FeatureState>;
 }
 
 export const Menu = memo(
-    ({ onSelect, schemata, favorites, categories, suggestions }: MenuProps) => {
+    ({ onSelect, schemata, favorites, categories, suggestions, featureStates }: MenuProps) => {
         const [searchQuery, setSearchQuery] = useState('');
         const [selectedIndex, setSelectedIndex] = useState(0);
 
-        const changeSearchQuery = useCallback((query: string) => {
-            setSearchQuery(query);
-            setSelectedIndex(0);
-        }, []);
+        const matcher = useMemo(
+            () => createMatcher(schemata, categories, favorites, suggestions, featureStates),
+            [schemata, categories, favorites, suggestions, featureStates]
+        );
 
-        const groups = useMemo(() => {
-            return groupSchemata(
-                getMatchingNodes(searchQuery, schemata, categories),
-                categories,
-                favorites,
-                suggestions
-            );
-        }, [searchQuery, schemata, categories, favorites, suggestions]);
-        const flatGroups = useMemo(() => groups.flatMap((group) => group.schemata), [groups]);
+        const changeSearchQuery = useCallback(
+            (query: string) => {
+                setSearchQuery(query);
+
+                let index = 0;
+                if (query) {
+                    const { flatGroups, bestMatch } = matcher(query);
+                    index = bestMatch ? flatGroups.indexOf(bestMatch) : 0;
+                }
+                setSelectedIndex(index);
+            },
+            [matcher]
+        );
+
+        const { groups, flatGroups } = useMemo(() => matcher(searchQuery), [searchQuery, matcher]);
 
         const onClickHandler = useCallback(
             (schema: NodeSchema) => {

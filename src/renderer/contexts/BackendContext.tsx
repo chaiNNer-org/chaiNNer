@@ -128,18 +128,22 @@ const useNodes = (
     const nodesQuery = useQuery({
         queryKey: ['nodes', backend.url],
         queryFn: async (): Promise<BackendData> => {
-            try {
-                // spin until we're no longer restarting
-                while (!backendReadyRef.current || backendDownRef.current) {
-                    // eslint-disable-next-line no-await-in-loop
-                    await delay(100);
-                }
-
-                return await Promise.all([backend.nodes(), backend.packages()]);
-            } catch (error) {
-                log.error(error);
-                throw error;
+            // spin until we're no longer restarting
+            while (!backendReadyRef.current || backendDownRef.current) {
+                // eslint-disable-next-line no-await-in-loop
+                await delay(100);
             }
+
+            return Promise.all([
+                backend.nodes().catch((e) => {
+                    log.error(`Failed to fetch nodes from backend: ${String(e)}`);
+                    throw e;
+                }),
+                backend.packages().catch((e) => {
+                    log.error(`Failed to fetch packages from backend: ${String(e)}`);
+                    throw e;
+                }),
+            ]);
         },
         cacheTime: 0,
         retry: 25,
@@ -243,7 +247,7 @@ const useFeatureStates = (backend: Backend) => {
             try {
                 return await backend.features();
             } catch (error) {
-                log.error(error);
+                log.error(`Failed to fetch features from backend: ${String(error)}`);
                 throw error;
             }
         },
