@@ -92,6 +92,18 @@ export const lazyKeyed = <K extends object, T extends {} | null>(
         return value;
     };
 };
+export const cacheLast = <K extends NonNullable<unknown>, T>(
+    fn: (arg: K) => T
+): ((arg: K) => T) => {
+    let lastArg: K | undefined;
+    let lastValue: T = undefined as T;
+    return (arg: K): T => {
+        if (lastArg === arg) return lastValue;
+        lastValue = fn(arg);
+        lastArg = arg;
+        return lastValue;
+    };
+};
 
 export const debounce = (fn: () => void, delay: number): (() => void) => {
     let id: NodeJS.Timeout | undefined;

@@ -126,7 +126,7 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
     const useConnectingFrom = useContextSelector(GlobalVolatileContext, (c) => c.useConnectingFrom);
     const { createNode, createConnection } = useContext(GlobalContext);
     const { closeContextMenu } = useContext(ContextMenuContext);
-    const { schemata, functionDefinitions, categories } = useContext(BackendContext);
+    const { schemata, functionDefinitions, categories, featureStates } = useContext(BackendContext);
 
     const { favorites } = useNodeFavorites();
 
@@ -238,6 +238,7 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
         <Menu
             categories={categories}
             favorites={favorites}
+            featureStates={featureStates}
             schemata={menuSchemata}
             suggestions={suggestions}
             onSelect={onSchemaSelect}
