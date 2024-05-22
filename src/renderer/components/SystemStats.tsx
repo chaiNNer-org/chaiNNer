@@ -12,10 +12,9 @@ export const SystemStats = memo(() => {
         queryKey: 'systemUsage',
         queryFn: async () => {
             try {
-                const response = await backend.systemUsage();
-                return response;
+                return await backend.systemUsage();
             } catch (error) {
-                log.error(error);
+                log.error(`Failed to fetch system usage from backend: ${String(error)}`);
                 throw error;
             }
         },
