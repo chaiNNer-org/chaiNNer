@@ -31,6 +31,7 @@
     --type-color-number: #3182ce;
     --type-color-string: #10b52c;
     --type-color-bool: #319795;
+    --type-color-color: #fff;
     --type-color-torch: #dd6b20;
     --type-color-onnx: #63b3ed;
     --type-color-ncnn: #ed64a6;
@@ -162,6 +163,8 @@
     /* controls */
     --controls-bg: var(--theme-300-a75);
     --controls-bg-hover: var(--theme-400);
+
+    --type-color-color: #000;
 }
 
 // Default theme (copied from Chakra UI)
