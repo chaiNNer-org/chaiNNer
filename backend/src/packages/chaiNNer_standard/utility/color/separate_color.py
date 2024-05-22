@@ -10,7 +10,7 @@ from nodes.utils.utils import round_half_up
 from .. import color_group
 
 
-def _norm(n: float) -> int:
+def _to_num(n: float) -> int:
     return round_half_up(max(min(n * 255, 255), 0))
 
 
@@ -84,7 +84,7 @@ def separate_color_node(
         raise AssertionError("Invalid number of color channels")
 
     if mode == SeparateColorMode.UINT8:
-        return _norm(r), _norm(g), _norm(b), _norm(a)
+        return _to_num(r), _to_num(g), _to_num(b), _to_num(a)
     elif mode == SeparateColorMode.PERCENT:
         return r, g, b, a
     elif mode == SeparateColorMode.COLOR:
