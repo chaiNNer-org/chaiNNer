@@ -2,9 +2,11 @@
 import os from 'os';
 import ignore from 'rollup-plugin-ignore';
 import { defineConfig, mergeConfig } from 'vite';
-import { external, getBuildConfig, getBuildDefine } from './base.config';
+import { external, getBuildConfig, getBuildDefine, pluginHotRestart } from './base.config';
 import type { ConfigEnv, UserConfig } from 'vite';
 import './forge-types';
+
+const restart = process.env.HOT_RESTART !== undefined;
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -28,7 +30,10 @@ export default defineConfig((env) => {
                 },
             },
         },
-        plugins: os.platform() === 'darwin' ? [ignore(['fsevents'])] : [],
+        plugins: [
+            ...(restart ? [pluginHotRestart('restart')] : []),
+            ...(os.platform() === 'darwin' ? [ignore(['fsevents'])] : []),
+        ],
         define,
         resolve: {
             // Load the Node.js entry.
@@ -39,6 +44,11 @@ export default defineConfig((env) => {
                 'electron-log/main': 'electron-log',
             },
             conditions: ['node', 'default'],
+        },
+        server: {
+            watch: {
+                ignored: ['**/translation.json'],
+            },
         },
     };
 
