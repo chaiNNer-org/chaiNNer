@@ -86,8 +86,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
 
     const [nodes, setNodes, internalOnNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, internalOnEdgesChange] = useEdgesState<EdgeData>([]);
-    setNodesRef.current = setNodes;
-    setEdgesRef.current = setEdges;
+    useEffect(() => {
+        setNodesRef.current = setNodes;
+        setEdgesRef.current = setEdges;
+    }, [setNodes, setEdges, setNodesRef, setEdgesRef]);
 
     const altPressed = useKeyPress(['Alt', 'Option']);
 
