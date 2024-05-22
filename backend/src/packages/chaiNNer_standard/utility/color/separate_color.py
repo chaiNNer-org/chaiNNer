@@ -10,8 +10,8 @@ from nodes.utils.utils import round_half_up
 from .. import color_group
 
 
-def _to_num(n: float) -> int:
-    return round_half_up(max(min(n * 255, 255), 0))
+def _to_num(n: float, max_value: int) -> int:
+    return round_half_up(max(min(n * max_value, max_value), 0))
 
 
 class SeparateColorMode(Enum):
@@ -21,7 +21,7 @@ class SeparateColorMode(Enum):
 
 
 LABELS = {
-    SeparateColorMode.UINT8: "Uint8",
+    SeparateColorMode.UINT8: "8 Bit",
     SeparateColorMode.PERCENT: "Percent",
     SeparateColorMode.COLOR: "Color",
 }
@@ -29,7 +29,7 @@ LABELS = {
 
 output_navi_type = """match Input1 {
     SeparateColorMode::Uint8 => int(0..255),
-    SeparateColorMode::Percent => 0..1,
+    SeparateColorMode::Percent => 0..100,
     SeparateColorMode::Color => Color { channels: 1 },
     _ => never }
 """
@@ -67,8 +67,8 @@ def separate_color_node(
     length = len(color.value)
     if length == 1:
         r = color.value[0]
-        g = 0
-        b = 0
+        g = color.value[0]
+        b = color.value[0]
         a = 1
     elif length == 3:
         r = color.value[2]
@@ -84,10 +84,15 @@ def separate_color_node(
         raise AssertionError("Invalid number of color channels")
 
     if mode == SeparateColorMode.UINT8:
-        return _to_num(r), _to_num(g), _to_num(b), _to_num(a)
+        return _to_num(r, 255), _to_num(g, 255), _to_num(b, 255), _to_num(a, 255)
     elif mode == SeparateColorMode.PERCENT:
-        return r, g, b, a
+        return (
+            _to_num(r, 1000) / 10,
+            _to_num(g, 1000) / 10,
+            _to_num(b, 1000) / 10,
+            _to_num(a, 1000) / 10,
+        )
     elif mode == SeparateColorMode.COLOR:
-        return Color((r,)), Color((g,)), Color((b,)), Color((a,))
+        return Color.gray(r), Color.gray(g), Color.gray(b), Color.gray(a)
     else:
         raise AssertionError("Invalid mode")
