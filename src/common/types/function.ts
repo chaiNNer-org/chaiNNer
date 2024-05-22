@@ -12,13 +12,13 @@ import {
     evaluate,
     getReferences,
     intersect,
-    isDisjointWith,
     literal,
     union,
     without,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
 import { EMPTY_MAP, assertNever, lazy, lazyKeyed, topologicalSort } from '../util';
+import { assign, assignOk } from './assign';
 import { getChainnerScope } from './chainner-scope';
 import { fromJson } from './json';
 import type { PassthroughInfo } from '../PassthroughMap';
@@ -454,7 +454,7 @@ export class FunctionDefinition {
         this.inputConvertibleDefaults = new Map(
             [...this.inputDefaults].map(([id, d]) => {
                 const c = this.inputConversions.get(id)?.convertibleTypes ?? NeverType.instance;
-                return [id, union(d, c)];
+                return [id, union(d, c)] as const;
             })
         );
 
@@ -492,11 +492,11 @@ export class FunctionDefinition {
     }
 
     canAssignInput(inputId: InputId, type: Type): boolean {
-        const inputType = this.inputDefaults.get(inputId);
-        if (!inputType) {
+        const definitionType = this.inputDefaults.get(inputId);
+        if (!definitionType) {
             throw new Error('Invalid input id');
         }
-        return !isDisjointWith(inputType, this.convertInput(inputId, type));
+        return assignOk(this.convertInput(inputId, type), definitionType);
     }
 
     hasInput(inputId: InputId): boolean {
@@ -581,7 +581,7 @@ export class FunctionInstance {
                 const assignedType = partialInputs(id);
                 if (assignedType) {
                     const converted = definition.convertInput(id, assignedType);
-                    const newType = intersect(converted, type);
+                    const newType = assign(converted, type).assignedType;
                     if (newType.type === 'never') {
                         inputErrors.push({ inputId: id, inputType: type, assignedType });
                     }
@@ -666,10 +666,10 @@ export class FunctionInstance {
     }
 
     canAssign(inputId: InputId, type: Type): boolean {
-        const iType = this.definition.inputDefaults.get(inputId);
-        if (!iType) throw new Error(`Invalid input id ${inputId}`);
+        const definitionType = this.definition.inputDefaults.get(inputId);
+        if (!definitionType) throw new Error(`Invalid input id ${inputId}`);
 
         // we say that types A is assignable to type B if they are not disjoint
-        return !isDisjointWith(iType, this.definition.convertInput(inputId, type));
+        return assignOk(this.definition.convertInput(inputId, type), definitionType);
     }
 }

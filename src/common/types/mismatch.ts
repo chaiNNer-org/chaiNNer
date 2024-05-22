@@ -8,6 +8,7 @@ import {
     isStructInstance,
 } from '@chainner/navi';
 import { assertNever } from '../util';
+import { assign } from './assign';
 import { getChainnerScope } from './chainner-scope';
 import { explain, formatChannelNumber } from './explain';
 import { prettyPrintType } from './pretty';
@@ -31,10 +32,14 @@ export const generateAssignmentErrorTrace = (
     assigned: Type,
     definition: Type
 ): AssignmentErrorTrace | undefined => {
-    if (!isDisjointWith(assigned, definition)) {
+    const assignmentResult = assign(assigned, definition);
+    if (assignmentResult.isOk) {
         // types compatible
         return undefined;
     }
+
+    // eslint-disable-next-line no-param-reassign
+    assigned = assignmentResult.errorType;
 
     if (
         isStructInstance(assigned) &&
