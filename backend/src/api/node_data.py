@@ -73,6 +73,20 @@ class KeyInfo:
 
 
 class SpecialSuggestion:
+    """
+    A special suggestion in chaiNNer's context node selector.
+
+    A suggestion consists of 3 parts:
+    1.  The search query to match. The query may optionally contain a pattern at the end
+        to supply a value to an input. E.g. `+{2}` will match the search query "+123"
+        and "123" will be parsed for the input with ID 2.
+    2.  The name of the suggestion. This is the text that will be displayed in the
+        suggestion list.
+    3.  The input values to supply to the node. This is a mapping of input IDs to the
+        values to supply to them. Values that aren't defined here will be left as
+        default values.
+    """
+
     def __init__(
         self,
         query: str,
