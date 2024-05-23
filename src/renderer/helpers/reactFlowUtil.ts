@@ -6,7 +6,7 @@ import { createUniqueId, deepCopy } from '../../common/util';
 export interface NodeProto {
     id?: string;
     position: Readonly<XYPosition>;
-    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: InputData };
+    data: Omit<NodeData, 'id' | 'inputData'> & { inputData?: Partial<InputData> };
 }
 
 export const createNode = (
@@ -16,15 +16,19 @@ export const createNode = (
 ): Node<NodeData> => {
     const schema = schemata.get(data.schemaId);
 
+    let inputData: InputData = schemata.getDefaultInput(data.schemaId);
+    if (data.inputData) {
+        inputData = {
+            ...inputData,
+            ...data.inputData,
+        };
+    }
+
     const newNode: Node<Mutable<NodeData>> = {
         type: schema.kind,
         id,
         position: { ...position },
-        data: {
-            ...data,
-            id,
-            inputData: data.inputData ?? schemata.getDefaultInput(data.schemaId),
-        },
+        data: { ...data, id, inputData },
         selected,
     };
 

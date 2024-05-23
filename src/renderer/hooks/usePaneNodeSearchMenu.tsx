@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { OnConnectStartParams, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
-import { InputId, NodeSchema, OutputId, SchemaId } from '../../common/common-types';
+import { InputData, InputId, NodeSchema, OutputId, SchemaId } from '../../common/common-types';
 import { getFirstPossibleInput, getFirstPossibleOutput } from '../../common/nodes/connectedInputs';
 import { ChainLineage } from '../../common/nodes/lineage';
 import { TypeState } from '../../common/nodes/TypeState';
@@ -162,7 +162,7 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
     }, [schemata.schemata, connectingFrom, typeState, chainLineage, functionDefinitions]);
 
     const onSchemaSelect = useCallback(
-        (schema: NodeSchema) => {
+        (schema: NodeSchema, inputs: Partial<InputData>) => {
             const { x, y } = mousePosition;
             const projPosition = screenToFlowPosition({ x, y });
             const nodeId = createUniqueId();
@@ -171,6 +171,7 @@ export const usePaneNodeSearchMenu = (): UsePaneNodeSearchMenuValue => {
                 position: projPosition,
                 data: {
                     schemaId: schema.schemaId,
+                    inputData: inputs,
                 },
             });
 
