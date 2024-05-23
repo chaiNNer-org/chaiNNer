@@ -30,7 +30,6 @@ import {
 } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
-import { shadeColor } from '../../helpers/colorTools';
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { NodeState, useNodeStateFromData } from '../../helpers/nodeState';
 import { NO_DISABLED, UseDisabled, useDisabled } from '../../hooks/useDisabled';
@@ -105,7 +104,7 @@ export const NodeView = memo(
         const finalBorderColor = useMemo(() => {
             if (borderColor) return borderColor;
             const regularBorderColor = 'var(--node-border-color)';
-            return selected ? shadeColor(accentColor, 0) : regularBorderColor;
+            return selected ? accentColor : regularBorderColor;
         }, [selected, accentColor, borderColor]);
 
         const isEnabled = disable.status === DisabledStatus.Enabled;

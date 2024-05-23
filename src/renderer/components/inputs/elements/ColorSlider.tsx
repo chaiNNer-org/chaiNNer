@@ -1,7 +1,6 @@
 import { HStack, Text } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
-import { HsvColor, RgbColor } from 'react-colorful';
-import { hsvToRgb, rgbToHex } from '../../../helpers/colorUtil';
+import { Color, HsvColor } from '../../../helpers/color';
 import { LINEAR_SCALE } from '../../../helpers/sliderScale';
 import { AdvancedNumberInput } from './AdvanceNumberInput';
 import { SliderStyle, StyledSlider } from './StyledSlider';
@@ -78,13 +77,13 @@ export const ColorSlider = memo(
     }
 );
 
-const getRgbStyle = (color0: RgbColor, color255: RgbColor): SliderStyle => {
-    return { type: 'gradient', gradient: [rgbToHex(color0), rgbToHex(color255)] };
+const getRgbStyle = (color0: Color, color255: Color): SliderStyle => {
+    return { type: 'gradient', gradient: [color0.hex(), color255.hex()] };
 };
 
 interface RgbSlidersProps {
-    rgb: RgbColor;
-    onChange: (value: RgbColor) => void;
+    rgb: Color;
+    onChange: (value: Color) => void;
 }
 export const RgbSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
     return (
@@ -94,31 +93,35 @@ export const RgbSliders = memo(({ rgb, onChange }: RgbSlidersProps) => {
                 label="R"
                 max={255}
                 min={0}
-                style={getRgbStyle({ ...rgb, r: 0 }, { ...rgb, r: 255 })}
+                style={getRgbStyle(rgb.with({ r: 0 }), rgb.with({ r: 255 }))}
                 value={rgb.r}
-                onChange={(r) => onChange({ ...rgb, r })}
+                onChange={(r) => onChange(rgb.with({ r }))}
             />
             <ColorSlider
                 def={128}
                 label="G"
                 max={255}
                 min={0}
-                style={getRgbStyle({ ...rgb, g: 0 }, { ...rgb, g: 255 })}
+                style={getRgbStyle(rgb.with({ g: 0 }), rgb.with({ g: 255 }))}
                 value={rgb.g}
-                onChange={(g) => onChange({ ...rgb, g })}
+                onChange={(g) => onChange(rgb.with({ g }))}
             />
             <ColorSlider
                 def={128}
                 label="B"
                 max={255}
                 min={0}
-                style={getRgbStyle({ ...rgb, b: 0 }, { ...rgb, b: 255 })}
+                style={getRgbStyle(rgb.with({ b: 0 }), rgb.with({ b: 255 }))}
                 value={rgb.b}
-                onChange={(b) => onChange({ ...rgb, b })}
+                onChange={(b) => onChange(rgb.with({ b }))}
             />
         </>
     );
 });
+
+const getSvStyle = (color0: HsvColor, color255: HsvColor): SliderStyle => {
+    return { type: 'gradient', gradient: [color0.rgb().hex(), color255.rgb().hex()] };
+};
 
 interface HsvSlidersProps {
     hsv: HsvColor;
@@ -145,37 +148,25 @@ export const HsvSliders = memo(({ hsv, onChange }: HsvSlidersProps) => {
                     ],
                 }}
                 value={hsv.h}
-                onChange={(h) => onChange({ ...hsv, h })}
+                onChange={(h) => onChange(hsv.with({ h }))}
             />
             <ColorSlider
                 def={0}
                 label="S"
                 max={100}
                 min={0}
-                style={{
-                    type: 'gradient',
-                    gradient: [
-                        rgbToHex(hsvToRgb({ ...hsv, s: 0 })),
-                        rgbToHex(hsvToRgb({ ...hsv, s: 100 })),
-                    ],
-                }}
+                style={getSvStyle(hsv.with({ s: 0 }), hsv.with({ s: 100 }))}
                 value={hsv.s}
-                onChange={(s) => onChange({ ...hsv, s })}
+                onChange={(s) => onChange(hsv.with({ s }))}
             />
             <ColorSlider
                 def={50}
                 label="V"
                 max={100}
                 min={0}
-                style={{
-                    type: 'gradient',
-                    gradient: [
-                        rgbToHex(hsvToRgb({ ...hsv, v: 0 })),
-                        rgbToHex(hsvToRgb({ ...hsv, v: 100 })),
-                    ],
-                }}
+                style={getSvStyle(hsv.with({ v: 0 }), hsv.with({ v: 100 }))}
                 value={hsv.v}
-                onChange={(v) => onChange({ ...hsv, v })}
+                onChange={(v) => onChange(hsv.with({ v }))}
             />
         </>
     );

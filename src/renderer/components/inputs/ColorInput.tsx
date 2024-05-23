@@ -13,7 +13,6 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { ReactNode, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RgbColor } from 'react-colorful';
 import { useContext } from 'use-context-selector';
 import { toCssColor, toKind, toRgb } from '../../../common/color-json-util';
 import {
@@ -25,6 +24,7 @@ import {
 } from '../../../common/common-types';
 import { log } from '../../../common/log';
 import { InputContext } from '../../contexts/InputContext';
+import { Color } from '../../helpers/color';
 import { useColorModels } from '../../hooks/useColorModels';
 import { TypeTags } from '../TypeTag';
 import { ColorBoxButton } from './elements/ColorBoxButton';
@@ -41,21 +41,17 @@ const ALL_KINDS: ReadonlySet<ColorKind> = new Set<ColorKind>(['grayscale', 'rgb'
 const KIND_SELECTOR_HEIGHT = '2rem';
 const COMPARE_BUTTON_HEIGHT = '3rem';
 
-const toRgbColor = (color: ColorJson): RgbColor => {
+const toRgbColor = (color: ColorJson): Color => {
     if (color.kind === 'grayscale') {
         const l = Math.round(color.values[0] * 255);
-        return { r: l, g: l, b: l };
+        return new Color(l, l, l);
     }
     const [r, g, b] = color.values;
-    return {
-        r: Math.round(r * 255),
-        g: Math.round(g * 255),
-        b: Math.round(b * 255),
-    };
+    return new Color(Math.round(r * 255), Math.round(g * 255), Math.round(b * 255));
 };
 
 interface RgbOrRgbaPickerProps extends Omit<PickerFor<ColorJson>, 'onChange'> {
-    onChange: (color: RgbColor) => void;
+    onChange: (color: Color) => void;
     alpha?: ReactNode;
 }
 const RgbOrRgbaPicker = memo(
@@ -168,7 +164,7 @@ const RgbaPicker = memo(
         const originalAlpha = color.values[3];
 
         const onChangeRgb = useCallback(
-            ({ r, g, b }: RgbColor): void => {
+            ({ r, g, b }: Color): void => {
                 if (originalAlpha !== undefined) {
                     onChange({ kind: 'rgba', values: [r / 255, g / 255, b / 255, originalAlpha] });
                 } else {
