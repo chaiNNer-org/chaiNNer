@@ -1,3 +1,4 @@
+import { NeverType } from '@chainner/navi';
 import { useMemo } from 'react';
 import { Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -7,7 +8,7 @@ import { BackendContext } from '../contexts/BackendContext';
 import { GlobalVolatileContext } from '../contexts/GlobalNodeState';
 import { useTypeColor } from './useTypeColor';
 
-export const useSourceTypeColor = (targetHandle: string) => {
+export const useSourceTypeColors = (targetHandle: string) => {
     const { functionDefinitions } = useContext(BackendContext);
     const { edgeChanges, typeState } = useContext(GlobalVolatileContext);
     const { getEdges, getNode } = useReactFlow();
@@ -34,7 +35,7 @@ export const useSourceTypeColor = (targetHandle: string) => {
         }
     }, [sourceHandle, functionDefinitions, typeState, getNode]);
 
-    const sourceTypeColor = useTypeColor(sourceType);
+    const colors = useTypeColor(sourceType ?? NeverType.instance);
 
-    return sourceTypeColor[0];
+    return sourceType ? colors : undefined;
 };

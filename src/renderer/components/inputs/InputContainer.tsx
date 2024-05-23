@@ -9,8 +9,7 @@ import { assertNever, stringifyTargetHandle } from '../../../common/util';
 import { VALID, invalid } from '../../../common/Validity';
 import { GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { InputContext } from '../../contexts/InputContext';
-import { defaultColor } from '../../helpers/accentColors';
-import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
+import { useSourceTypeColors } from '../../hooks/useSourceTypeColor';
 import { useTypeColor } from '../../hooks/useTypeColor';
 import { Handle } from '../Handle';
 import { Markdown } from '../Markdown';
@@ -66,8 +65,7 @@ export const InputHandle = memo(
         }, [connectingFrom, id, targetHandle, isValidConnection]);
 
         const handleColors = useTypeColor(connectableType);
-
-        const sourceTypeColor = useSourceTypeColor(targetHandle);
+        const sourceTypeColor = useSourceTypeColors(targetHandle);
 
         return (
             <HStack
@@ -81,12 +79,7 @@ export const InputHandle = memo(
                     position="absolute"
                 >
                     <Handle
-                        connectedColor={
-                            isConnected
-                                ? (sourceTypeColor === defaultColor ? null : sourceTypeColor) ??
-                                  handleColors[0]
-                                : undefined
-                        }
+                        connectedColor={isConnected ? sourceTypeColor ?? handleColors : undefined}
                         handleColors={handleColors}
                         id={targetHandle}
                         isIterated={isIterated}

@@ -1,5 +1,5 @@
-import { Box, Tooltip, chakra } from '@chakra-ui/react';
-import React, { memo } from 'react';
+import { Box, SystemStyleObject, Tooltip, chakra } from '@chakra-ui/react';
+import React, { memo, useMemo } from 'react';
 import { Connection, Position, Handle as RFHandle } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { Validity } from '../../common/Validity';
@@ -7,6 +7,7 @@ import { FakeNodeContext } from '../contexts/FakeExampleContext';
 import { createConicGradient } from '../helpers/colorTools';
 import { noContextMenu } from '../hooks/useContextMenu';
 import { useIsCollapsedNode } from '../hooks/useIsCollapsedNode';
+import { useSettings } from '../hooks/useSettings';
 import { Markdown } from './Markdown';
 
 export type HandleType = 'input' | 'output';
@@ -92,17 +93,20 @@ const Div = chakra('div', {
     baseStyle: {},
 });
 
+const getComputedColor = (color: string) =>
+    getComputedStyle(document.documentElement).getPropertyValue(color);
+
 export interface HandleProps {
     id: string;
     type: HandleType;
     validity: Validity;
     isValidConnection: (connection: Readonly<Connection>) => boolean;
     handleColors: readonly string[];
-    connectedColor: string | undefined;
+    connectedColor: readonly string[] | undefined;
     isIterated: boolean;
 }
 
-export const Handle = memo(
+const VisibleHandle = memo(
     ({
         id,
         type,
@@ -112,11 +116,38 @@ export const Handle = memo(
         connectedColor,
         isIterated,
     }: HandleProps) => {
-        const isCollapsed = useIsCollapsedNode();
-        if (isCollapsed) return null;
+        const { theme } = useSettings();
+        const connectedBg = useMemo(() => {
+            return getComputedColor('--connection-color');
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [theme]);
 
-        const isConnected = !!connectedColor;
-        const connectedBg = 'var(--connection-color)';
+        const handleStyle = useMemo((): SystemStyleObject => {
+            const isConnected = !!connectedColor;
+            if (!isConnected) {
+                return {
+                    borderWidth: '0px',
+                    borderColor: 'transparent',
+                    background: createConicGradient(handleColors),
+                };
+            }
+
+            const size = 16;
+            const rectSize = 12;
+            const offset = (size - rectSize) / 2;
+            const radius = isIterated ? 1 : rectSize / 2;
+
+            const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${size} ${size}'>
+                <rect x='${offset}' y='${offset}' width='${rectSize}' height='${rectSize}' rx='${radius}' fill='${connectedBg}' />
+            </svg>`;
+            const bgImage = `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+
+            return {
+                borderWidth: '0px',
+                borderColor: 'transparent',
+                background: `${bgImage}, ${createConicGradient(connectedColor)}`,
+            };
+        }, [connectedColor, handleColors, connectedBg, isIterated]);
 
         return (
             <Div
@@ -146,18 +177,42 @@ export const Handle = memo(
                 sx={{
                     width: '16px',
                     height: '16px',
-                    borderWidth: isConnected ? '2px' : '0px',
-                    borderColor: isConnected ? connectedColor : 'transparent',
                     transition: '0.15s ease-in-out',
-                    background: isConnected ? connectedBg : createConicGradient(handleColors),
+                    transitionProperty: 'width, height, margin, opacity, filter',
                     boxShadow: `${type === 'input' ? '+' : '-'}2px 2px 2px #00000014`,
                     filter: validity.isValid ? undefined : 'grayscale(100%)',
                     opacity: validity.isValid ? 1 : 0.3,
                     position: 'relative',
+                    ...handleStyle,
                 }}
                 type={type}
                 validity={validity}
                 onContextMenu={noContextMenu}
+            />
+        );
+    }
+);
+export const Handle = memo(
+    ({
+        id,
+        type,
+        validity,
+        isValidConnection,
+        handleColors,
+        connectedColor,
+        isIterated,
+    }: HandleProps) => {
+        const isCollapsed = useIsCollapsedNode();
+        if (isCollapsed) return null;
+        return (
+            <VisibleHandle
+                connectedColor={connectedColor}
+                handleColors={handleColors}
+                id={id}
+                isIterated={isIterated}
+                isValidConnection={isValidConnection}
+                type={type}
+                validity={validity}
             />
         );
     }
