@@ -105,6 +105,28 @@ export const cacheLast = <K extends NonNullable<unknown>, T>(
     };
 };
 
+export interface CacheOptions {
+    readonly maxSize?: number;
+}
+export const cached = <K, T extends NonNullable<unknown>>(
+    fn: (arg: K) => T,
+    { maxSize = 100 }: CacheOptions = {}
+): ((arg: K) => T) => {
+    const cache = new Map<K, T>();
+    return (arg: K): T => {
+        let c = cache.get(arg);
+        if (c === undefined) {
+            if (cache.size >= maxSize && cache.size > 0) {
+                const firstKey = cache.keys().next().value as K;
+                cache.delete(firstKey);
+            }
+            c = fn(arg);
+            cache.set(arg, c);
+        }
+        return c;
+    };
+};
+
 export const debounce = (fn: () => void, delay: number): (() => void) => {
     let id: NodeJS.Timeout | undefined;
     return () => {

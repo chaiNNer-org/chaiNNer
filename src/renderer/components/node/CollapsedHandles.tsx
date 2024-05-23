@@ -7,9 +7,9 @@ import { Output } from '../../../common/common-types';
 import { FunctionDefinition } from '../../../common/types/function';
 import { stringifySourceHandle, stringifyTargetHandle } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
-import { createConicGradient } from '../../helpers/colorTools';
+import { defaultColor } from '../../helpers/accentColors';
 import { NodeState } from '../../helpers/nodeState';
-import { useSourceTypeColor } from '../../hooks/useSourceTypeColor';
+import { useSourceTypeColors } from '../../hooks/useSourceTypeColor';
 import { useTypeColor } from '../../hooks/useTypeColor';
 
 interface InputHandleProps {
@@ -18,7 +18,7 @@ interface InputHandleProps {
 }
 
 const InputHandle = memo(({ isIterated, targetHandle }: InputHandleProps) => {
-    const sourceTypeColor = useSourceTypeColor(targetHandle);
+    const sourceTypeColor = useSourceTypeColors(targetHandle)?.[0] ?? defaultColor;
 
     return (
         <Box
@@ -72,7 +72,7 @@ const OutputHandle = memo(
                     isConnectable={false}
                     position={Position.Right}
                     style={{
-                        borderColor: createConicGradient(handleColors),
+                        borderColor: handleColors[0],
                         borderRadius: isIterated ? '10%' : '50%',
                     }}
                     type="source"

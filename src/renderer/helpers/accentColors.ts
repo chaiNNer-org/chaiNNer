@@ -9,53 +9,46 @@ import {
 import { CategoryMap } from '../../common/CategoryMap';
 import { CategoryId } from '../../common/common-types';
 import { getChainnerScope } from '../../common/types/chainner-scope';
-
-export const defaultColor = '#718096';
+import { cached } from '../../common/util';
 
 const getComputedColor = (color: string) =>
     getComputedStyle(document.documentElement).getPropertyValue(color);
 
-const colorList = () => {
+const resolveName = cached((name: string): Type => {
     const scope = getChainnerScope();
+    return evaluate(new NamedExpression(name), scope);
+});
+
+const colorList = () => {
     return [
-        {
-            type: evaluate(new NamedExpression('Directory'), scope),
-            color: getComputedColor('--type-color-directory'),
-        },
-        {
-            type: evaluate(new NamedExpression('Image'), scope),
-            color: getComputedColor('--type-color-image'),
-        },
+        { type: resolveName('Directory'), color: getComputedColor('--type-color-directory') },
+        { type: resolveName('Image'), color: getComputedColor('--type-color-image') },
         { type: NumberType.instance, color: getComputedColor('--type-color-number') },
         { type: StringType.instance, color: getComputedColor('--type-color-string') },
-        {
-            type: evaluate(new NamedExpression('bool'), scope),
-            color: getComputedColor('--type-color-bool'),
-        },
-        {
-            type: evaluate(new NamedExpression('Color'), scope),
-            color: getComputedColor('--type-color-color'),
-        },
-        {
-            type: evaluate(new NamedExpression('PyTorchModel'), scope),
-            color: getComputedColor('--type-color-torch'),
-        },
-        {
-            type: evaluate(new NamedExpression('OnnxModel'), scope),
-            color: getComputedColor('--type-color-onnx'),
-        },
-        {
-            type: evaluate(new NamedExpression('NcnnNetwork'), scope),
-            color: getComputedColor('--type-color-ncnn'),
-        },
+        { type: resolveName('bool'), color: getComputedColor('--type-color-bool') },
+        { type: resolveName('Color'), color: getComputedColor('--type-color-color') },
+        { type: resolveName('PyTorchModel'), color: getComputedColor('--type-color-torch') },
+        { type: resolveName('OnnxModel'), color: getComputedColor('--type-color-onnx') },
+        { type: resolveName('NcnnNetwork'), color: getComputedColor('--type-color-ncnn') },
     ];
 };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const cachedColorList = cached((_theme: string) => colorList());
 
+export const defaultColor = '#718096';
 const defaultColorList = [defaultColor] as const;
 
-export const getTypeAccentColors = (inputType: Type): readonly [string, ...string[]] => {
+export const getTypeAccentColors = (
+    inputType: Type,
+    theme?: string
+): readonly [string, ...string[]] => {
+    if (inputType.underlying === 'never') {
+        // never is common enough to warrant a special optimization
+        return defaultColorList;
+    }
+
     const colors: string[] = [];
-    const allColors = colorList();
+    const allColors = theme ? cachedColorList(theme) : colorList();
     for (const { type, color } of allColors) {
         if (!isDisjointWith(type, inputType)) {
             colors.push(color);

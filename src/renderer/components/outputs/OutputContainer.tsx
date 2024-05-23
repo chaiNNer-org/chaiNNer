@@ -61,7 +61,7 @@ export const OutputHandle = memo(
                 right="-6px"
             >
                 <Handle
-                    connectedColor={isConnected ? handleColors[0] : undefined}
+                    connectedColor={isConnected ? handleColors : undefined}
                     handleColors={handleColors}
                     id={sourceHandle}
                     isIterated={isIterated}
