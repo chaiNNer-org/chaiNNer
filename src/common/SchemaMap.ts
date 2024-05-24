@@ -27,6 +27,7 @@ const BLANK_SCHEMA: NodeSchema = {
     hasSideEffects: false,
     deprecated: false,
     features: [],
+    suggestions: [],
 };
 
 export class SchemaMap {

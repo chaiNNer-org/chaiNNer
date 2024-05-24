@@ -301,6 +301,13 @@ export interface TypeKeyInfo {
     readonly expression: ExpressionJson;
 }
 
+export interface SpecialSuggestion {
+    readonly query: string;
+    readonly name?: string | null;
+    readonly parseInput?: InputId | null;
+    readonly inputs: Partial<InputData>;
+}
+
 export interface NodeSchema {
     readonly name: string;
     readonly category: CategoryId;
@@ -315,6 +322,7 @@ export interface NodeSchema {
     readonly iteratorInputs: readonly IteratorInputInfo[];
     readonly iteratorOutputs: readonly IteratorOutputInfo[];
     readonly keyInfo?: KeyInfo | null;
+    readonly suggestions: readonly SpecialSuggestion[];
     readonly schemaId: SchemaId;
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;

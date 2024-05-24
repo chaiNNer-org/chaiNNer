@@ -27,11 +27,12 @@ LABELS = {
 }
 
 
-output_navi_type = """match Input1 {
+output_navi_type = """
+match Input1 {
     SeparateColorMode::Uint8 => int(0..255),
     SeparateColorMode::Percent => 0..100,
-    SeparateColorMode::Color => Color { channels: 1 },
-    _ => never }
+    SeparateColorMode::Color => Color { channels: 1 }
+}
 """
 
 
@@ -41,7 +42,7 @@ output_navi_type = """match Input1 {
     description="Separate a color into its RGBA values, either as numbers or grayscale colors.",
     icon="MdColorLens",
     inputs=[
-        ColorInput(),
+        ColorInput(channels=[1, 3, 4]),
         EnumInput(
             SeparateColorMode,
             label="Mode",
@@ -53,7 +54,22 @@ output_navi_type = """match Input1 {
         AnyOutput("Red", output_type=output_navi_type),
         AnyOutput("Green", output_type=output_navi_type),
         AnyOutput("Blue", output_type=output_navi_type),
-        AnyOutput("Alpha", output_type=output_navi_type),
+        AnyOutput(
+            "Alpha",
+            output_type="""
+            if Input0.channels != 4 {
+                match Input1 {
+                    SeparateColorMode::Uint8 => 255,
+                    SeparateColorMode::Percent => 100,
+                    SeparateColorMode::Color => Color { channels: 1 }
+                }
+            } else {
+                """
+            + output_navi_type
+            + """
+            }
+        """,
+        ),
     ],
 )
 def separate_color_node(
@@ -94,5 +110,3 @@ def separate_color_node(
         )
     elif mode == SeparateColorMode.COLOR:
         return Color.gray(r), Color.gray(g), Color.gray(b), Color.gray(a)
-    else:
-        raise AssertionError("Invalid mode")

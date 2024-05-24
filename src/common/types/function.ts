@@ -1,6 +1,5 @@
 import {
     Expression,
-    NamedExpression,
     NeverType,
     NonNeverType,
     NumberType,
@@ -17,10 +16,10 @@ import {
     without,
 } from '@chainner/navi';
 import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, assertNever, lazy, lazyKeyed, topologicalSort } from '../util';
+import { EMPTY_MAP, assertNever, lazyKeyed, topologicalSort } from '../util';
 import { assign, assignOk } from './assign';
-import { getChainnerScope } from './chainner-scope';
 import { fromJson } from './json';
+import { errorType, withoutError } from './util';
 import type { PassthroughInfo } from '../PassthroughMap';
 
 const getConversionScope = lazyKeyed((parentScope: Scope) => {
@@ -121,20 +120,7 @@ const evaluateInputs = (
     return { ordered, defaults };
 };
 
-const getErrorType = lazy(() => {
-    const scope = getChainnerScope();
-    const errorType = evaluate(new NamedExpression('Error'), scope);
-    if (errorType.underlying !== 'struct' || errorType.type !== 'instance') {
-        throw new Error('Error type is not a struct');
-    }
-    return errorType;
-});
-
-const splitOutputTypeAndError = (
-    definition: FunctionDefinition,
-    type: Type
-): [Type, string | undefined] => {
-    const errorType = getErrorType();
+const splitOutputTypeAndError = (type: Type): [Type, string | undefined] => {
     const error = intersect(type, errorType);
     if (error.type === 'never') {
         // no error
@@ -226,7 +212,7 @@ const evaluateOutputs = (
 
         let type: Type;
         try {
-            type = evaluate(expression, expressionScope);
+            type = withoutError(evaluate(expression, expressionScope));
         } catch (error) {
             throw new Error(`Unable to evaluate output type of ${name}: ${String(error)}`);
         }
@@ -636,7 +622,7 @@ export class FunctionInstance {
                         outputErrors.push({ outputId: id, message });
                     } else {
                         let message;
-                        [type, message] = splitOutputTypeAndError(definition, type);
+                        [type, message] = splitOutputTypeAndError(type);
                         if (type.type === 'never') {
                             outputErrors.push({ outputId: id, message });
                         }
