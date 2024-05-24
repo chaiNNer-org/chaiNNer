@@ -10,7 +10,6 @@ import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NodeState } from '../../helpers/nodeState';
 import { useIsCollapsedNode } from '../../hooks/useIsCollapsedNode';
-import { DefaultImageOutput } from '../outputs/DefaultImageOutput';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
 import { OutputContainer } from '../outputs/OutputContainer';
@@ -20,13 +19,11 @@ import { TaggedOutput } from '../outputs/TaggedOutput';
 const OutputComponents: Readonly<
     Record<OutputKind, React.MemoExoticComponent<(props: OutputProps) => JSX.Element>>
 > = {
-    image: DefaultImageOutput,
     'large-image': LargeImageOutput,
     tagged: TaggedOutput,
     generic: GenericOutput,
 };
 const OutputIsGeneric: Readonly<Record<OutputKind, boolean>> = {
-    image: true,
     'large-image': false,
     tagged: false,
     generic: true,
