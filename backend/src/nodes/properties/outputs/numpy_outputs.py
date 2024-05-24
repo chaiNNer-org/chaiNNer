@@ -47,7 +47,7 @@ class ImageOutput(NumPyOutput):
         self,
         label: str = "Image",
         image_type: navi.ExpressionJson = "Image",
-        kind: OutputKind = "image",
+        kind: OutputKind = "generic",
         has_handle: bool = True,
         channels: int | None = None,
         shape_as: int | InputId | None = None,

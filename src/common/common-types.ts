@@ -158,7 +158,7 @@ export type Input =
     | ColorInput
     | StaticValueInput;
 
-export type OutputKind = 'image' | 'large-image' | 'tagged' | 'generic';
+export type OutputKind = 'large-image' | 'tagged' | 'generic';
 
 export interface Output {
     readonly id: OutputId;
