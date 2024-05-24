@@ -61,8 +61,8 @@ export const getFields = <N extends keyof KnownStructDefinitions>(
 };
 
 export const nullType = getStructDescriptor(getChainnerScope(), 'null').default;
+export const errorDescriptor = getStructDescriptor(getChainnerScope(), 'Error');
+export const errorType = errorDescriptor.default;
 
 export const withoutNull = (type: Type): Type => without(type, nullType);
-
-export const withoutError = (type: Type): Type =>
-    without(type, getStructDescriptor(getChainnerScope(), 'Error').default);
+export const withoutError = (type: Type): Type => without(type, errorType);
