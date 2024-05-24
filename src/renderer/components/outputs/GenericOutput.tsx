@@ -103,15 +103,20 @@ const ViewImageButton = memo(({ output, id, schema }: ViewImageButtonProps) => {
 });
 
 const getImageType = lazy(() => getStructDescriptor(getChainnerScope(), 'Image').default);
-const canBeImage = lazyKeyed((type: Type) => !isDisjointWith(type, getImageType()));
+const isImageDefinition = lazyKeyed((type: Type) => {
+    if (isDisjointWith(type, getImageType())) {
+        return false;
+    }
+    if (isSubsetOf(type, getImageType())) {
+        return true;
+    }
+    return null;
+});
 const isImage = lazyKeyed((type: Type) => isSubsetOf(type, getImageType()));
 
 export const GenericOutput = memo(({ output, type, id, schema, definitionType }: OutputProps) => {
-    // We first check whether the output type can possibly be an image or
-    // whether it's always an image. This is an optimization to skip the more
-    // expensive `isImage(type)` whenever possible. The trick here is that the
-    // definition type doesn't change, so we can cache the result.
-    const viewImage = isImage(definitionType) || (canBeImage(definitionType) && isImage(type));
+    // We first check the definition type first, because it changes less, which makes it more efficient to cache.
+    const viewImage = isImageDefinition(definitionType) ?? isImage(type);
 
     return (
         <Flex
