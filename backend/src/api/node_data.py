@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from enum import Enum
+from typing import Any, Mapping
 
 import navi
 
@@ -71,6 +72,57 @@ class KeyInfo:
         return self._data
 
 
+class SpecialSuggestion:
+    """
+    A special suggestion in chaiNNer's context node selector.
+
+    A suggestion consists of 3 parts:
+    1.  The search query to match. The query may optionally contain a pattern at the end
+        to supply a value to an input. E.g. `+{2}` will match the search query "+123"
+        and "123" will be parsed for the input with ID 2.
+    2.  The name of the suggestion. This is the text that will be displayed in the
+        suggestion list.
+    3.  The input values to supply to the node. This is a mapping of input IDs to the
+        values to supply to them. Values that aren't defined here will be left as
+        default values.
+    """
+
+    def __init__(
+        self,
+        query: str,
+        *,
+        name: str | None = None,
+        inputs: Mapping[InputId | int, Any] = {},
+    ) -> None:
+        self.query, self.parse_input = SpecialSuggestion._parse_query(query)
+        self.name = name
+        self.inputs: dict[InputId, Any] = {InputId(k): v for k, v in inputs.items()}
+
+    @staticmethod
+    def _parse_query(query: str) -> tuple[str, InputId | None]:
+        # e.g. "+{2}"
+        if "{" in query:
+            query, input_id = query.split("{")
+            input_id = int(input_id[:-1])
+            return query, InputId(input_id)
+        return query, None
+
+    def to_dict(self):
+        def convert_value(value: Any) -> Any:
+            if isinstance(value, bool):
+                return int(value)
+            if isinstance(value, Enum):
+                return value.value
+            return value
+
+        return {
+            "query": self.query,
+            "name": self.name,
+            "parseInput": self.parse_input,
+            "inputs": {k: convert_value(v) for k, v in self.inputs.items()},
+        }
+
+
 @dataclass(frozen=True)
 class NodeData:
     schema_id: str
@@ -88,6 +140,7 @@ class NodeData:
     iterator_outputs: list[IteratorOutputInfo]
 
     key_info: KeyInfo | None
+    suggestions: list[SpecialSuggestion]
 
     side_effects: bool
     deprecated: bool

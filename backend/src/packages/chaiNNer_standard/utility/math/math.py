@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from enum import Enum
 
+from api import SpecialSuggestion
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput
 
@@ -89,6 +90,38 @@ _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))
             "The mathematical operation is not defined. This is most likely a divide by zero error."
         )
         .as_passthrough_of(0)
+    ],
+    suggestions=[
+        SpecialSuggestion(
+            "+{2}",
+            name="Math: Add",
+            inputs={1: MathOperation.ADD},
+        ),
+        SpecialSuggestion(
+            "-{2}",
+            name="Math: Subtract",
+            inputs={1: MathOperation.SUBTRACT},
+        ),
+        SpecialSuggestion(
+            "*{2}",
+            name="Math: Multiply",
+            inputs={1: MathOperation.MULTIPLY, 2: 1},
+        ),
+        SpecialSuggestion(
+            "/{2}",
+            name="Math: Divide",
+            inputs={1: MathOperation.DIVIDE, 2: 1},
+        ),
+        SpecialSuggestion(
+            "**{2}",
+            name="Math: Power",
+            inputs={1: MathOperation.POWER, 2: 1},
+        ),
+        SpecialSuggestion(
+            "^{2}",
+            name="Math: Power",
+            inputs={1: MathOperation.POWER, 2: 1},
+        ),
     ],
 )
 def math_node(op: MathOperation, a: float, b: float) -> int | float:

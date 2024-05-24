@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from api import KeyInfo
+from api import KeyInfo, SpecialSuggestion
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import BoolOutput
 
@@ -78,6 +78,43 @@ class Comparison(Enum):
             }
             """,
         ).suggest(),
+    ],
+    suggestions=[
+        SpecialSuggestion(
+            "={2}",
+            name="Comparison: Equal",
+            inputs={0: Comparison.EQUAL},
+        ),
+        SpecialSuggestion(
+            "=={2}",
+            name="Comparison: Equal",
+            inputs={0: Comparison.EQUAL},
+        ),
+        SpecialSuggestion(
+            "!={2}",
+            name="Comparison: Not Equal",
+            inputs={0: Comparison.NOT_EQUAL},
+        ),
+        SpecialSuggestion(
+            ">{2}",
+            name="Comparison: Greater",
+            inputs={0: Comparison.GREATER},
+        ),
+        SpecialSuggestion(
+            "<{2}",
+            name="Comparison: Less",
+            inputs={0: Comparison.LESS},
+        ),
+        SpecialSuggestion(
+            ">={2}",
+            name="Comparison: Greater or Equal",
+            inputs={0: Comparison.GREATER_EQUAL},
+        ),
+        SpecialSuggestion(
+            "<={2}",
+            name="Comparison: Less or Equal",
+            inputs={0: Comparison.LESS_EQUAL},
+        ),
     ],
     key_info=KeyInfo.enum(0),
 )

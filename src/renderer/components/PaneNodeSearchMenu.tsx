@@ -19,8 +19,10 @@ import {
     CategoryId,
     FeatureId,
     FeatureState,
+    InputData,
     NodeSchema,
     SchemaId,
+    SpecialSuggestion,
 } from '../../common/common-types';
 import { assertNever, cacheLast, groupBy, stopPropagation } from '../../common/util';
 import { getCategoryAccentColor } from '../helpers/accentColors';
@@ -41,15 +43,16 @@ const clampWithWrap = (min: number, max: number, value: number): number => {
 };
 
 interface SchemaItemProps {
-    schema: NodeSchema;
+    name: string;
+    icon: string;
     isFavorite: boolean;
     accentColor: string;
-    onClick: (schema: NodeSchema) => void;
+    onClick: () => void;
     isSelected: boolean;
     scrollRef?: React.RefObject<HTMLDivElement>;
 }
 const SchemaItem = memo(
-    ({ schema, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
+    ({ name, icon, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
         const bgColor = useThemeColor('--bg-700');
         const menuBgColor = useThemeColor('--bg-800');
 
@@ -69,18 +72,17 @@ const SchemaItem = memo(
                         : `linear(to-r, ${gradL}, ${gradR})`
                 }
                 borderRadius="md"
-                key={schema.schemaId}
                 mx={1}
                 my={0.5}
                 outline={isSelected ? '1px solid' : undefined}
                 px={2}
                 py={0.5}
                 ref={scrollRef}
-                onClick={() => onClick(schema)}
+                onClick={onClick}
             >
                 <IconFactory
                     accentColor="gray.500"
-                    icon={schema.icon}
+                    icon={icon}
                 />
                 <Text
                     flex={1}
@@ -90,7 +92,7 @@ const SchemaItem = memo(
                     verticalAlign="middle"
                     whiteSpace="nowrap"
                 >
-                    {schema.name}
+                    {name}
                 </Text>
                 {isFavorite && (
                     <StarIcon
@@ -107,10 +109,25 @@ const SchemaItem = memo(
     }
 );
 
+type GroupItem = SchemaGroupItem | SuggestionGroupItem;
+interface GroupItemBase {
+    readonly name: string;
+    readonly icon: string;
+    readonly schema: NodeSchema;
+}
+interface SchemaGroupItem extends GroupItemBase {
+    readonly type: 'schema';
+    readonly inputs?: undefined;
+}
+interface SuggestionGroupItem extends GroupItemBase {
+    readonly type: 'suggestion';
+    readonly inputs: Partial<InputData>;
+}
+
 type SchemaGroup = FavoritesSchemaGroup | SuggestedSchemaGroup | CategorySchemaGroup;
 interface SchemaGroupBase {
     readonly name: string;
-    readonly schemata: readonly NodeSchema[];
+    readonly items: readonly GroupItem[];
 }
 interface FavoritesSchemaGroup extends SchemaGroupBase {
     type: 'favorites';
@@ -131,8 +148,18 @@ const groupSchemata = (
     schemata: readonly NodeSchema[],
     categories: CategoryMap,
     favorites: ReadonlySet<SchemaId>,
-    suggested: ReadonlySet<SchemaId>
+    suggested: ReadonlySet<SchemaId>,
+    specialSuggestions: readonly SuggestionGroupItem[]
 ): readonly SchemaGroup[] => {
+    const toItem = (schema: NodeSchema): SchemaGroupItem => {
+        return {
+            type: 'schema',
+            name: schema.name,
+            icon: schema.icon,
+            schema,
+        };
+    };
+
     const cats = [...groupBy(schemata, 'category')].map(
         ([categoryId, categorySchemata]): CategorySchemaGroup => {
             const category = categories.get(categoryId);
@@ -141,7 +168,7 @@ const groupSchemata = (
                 name: category?.name ?? categoryId,
                 categoryId,
                 category,
-                schemata: categorySchemata,
+                items: categorySchemata.map(toItem),
             };
         }
     );
@@ -149,20 +176,19 @@ const groupSchemata = (
     const favs: FavoritesSchemaGroup = {
         type: 'favorites',
         name: 'Favorites',
-        schemata: cats.flatMap((c) => c.schemata).filter((n) => favorites.has(n.schemaId)),
+        items: cats.flatMap((c) => c.items).filter((n) => favorites.has(n.schema.schemaId)),
     };
 
     const suggs: SuggestedSchemaGroup = {
         type: 'suggested',
         name: 'Suggested',
-        schemata: schemata.filter((n) => suggested.has(n.schemaId)),
+        items: [
+            ...specialSuggestions,
+            ...schemata.filter((n) => suggested.has(n.schemaId)).map(toItem),
+        ],
     };
 
-    return [
-        ...(suggs.schemata.length ? [suggs] : []),
-        ...(favs.schemata.length ? [favs] : []),
-        ...cats,
-    ];
+    return [...(suggs.items.length ? [suggs] : []), ...(favs.items.length ? [favs] : []), ...cats];
 };
 
 const renderGroupIcon = (categories: CategoryMap, group: SchemaGroup) => {
@@ -195,6 +221,50 @@ const renderGroupIcon = (categories: CategoryMap, group: SchemaGroup) => {
     }
 };
 
+// eslint-disable-next-line react-memo/require-memo
+function* getSpecialSuggestions(
+    schemata: readonly NodeSchema[],
+    searchQuery: string
+): Iterable<SuggestionGroupItem> {
+    const parse = (
+        s: SpecialSuggestion,
+        schema: NodeSchema
+    ): { inputs: Partial<InputData> } | undefined => {
+        if (searchQuery === s.query) {
+            return { inputs: s.inputs };
+        }
+        if (s.parseInput != null && searchQuery.startsWith(s.query)) {
+            const rest = searchQuery.slice(s.query.length);
+            const input = schema.inputs.find((i) => i.id === s.parseInput);
+            if (input) {
+                // attempt to parse the rest of the query string
+                if (input.kind === 'number') {
+                    const value = parseFloat(rest.trim());
+                    if (!Number.isNaN(value)) {
+                        return { inputs: { ...s.inputs, [input.id]: value } };
+                    }
+                }
+            }
+        }
+        return undefined;
+    };
+
+    for (const schema of schemata) {
+        for (const suggestion of schema.suggestions) {
+            const parsed = parse(suggestion, schema);
+            if (parsed) {
+                yield {
+                    type: 'suggestion',
+                    icon: schema.icon,
+                    name: suggestion.name ?? schema.name,
+                    schema,
+                    inputs: parsed.inputs,
+                };
+            }
+        }
+    }
+}
+
 const createMatcher = (
     schemata: readonly NodeSchema[],
     categories: CategoryMap,
@@ -203,11 +273,18 @@ const createMatcher = (
     featureStates: ReadonlyMap<FeatureId, FeatureState>
 ) => {
     return cacheLast((searchQuery: string) => {
+        const specialSuggestions = [...getSpecialSuggestions(schemata, searchQuery)];
         const matchingNodes = getMatchingNodes(searchQuery, schemata, categories);
-        const groups = groupSchemata(matchingNodes, categories, favorites, suggestions);
-        const flatGroups = groups.flatMap((group) => group.schemata);
+        const groups = groupSchemata(
+            matchingNodes,
+            categories,
+            favorites,
+            suggestions,
+            specialSuggestions
+        );
+        const flatGroups: readonly GroupItem[] = groups.flatMap((group) => group.items);
 
-        const bestMatch = getBestMatch(searchQuery, matchingNodes, categories, (schema) => {
+        const bestSchema = getBestMatch(searchQuery, matchingNodes, categories, (schema) => {
             const isFeatureEnabled = schema.features.every((f) => {
                 return featureStates.get(f)?.enabled ?? false;
             });
@@ -222,13 +299,14 @@ const createMatcher = (
             }
             return 1;
         });
+        const bestMatch = flatGroups.find((item) => item.schema === bestSchema);
 
         return { groups, flatGroups, bestMatch };
     });
 };
 
 interface MenuProps {
-    onSelect: (schema: NodeSchema) => void;
+    onSelect: (schema: NodeSchema, inputs: Partial<InputData>) => void;
     schemata: readonly NodeSchema[];
     favorites: ReadonlySet<SchemaId>;
     categories: CategoryMap;
@@ -263,9 +341,9 @@ export const Menu = memo(
         const { groups, flatGroups } = useMemo(() => matcher(searchQuery), [searchQuery, matcher]);
 
         const onClickHandler = useCallback(
-            (schema: NodeSchema) => {
+            (item: GroupItem) => {
                 changeSearchQuery('');
-                onSelect(schema);
+                onSelect(item.schema, item.inputs ?? {});
             },
             [changeSearchQuery, onSelect]
         );
@@ -358,13 +436,13 @@ export const Menu = memo(
                     {groups.map((group, groupIndex) => {
                         const indexOffset = groups
                             .slice(0, groupIndex)
-                            .reduce((acc, g) => acc + g.schemata.length, 0);
+                            .reduce((acc, g) => acc + g.items.length, 0);
 
                         const nodeHeight = 28;
                         const nodePadding = 2;
                         const placeholderHeight =
-                            nodeHeight * group.schemata.length +
-                            nodePadding * (group.schemata.length + 1);
+                            nodeHeight * group.items.length +
+                            nodePadding * (group.items.length + 1);
 
                         return (
                             <Box key={group.categoryId ?? group.type}>
@@ -380,26 +458,29 @@ export const Menu = memo(
                                 <IfVisible
                                     forceVisible={
                                         indexOffset <= selectedIndex &&
-                                        selectedIndex < indexOffset + group.schemata.length
+                                        selectedIndex < indexOffset + group.items.length
                                     }
                                     height={placeholderHeight}
                                 >
-                                    {group.schemata.map((schema, schemaIndex) => {
-                                        const index = indexOffset + schemaIndex;
+                                    {group.items.map((item, itemIndex) => {
+                                        const index = indexOffset + itemIndex;
                                         const isSelected = selectedIndex === index;
 
                                         return (
                                             <SchemaItem
                                                 accentColor={getCategoryAccentColor(
                                                     categories,
-                                                    schema.category
+                                                    item.schema.category
                                                 )}
-                                                isFavorite={favorites.has(schema.schemaId)}
+                                                icon={item.icon}
+                                                isFavorite={favorites.has(item.schema.schemaId)}
                                                 isSelected={isSelected}
-                                                key={schema.schemaId}
-                                                schema={schema}
+                                                key={item.schema.schemaId}
+                                                name={item.name}
                                                 scrollRef={isSelected ? scrollRef : undefined}
-                                                onClick={onClickHandler}
+                                                onClick={() => {
+                                                    onClickHandler(item);
+                                                }}
                                             />
                                         );
                                     })}
