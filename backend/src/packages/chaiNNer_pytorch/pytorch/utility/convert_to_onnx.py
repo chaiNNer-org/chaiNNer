@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+import numpy as np
+import torch
 from spandrel import ImageModelDescriptor
 
 from api import NodeContext
@@ -10,7 +12,7 @@ from nodes.impl.pytorch.convert_to_onnx_impl import (
     convert_to_onnx_impl,
     is_onnx_supported,
 )
-from nodes.properties.inputs import EnumInput, OnnxFpDropdown, SrModelInput
+from nodes.properties.inputs import BoolInput, EnumInput, OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import OnnxModelOutput, TextOutput
 
 from ...settings import get_settings
@@ -50,6 +52,11 @@ OPSET_LABELS: dict[Opset, str] = {
             default=Opset.OPSET_14,
             option_labels=OPSET_LABELS,
         ),
+        BoolInput("Verify", default=False).with_docs(
+            "Runs the ONNX and PyTorch models to verify that they produce the same output. It's recommended to keep this on to ensure the conversion is correct.",
+            "Verification requires ONNX to be installed.",
+            hint=True,
+        ),
     ],
     outputs=[
         OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
@@ -70,7 +77,11 @@ OPSET_LABELS: dict[Opset, str] = {
     node_context=True,
 )
 def convert_to_onnx_node(
-    context: NodeContext, model: ImageModelDescriptor, is_fp16: int, opset: Opset
+    context: NodeContext,
+    model: ImageModelDescriptor,
+    is_fp16: int,
+    opset: Opset,
+    verify: bool,
 ) -> tuple[OnnxGeneric, str, str]:
     assert is_onnx_supported(
         model
@@ -80,19 +91,51 @@ def convert_to_onnx_node(
     exec_options = get_settings(context)
     device = exec_options.device
     if fp16:
-        assert exec_options.use_fp16, "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
+        if not exec_options.use_fp16:
+            raise ValueError(
+                "PyTorch fp16 mode must be supported and turned on in settings to convert model as fp16."
+            )
+        if not model.supports_half:
+            raise ValueError(
+                f"This {model.architecture.name} model does not support FP16. Please convert as FP32."
+            )
 
     model.eval().to(device)
-
-    use_half = fp16 and model.supports_half
 
     onnx_model_bytes = convert_to_onnx_impl(
         model,
         device,
-        use_half,
+        use_half=fp16,
         opset_version=opset.value,
     )
 
-    fp_mode = "fp16" if use_half else "fp32"
+    if verify:
+        verify_models(model, onnx_model_bytes, fp16)
+
+    fp_mode = "fp16" if fp16 else "fp32"
 
     return OnnxGeneric(onnx_model_bytes), fp_mode, f"opset{opset.value}"
+
+
+def verify_models(pytorch_model: ImageModelDescriptor, onnx_model: bytes, fp16: bool):
+    # based on: https://github.com/muslll/neosr/blob/d871e468fa9e82dc874f65b2289ad5726a5ab3b9/convert.py#L61
+    import onnxruntime as ort
+
+    dummy_size = 16
+    dummy_size += pytorch_model.size_requirements.get_padding(dummy_size, dummy_size)[0]
+    dummy_input = torch.rand(1, pytorch_model.input_channels, dummy_size, dummy_size)
+
+    # onnx
+    session = ort.InferenceSession(onnx_model, providers=["CPUExecutionProvider"])
+    input_name = session.get_inputs()[0].name
+    output_name = session.get_outputs()[0].name
+    onnx_out = session.run(
+        [output_name],
+        {input_name: dummy_input.detach().cpu().numpy()},
+    )[0]
+
+    # pytorch
+    pytorch_model.cpu().eval()
+    torch_out = pytorch_model(dummy_input).detach().cpu().numpy()
+
+    np.testing.assert_allclose(torch_out, onnx_out, rtol=0.01, atol=0.001)

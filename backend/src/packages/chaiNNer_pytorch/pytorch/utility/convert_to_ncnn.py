@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from sanic.log import logger
 from spandrel import ImageModelDescriptor
 from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT
@@ -12,23 +13,11 @@ from spandrel_extra_arches.architectures.SRFormer import SRFormer
 
 from api import NodeContext
 from nodes.impl.ncnn.model import NcnnModelWrapper
-from nodes.impl.onnx.model import OnnxGeneric
-from nodes.impl.pytorch.convert_to_onnx_impl import (
-    convert_to_onnx_impl,
-    is_onnx_supported,
-)
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
 from ...settings import get_settings
 from .. import utility_group
-
-try:
-    from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import (
-        convert_to_ncnn_node as onnx_convert_to_ncnn_node,
-    )
-except Exception:
-    onnx_convert_to_ncnn_node = None
 
 
 @utility_group.register(
@@ -53,8 +42,19 @@ except Exception:
 def convert_to_ncnn_node(
     context: NodeContext, model: ImageModelDescriptor, is_fp16: int
 ) -> tuple[NcnnModelWrapper, str]:
-    if onnx_convert_to_ncnn_node is None:
-        raise ModuleNotFoundError(
+    try:
+        from nodes.impl.onnx.model import OnnxGeneric
+        from nodes.impl.pytorch.convert_to_onnx_impl import (
+            convert_to_onnx_impl,
+            is_onnx_supported,
+        )
+
+        from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import (
+            convert_to_ncnn_node as onnx_convert_to_ncnn_node,
+        )
+    except Exception as e:
+        logger.error(e)
+        raise ModuleNotFoundError(  # noqa: B904
             "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."

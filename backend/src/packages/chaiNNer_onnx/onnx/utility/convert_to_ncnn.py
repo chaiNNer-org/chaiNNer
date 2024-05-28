@@ -11,8 +11,6 @@ from nodes.properties.outputs import NcnnModelOutput, TextOutput
 
 from .. import utility_group
 
-FP_MODE_32 = 0
-
 
 @utility_group.register(
     schema_id="chainner:onnx:convert_to_ncnn",
