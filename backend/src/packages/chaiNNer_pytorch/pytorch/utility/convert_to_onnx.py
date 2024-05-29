@@ -123,7 +123,17 @@ def verify_models(pytorch_model: ImageModelDescriptor, onnx_model: bytes, fp16: 
 
     dummy_size = 16
     dummy_size += pytorch_model.size_requirements.get_padding(dummy_size, dummy_size)[0]
-    dummy_input = torch.rand(1, pytorch_model.input_channels, dummy_size, dummy_size)
+    dummy_input = torch.rand(
+        1,
+        pytorch_model.input_channels,
+        dummy_size,
+        dummy_size,
+        device=pytorch_model.device,
+        dtype=pytorch_model.dtype,
+    )
+
+    # pytorch
+    torch_out = pytorch_model(dummy_input).detach().cpu().numpy()
 
     # onnx
     session = ort.InferenceSession(onnx_model, providers=["CPUExecutionProvider"])
@@ -133,9 +143,5 @@ def verify_models(pytorch_model: ImageModelDescriptor, onnx_model: bytes, fp16: 
         [output_name],
         {input_name: dummy_input.detach().cpu().numpy()},
     )[0]
-
-    # pytorch
-    pytorch_model.cpu().eval()
-    torch_out = pytorch_model(dummy_input).detach().cpu().numpy()
 
     np.testing.assert_allclose(torch_out, onnx_out, rtol=0.01, atol=0.001)
