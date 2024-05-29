@@ -10,7 +10,8 @@ from onnx.onnx_pb import TensorProto
 from sanic.log import logger
 
 from api import NodeContext
-from nodes.impl.onnx.model import OnnxModel, load_onnx_model
+from nodes.impl.onnx.load import load_onnx_model
+from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.utils import safely_optimize_onnx_model
 from nodes.impl.upscale.auto_split_tiles import NO_TILING
 from nodes.properties.inputs import OnnxModelInput, SliderInput
@@ -116,9 +117,8 @@ def interpolate_models_node(
         # Assigning a new value or assigning to field index do not seem to work
         model_proto_interp.graph.initializer.pop()  # type: ignore
     model_proto_interp.graph.initializer.extend(interp_weights_list)  # type: ignore
-    model_interp = model_proto_interp.SerializeToString()  # type: ignore
 
-    model = load_onnx_model(model_interp)
+    model = load_onnx_model(model_proto_interp)
     if not check_will_upscale(context, model):
         raise ValueError(
             "These models are not compatible and not able to be interpolated together"

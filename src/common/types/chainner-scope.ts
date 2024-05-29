@@ -76,6 +76,8 @@ struct OnnxModel {
     subType: string,
     scaleHeight: int(1..),
     scaleWidth: int(1..),
+    inputChannels: int(1..),
+    outputChannels: int(1..),
 }
 let OnnxRemBgModel = OnnxModel {
     subType: "RemBg",
@@ -105,6 +107,17 @@ def convenientUpscale(model: PyTorchModel | NcnnNetwork, image: Image) {
     Image {
         width: model.scale * image.width,
         height: model.scale * image.height,
+        channels: if model.inputChannels == model.outputChannels {
+            image.channels
+        } else {
+            model.outputChannels
+        }
+    }
+}
+def convenientUpscaleOnnx(model: OnnxModel, image: Image) {
+    Image {
+        width: model.scaleWidth * image.width,
+        height: model.scaleHeight * image.height,
         channels: if model.inputChannels == model.outputChannels {
             image.channels
         } else {

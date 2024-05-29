@@ -1,7 +1,7 @@
 import navi
 from api import BaseInput
 
-from ...impl.onnx.model import OnnxModel, OnnxModels, OnnxRemBg, is_rembg_model
+from ...impl.onnx.model import OnnxModel, OnnxModels, OnnxRemBg
 from .generic_inputs import DropDownInput
 
 
@@ -25,7 +25,7 @@ class OnnxGenericModelInput(OnnxModelInput):
 
     def enforce(self, value: object):
         assert isinstance(value, OnnxModels)
-        assert not is_rembg_model(value.bytes), "Expected a non-rembg model"
+        assert value.sub_type == "Generic", "Expected a non-rembg model"
         return value
 
 
@@ -40,7 +40,7 @@ class OnnxRemBgModelInput(OnnxModelInput):
 
     def enforce(self, value: object):
         assert isinstance(value, OnnxModels)
-        assert is_rembg_model(value.bytes), "Expected a rembg model"
+        assert value.sub_type == "RemBg", "Expected a rembg model"
         return value
 
 
