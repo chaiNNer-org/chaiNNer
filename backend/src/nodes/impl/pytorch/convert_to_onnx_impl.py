@@ -24,8 +24,8 @@ def convert_to_onnx_impl(
         input_name: {0: "batch_size", 2: "height", 3: "width"},
         output_name: {0: "batch_size", 2: "height", 3: "width"},
     }
-    size = max(model.size_requirements.minimum, 3)
-    size = size + (size % model.size_requirements.multiple_of)
+    size = 3
+    size += model.size_requirements.get_padding(size, size)[0]
     dummy_input = torch.rand(1, model.input_channels, size, size)
     dummy_input = dummy_input.to(device)
 
