@@ -29,13 +29,18 @@ U2NET_ISNET = re2.compile(
 )
 
 
-def load_onnx_model(model: onnx.ModelProto) -> OnnxModel:
+def load_onnx_model(model_or_bytes: onnx.ModelProto | bytes) -> OnnxModel:
+    if isinstance(model_or_bytes, onnx.ModelProto):
+        model = model_or_bytes
+        model_as_bytes = model.SerializeToString()
+    else:
+        model_as_bytes = model_or_bytes
+        model = onnx.load_model_from_string(model_or_bytes)
+
     info = OnnxInfo(
         opset=get_opset(model),
         dtype=get_tensor_fp_datatype(model),
     )
-
-    model_as_bytes = model.SerializeToString()
 
     if (
         U2NET_STANDARD.search(model_as_bytes[-1000:]) is not None

@@ -5,6 +5,7 @@ from enum import Enum
 from spandrel import ImageModelDescriptor
 
 from api import NodeContext
+from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.convert_to_onnx_impl import (
     convert_to_onnx_impl,
@@ -92,7 +93,9 @@ def convert_to_onnx_node(
         use_half,
         opset_version=opset.value,
     )
+    onnx_model = load_onnx_model(onnx_model_bytes)
+    assert onnx_model.sub_type == "Generic"
 
     fp_mode = "fp16" if use_half else "fp32"
 
-    return OnnxGeneric(onnx_model_bytes), fp_mode, f"opset{opset.value}"
+    return onnx_model, fp_mode, f"opset{opset.value}"
