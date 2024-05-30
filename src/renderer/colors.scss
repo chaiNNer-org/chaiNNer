@@ -99,6 +99,9 @@
     /* controls */
     --controls-bg: var(--theme-600-a50);
     --controls-bg-hover: var(--theme-600);
+
+    // pane search
+    --pane-icon: var(--theme-200);
 }
 
 :root[data-theme='light'] {
@@ -165,6 +168,9 @@
     --controls-bg-hover: var(--theme-400);
 
     --type-color-color: #000;
+
+    // pane search
+    --pane-icon: var(--theme-700);
 }
 
 // Default theme (copied from Chakra UI)

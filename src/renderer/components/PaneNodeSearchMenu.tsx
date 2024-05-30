@@ -81,7 +81,7 @@ const SchemaItem = memo(
                 onClick={onClick}
             >
                 <IconFactory
-                    accentColor="gray.500"
+                    accentColor="var(--pane-icon)"
                     icon={icon}
                 />
                 <Text
