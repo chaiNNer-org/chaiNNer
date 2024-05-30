@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import time
-
 import onnx
 import onnx.inliner
 import re2
-from sanic.log import logger
 
 from .model import OnnxGeneric, OnnxInfo, OnnxModel, OnnxRemBg
 from .utils import (
@@ -55,7 +52,6 @@ def load_onnx_model(model_or_bytes: onnx.ModelProto | bytes) -> OnnxModel:
         info.scale_height = 3
         return OnnxRemBg(model_as_bytes, info)
     else:
-        start = time.time()
         try:
             i_hwc, o_hwc = image_to_image_shape_inference(model, (512, 512))
             i_h, i_w, i_c = i_hwc
@@ -76,5 +72,4 @@ def load_onnx_model(model_or_bytes: onnx.ModelProto | bytes) -> OnnxModel:
         except Exception:
             pass
 
-        logger.info(f"Model info took {time.time() - start:.2f}s")
         return OnnxGeneric(model_as_bytes, info)
