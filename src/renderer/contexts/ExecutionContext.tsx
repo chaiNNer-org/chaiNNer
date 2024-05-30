@@ -292,7 +292,8 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 message: formatExecutionErrorMessage(
                     data,
                     schemata,
-                    (label, value) => `• ${label}: ${value}`
+                    (label, value) => `• ${label}: ${value}`,
+                    (nodeId) => getNodes().find((n) => n.id === nodeId)?.data.nodeName
                 ),
                 trace: data.exceptionTrace,
             });

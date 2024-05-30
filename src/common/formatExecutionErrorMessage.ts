@@ -2,19 +2,25 @@ import { BackendEventMap } from './Backend';
 import { SchemaMap } from './SchemaMap';
 
 const defaultListItem = (label: string, value: string) => `- ${label}: ${value}`;
+const defaultGetNodeName = () => undefined;
 
 export const formatExecutionErrorMessage = (
     { exception, source }: Pick<BackendEventMap['execution-error'], 'exception' | 'source'>,
     schemata: SchemaMap,
-    formatListItem: (label: string, value: string) => string = defaultListItem
+    formatListItem: (label: string, value: string) => string = defaultListItem,
+    getNodeName: (nodeId: string) => string | undefined = defaultGetNodeName
 ): string => {
     if (!source) return exception;
 
     const schema = schemata.get(source.schemaId);
-    let { name } = schema;
+    let name = `${schema.name} node`;
     if (!schemata.hasUniqueName(source.schemaId)) {
         // make the name unique using the category of the schema
-        name = `${schema.category} ${schema.name}`;
+        name = `${schema.category} ${name}`;
+    }
+    const nodeName = getNodeName(source.nodeId);
+    if (nodeName) {
+        name = `${name} (called ${nodeName})`;
     }
 
     const inputs = schema.inputs.map((i) => {
@@ -55,5 +61,5 @@ export const formatExecutionErrorMessage = (
 
     const inputsInfo = inputs.length === 0 ? '' : `Input values:\n${inputs.join('\n')}`;
 
-    return `An error occurred in a ${name} node:\n\n${exception.trim()}\n\n${inputsInfo}`;
+    return `An error occurred in a ${name}:\n\n${exception.trim()}\n\n${inputsInfo}`;
 };
