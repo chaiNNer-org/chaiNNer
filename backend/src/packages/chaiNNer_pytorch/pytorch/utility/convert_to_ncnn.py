@@ -34,7 +34,10 @@ from .. import utility_group
         OnnxFpDropdown(),
     ],
     outputs=[
-        NcnnModelOutput(label="NCNN Model"),
+        NcnnModelOutput(
+            model_type="NcnnNetwork & onnxToNcnn(pytorchToOnnx(Input0))",
+            label="NCNN Model",
+        ),
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
     ],
     node_context=True,
