@@ -60,7 +60,10 @@ OPSET_LABELS: dict[Opset, str] = {
         ),
     ],
     outputs=[
-        OnnxModelOutput(model_type="OnnxGenericModel", label="ONNX Model"),
+        OnnxModelOutput(
+            model_type="OnnxGenericModel & pytorchToOnnx(Input0)",
+            label="ONNX Model",
+        ),
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
         TextOutput(
             "Opset",

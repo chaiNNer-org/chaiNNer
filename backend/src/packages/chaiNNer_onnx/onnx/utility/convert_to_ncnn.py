@@ -21,9 +21,15 @@ from .. import utility_group
         "Note: Converted models are not guaranteed to work with other programs that support NCNN models. This is for a variety of reasons and cannot be changed.",
     ],
     icon="NCNN",
-    inputs=[OnnxModelInput("ONNX Model"), OnnxFpDropdown()],
+    inputs=[
+        OnnxModelInput("ONNX Model"),
+        OnnxFpDropdown(),
+    ],
     outputs=[
-        NcnnModelOutput(label="NCNN Model"),
+        NcnnModelOutput(
+            model_type="NcnnNetwork & onnxToNcnn(Input0)",
+            label="NCNN Model",
+        ),
         TextOutput("FP Mode", "FpMode::toString(Input1)"),
     ],
 )

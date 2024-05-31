@@ -51,6 +51,8 @@ struct Color { channels: int(1..) }
 
 struct Video;
 
+// models
+
 struct PyTorchScript;
 struct PyTorchModel {
     scale: int(1..),
@@ -86,7 +88,24 @@ let OnnxGenericModel = OnnxModel {
     subType: "Generic",
 };
 
+def pytorchToOnnx(model: PyTorchModel): OnnxModel {
+    OnnxModel {
+        scaleHeight: model.scale,
+        scaleWidth: model.scale,
+        inputChannels: model.inputChannels,
+        outputChannels: model.outputChannels,
+    }
+}
+def onnxToNcnn(model: OnnxModel): NcnnNetwork {
+    NcnnNetwork {
+        scale: model.scaleWidth & model.scaleHeight,
+        inputChannels: model.inputChannels,
+        outputChannels: model.outputChannels,
+    }
+}
+
 // various inputs
+
 struct ColorSpace { channels: 1 | 3 | 4, supportsAlpha: bool }
 struct DdsFormat;
 struct DdsMipMaps;
