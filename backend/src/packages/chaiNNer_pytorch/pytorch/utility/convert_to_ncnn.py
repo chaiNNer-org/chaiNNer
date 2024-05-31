@@ -43,7 +43,7 @@ def convert_to_ncnn_node(
     context: NodeContext, model: ImageModelDescriptor, is_fp16: int
 ) -> tuple[NcnnModelWrapper, str]:
     try:
-        from nodes.impl.onnx.model import OnnxGeneric
+        from nodes.impl.onnx.load import load_onnx_model
         from nodes.impl.pytorch.convert_to_onnx_impl import (
             convert_to_onnx_impl,
             is_onnx_supported,
@@ -68,7 +68,7 @@ def convert_to_ncnn_node(
     device = exec_options.device
 
     # Intermediate conversion to ONNX is always fp32
-    onnx_model = OnnxGeneric(
+    onnx_model = load_onnx_model(
         convert_to_onnx_impl(model, device, False, "data", "output")
     )
     ncnn_model, fp_mode = onnx_convert_to_ncnn_node(onnx_model, is_fp16)

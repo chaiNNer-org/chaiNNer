@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import onnxruntime as ort
 
-from ...impl.onnx.utils import get_input_shape
+from ..onnx.session import get_input_shape
 from .session_base import BaseSession
 from .session_cloth import ClothSession
 from .session_simple import SimpleSession

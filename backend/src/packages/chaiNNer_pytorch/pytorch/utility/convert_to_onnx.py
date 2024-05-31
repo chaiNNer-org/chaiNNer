@@ -7,6 +7,7 @@ import torch
 from spandrel import ImageModelDescriptor
 
 from api import NodeContext
+from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxGeneric
 from nodes.impl.pytorch.convert_to_onnx_impl import (
     convert_to_onnx_impl,
@@ -108,13 +109,15 @@ def convert_to_onnx_node(
         use_half=fp16,
         opset_version=opset.value,
     )
+    onnx_model = load_onnx_model(onnx_model_bytes)
+    assert onnx_model.sub_type == "Generic"
 
     if verify:
         verify_models(model, onnx_model_bytes, fp16)
 
     fp_mode = "fp16" if fp16 else "fp32"
 
-    return OnnxGeneric(onnx_model_bytes), fp_mode, f"opset{opset.value}"
+    return onnx_model, fp_mode, f"opset{opset.value}"
 
 
 def verify_models(pytorch_model: ImageModelDescriptor, onnx_model: bytes, fp16: bool):

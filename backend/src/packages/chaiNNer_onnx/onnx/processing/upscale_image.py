@@ -8,8 +8,7 @@ from api import NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxModel
-from nodes.impl.onnx.session import get_onnx_session
-from nodes.impl.onnx.utils import get_input_shape, get_output_shape
+from nodes.impl.onnx.session import get_input_shape, get_onnx_session, get_output_shape
 from nodes.impl.upscale.auto_split_tiles import (
     CUSTOM,
     TILE_SIZE_256,
@@ -98,7 +97,12 @@ def upscale(
             )
         ),
     ],
-    outputs=[ImageOutput("Image")],
+    outputs=[
+        ImageOutput(
+            "Image",
+            image_type="convenientUpscaleOnnx(Input0, Input1)",
+        )
+    ],
     name="Upscale Image",
     icon="ONNX",
     node_context=True,

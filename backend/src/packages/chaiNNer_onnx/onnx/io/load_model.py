@@ -6,7 +6,8 @@ from pathlib import Path
 import onnx
 from sanic.log import logger
 
-from nodes.impl.onnx.model import OnnxModel, load_onnx_model
+from nodes.impl.onnx.load import load_onnx_model
+from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import OnnxFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, OnnxModelOutput
 from nodes.utils.utils import split_file_path
@@ -25,7 +26,7 @@ from .. import io_group
     icon="ONNX",
     inputs=[OnnxFileInput(primary_input=True)],
     outputs=[
-        OnnxModelOutput().suggest(),
+        OnnxModelOutput(kind="tagged").suggest(),
         DirectoryOutput("Directory", of_input=0).with_id(2),
         FileNameOutput("Name", of_input=0).with_id(1),
     ],
@@ -41,7 +42,5 @@ def load_model_node(path: Path) -> tuple[OnnxModel, Path, str]:
     logger.debug(f"Reading onnx model from path: {path}")
     model = onnx.load_model(str(path))
 
-    model_as_string = model.SerializeToString()
-
     dirname, basename, _ = split_file_path(path)
-    return load_onnx_model(model_as_string), dirname, basename
+    return load_onnx_model(model), dirname, basename

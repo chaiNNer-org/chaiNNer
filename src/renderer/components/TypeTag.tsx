@@ -240,6 +240,17 @@ const getTypeText = (type: Type): TagValue[] => {
             if (isNumericLiteral(scale)) {
                 tags.push({ kind: 'literal', value: `${scale.toString()}x` });
             }
+
+            const scaleWidth = type.getField('scaleWidth') ?? NeverType.instance;
+            const scaleHeight = type.getField('scaleHeight') ?? NeverType.instance;
+            if (
+                isNumericLiteral(scaleWidth) &&
+                isNumericLiteral(scaleHeight) &&
+                scaleWidth.value === scaleHeight.value
+            ) {
+                tags.push({ kind: 'literal', value: `${scaleWidth.toString()}x` });
+            }
+
             const subType = type.getField('subType') ?? NeverType.instance;
             if (isStringLiteral(subType)) {
                 tags.push({ kind: 'literal', value: subType.value });
