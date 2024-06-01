@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from functools import cached_property
 from json import dumps as stringify
+from json import loads as json_parse
 from typing import Final
 
 import psutil
@@ -349,7 +350,24 @@ async def shutdown(request: Request):
 @app.get("/status")
 async def status(request: Request):
     ctx = AppContext.get(request.app)
-    return json({"ready": ctx.is_ready})
+
+    worker_status = None
+    if ctx.is_ready:
+        try:
+            worker = ctx.get_worker_unmanaged()
+            worker_status = await worker.proxy_request(request)
+            if worker_status.body is not None:
+                # decode JSOn body
+                worker_status = json_parse(worker_status.body)
+        except Exception as ex:
+            worker_status = {"success": False, "error": str(ex)}
+
+    return json(
+        {
+            "ready": ctx.is_ready,
+            "worker": worker_status,
+        }
+    )
 
 
 async def import_packages(

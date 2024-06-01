@@ -413,6 +413,27 @@ async def kill(request: Request):
         return json(error_response("Error killing execution!", exception), status=500)
 
 
+@app.route("/status")
+async def status(_request: Request):
+    await nodes_available()
+
+    ctx = AppContext.get(app)
+
+    executor_status: str
+    if ctx.executor:
+        e = ctx.executor
+        if e.progress.aborted:
+            executor_status = "killing"
+        elif e.progress.paused:
+            executor_status = "paused"
+        else:
+            executor_status = "running"
+    else:
+        executor_status = "ready"
+
+    return json({"executor": executor_status})
+
+
 @app.route("/packages", methods=["GET"])
 async def get_packages(request: Request):
     await nodes_available()

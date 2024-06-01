@@ -80,6 +80,13 @@ export interface BackendRunIndividualRequest {
     schemaId: SchemaId;
     options: PackageSettings;
 }
+export interface BackendWorkerStatusResponse {
+    executor: 'running' | 'killing' | 'paused' | 'ready';
+}
+export interface BackendStatusResponse {
+    ready: boolean;
+    worker: null | BackendError | BackendWorkerStatusResponse;
+}
 
 export type BackendResult<T> = BackendSuccess<T> | BackendError;
 export interface BackendSuccess<T> {
@@ -256,7 +263,7 @@ export class Backend {
         return this.fetchJson('/shutdown', 'POST');
     }
 
-    status(): Promise<{ ready: boolean }> {
+    status(): Promise<BackendStatusResponse> {
         return this.fetchJson('/status', 'GET');
     }
 }
