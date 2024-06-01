@@ -12,7 +12,12 @@ import React, {
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from 'react-query';
 import { createContext, useContext } from 'use-context-selector';
-import { Backend, BackendNodesResponse, getBackend } from '../../common/Backend';
+import {
+    Backend,
+    BackendNodesResponse,
+    BackendStatusResponse,
+    getBackend,
+} from '../../common/Backend';
 import { CategoryMap } from '../../common/CategoryMap';
 import {
     CategoryId,
@@ -304,7 +309,7 @@ export const BackendProvider = memo(
         }, [isBackendReady]);
         const statusQuery = useQuery({
             queryKey: ['status', backend.url],
-            queryFn: async (): Promise<{ ready: boolean }> => {
+            queryFn: async (): Promise<BackendStatusResponse> => {
                 try {
                     // spin until we're no longer restarting
                     while (backendDownRef.current) {
@@ -314,7 +319,7 @@ export const BackendProvider = memo(
 
                     return await backend.status();
                 } catch (error) {
-                    return { ready: false };
+                    return { ready: false, worker: null };
                 }
             },
             cacheTime: 0,

@@ -1,8 +1,14 @@
 import { evaluate } from '@chainner/navi';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from 'react-query';
 import { useReactFlow } from 'reactflow';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
-import { BackendEventMap } from '../../common/Backend';
+import {
+    Backend,
+    BackendEventMap,
+    BackendStatusResponse,
+    BackendWorkerStatusResponse,
+} from '../../common/Backend';
 import { EdgeData, NodeData, OutputId } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
 import { log } from '../../common/log';
@@ -130,6 +136,28 @@ const useRegisterNodeEvents = (
     );
 };
 
+const useOnBackendStatus = (backend: Backend, onChange: (data: BackendStatusResponse) => void) => {
+    const statusQuery = useQuery({
+        queryKey: ['status', backend.url],
+        queryFn: async () => {
+            return { ...(await backend.status()), timestamp: Date.now() };
+        },
+        cacheTime: 0,
+        retry: 25,
+        refetchOnWindowFocus: true,
+        refetchInterval: 3000,
+    });
+
+    const lastDataRef = useRef<BackendStatusResponse | null>(null);
+
+    useEffect(() => {
+        if (statusQuery.data && statusQuery.data !== lastDataRef.current) {
+            lastDataRef.current = statusQuery.data;
+            onChange(statusQuery.data);
+        }
+    }, [statusQuery.data, onChange]);
+};
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>) => {
     const {
@@ -192,6 +220,19 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         (nodeId: string) => nodeStatusMap.get(nodeId) ?? NodeExecutionStatus.NOT_EXECUTING,
         [nodeStatusMap]
     );
+
+    useOnBackendStatus(backend, (data) => {
+        if (data.worker && !('error' in data.worker)) {
+            const executorStatus = data.worker.executor;
+            const statusMapping = {
+                running: ExecutionStatus.RUNNING,
+                paused: ExecutionStatus.PAUSED,
+                killing: ExecutionStatus.KILLING,
+                ready: ExecutionStatus.READY,
+            } satisfies Record<BackendWorkerStatusResponse['executor'], ExecutionStatus>;
+            setStatus(statusMapping[executorStatus]);
+        }
+    });
 
     useEffect(() => {
         if (status === ExecutionStatus.RUNNING || status === ExecutionStatus.PAUSED) {
