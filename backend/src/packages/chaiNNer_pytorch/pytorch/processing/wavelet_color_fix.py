@@ -79,27 +79,24 @@ def wavelet_color_fix_node(
     )
 
     exec_options = get_settings(context)
-    context.add_cleanup(safe_cuda_cache_empty)
+    context.add_cleanup(
+        safe_cuda_cache_empty,
+        after="node" if exec_options.force_cache_wipe else "chain",
+    )
     device = exec_options.device
 
-    try:
-        # convert to tensors
-        target_tensor = np2tensor(target_img, change_range=True).to(device)
-        source_tensor_resized = np2tensor(source_img_resized, change_range=True).to(
-            device
-        )
+    # convert to tensors
+    target_tensor = np2tensor(target_img, change_range=True).to(device)
+    source_tensor_resized = np2tensor(source_img_resized, change_range=True).to(device)
 
-        # wavelet color fix
-        result_tensor = wavelet_reconstruction(
-            target_tensor, source_tensor_resized, levels=levels
-        )
+    # wavelet color fix
+    result_tensor = wavelet_reconstruction(
+        target_tensor, source_tensor_resized, levels=levels
+    )
 
-        # convert back to numpy array
-        result_img = tensor2np(
-            result_tensor.detach().cpu(), change_range=False, imtype=np.float32
-        )
+    # convert back to numpy array
+    result_img = tensor2np(
+        result_tensor.detach().cpu(), change_range=False, imtype=np.float32
+    )
 
-        return result_img
-    finally:
-        if exec_options.force_cache_wipe:
-            safe_cuda_cache_empty()
+    return result_img

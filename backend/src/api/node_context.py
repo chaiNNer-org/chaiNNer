@@ -148,9 +148,11 @@ class NodeContext(Progress, ABC):
         """
 
     @abstractmethod
-    def add_cleanup(self, fn: Callable[[], None]) -> None:
+    def add_cleanup(
+        self, fn: Callable[[], None], after: Literal["node", "chain"] = "chain"
+    ) -> None:
         """
-        Registers a function that will be called when the chain execution is finished.
+        Registers a function that will be called when the chain execution is finished (if set to chain mode) or after node execution is finished (node mode).
 
         Registering the same function (object) twice will only result in the function being called once.
         """

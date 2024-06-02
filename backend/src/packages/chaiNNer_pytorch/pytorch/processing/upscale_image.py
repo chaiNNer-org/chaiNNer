@@ -265,7 +265,10 @@ def upscale_image_node(
 ) -> np.ndarray:
     exec_options = get_settings(context)
 
-    context.add_cleanup(safe_cuda_cache_empty)
+    context.add_cleanup(
+        safe_cuda_cache_empty,
+        after="node" if exec_options.force_cache_wipe else "chain",
+    )
 
     in_nc = model.input_channels
     out_nc = model.output_channels
@@ -296,10 +299,4 @@ def upscale_image_node(
     if not use_custom_scale or scale == 1 or in_nc != out_nc:
         # no custom scale
         custom_scale = scale
-    try:
-        return custom_scale_upscale(
-            img, inner_upscale, scale, custom_scale, separate_alpha
-        )
-    finally:
-        if exec_options.force_cache_wipe:
-            safe_cuda_cache_empty()
+    return custom_scale_upscale(img, inner_upscale, scale, custom_scale, separate_alpha)
