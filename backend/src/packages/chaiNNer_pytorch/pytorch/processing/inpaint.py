@@ -114,7 +114,9 @@ def inpaint_node(
     ), "Input image and mask must have the same resolution"
 
     exec_options = get_settings(context)
-
-    context.add_cleanup(safe_cuda_cache_empty)
+    context.add_cleanup(
+        safe_cuda_cache_empty,
+        after="node" if exec_options.force_cache_wipe else "chain",
+    )
 
     return inpaint(img, mask, model, exec_options)

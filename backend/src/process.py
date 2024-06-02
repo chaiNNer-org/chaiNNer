@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, List, NewType, Sequence, Union
+from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
 
 from sanic.log import logger
 
@@ -342,7 +342,8 @@ class _ExecutorNodeContext(NodeContext):
         self.__settings = settings
         self._storage_dir = storage_dir
 
-        self.cleanup_fns: set[Callable[[], None]] = set()
+        self.chain_cleanup_fns: set[Callable[[], None]] = set()
+        self.node_cleanup_fns: set[Callable[[], None]] = set()
 
     @property
     def aborted(self) -> bool:
@@ -373,8 +374,15 @@ class _ExecutorNodeContext(NodeContext):
     def storage_dir(self) -> Path:
         return self._storage_dir
 
-    def add_cleanup(self, fn: Callable[[], None]) -> None:
-        self.cleanup_fns.add(fn)
+    def add_cleanup(
+        self, fn: Callable[[], None], after: Literal["node", "chain"] = "chain"
+    ) -> None:
+        if after == "chain":
+            self.chain_cleanup_fns.add(fn)
+        elif after == "node":
+            self.node_cleanup_fns.add(fn)
+        else:
+            raise ValueError(f"Unknown cleanup type: {after}")
 
 
 class Executor:
@@ -590,6 +598,14 @@ class Executor:
             ),
         )
         await self.progress.suspend()
+
+        for fn in context.node_cleanup_fns:
+            try:
+                fn()
+            except Exception as e:
+                logger.error(f"Error running cleanup function: {e}")
+            finally:
+                context.node_cleanup_fns.remove(fn)
 
         lazy_time_after = get_lazy_evaluation_time()
         execution_time -= lazy_time_after - lazy_time_before
@@ -824,7 +840,7 @@ class Executor:
 
         # Run cleanup functions
         for context in self.__context_cache.values():
-            for fn in context.cleanup_fns:
+            for fn in context.chain_cleanup_fns:
                 try:
                     fn()
                 except Exception as e:

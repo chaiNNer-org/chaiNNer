@@ -79,11 +79,15 @@ def guided_upscale_node(
     iterations: float,
     split_mode: SplitMode,
 ) -> np.ndarray:
-    context.add_cleanup(safe_cuda_cache_empty)
+    exec_options = get_settings(context)
+    context.add_cleanup(
+        safe_cuda_cache_empty,
+        after="node" if exec_options.force_cache_wipe else "chain",
+    )
     return pix_transform_auto_split(
         source=source,
         guide=guide,
-        device=get_settings(context).device,
+        device=exec_options.device,
         params=Params(iteration=int(iterations * 1000)),
         split_mode=split_mode,
     )

@@ -79,7 +79,10 @@ def wavelet_color_fix_node(
     )
 
     exec_options = get_settings(context)
-    context.add_cleanup(safe_cuda_cache_empty)
+    context.add_cleanup(
+        safe_cuda_cache_empty,
+        after="node" if exec_options.force_cache_wipe else "chain",
+    )
     device = exec_options.device
 
     # convert to tensors

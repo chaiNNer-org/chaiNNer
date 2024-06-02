@@ -220,7 +220,11 @@ def align_image_to_reference_node(
     alignment_passes: int,
     blur_strength: float,
 ) -> np.ndarray:
-    context.add_cleanup(safe_cuda_cache_empty)
+    exec_options = get_settings(context)
+    context.add_cleanup(
+        safe_cuda_cache_empty,
+        after="node" if exec_options.force_cache_wipe else "chain",
+    )
     multiplier = precision.value / 1000
     return align_images(
         context,
