@@ -805,15 +805,13 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         [setConsoleOutput]
     );
 
-    const [individualProgress, setIndividualProgress] = useState<null | number>(null);
+    const [individualProgress, setIndividualProgress] = useState(0);
     const [overallProgress, setOverallProgress] = useState(0);
     const [eventSource] = useBackendSetupEventSource(url);
     useBackendEventSourceListener(eventSource, 'package-install-status', (f) => {
         if (f) {
             setOverallProgress(f.progress);
-            setIndividualProgress(
-                f.statusProgress && f.statusProgress > 0 ? f.statusProgress : null
-            );
+            setIndividualProgress(f.statusProgress ?? 0);
 
             if (f.message) {
                 const progress = f.statusProgress
@@ -831,7 +829,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         setModifyingPackages(packages.map((pkg) => pkg.id));
         setIsRunningShell(true);
         setOverallProgress(0);
-        setIndividualProgress(null);
+        setIndividualProgress(0);
         backendDownRef.current = true;
 
         supplier()
@@ -846,7 +844,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                         setIsRunningShell(false);
                         setModifyingPackages(EMPTY_ARRAY);
                         setOverallProgress(0);
-                        setIndividualProgress(null);
+                        setIndividualProgress(0);
                         backendDownRef.current = false;
                         refreshNodes();
                     })
@@ -946,7 +944,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             .filter((pkg) => modifyingPackages.includes(pkg.id))
             .map((pkg) => pkg.dependencies.length)
             .reduce((a, b) => a + b, 0);
-        progress = (overallProgress + (individualProgress ?? 0) / (totalDeps + 1)) * 100;
+        progress = (overallProgress + individualProgress / (totalDeps + 1)) * 100;
     }
 
     return (
