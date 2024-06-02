@@ -43,13 +43,14 @@ import {
     FeatureId,
     FeatureState,
     Package,
+    PackageId,
     PyPiName,
     PyPiPackage,
     PythonInfo,
     Version,
 } from '../../common/common-types';
 import { log } from '../../common/log';
-import { isNotNullish, noop } from '../../common/util';
+import { EMPTY_ARRAY, isNotNullish, joinEnglish, noop } from '../../common/util';
 import { versionGt } from '../../common/version';
 import { Markdown } from '../components/Markdown';
 import {
@@ -80,14 +81,18 @@ enum InstallMode {
 const getFindLinks = (dependencies: readonly PyPiPackage[]): string[] => {
     return [...new Set<string>(dependencies.map((p) => p.findLink).filter(isNotNullish))];
 };
-const getInstallCommand = (pkg: Package, pythonInfo: PythonInfo): string => {
-    const deps = pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`);
-    const findLinks = getFindLinks(pkg.dependencies).flatMap((l) => ['--extra-index-url', l]);
+const getInstallCommand = (packages: readonly Package[], pythonInfo: PythonInfo): string => {
+    const deps = packages.flatMap((pkg) =>
+        pkg.dependencies.map((p) => `${p.pypiName}==${p.version}`)
+    );
+    const findLinks = packages.flatMap((pkg) =>
+        getFindLinks(pkg.dependencies).flatMap((l) => ['--extra-index-url', l])
+    );
     const args = [pythonInfo.python, '-m', 'pip', 'install', '--upgrade', ...deps, ...findLinks];
     return args.join(' ');
 };
-const getUninstallCommand = (pkg: Package, pythonInfo: PythonInfo): string => {
-    const deps = pkg.dependencies.map((p) => p.pypiName);
+const getUninstallCommand = (packages: readonly Package[], pythonInfo: PythonInfo): string => {
+    const deps = packages.flatMap((pkg) => pkg.dependencies.map((p) => p.pypiName));
     const args = [pythonInfo.python, '-m', 'pip', 'uninstall', ...deps];
     return args.join(' ');
 };
@@ -97,10 +102,15 @@ const formatBytes = (bytes: number): string => {
     const MB = 1024 ** 2;
     const GB = 1024 ** 3;
 
+    const rounded = (n: number): string => {
+        if (n < 10) return Number(n.toPrecision(2)).toString();
+        return n.toFixed(0);
+    };
+
     if (bytes < KB) return `${bytes}\u2009Byte`;
-    if (bytes < MB) return `${Number((bytes / KB).toPrecision(2))}\u2009KB`;
-    if (bytes < GB) return `${Number((bytes / MB).toPrecision(2))}\u2009MB`;
-    return `${Number((bytes / GB).toPrecision(2))}\u2009GB`;
+    if (bytes < MB) return `${rounded(bytes / KB)}\u2009KB`;
+    if (bytes < GB) return `${rounded(bytes / MB)}\u2009MB`;
+    return `${rounded(bytes / GB)}\u2009GB`;
 };
 const formatSizeEstimate = (packages: readonly PyPiPackage[]): string =>
     formatBytes(packages.reduce((a, p) => a + p.sizeEstimate, 0));
@@ -142,13 +152,45 @@ const PackageDependencyView = memo(
     }
 );
 
+class PackageUpdateInfo {
+    readonly missing: readonly PyPiPackage[];
+
+    readonly outdated: readonly PyPiPackage[];
+
+    get canInstall(): boolean {
+        return this.missing.length > 0;
+    }
+
+    get canUpdate(): boolean {
+        return this.outdated.length > 0;
+    }
+
+    constructor(pkg: Package, installedPyPi: Readonly<Partial<Record<PyPiName, Version>>>) {
+        const missing: PyPiPackage[] = [];
+        const outdated: PyPiPackage[] = [];
+
+        for (const dep of pkg.dependencies) {
+            const installed = installedPyPi[dep.pypiName];
+            if (!installed) {
+                missing.push(dep);
+            } else if (versionGt(dep.version, installed)) {
+                outdated.push(dep);
+            }
+        }
+
+        this.missing = missing;
+        this.outdated = outdated;
+    }
+}
+
 const PackageView = memo(
     ({
         p,
         isRunningShell,
         progress,
         installedPyPi,
-        installingPackage,
+        packageInfo,
+        isInstalling,
         onInstall,
         onUninstall,
         onUpdate,
@@ -157,19 +199,12 @@ const PackageView = memo(
         isRunningShell: boolean;
         progress?: number;
         installedPyPi: Readonly<Partial<Record<PyPiName, Version>>>;
-        installingPackage: Package | null;
+        packageInfo: PackageUpdateInfo;
+        isInstalling: boolean;
         onInstall: () => void;
         onUninstall: () => void;
         onUpdate: () => void;
     }) => {
-        const missingPackages = p.dependencies.filter((d) => !installedPyPi[d.pypiName]);
-        const outdatedPackages = p.dependencies.filter((d) => {
-            const installed = installedPyPi[d.pypiName];
-            return installed && versionGt(d.version, installed);
-        });
-
-        const isInstallingThisPackage = installingPackage?.id === p.id;
-
         return (
             <AccordionItem cursor="pointer">
                 <h2>
@@ -212,25 +247,25 @@ const PackageView = memo(
                                     </Tooltip>
                                 </HStack>
                             </AccordionButton>
-                            {missingPackages.length === 0 ? (
+                            {!packageInfo.canInstall ? (
                                 <HStack py={2}>
-                                    {outdatedPackages.length > 0 && (
+                                    {packageInfo.canUpdate && (
                                         <Button
                                             colorScheme="blue"
                                             disabled={isRunningShell}
-                                            isLoading={isRunningShell && isInstallingThisPackage}
+                                            isLoading={isRunningShell && isInstalling}
                                             leftIcon={<DownloadIcon />}
                                             size="sm"
                                             onClick={onUpdate}
                                         >
-                                            Update ({formatSizeEstimate(outdatedPackages)})
+                                            Update ({formatSizeEstimate(packageInfo.outdated)})
                                         </Button>
                                     )}
 
                                     <Button
                                         colorScheme="red"
                                         isDisabled={isRunningShell}
-                                        isLoading={isRunningShell && isInstallingThisPackage}
+                                        isLoading={isRunningShell && isInstalling}
                                         leftIcon={<DeleteIcon />}
                                         size="sm"
                                         onClick={onUninstall}
@@ -243,15 +278,15 @@ const PackageView = memo(
                                     <Button
                                         colorScheme="blue"
                                         isDisabled={isRunningShell}
-                                        isLoading={isRunningShell && isInstallingThisPackage}
+                                        isLoading={isRunningShell && isInstalling}
                                         leftIcon={<DownloadIcon />}
                                         size="sm"
                                         onClick={onInstall}
                                     >
                                         Install (
                                         {formatSizeEstimate([
-                                            ...missingPackages,
-                                            ...outdatedPackages,
+                                            ...packageInfo.missing,
+                                            ...packageInfo.outdated,
                                         ])}
                                         )
                                     </Button>
@@ -301,6 +336,114 @@ const PackageView = memo(
                     </VStack>
                 </AccordionPanel>
             </AccordionItem>
+        );
+    }
+);
+
+interface PackagesSectionProps {
+    installPackages: (...packages: Package[]) => void;
+    uninstallPackages: (...packages: Package[]) => Promise<void>;
+    packages: readonly Package[];
+    modifyingPackages: readonly PackageId[];
+    installedPyPi: Readonly<Partial<Record<PyPiName, Version>>> | undefined;
+    isRunningShell: boolean;
+    progress?: number;
+}
+const PackagesSection = memo(
+    ({
+        installPackages,
+        uninstallPackages,
+        packages,
+        modifyingPackages,
+        installedPyPi,
+        isRunningShell,
+        progress,
+    }: PackagesSectionProps) => {
+        const infos = packages.map((p) => new PackageUpdateInfo(p, installedPyPi || {}));
+
+        const canUpdate = infos.filter((i) => i.canUpdate).length;
+        const canInstall = infos.filter((i) => i.canInstall).length;
+
+        const operationsForAll = [
+            ...(canUpdate ? ['Update'] : []),
+            ...(canInstall ? ['Install'] : []),
+        ].join('/');
+        const showAll = canUpdate + canInstall > 1;
+        const allOperationPackages = packages.filter((_, i) => {
+            const info = infos[i];
+            return info.canInstall || info.canUpdate;
+        });
+
+        return (
+            <Box w="full">
+                <Flex
+                    mb={2}
+                    mt={2}
+                >
+                    <HStack flex="1">
+                        <Text
+                            fontWeight="bold"
+                            lineHeight={8}
+                        >
+                            Packages
+                        </Text>
+                    </HStack>
+                    {showAll && (
+                        <Button
+                            colorScheme="blue"
+                            isDisabled={isRunningShell}
+                            isLoading={isRunningShell && modifyingPackages.length > 1}
+                            leftIcon={<DownloadIcon />}
+                            mr={10}
+                            size="sm"
+                            onClick={() => {
+                                installPackages(...allOperationPackages);
+                            }}
+                        >
+                            {`${operationsForAll} All Packages (${formatSizeEstimate(
+                                allOperationPackages.flatMap((p) => p.dependencies)
+                            )})`}
+                        </Button>
+                    )}
+                </Flex>
+                {!installedPyPi ? (
+                    <Spinner />
+                ) : (
+                    <Accordion
+                        allowToggle
+                        w="full"
+                    >
+                        {packages.map((p, index) => {
+                            if (p.dependencies.length === 0) {
+                                return null;
+                            }
+
+                            const install = () => installPackages(p);
+                            const uninstall = () => {
+                                uninstallPackages(p).catch(log.error);
+                            };
+
+                            const info = infos[index];
+                            const isInstalling = modifyingPackages.includes(p.id);
+
+                            return (
+                                <PackageView
+                                    installedPyPi={installedPyPi}
+                                    isInstalling={isInstalling}
+                                    isRunningShell={isRunningShell}
+                                    key={p.id}
+                                    p={p}
+                                    packageInfo={info}
+                                    progress={isInstalling ? progress : undefined}
+                                    onInstall={install}
+                                    onUninstall={uninstall}
+                                    onUpdate={install}
+                                />
+                            );
+                        })}
+                    </Accordion>
+                )}
+            </Box>
         );
     }
 );
@@ -648,7 +791,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         refetchInterval: false,
     });
 
-    const [modifyingPackage, setModifyingPackage] = useState<Package | null>(null);
+    const [modifyingPackages, setModifyingPackages] = useState<readonly PackageId[]>(EMPTY_ARRAY);
 
     const [consoleOutput, setConsoleOutput] = useState('Console output:\n\n');
     const [isRunningShell, setIsRunningShell] = useState(false);
@@ -681,10 +824,11 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         }
     });
 
-    const changePackage = (pkg: Package, supplier: () => Promise<void>) => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const changePackages = (packages: Package[], supplier: () => Promise<void>) => {
         if (isRunningShell) throw new Error('Cannot run two pip commands at once');
 
-        setModifyingPackage(pkg);
+        setModifyingPackages(packages.map((pkg) => pkg.id));
         setIsRunningShell(true);
         setOverallProgress(0);
         setIndividualProgress(null);
@@ -700,7 +844,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     .catch(log.error)
                     .then(() => {
                         setIsRunningShell(false);
-                        setModifyingPackage(null);
+                        setModifyingPackages(EMPTY_ARRAY);
                         setOverallProgress(0);
                         setIndividualProgress(null);
                         backendDownRef.current = false;
@@ -726,27 +870,33 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             .catch(log.error);
     };
 
-    const installPackage = (pkg: Package) => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const installPackages = (...packages: Package[]) => {
         if (installMode === InstallMode.COPY) {
             // TODO: Make this feature get the command from the backend directly
-            copyCommandToClipboard(getInstallCommand(pkg, pythonInfo));
+            copyCommandToClipboard(getInstallCommand(packages, pythonInfo));
             return;
         }
 
-        logOutput(`Installing ${pkg.name}...`);
-        changePackage(pkg, () => backend.installPackage(pkg));
+        const name = joinEnglish(packages.map((pkg) => pkg.name));
+
+        logOutput(`Installing ${name}...`);
+        changePackages(packages, () => backend.installPackages(packages.map((pkg) => pkg.id)));
     };
 
-    const uninstallPackage = async (pkg: Package) => {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const uninstallPackages = async (...packages: Package[]) => {
         if (installMode === InstallMode.COPY) {
-            copyCommandToClipboard(getUninstallCommand(pkg, pythonInfo));
+            copyCommandToClipboard(getUninstallCommand(packages, pythonInfo));
             return;
         }
+
+        const name = joinEnglish(packages.map((pkg) => pkg.name));
 
         const button = await showAlert({
             type: AlertType.WARN,
             title: 'Uninstall',
-            message: `Are you sure you want to uninstall ${pkg.name}?`,
+            message: `Are you sure you want to uninstall ${name}?`,
             buttons: ['Cancel', 'Uninstall'],
             defaultId: 0,
         });
@@ -757,20 +907,20 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 type: AlertType.WARN,
                 title: 'Unsaved Changes',
                 message:
-                    `You might lose your unsaved changes by uninstalling ${pkg.name}.` +
-                    `\n\nAre you sure you want to uninstall ${pkg.name}?`,
+                    `You might lose your unsaved changes by uninstalling ${name}.` +
+                    `\n\nAre you sure you want to uninstall ${name}?`,
                 buttons: ['Cancel', 'Uninstall'],
                 defaultId: 0,
             });
             if (saveButton === 0) return;
         }
 
-        logOutput(`Uninstalling ${pkg.name}...`);
-        changePackage(pkg, () => backend.uninstallPackage(pkg));
+        logOutput(`Uninstalling ${name}...`);
+        changePackages(packages, () => backend.uninstallPackages(packages.map((pkg) => pkg.id)));
     };
 
     // whether we are current installing/uninstalling packages or refreshing the list of installed packages
-    const currentlyProcessingDeps = installedPyPi === undefined || modifyingPackage !== null;
+    const currentlyProcessingDeps = installedPyPi === undefined || modifyingPackages.length > 0;
 
     const availableUpdates = useMemo((): number => {
         if (!installedPyPi) return 0;
@@ -789,6 +939,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         openDependencyManager: onOpen,
         availableUpdates,
     });
+
+    let progress;
+    if (installMode === InstallMode.NORMAL && isRunningShell) {
+        const totalDeps = packages
+            .filter((pkg) => modifyingPackages.includes(pkg.id))
+            .map((pkg) => pkg.dependencies.length)
+            .reduce((a, b) => a + b, 0);
+        progress = (overallProgress + (individualProgress ?? 0) / (totalDeps + 1)) * 100;
+    }
 
     return (
         <DependencyContext.Provider value={value}>
@@ -810,63 +969,25 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                     <ModalHeader>Dependency Manager</ModalHeader>
                     <ModalCloseButton isDisabled={currentlyProcessingDeps} />
                     <ModalBody>
-                        <VStack w="full">
+                        <VStack
+                            spacing={4}
+                            w="full"
+                        >
                             <PythonSection
                                 consoleOutput={consoleOutput}
                                 installMode={installMode}
                                 isDisabled={isRunningShell}
                                 setInstallMode={setInstallMode}
                             />
-                            <Box w="full">
-                                <Text
-                                    fontWeight="bold"
-                                    lineHeight={8}
-                                >
-                                    Packages
-                                </Text>
-                            </Box>
-                            {!installedPyPi ? (
-                                <Spinner />
-                            ) : (
-                                <Accordion
-                                    allowToggle
-                                    // allowMultiple={false}
-                                    w="full"
-                                >
-                                    {packages.map((p) => {
-                                        if (p.dependencies.length === 0) {
-                                            return null;
-                                        }
-
-                                        const install = () => installPackage(p);
-                                        const uninstall = () => {
-                                            uninstallPackage(p).catch(log.error);
-                                        };
-
-                                        return (
-                                            <PackageView
-                                                installedPyPi={installedPyPi}
-                                                installingPackage={modifyingPackage}
-                                                isRunningShell={isRunningShell}
-                                                key={p.id}
-                                                p={p}
-                                                progress={
-                                                    installMode === InstallMode.NORMAL &&
-                                                    isRunningShell &&
-                                                    modifyingPackage?.id === p.id
-                                                        ? overallProgress * 100 +
-                                                          ((individualProgress ?? 0) * 100) /
-                                                              p.dependencies.length
-                                                        : undefined
-                                                }
-                                                onInstall={install}
-                                                onUninstall={uninstall}
-                                                onUpdate={install}
-                                            />
-                                        );
-                                    })}
-                                </Accordion>
-                            )}
+                            <PackagesSection
+                                installPackages={installPackages}
+                                installedPyPi={installedPyPi}
+                                isRunningShell={isRunningShell}
+                                modifyingPackages={modifyingPackages}
+                                packages={packages}
+                                progress={progress}
+                                uninstallPackages={uninstallPackages}
+                            />
                             <FeaturesSection processingDeps={currentlyProcessingDeps} />
                         </VStack>
                     </ModalBody>

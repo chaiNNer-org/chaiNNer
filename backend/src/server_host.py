@@ -219,26 +219,14 @@ def deps_to_dep_info(deps: list[api.Dependency]) -> list[DependencyInfo]:
     ]
 
 
-@app.route("/packages/uninstall", methods=["POST"])
-async def uninstall_dependencies_request(request: Request):
-    full_data = dict(request.json)  # type: ignore
-    package_to_uninstall = full_data["package"]
-
-    worker = await AppContext.get(request.app).get_worker()
-    packages = await worker.get_packages()
-
-    package = next((x for x in packages if x.id == package_to_uninstall), None)
-
-    if package is None:
-        return json(
-            {"status": "error", "message": f"Package {package_to_uninstall} not found"},
-            status=404,
-        )
-
+def create_update_progress(ctx: AppContext) -> UpdateProgressFn:
     def update_progress(
-        message: str, progress: float, status_progress: float | None = None
+        message: str,
+        progress: float,
+        status_progress: float | None = None,
     ):
-        return AppContext.get(request.app).setup_queue.put_and_wait(
+        logger.info(f"Progress: {message} {progress} {status_progress}")
+        return ctx.setup_queue.put_and_wait(
             {
                 "event": "package-install-status",
                 "data": {
@@ -250,14 +238,44 @@ async def uninstall_dependencies_request(request: Request):
             timeout=0.01,
         )
 
+    return update_progress
+
+
+@app.route("/packages/uninstall", methods=["POST"])
+async def uninstall_dependencies_request(request: Request):
+    package_ids_to_install: list[str] = request.json["packages"]
+
+    ctx = AppContext.get(request.app)
+    worker = await ctx.get_worker()
+    packages = await worker.get_packages()
+
+    packages_to_install = [x for x in packages if x.id in package_ids_to_install]
+    valid_package_ids = [p.id for p in packages]
+    invalid_package_ids = [
+        x for x in package_ids_to_install if x not in valid_package_ids
+    ]
+    if len(invalid_package_ids) > 0:
+        return json(
+            {
+                "status": "error",
+                "message": f"Package {invalid_package_ids[0]} not found",
+            },
+            status=404,
+        )
+
     try:
-        await worker.stop()
-        try:
-            await uninstall_dependencies(
-                deps_to_dep_info(package.dependencies), update_progress, logger
-            )
-        finally:
-            await worker.start()
+        progress = create_update_progress(ctx)
+        deps: list[DependencyInfo] = []
+        for p in packages_to_install:
+            deps.extend(deps_to_dep_info(p.dependencies))
+
+        if len(deps) > 0:
+            await worker.stop()
+            try:
+                await uninstall_dependencies(deps, progress, logger)
+            finally:
+                await worker.start()
+
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
@@ -266,41 +284,36 @@ async def uninstall_dependencies_request(request: Request):
 
 @app.route("/packages/install", methods=["POST"])
 async def install_dependencies_request(request: Request):
-    full_data = dict(request.json)  # type: ignore
-    package_to_install = full_data["package"]
+    package_ids_to_install: list[str] = request.json["packages"]
 
-    def update_progress(
-        message: str, progress: float, status_progress: float | None = None
-    ):
-        logger.info(f"Progress: {message} {progress} {status_progress}")
-        return AppContext.get(request.app).setup_queue.put_and_wait(
-            {
-                "event": "package-install-status",
-                "data": {
-                    "message": message,
-                    "progress": progress,
-                    "statusProgress": status_progress,
-                },
-            },
-            timeout=0.01,
-        )
-
-    worker = await AppContext.get(request.app).get_worker()
+    ctx = AppContext.get(request.app)
+    worker = await ctx.get_worker()
     packages = await worker.get_packages()
-    package = next((x for x in packages if x.id == package_to_install), None)
 
-    if package is None:
+    packages_to_install = [x for x in packages if x.id in package_ids_to_install]
+    valid_package_ids = [p.id for p in packages]
+    invalid_package_ids = [
+        x for x in package_ids_to_install if x not in valid_package_ids
+    ]
+    if len(invalid_package_ids) > 0:
         return json(
-            {"status": "error", "message": f"Package {package_to_install} not found"},
+            {
+                "status": "error",
+                "message": f"Package {invalid_package_ids[0]} not found",
+            },
             status=404,
         )
 
     try:
-        await worker.stop()
-        await install_dependencies(
-            deps_to_dep_info(package.dependencies), update_progress, logger
-        )
-        await worker.start()
+        progress = create_update_progress(ctx)
+        deps: list[DependencyInfo] = []
+        for p in packages_to_install:
+            deps.extend(deps_to_dep_info(p.dependencies))
+
+        if len(deps) > 0:
+            await worker.stop()
+            await install_dependencies(deps, progress, logger)
+            await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)

@@ -9,6 +9,7 @@ import {
     OutputData,
     OutputTypes,
     Package,
+    PackageId,
     PackageSettings,
     PyPiName,
     PythonInfo,
@@ -241,22 +242,12 @@ export class Backend {
         return this.fetchJson('/features', 'GET');
     }
 
-    installPackage(pkg: Package): Promise<void> {
-        return this.fetchJson('/packages/install', 'POST', {
-            package: pkg.id,
-        });
+    installPackages(packages: readonly PackageId[]): Promise<void> {
+        return this.fetchJson('/packages/install', 'POST', { packages });
     }
 
-    uninstallPackage(pkg: Package): Promise<void> {
-        return this.fetchJson('/packages/uninstall', 'POST', {
-            package: pkg.id,
-        });
-    }
-
-    updatePackage(pkg: Package): Promise<void> {
-        return this.fetchJson('/packages/install', 'POST', {
-            package: pkg.id,
-        });
+    uninstallPackages(packages: readonly PackageId[]): Promise<void> {
+        return this.fetchJson('/packages/uninstall', 'POST', { packages });
     }
 
     shutdown(): Promise<void> {
