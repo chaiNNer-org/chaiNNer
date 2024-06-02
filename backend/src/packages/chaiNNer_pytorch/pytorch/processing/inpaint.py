@@ -117,4 +117,8 @@ def inpaint_node(
 
     context.add_cleanup(safe_cuda_cache_empty)
 
-    return inpaint(img, mask, model, exec_options)
+    try:
+        return inpaint(img, mask, model, exec_options)
+    finally:
+        if exec_options.force_cache_wipe:
+            safe_cuda_cache_empty()

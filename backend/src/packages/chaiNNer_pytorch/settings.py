@@ -75,6 +75,16 @@ package.add_setting(
     )
 )
 
+if nvidia.is_available:
+    package.add_setting(
+        ToggleSetting(
+            label="Force CUDA Cache Wipe (not recommended)",
+            key="force_cache_wipe",
+            description="Clears PyTorch's CUDA cache after each inference. This is NOT recommended, by us or PyTorch's developers, as it basically interferes with how PyTorch is intended to work and can significantly slow down inference time. Only enable this if you're experiencing issues with VRAM allocation.",
+            default=False,
+        )
+    )
+
 
 @dataclass(frozen=True)
 class PyTorchSettings:
@@ -82,6 +92,7 @@ class PyTorchSettings:
     use_fp16: bool
     gpu_index: int
     budget_limit: int
+    force_cache_wipe: bool = False
 
     # PyTorch 2.0 does not support FP16 when using CPU
     def __post_init__(self):
@@ -122,4 +133,5 @@ def get_settings(context: NodeContext) -> PyTorchSettings:
         use_fp16=settings.get_bool("use_fp16", False),
         gpu_index=settings.get_int("gpu_index", 0, parse_str=True),
         budget_limit=settings.get_int("budget_limit", 0, parse_str=True),
+        force_cache_wipe=settings.get_bool("force_cache_wipe", False),
     )
