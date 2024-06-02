@@ -69,9 +69,12 @@ def upscale(
                     model_bytes = model_bytes // 2
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 _free, total = mem_info
+                # only use 75% of the total memory
+                total = int(total * 0.75)
                 if options.budget_limit > 0:
                     total = min(options.budget_limit * 1024**3, total)
-                budget = int(total * 0.75)
+                # Estimate using 80% of the value to be more conservative
+                budget = int(total * 0.8)
 
                 return MaxTileSize(
                     estimate_tile_size(
