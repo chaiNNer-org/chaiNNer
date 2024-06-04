@@ -26,41 +26,41 @@ from .. import compositing_group
 
 class BlendOverlayPosition(Enum):
     TOP_LEFT = "top_left"
-    TOP_CENTERED = "top_centered"
+    TOP = "top_centered"
     TOP_RIGHT = "top_right"
-    CENTERED_LEFT = "centered_left"
-    CENTERED = "centered"
-    CENTERED_RIGHT = "centered_right"
+    LEFT = "centered_left"
+    CENTER = "centered"
+    RIGHT = "centered_right"
     BOTTOM_LEFT = "bottom_left"
-    BOTTOM_CENTERED = "bottom_centered"
+    BOTTOM = "bottom_centered"
     BOTTOM_RIGHT = "bottom_right"
     PERCENT_OFFSET = "percent_offset"
     PIXEL_OFFSET = "pixel_offset"
 
 
 BLEND_OVERLAY_POSITION_LABELS = {
-    BlendOverlayPosition.TOP_LEFT: "Top left",
-    BlendOverlayPosition.TOP_CENTERED: "Top centered",
-    BlendOverlayPosition.TOP_RIGHT: "Top right",
-    BlendOverlayPosition.CENTERED_LEFT: "Centered left",
-    BlendOverlayPosition.CENTERED: "Centered",
-    BlendOverlayPosition.CENTERED_RIGHT: "Centered right",
-    BlendOverlayPosition.BOTTOM_LEFT: "Bottom left",
-    BlendOverlayPosition.BOTTOM_CENTERED: "Bottom centered",
-    BlendOverlayPosition.BOTTOM_RIGHT: "Bottom right",
+    BlendOverlayPosition.TOP_LEFT: "Top Left",
+    BlendOverlayPosition.TOP: "Top",
+    BlendOverlayPosition.TOP_RIGHT: "Top Right",
+    BlendOverlayPosition.LEFT: "Left",
+    BlendOverlayPosition.CENTER: "Center",
+    BlendOverlayPosition.RIGHT: "Right",
+    BlendOverlayPosition.BOTTOM_LEFT: "Bottom Left",
+    BlendOverlayPosition.BOTTOM: "Bottom",
+    BlendOverlayPosition.BOTTOM_RIGHT: "Bottom Right",
     BlendOverlayPosition.PERCENT_OFFSET: "Offset (%)",
     BlendOverlayPosition.PIXEL_OFFSET: "Offset (pixels)",
 }
 
 BLEND_OVERLAY_X0_Y0_FACTORS = {
     BlendOverlayPosition.TOP_LEFT: np.array([0, 0]),
-    BlendOverlayPosition.TOP_CENTERED: np.array([0.5, 0]),
+    BlendOverlayPosition.TOP: np.array([0.5, 0]),
     BlendOverlayPosition.TOP_RIGHT: np.array([1, 0]),
-    BlendOverlayPosition.CENTERED_LEFT: np.array([0, 0.5]),
-    BlendOverlayPosition.CENTERED: np.array([0.5, 0.5]),
-    BlendOverlayPosition.CENTERED_RIGHT: np.array([1, 0.5]),
+    BlendOverlayPosition.LEFT: np.array([0, 0.5]),
+    BlendOverlayPosition.CENTER: np.array([0.5, 0.5]),
+    BlendOverlayPosition.RIGHT: np.array([1, 0.5]),
     BlendOverlayPosition.BOTTOM_LEFT: np.array([0, 1]),
-    BlendOverlayPosition.BOTTOM_CENTERED: np.array([0.5, 1]),
+    BlendOverlayPosition.BOTTOM: np.array([0.5, 1]),
     BlendOverlayPosition.BOTTOM_RIGHT: np.array([1, 1]),
     BlendOverlayPosition.PERCENT_OFFSET: np.array([1, 1]),
     BlendOverlayPosition.PIXEL_OFFSET: np.array([0, 0]),
@@ -81,7 +81,7 @@ BLEND_OVERLAY_X0_Y0_FACTORS = {
                 BlendOverlayPosition,
                 label="Overlay position",
                 option_labels=BLEND_OVERLAY_POSITION_LABELS,
-                default=BlendOverlayPosition.CENTERED,
+                default=BlendOverlayPosition.CENTER,
             ),
             if_enum_group(3, (BlendOverlayPosition.PERCENT_OFFSET))(
                 SliderInput("X offset", min=-200, max=200, default=0, unit="%"),

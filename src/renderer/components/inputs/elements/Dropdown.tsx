@@ -9,7 +9,7 @@ import {
 import { EMPTY_ARRAY } from '../../../../common/util';
 
 export interface DropDownProps {
-    value: InputSchemaValue | undefined;
+    value: InputSchemaValue;
     onChange: (value: InputSchemaValue) => void;
     reset: () => void;
     isDisabled?: boolean;
@@ -20,13 +20,6 @@ export interface DropDownProps {
 
 export const DropDown = memo(
     ({ value, onChange, reset, isDisabled, options, groups, testCondition }: DropDownProps) => {
-        // reset invalid values to default
-        useEffect(() => {
-            if (value === undefined || options.every((o) => o.value !== value)) {
-                reset();
-            }
-        }, [value, reset, options]);
-
         let selection = options.findIndex((o) => o.value === value);
         if (selection === -1) selection = 0;
 
@@ -49,7 +42,7 @@ export const DropDown = memo(
         }, [options, testCondition]);
 
         useEffect(() => {
-            if (value !== undefined && unavailableOptions.includes(value)) {
+            if (unavailableOptions.includes(value)) {
                 // we can't use reset since the default value might be unavailable too
                 // so we search for the first available option
                 const firstAvailable = options.find((o) => !unavailableOptions.includes(o.value));

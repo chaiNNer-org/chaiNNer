@@ -69,7 +69,7 @@ export interface InputOption {
     readonly condition?: Condition | null;
 }
 export type FileInputKind = 'image' | 'pth' | 'pt' | 'video' | 'bin' | 'param' | 'onnx';
-export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs' | 'icons';
+export type DropDownStyle = 'dropdown' | 'checkbox' | 'tabs' | 'icons' | 'anchor';
 export interface DropdownGroup {
     readonly label?: string | null;
     readonly startAt: InputSchemaValue;

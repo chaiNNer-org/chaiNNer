@@ -12,6 +12,8 @@ from nodes.impl.caption import get_font_size
 from nodes.impl.color.color import Color
 from nodes.impl.image_utils import normalize, to_uint8
 from nodes.properties.inputs import (
+    Anchor,
+    AnchorInput,
     BoolInput,
     ColorInput,
     EnumInput,
@@ -31,64 +33,22 @@ TEXT_AS_IMAGE_FONT_PATH = [
 ]
 
 
-class TextAsImageAlignment(Enum):
+class TextAlignment(Enum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
 
 
-class TextAsImagePosition(Enum):
-    TOP_LEFT = "top_left"
-    TOP_CENTERED = "top_centered"
-    TOP_RIGHT = "top_right"
-    CENTERED_LEFT = "centered_left"
-    CENTERED = "centered"
-    CENTERED_RIGHT = "centered_right"
-    BOTTOM_LEFT = "bottom_left"
-    BOTTOM_CENTERED = "bottom_centered"
-    BOTTOM_RIGHT = "bottom_right"
-
-
-TEXT_AS_IMAGE_POSITION_LABELS = {
-    TextAsImagePosition.TOP_LEFT: "Top left",
-    TextAsImagePosition.TOP_CENTERED: "Top centered",
-    TextAsImagePosition.TOP_RIGHT: "Top right",
-    TextAsImagePosition.CENTERED_LEFT: "Centered left",
-    TextAsImagePosition.CENTERED: "Centered",
-    TextAsImagePosition.CENTERED_RIGHT: "Centered right",
-    TextAsImagePosition.BOTTOM_LEFT: "Bottom left",
-    TextAsImagePosition.BOTTOM_CENTERED: "Bottom centered",
-    TextAsImagePosition.BOTTOM_RIGHT: "Bottom right",
-}
-
-TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
-    TextAsImagePosition.TOP_LEFT: {"x": np.array([0, 0.5]), "y": np.array([0, 0.5])},
-    TextAsImagePosition.TOP_CENTERED: {
-        "x": np.array([0.5, 0]),
-        "y": np.array([0, 0.5]),
-    },
-    TextAsImagePosition.TOP_RIGHT: {"x": np.array([1, -0.5]), "y": np.array([0, 0.5])},
-    TextAsImagePosition.CENTERED_LEFT: {
-        "x": np.array([0, 0.5]),
-        "y": np.array([0.5, 0]),
-    },
-    TextAsImagePosition.CENTERED: {"x": np.array([0.5, 0]), "y": np.array([0.5, 0])},
-    TextAsImagePosition.CENTERED_RIGHT: {
-        "x": np.array([1, -0.5]),
-        "y": np.array([0.5, 0]),
-    },
-    TextAsImagePosition.BOTTOM_LEFT: {
-        "x": np.array([0, 0.5]),
-        "y": np.array([1, -0.5]),
-    },
-    TextAsImagePosition.BOTTOM_CENTERED: {
-        "x": np.array([0.5, 0]),
-        "y": np.array([1, -0.5]),
-    },
-    TextAsImagePosition.BOTTOM_RIGHT: {
-        "x": np.array([1, -0.5]),
-        "y": np.array([1, -0.5]),
-    },
+X_Y_REF_FACTORS = {
+    Anchor.TOP_LEFT: {"x": np.array([0, 0.5]), "y": np.array([0, 0.5])},
+    Anchor.TOP: {"x": np.array([0.5, 0]), "y": np.array([0, 0.5])},
+    Anchor.TOP_RIGHT: {"x": np.array([1, -0.5]), "y": np.array([0, 0.5])},
+    Anchor.LEFT: {"x": np.array([0, 0.5]), "y": np.array([0.5, 0])},
+    Anchor.CENTER: {"x": np.array([0.5, 0]), "y": np.array([0.5, 0])},
+    Anchor.RIGHT: {"x": np.array([1, -0.5]), "y": np.array([0.5, 0])},
+    Anchor.BOTTOM_LEFT: {"x": np.array([0, 0.5]), "y": np.array([1, -0.5])},
+    Anchor.BOTTOM: {"x": np.array([0.5, 0]), "y": np.array([1, -0.5])},
+    Anchor.BOTTOM_RIGHT: {"x": np.array([1, -0.5]), "y": np.array([1, -0.5])},
 }
 
 
@@ -105,26 +65,21 @@ TEXT_AS_IMAGE_X_Y_REF_FACTORS = {
                 BoolInput("Italic", default=False, icon="FaItalic").with_id(2),
             ),
             EnumInput(
-                TextAsImageAlignment,
+                TextAlignment,
                 label="Alignment",
                 preferred_style="icons",
                 icons={
-                    TextAsImageAlignment.LEFT: "FaAlignLeft",
-                    TextAsImageAlignment.CENTER: "FaAlignCenter",
-                    TextAsImageAlignment.RIGHT: "FaAlignRight",
+                    TextAlignment.LEFT: "FaAlignLeft",
+                    TextAlignment.CENTER: "FaAlignCenter",
+                    TextAlignment.RIGHT: "FaAlignRight",
                 },
-                default=TextAsImageAlignment.CENTER,
+                default=TextAlignment.CENTER,
             ).with_id(4),
         ),
         ColorInput(channels=[3], default=Color.bgr((0, 0, 0))).with_id(3),
-        NumberInput("Width", min=1, max=None, default=500).with_id(5),
-        NumberInput("Height", min=1, max=None, default=100).with_id(6),
-        EnumInput(
-            TextAsImagePosition,
-            label="Position",
-            option_labels=TEXT_AS_IMAGE_POSITION_LABELS,
-            default=TextAsImagePosition.CENTERED,
-        ).with_id(7),
+        NumberInput("Width", min=1, max=None, default=500, unit="px").with_id(5),
+        NumberInput("Height", min=1, max=None, default=100, unit="px").with_id(6),
+        AnchorInput(label="Position", icon="MdTextFields").with_id(7),
     ],
     outputs=[
         ImageOutput(
@@ -143,11 +98,11 @@ def text_as_image_node(
     text: str,
     bold: bool,
     italic: bool,
-    alignment: TextAsImageAlignment,
+    alignment: TextAlignment,
     color: Color,
     width: int,
     height: int,
-    position: TextAsImagePosition,
+    position: Anchor,
 ) -> np.ndarray:
     path = TEXT_AS_IMAGE_FONT_PATH[int(bold)][int(italic)]
     font_path = os.path.join(
@@ -178,11 +133,11 @@ def text_as_image_node(
     drawing = ImageDraw.Draw(pil_image)
 
     x_ref = round(
-        np.sum(np.array([width, w_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["x"])  # type: ignore
+        np.sum(np.array([width, w_text]) * X_Y_REF_FACTORS[position]["x"])  # type: ignore
     )
     y_ref = round(
         np.sum(
-            np.array([height, h_text]) * TEXT_AS_IMAGE_X_Y_REF_FACTORS[position]["y"]  # type: ignore
+            np.array([height, h_text]) * X_Y_REF_FACTORS[position]["y"]  # type: ignore
         )
     )
 
