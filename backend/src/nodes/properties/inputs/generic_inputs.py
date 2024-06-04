@@ -44,7 +44,7 @@ class DropDownOption(TypedDict):
     condition: NotRequired[ConditionJson | None]
 
 
-DropDownStyle = Literal["dropdown", "checkbox", "tabs", "icons"]
+DropDownStyle = Literal["dropdown", "checkbox", "tabs", "icons", "anchor"]
 """
 This specified the preferred style in which the frontend may display the dropdown.
 
@@ -53,6 +53,7 @@ This specified the preferred style in which the frontend may display the dropdow
   The first option will be interpreted as the yes/true option while the second option will be interpreted as the no/false option.
 - `tabs`: The options are displayed as tab list. The label of the input itself will *not* be displayed.
 - `icons`: The options are displayed as a list of icons. This is only available if all options have icons. Labels are still required for all options.
+- `anchor`: The options are displayed as a 3x3 grid where the user is allowed to select one of 9 anchor positions. This only works for dropdowns with 9 options.
 """
 
 
@@ -612,4 +613,48 @@ def RowOrderDropdown() -> DropDownInput:
         OrderEnum,
         label="Order",
         default=OrderEnum.ROW_MAJOR,
+    )
+
+
+class Anchor(Enum):
+    TOP_LEFT = "top_left"
+    TOP = "top_centered"
+    TOP_RIGHT = "top_right"
+    LEFT = "centered_left"
+    CENTER = "centered"
+    RIGHT = "centered_right"
+    BOTTOM_LEFT = "bottom_left"
+    BOTTOM = "bottom_centered"
+    BOTTOM_RIGHT = "bottom_right"
+
+
+def AnchorInput(label: str = "Anchor", icon: str = "BsFillImageFill") -> DropDownInput:
+    return EnumInput(
+        Anchor,
+        label=label,
+        label_style="inline",
+        option_labels={
+            Anchor.TOP_LEFT: "Top Left",
+            Anchor.TOP: "Top",
+            Anchor.TOP_RIGHT: "Top Right",
+            Anchor.LEFT: "Left",
+            Anchor.CENTER: "Center",
+            Anchor.RIGHT: "Right",
+            Anchor.BOTTOM_LEFT: "Bottom Left",
+            Anchor.BOTTOM: "Bottom",
+            Anchor.BOTTOM_RIGHT: "Bottom Right",
+        },
+        icons={
+            Anchor.TOP_LEFT: icon,
+            Anchor.TOP: icon,
+            Anchor.TOP_RIGHT: icon,
+            Anchor.LEFT: icon,
+            Anchor.CENTER: icon,
+            Anchor.RIGHT: icon,
+            Anchor.BOTTOM_LEFT: icon,
+            Anchor.BOTTOM: icon,
+            Anchor.BOTTOM_RIGHT: icon,
+        },
+        preferred_style="anchor",
+        default=Anchor.CENTER,
     )

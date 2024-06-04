@@ -1,5 +1,5 @@
 import { Box, Checkbox as ChakraCheckbox } from '@chakra-ui/react';
-import { ReactNode, memo, useEffect } from 'react';
+import { ReactNode, memo } from 'react';
 import { DropDownInput, InputSchemaValue } from '../../../../common/common-types';
 import './Checkbox.scss';
 
@@ -7,9 +7,8 @@ type ArrayItem<T> = T extends readonly (infer I)[] ? I : never;
 type Option = ArrayItem<DropDownInput['options']>;
 
 export interface CheckboxProps {
-    value: InputSchemaValue | undefined;
+    value: InputSchemaValue;
     onChange: (value: InputSchemaValue) => void;
-    reset: () => void;
     isDisabled?: boolean;
     yes: Option;
     no: Option;
@@ -18,14 +17,7 @@ export interface CheckboxProps {
 }
 
 export const Checkbox = memo(
-    ({ value, onChange, reset, isDisabled, yes, no, label, afterText }: CheckboxProps) => {
-        // reset invalid values to default
-        useEffect(() => {
-            if (value === undefined || (yes.value !== value && no.value !== value)) {
-                reset();
-            }
-        }, [value, reset, yes, no]);
-
+    ({ value, onChange, isDisabled, yes, no, label, afterText }: CheckboxProps) => {
         return (
             <ChakraCheckbox
                 className="chainner-node-checkbox"

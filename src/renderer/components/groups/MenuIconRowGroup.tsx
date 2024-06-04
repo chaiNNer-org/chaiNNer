@@ -1,11 +1,29 @@
 import { Box } from '@chakra-ui/react';
 import { memo } from 'react';
+import { DropDownInput, InputSchemaValue } from '../../../common/common-types';
 import { getUniqueKey } from '../../../common/group-inputs';
-import { getPassthroughIgnored } from '../../helpers/nodeState';
+import { NodeState, getPassthroughIgnored } from '../../helpers/nodeState';
+import { useValidDropDownValue } from '../../hooks/useValidDropDownValue';
 import { IconList } from '../inputs/elements/IconList';
 import { InputContainer, WithoutLabel } from '../inputs/InputContainer';
 import { IconSet } from './IconSetGroup';
 import { GroupProps } from './props';
+
+const IconListWrapper = memo(
+    ({ input, nodeState }: { input: DropDownInput; nodeState: NodeState }) => {
+        const setValue = (value: InputSchemaValue) => nodeState.setInputValue(input.id, value);
+        const value = useValidDropDownValue(nodeState.inputData[input.id], setValue, input);
+
+        return (
+            <IconList
+                isDisabled={nodeState.isLocked}
+                options={input.options}
+                value={value}
+                onChange={setValue}
+            />
+        );
+    }
+);
 
 export const MenuIconRowGroup = memo(({ inputs, nodeState }: GroupProps<'menu-icon-row'>) => {
     return (
@@ -30,13 +48,10 @@ export const MenuIconRowGroup = memo(({ inputs, nodeState }: GroupProps<'menu-ic
 
                         if (item.kind === 'dropdown' && item.preferredStyle === 'icons') {
                             return (
-                                <IconList
-                                    isDisabled={nodeState.isLocked}
+                                <IconListWrapper
+                                    input={item}
                                     key={key}
-                                    options={item.options}
-                                    reset={() => nodeState.setInputValue(item.id, item.def)}
-                                    value={nodeState.inputData[item.id]}
-                                    onChange={(value) => nodeState.setInputValue(item.id, value)}
+                                    nodeState={nodeState}
                                 />
                             );
                         }

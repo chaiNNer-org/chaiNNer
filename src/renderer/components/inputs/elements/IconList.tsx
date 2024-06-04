@@ -1,24 +1,16 @@
 import { Button, ButtonGroup, Tooltip } from '@chakra-ui/react';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { DropDownInput, InputSchemaValue } from '../../../../common/common-types';
 import { IconFactory } from '../../CustomIcons';
 
 export interface IconListProps {
-    value: InputSchemaValue | undefined;
+    value: InputSchemaValue;
     onChange: (value: InputSchemaValue) => void;
-    reset: () => void;
     isDisabled?: boolean;
     options: DropDownInput['options'];
 }
 
-export const IconList = memo(({ value, onChange, reset, isDisabled, options }: IconListProps) => {
-    // reset invalid values to default
-    useEffect(() => {
-        if (value === undefined || options.every((o) => o.value !== value)) {
-            reset();
-        }
-    }, [value, reset, options]);
-
+export const IconList = memo(({ value, onChange, isDisabled, options }: IconListProps) => {
     let selection = options.findIndex((o) => o.value === value);
     if (selection === -1) selection = 0;
 

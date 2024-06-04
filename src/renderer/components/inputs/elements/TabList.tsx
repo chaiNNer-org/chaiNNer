@@ -1,23 +1,15 @@
 import { TabList as ChakraTabList, Tab, TabIndicator, Tabs } from '@chakra-ui/react';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { DropDownInput, InputSchemaValue } from '../../../../common/common-types';
 
 export interface TabListProps {
-    value: InputSchemaValue | undefined;
+    value: InputSchemaValue;
     onChange: (value: InputSchemaValue) => void;
-    reset: () => void;
     isDisabled?: boolean;
     options: DropDownInput['options'];
 }
 
-export const TabList = memo(({ value, onChange, reset, isDisabled, options }: TabListProps) => {
-    // reset invalid values to default
-    useEffect(() => {
-        if (value === undefined || options.every((o) => o.value !== value)) {
-            reset();
-        }
-    }, [value, reset, options]);
-
+export const TabList = memo(({ value, onChange, isDisabled, options }: TabListProps) => {
     let selection = options.findIndex((o) => o.value === value);
     if (selection === -1) selection = 0;
 

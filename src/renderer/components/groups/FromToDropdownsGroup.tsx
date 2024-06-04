@@ -4,6 +4,7 @@ import { IoMdArrowForward } from 'react-icons/io';
 import { Input, InputData, InputId, InputValue, OfKind } from '../../../common/common-types';
 import { getInputValue } from '../../../common/util';
 import { getPassthroughIgnored } from '../../helpers/nodeState';
+import { useValidDropDownValue } from '../../hooks/useValidDropDownValue';
 import { DropDown } from '../inputs/elements/Dropdown';
 import { InputContainer } from '../inputs/InputContainer';
 import { GroupProps } from './props';
@@ -15,10 +16,14 @@ interface SmallDropDownProps {
     isLocked: boolean;
 }
 const SmallDropDown = memo(({ input, inputData, setInputValue, isLocked }: SmallDropDownProps) => {
-    const value = getInputValue<string | number>(input.id, inputData);
     const setValue = useCallback(
         (data?: string | number) => setInputValue(input.id, data ?? input.def),
         [setInputValue, input]
+    );
+    const value = useValidDropDownValue(
+        getInputValue<string | number>(input.id, inputData),
+        setValue,
+        input
     );
 
     return (

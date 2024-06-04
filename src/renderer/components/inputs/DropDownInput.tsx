@@ -1,7 +1,9 @@
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Tooltip } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
+import { useValidDropDownValue } from '../../hooks/useValidDropDownValue';
 import { Markdown } from '../Markdown';
+import { AnchorSelector } from './elements/AnchorSelector';
 import { Checkbox } from './elements/Checkbox';
 import { DropDown } from './elements/Dropdown';
 import { IconList } from './elements/IconList';
@@ -14,6 +16,9 @@ type DropDownInputProps = InputProps<'dropdown', string | number>;
 export const DropDownInput = memo(
     ({ value, setValue, input, isLocked, testCondition }: DropDownInputProps) => {
         const { options, def, label, preferredStyle, groups, hint, description } = input;
+
+        // eslint-disable-next-line no-param-reassign
+        value = useValidDropDownValue(value, setValue, input);
 
         const reset = useCallback(() => setValue(def), [setValue, def]);
 
@@ -46,7 +51,6 @@ export const DropDownInput = memo(
                         isDisabled={isLocked}
                         label={label}
                         no={options[1]}
-                        reset={reset}
                         value={value}
                         yes={options[0]}
                         onChange={setValue}
@@ -61,7 +65,6 @@ export const DropDownInput = memo(
                     <TabList
                         isDisabled={isLocked}
                         options={input.options}
-                        reset={reset}
                         value={value}
                         onChange={setValue}
                     />
@@ -75,7 +78,19 @@ export const DropDownInput = memo(
                     <IconList
                         isDisabled={isLocked}
                         options={input.options}
-                        reset={reset}
+                        value={value}
+                        onChange={setValue}
+                    />
+                </InlineLabel>
+            );
+        }
+
+        if (preferredStyle === 'anchor' && options.length === 9) {
+            return (
+                <InlineLabel input={input}>
+                    <AnchorSelector
+                        isDisabled={isLocked}
+                        options={input.options}
                         value={value}
                         onChange={setValue}
                     />
