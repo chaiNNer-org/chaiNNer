@@ -258,13 +258,11 @@ class EnumInput(DropDownInput[E]):
         for variant in enum:
             value = variant.value
             assert isinstance(value, (int, str))
-            assert (
-                re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is not None
-            ), f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
 
-            name = split_snake_case(variant.name)
-            variant_type = f"{type_name}::{join_pascal_case(name)}"
-            option_label = option_labels.get(variant, join_space_case(name))
+            variant_type = EnumInput.get_variant_type(variant, type_name)
+            option_label = option_labels.get(
+                variant, join_space_case(split_snake_case(variant.name))
+            )
             condition = conditions.get(variant)
             if condition is not None:
                 condition = condition.to_json()
@@ -300,6 +298,22 @@ class EnumInput(DropDownInput[E]):
         self.enum = enum
 
         self.associated_type = enum
+
+    @staticmethod
+    def get_variant_type(variant: Enum, type_name: str | None = None) -> str:
+        """
+        Returns the full type name of a variant of an enum.
+        """
+
+        enum = variant.__class__
+        if type_name is None:
+            type_name = enum.__name__
+
+        assert (
+            re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is not None
+        ), f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
+
+        return f"{type_name}::{join_pascal_case(split_snake_case(variant.name))}"
 
     def enforce(self, value: object) -> E:
         value = super().enforce(value)
