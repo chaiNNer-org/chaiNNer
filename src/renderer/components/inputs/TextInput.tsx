@@ -14,7 +14,8 @@ import { DragHandleSVG } from '../CustomIcons';
 import { AutoLabel } from './InputContainer';
 import { InputProps } from './props';
 
-const DEFAULT_SIZE = { width: 222, height: 80 } as const;
+const DEFAULT_SIZE_WITHOUT_HANDLE = { width: 222, height: 80 } as const;
+const DEFAULT_SIZE = { width: 214, height: 80 } as const;
 
 const invalidRegexCache = new Map<string | null | undefined, RegExp | undefined>();
 const getInvalidRegex = (pattern: string): RegExp | undefined => {
@@ -165,22 +166,23 @@ export const TextInput = memo(
         ));
 
         // size
+        const defaultSize = input.hasHandle ? DEFAULT_SIZE : DEFAULT_SIZE_WITHOUT_HANDLE;
         useEffect(() => {
             if (!size) {
-                setSize(DEFAULT_SIZE);
+                setSize(defaultSize);
             }
-        }, [size, setSize]);
+        }, [size, setSize, defaultSize]);
 
         const zoom = useContextSelector(GlobalVolatileContext, (c) => c.zoom);
 
-        const startSize = useRef(size ?? DEFAULT_SIZE);
+        const startSize = useRef(size ?? defaultSize);
 
         let inputElement;
         if (multiline) {
             inputElement = (
                 <Resizable
                     className="nodrag"
-                    defaultSize={size ?? DEFAULT_SIZE}
+                    defaultSize={size ?? defaultSize}
                     enable={{
                         top: false,
                         right: !isLocked,
@@ -208,7 +210,7 @@ export const TextInput = memo(
                         ),
                     }}
                     minHeight={80}
-                    minWidth={DEFAULT_SIZE.width}
+                    minWidth={defaultSize.width}
                     scale={zoom}
                     size={size}
                     onResize={(e, direction, ref, d) => {
@@ -220,7 +222,7 @@ export const TextInput = memo(
                         }
                     }}
                     onResizeStart={() => {
-                        startSize.current = size ?? DEFAULT_SIZE;
+                        startSize.current = size ?? defaultSize;
                     }}
                 >
                     <Textarea
