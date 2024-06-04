@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
+import navi
 from nodes.groups import if_enum_group
 from nodes.properties.inputs import EnumInput, NumberInput
 from nodes.properties.outputs import NumberOutput
@@ -96,29 +97,41 @@ assert len(RESOLUTIONS) == len(ResList)
                 ResList.SQ8192: "Square 8192x8192",
                 ResList.CUSTOM: "Custom Resolution",
             },
-        ),
+        ).with_id(0),
         if_enum_group(0, ResList.CUSTOM)(
-            NumberInput(
-                "Width",
-                min=1,
-                max=None,
-                default=1920,
-                unit="px",
-                has_handle=False,
-            ),
-            NumberInput(
-                "Height",
-                min=1,
-                max=None,
-                default=1080,
-                unit="px",
-                has_handle=False,
-            ),
+            NumberInput("Width", min=1, default=1920, unit="px"),
+            NumberInput("Height", min=1, default=1080, unit="px"),
         ),
     ],
     outputs=[
-        NumberOutput("Width", output_type="int(1..)"),
-        NumberOutput("Height", output_type="int(1..)"),
+        NumberOutput(
+            "Width",
+            output_type=navi.match(
+                "Input0",
+                (EnumInput.get_variant_type(ResList.CUSTOM), None, "Input1"),
+                default=navi.match(
+                    "Input0",
+                    *(
+                        (EnumInput.get_variant_type(v), None, w)
+                        for v, (w, _) in RESOLUTIONS.items()
+                    ),
+                ),
+            ),
+        ),
+        NumberOutput(
+            "Height",
+            output_type=navi.match(
+                "Input0",
+                (EnumInput.get_variant_type(ResList.CUSTOM), None, "Input2"),
+                default=navi.match(
+                    "Input0",
+                    *(
+                        (EnumInput.get_variant_type(v), None, h)
+                        for v, (_, h) in RESOLUTIONS.items()
+                    ),
+                ),
+            ),
+        ),
     ],
 )
 def resolutions_node(
