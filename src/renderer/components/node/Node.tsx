@@ -188,7 +188,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         executionStatus === NodeExecutionStatus.YET_TO_RUN ||
         individuallyRunning;
 
-    const { getEdge } = useReactFlow();
+    const { getEdge, getEdges, getNodes, getNode } = useReactFlow();
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file
@@ -256,15 +256,12 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const startingNode = isStartingNode(schema);
-    const isNewIterator = schema.kind === 'newIterator';
-    const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
-    const reload = useRunNode(
+    const { reload, isLive } = useRunNode(
         data,
-        validity.isValid && startingNode && !isNewIterator && !hasStaticValueInput
+        validity.isValid
     );
     const filesToWatch = useMemo(() => {
-        if (!startingNode) return EMPTY_ARRAY;
+        if (!isLive) return EMPTY_ARRAY;
 
         const files: string[] = [];
         for (const input of schema.inputs) {
@@ -278,7 +275,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
         if (files.length === 0) return EMPTY_ARRAY;
         return files;
-    }, [startingNode, data.inputData, schema]);
+    }, [isLive, data.inputData, schema]);
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
@@ -286,7 +283,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const menu = useNodeMenu(data, {
         disabled,
         passthrough,
-        reload: startingNode ? reload : undefined,
+        reload: isLive ? reload : undefined,
     });
 
     const toggleCollapse = useCallback(() => {

@@ -8,6 +8,7 @@ import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { useAsyncEffect } from './useAsyncEffect';
 import { useSettings } from './useSettings';
+import { getIncomers, useReactFlow } from 'reactflow';
 
 /**
  * Runs the given node as soon as it should.
@@ -16,8 +17,8 @@ import { useSettings } from './useSettings';
  */
 export const useRunNode = (
     { inputData, id, schemaId }: NodeData,
-    shouldRun: boolean
-): (() => void) => {
+    isValid: boolean
+): { reload: () => void; isLive: boolean } => {
     const { sendToast } = useContext(AlertBoxContext);
     const { addIndividuallyRunning, removeIndividuallyRunning } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
@@ -39,6 +40,17 @@ export const useRunNode = (
         [reloadCounter, inputs]
     );
     const lastInputHash = useRef<string>();
+
+    const { getEdges, getNodes, getNode } = useReactFlow();
+    const thisNode = getNode(id);
+    const hasIncomingConnections =
+        thisNode && getIncomers(thisNode, getNodes(), getEdges()).length > 0;
+
+    const isNewIterator = schema.kind === 'newIterator';
+    const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
+
+    const shouldRun = isValid && !hasIncomingConnections && !isNewIterator && !hasStaticValueInput;
+
     useAsyncEffect(
         () => async (token) => {
             if (inputHash === lastInputHash.current) {
@@ -85,5 +97,11 @@ export const useRunNode = (
         };
     }, [backend, id]);
 
-    return reload;
+    useEffect(() => {
+        if (hasIncomingConnections && didEverRun.current) {
+            backend.clearNodeCacheIndividual(id).catch(log.error);
+        }
+    }, [hasIncomingConnections, id]);
+
+    return { reload, isLive: shouldRun };
 };
