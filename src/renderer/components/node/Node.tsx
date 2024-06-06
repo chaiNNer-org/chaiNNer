@@ -25,6 +25,7 @@ import {
 } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
+
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { NodeState, useNodeStateFromData } from '../../helpers/nodeState';
 import { NO_DISABLED, UseDisabled, useDisabled } from '../../hooks/useDisabled';
@@ -183,7 +184,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         executionStatus === NodeExecutionStatus.YET_TO_RUN ||
         individuallyRunning;
 
-    const { getEdge, getEdges, getNodes, getNode } = useReactFlow();
+    const { getEdge } = useReactFlow();
 
     // We get inputs and outputs this way in case something changes with them in the future
     // This way, we have to do less in the migration file

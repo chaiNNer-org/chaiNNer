@@ -101,7 +101,7 @@ export const useRunNode = (
         if (hasIncomingConnections && didEverRun.current) {
             backend.clearNodeCacheIndividual(id).catch(log.error);
         }
-    }, [hasIncomingConnections, id]);
+    }, [backend, hasIncomingConnections, id]);
 
     return { reload, isLive: shouldRun };
 };
