@@ -14,12 +14,7 @@ import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
-import {
-    EMPTY_ARRAY,
-    getInputValue,
-    isStartingNode,
-    parseSourceHandle,
-} from '../../../common/util';
+import { EMPTY_ARRAY, getInputValue, parseSourceHandle } from '../../../common/util';
 import { Validity } from '../../../common/Validity';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -256,10 +251,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const { reload, isLive } = useRunNode(
-        data,
-        validity.isValid
-    );
+    const { reload, isLive } = useRunNode(data, validity.isValid);
     const filesToWatch = useMemo(() => {
         if (!isLive) return EMPTY_ARRAY;
 

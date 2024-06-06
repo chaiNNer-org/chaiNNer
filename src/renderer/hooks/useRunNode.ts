@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { getIncomers, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -8,7 +9,6 @@ import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { useAsyncEffect } from './useAsyncEffect';
 import { useSettings } from './useSettings';
-import { getIncomers, useReactFlow } from 'reactflow';
 
 /**
  * Runs the given node as soon as it should.
