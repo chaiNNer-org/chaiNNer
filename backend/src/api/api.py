@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import typing
 from dataclasses import asdict, dataclass, field
 from typing import (
     Any,
@@ -149,10 +150,10 @@ class NodeGroup:
         iterator_inputs = to_list(iterator_inputs)
         iterator_outputs = to_list(iterator_outputs)
 
-        if kind == "collector":
-            assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
-        elif kind == "newIterator":
+        if kind == "newIterator":  # Generator
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
+        elif kind == "collector":
+            assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
         else:
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0
 
@@ -511,25 +512,25 @@ L = TypeVar("L")
 
 
 @dataclass
-class Iterator(Generic[I]):
-    iter_supplier: Callable[[], Iterable[I | Exception]]
+class Generator(Generic[I]):
+    gen_supplier: Callable[[], typing.Generator[I | Exception]]
     expected_length: int
     fail_fast: bool = True
 
     @staticmethod
     def from_iter(
-        iter_supplier: Callable[[], Iterable[I | Exception]],
+        gen_supplier: Callable[[], typing.Generator[I | Exception]],
         expected_length: int,
         fail_fast: bool = True,
-    ) -> Iterator[I]:
-        return Iterator(iter_supplier, expected_length, fail_fast=fail_fast)
+    ) -> Generator[I]:
+        return Generator(gen_supplier, expected_length, fail_fast=fail_fast)
 
     @staticmethod
     def from_list(
         l: list[L], map_fn: Callable[[L, int], I], fail_fast: bool = True
-    ) -> Iterator[I]:
+    ) -> Generator[I]:
         """
-        Creates a new iterator from a list that is mapped using the given
+        Creates a new generator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
         """
 
@@ -540,14 +541,14 @@ class Iterator(Generic[I]):
                 except Exception as e:
                     yield e
 
-        return Iterator(supplier, len(l), fail_fast=fail_fast)
+        return Generator(supplier, len(l), fail_fast=fail_fast)
 
     @staticmethod
     def from_range(
         count: int, map_fn: Callable[[int], I], fail_fast: bool = True
-    ) -> Iterator[I]:
+    ) -> Generator[I]:
         """
-        Creates a new iterator the given number of items where each item is
+        Creates a new generator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
         """
         assert count >= 0
@@ -559,7 +560,7 @@ class Iterator(Generic[I]):
                 except Exception as e:
                     yield e
 
-        return Iterator(supplier, count, fail_fast=fail_fast)
+        return Generator(supplier, count, fail_fast=fail_fast)
 
 
 N = TypeVar("N")

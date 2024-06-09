@@ -28,7 +28,7 @@ class FunctionNode:
         return self.data.side_effects
 
 
-class NewIteratorNode:
+class GeneratorNode:
     def __init__(self, node_id: NodeId, schema_id: str):
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
@@ -50,7 +50,7 @@ class CollectorNode:
         return self.data.side_effects
 
 
-Node = Union[FunctionNode, NewIteratorNode, CollectorNode]
+Node = Union[FunctionNode, GeneratorNode, CollectorNode]
 
 
 @dataclass(frozen=True)
@@ -176,17 +176,17 @@ class Chain:
 
         return result
 
-    def get_parent_iterator_map(self) -> dict[FunctionNode, NewIteratorNode | None]:
+    def get_parent_iterator_map(self) -> dict[FunctionNode, GeneratorNode | None]:
         """
         Returns a map of all function nodes to their parent iterator node (if any).
         """
-        iterator_cache: dict[FunctionNode, NewIteratorNode | None] = {}
+        iterator_cache: dict[FunctionNode, GeneratorNode | None] = {}
 
-        def get_iterator(r: FunctionNode) -> NewIteratorNode | None:
+        def get_iterator(r: FunctionNode) -> GeneratorNode | None:
             if r in iterator_cache:
                 return iterator_cache[r]
 
-            iterator: NewIteratorNode | None = None
+            iterator: GeneratorNode | None = None
 
             for in_edge in self.edges_to(r.id):
                 source = self.nodes[in_edge.source.id]
@@ -194,7 +194,7 @@ class Chain:
                     iterator = get_iterator(source)
                     if iterator is not None:
                         break
-                elif isinstance(source, NewIteratorNode):
+                elif isinstance(source, GeneratorNode):
                     if (
                         in_edge.source.output_id
                         in source.data.single_iterator_output.outputs

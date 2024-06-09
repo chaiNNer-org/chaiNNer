@@ -17,8 +17,8 @@ from api import (
     BaseOutput,
     Collector,
     ExecutionOptions,
+    Generator,
     InputId,
-    Iterator,
     Lazy,
     NodeContext,
     NodeData,
@@ -28,7 +28,7 @@ from api import (
     registry,
 )
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
-from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
+from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict
 from progress_controller import Aborted, ProgressController, ProgressToken
@@ -132,22 +132,24 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     return RegularOutput(output)
 
 
-def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutput:
+def enforce_iterator_output(raw_output: object, node: NodeData) -> GeneratorOutput:
     l = len(node.outputs)
     iterator_output = node.single_iterator_output
 
     partial: list[object] = [None] * l
 
     if l == len(iterator_output.outputs):
-        assert isinstance(raw_output, Iterator), "Expected the output to be an iterator"
-        return IteratorOutput(iterator=raw_output, partial_output=partial)
+        assert isinstance(
+            raw_output, Generator
+        ), "Expected the output to be an iterator"
+        return GeneratorOutput(generator=raw_output, partial_output=partial)
 
     assert l > len(iterator_output.outputs)
     assert isinstance(raw_output, (tuple, list))
 
     iterator, *rest = raw_output
     assert isinstance(
-        iterator, Iterator
+        iterator, Generator
     ), "Expected the first tuple element to be an iterator"
     assert len(rest) == l - len(iterator_output.outputs)
 
@@ -156,7 +158,7 @@ def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutpu
         if o.id not in iterator_output.outputs:
             partial[i] = o.enforce(rest.pop(0))
 
-    return IteratorOutput(iterator=iterator, partial_output=partial)
+    return GeneratorOutput(generator=iterator, partial_output=partial)
 
 
 def run_node(
@@ -317,8 +319,8 @@ class RegularOutput:
 
 
 @dataclass(frozen=True)
-class IteratorOutput:
-    iterator: Iterator
+class GeneratorOutput:
+    generator: Generator
     partial_output: Output
 
 
@@ -327,7 +329,7 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = Union[RegularOutput, IteratorOutput]
+NodeOutput = Union[RegularOutput, GeneratorOutput]
 
 ExecutionId = NewType("ExecutionId", str)
 
@@ -447,7 +449,7 @@ class Executor:
         assert isinstance(result, RegularOutput)
         return result
 
-    async def process_iterator_node(self, node: NewIteratorNode) -> IteratorOutput:
+    async def process_iterator_node(self, node: GeneratorNode) -> GeneratorOutput:
         """
         Processes the given iterator node.
 
@@ -455,7 +457,7 @@ class Executor:
         `node-broadcast` events will be sent.
         """
         result = await self.process(node.id)
-        assert isinstance(result, IteratorOutput)
+        assert isinstance(result, GeneratorOutput)
         return result
 
     async def process_collector_node(self, node: CollectorNode) -> CollectorOutput:
@@ -483,7 +485,7 @@ class Executor:
             # this generally shouldn't be possible
             raise ValueError("A collector was not run before another node needed it.")
 
-        if isinstance(output, IteratorOutput):
+        if isinstance(output, GeneratorOutput):
             value = output.partial_output[output_index]
             assert value is not None, "An iterator output was not assigned correctly"
             return value
@@ -613,7 +615,7 @@ class Executor:
         if isinstance(output, RegularOutput):
             await self.__send_node_broadcast(node, output.output)
             self.__send_node_finish(node, execution_time)
-        elif isinstance(output, IteratorOutput):
+        elif isinstance(output, GeneratorOutput):
             await self.__send_node_broadcast(node, output.partial_output)
             # TODO: execution time
 
@@ -626,7 +628,7 @@ class Executor:
         return output
 
     def __get_iterated_nodes(
-        self, node: NewIteratorNode
+        self, node: GeneratorNode
     ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
         """
         Returns all collector and output nodes iterated by the given iterator node
@@ -643,7 +645,7 @@ class Executor:
 
             if isinstance(n, CollectorNode):
                 collectors.add(n)
-            elif isinstance(n, NewIteratorNode):
+            elif isinstance(n, GeneratorNode):
                 raise ValueError("Nested iterators are not supported")
             else:
                 assert isinstance(n, FunctionNode)
@@ -666,7 +668,7 @@ class Executor:
         return collectors, output_nodes, seen
 
     def __iterator_fill_partial_output(
-        self, node: NewIteratorNode, partial_output: Output, values: object
+        self, node: GeneratorNode, partial_output: Output, values: object
     ) -> Output:
         iterator_output = node.data.single_iterator_output
 
@@ -686,7 +688,7 @@ class Executor:
 
         return output
 
-    async def __iterate_iterator_node(self, node: NewIteratorNode):
+    async def __iterate_iterator_node(self, node: GeneratorNode):
         await self.progress.suspend()
 
         # run the iterator node itself before anything else
@@ -721,7 +723,7 @@ class Executor:
 
         # timing iterations
         iter_times = _IterationTimer(self.progress)
-        expected_length = iterator_output.iterator.expected_length
+        expected_length = iterator_output.generator.expected_length
 
         async def update_progress():
             iter_times.add()
@@ -737,7 +739,7 @@ class Executor:
         self.__send_node_progress(node, [], 0, expected_length)
 
         deferred_errors: list[str] = []
-        for values in iterator_output.iterator.iter_supplier():
+        for values in iterator_output.generator.gen_supplier():
             try:
                 if isinstance(values, Exception):
                     raise values
@@ -775,7 +777,7 @@ class Executor:
             except Aborted:
                 raise
             except Exception as e:
-                if iterator_output.iterator.fail_fast:
+                if iterator_output.generator.fail_fast:
                     raise e
                 else:
                     deferred_errors.append(str(e))
@@ -820,7 +822,7 @@ class Executor:
         # we first need to run iterator nodes in topological order
         for node_id in self.chain.topological_order():
             node = self.chain.nodes[node_id]
-            if isinstance(node, NewIteratorNode):
+            if isinstance(node, GeneratorNode):
                 await self.__iterate_iterator_node(node)
 
         # now the output nodes outside of iterators

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from api import Iterator, IteratorOutputInfo
+from api import Generator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput
@@ -64,7 +64,7 @@ def load_image_pairs_node(
     limit: int,
     fail_fast: bool,
 ) -> tuple[
-    Iterator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], Path, Path
+    Generator[tuple[np.ndarray, np.ndarray, str, str, str, str, int]], Path, Path
 ]:
     def load_images(filepaths: tuple[Path, Path], index: int):
         path_a, path_b = filepaths
@@ -94,7 +94,7 @@ def load_image_pairs_node(
     image_files = list(zip(image_files_a, image_files_b))
 
     return (
-        Iterator.from_list(image_files, load_images, fail_fast),
+        Generator.from_list(image_files, load_images, fail_fast),
         directory_a,
         directory_b,
     )

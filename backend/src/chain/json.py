@@ -11,7 +11,7 @@ from .chain import (
     EdgeSource,
     EdgeTarget,
     FunctionNode,
-    NewIteratorNode,
+    GeneratorNode,
 )
 
 
@@ -54,7 +54,7 @@ def parse_json(json: list[JsonNode]) -> Chain:
 
     for json_node in json:
         if json_node["nodeType"] == "newIterator":
-            node = NewIteratorNode(json_node["id"], json_node["schemaId"])
+            node = GeneratorNode(json_node["id"], json_node["schemaId"])
         elif json_node["nodeType"] == "collector":
             node = CollectorNode(json_node["id"], json_node["schemaId"])
         else:

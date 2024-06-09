@@ -5,7 +5,7 @@ from pathlib import Path
 
 from sanic.log import logger
 
-from api import Iterator, IteratorOutputInfo
+from api import Generator, IteratorOutputInfo
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import BoolInput, DirectoryInput
 from nodes.properties.outputs import (
@@ -51,7 +51,7 @@ from ..io.load_model import load_model_node
 def load_models_node(
     directory: Path,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[NcnnModelWrapper, str, str, int]], Path]:
+) -> tuple[Generator[tuple[NcnnModelWrapper, str, str, int]], Path]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(filepath_pairs: tuple[Path, Path], index: int):
@@ -82,4 +82,4 @@ def load_models_node(
 
     model_files = list(zip(param_files, bin_files))
 
-    return Iterator.from_list(model_files, load_model, fail_fast), directory
+    return Generator.from_list(model_files, load_model, fail_fast), directory

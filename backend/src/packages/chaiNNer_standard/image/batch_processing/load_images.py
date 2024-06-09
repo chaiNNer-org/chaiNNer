@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 from wcmatch import glob
 
-from api import Iterator, IteratorOutputInfo
+from api import Generator, IteratorOutputInfo
 from nodes.groups import Condition, if_group
 from nodes.impl.image_formats import get_available_image_formats
 from nodes.properties.inputs import BoolInput, DirectoryInput, NumberInput, TextInput
@@ -108,7 +108,7 @@ def load_images_node(
     use_limit: bool,
     limit: int,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[np.ndarray, str, str, int]], Path]:
+) -> tuple[Generator[tuple[np.ndarray, str, str, int]], Path]:
     def load_image(path: Path, index: int):
         img, img_dir, basename = load_image_node(path)
         # Get relative path from root directory passed by Iterator directory input
@@ -127,4 +127,4 @@ def load_images_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    return Iterator.from_list(just_image_files, load_image, fail_fast), directory
+    return Generator.from_list(just_image_files, load_image, fail_fast), directory
