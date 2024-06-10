@@ -171,9 +171,9 @@ export const checkAssignedLineage = (
                 const targetLineage = chainLineage.getInputLineage(nodeId, {
                     exclude: new Set([inputId]),
                 });
-                if (targetLineage && !targetLineage.equals(sourceLineage)) {
-                    return differentLineage();
-                }
+                // if (targetLineage && !targetLineage.equals(sourceLineage)) {
+                //     return differentLineage();
+                // }
             } else {
                 // it's always valid connect a node with no lineage
             }
@@ -195,9 +195,9 @@ export const checkAssignedLineage = (
                 const targetLineage = chainLineage.getInputLineage(nodeId, {
                     exclude: new Set([inputId]),
                 });
-                if (targetLineage && !targetLineage.equals(sourceLineage)) {
-                    return differentLineage();
-                }
+                // if (targetLineage && !targetLineage.equals(sourceLineage)) {
+                //     return differentLineage();
+                // }
             } else if (sourceLineage) {
                 return nonIteratorInput();
             }
