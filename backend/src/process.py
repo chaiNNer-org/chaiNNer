@@ -857,15 +857,18 @@ class Executor:
 
         # reset cached value
         self.node_cache.delete_many(all_iterated_nodes)
-        self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
+        for node in generator_nodes:
+            self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
 
         # re-broadcast final value
         # TODO: Why?
-        await self.__send_node_broadcast(node, generator_output.partial_output)
+        for node in generator_nodes:
+            await self.__send_node_broadcast(node, generator_output.partial_output)
 
         # finish generator
-        self.__send_node_progress_done(node, iter_times.iterations)
-        self.__send_node_finish(node, iter_times.get_time_since_start())
+        for node in generator_nodes:
+            self.__send_node_progress_done(node, iter_timers[node.id].iterations)
+            self.__send_node_finish(node, iter_timers[node.id].get_time_since_start())
 
         # finalize collectors
         for collector, timer, collector_node in collectors:
