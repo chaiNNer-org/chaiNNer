@@ -703,7 +703,7 @@ class Executor:
         ] = {}
 
         # timing iterations
-        iter_times = _IterationTimer(self.progress)
+        iter_timers: dict[NodeId, _IterationTimer] = {}
 
         # run the generator nodes before anything else
         for node in generator_nodes:
@@ -735,6 +735,9 @@ class Executor:
             expected_length = generator_output.generator.expected_length
             expected_lengths[node.id] = expected_length
 
+            iter_times = _IterationTimer(self.progress)
+            iter_timers[node.id] = iter_times
+
             self.__send_node_progress(node, [], 0, expected_length)
 
         total_stopiters = 0
@@ -747,7 +750,6 @@ class Executor:
                     generator_supplier = generator_suppliers[node.id]
 
                     values = next(generator_supplier)
-                    logger.info(f"{values=}")
 
                     # write current values to cache
                     iter_output = RegularOutput(
@@ -778,6 +780,7 @@ class Executor:
 
                 await self.progress.suspend()
                 for node in generator_nodes:
+                    iter_times = iter_timers[node.id]
                     iter_times.add()
                     iterations = iter_times.iterations
                     self.__send_node_progress(
