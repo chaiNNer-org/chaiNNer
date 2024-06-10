@@ -741,6 +741,7 @@ class Executor:
             self.__send_node_progress(node, [], 0, expected_length)
 
         total_stopiters = 0
+        # iterate
         while True:
             deferred_errors: list[str] = []
             try:
@@ -805,53 +806,6 @@ class Executor:
                     raise e
                 else:
                     deferred_errors.append(str(e))
-
-        # iterate
-        # self.__send_node_progress(node, [], 0, expected_length)
-
-        # deferred_errors: list[str] = []
-        # for values in generator_output.generator.gen_supplier():
-        #     try:
-        #         if isinstance(values, Exception):
-        #             raise values
-
-        #         # write current values to cache
-        #         iter_output = fill_partial_output(values)
-        #         self.node_cache.set(node.id, iter_output, StaticCaching)
-
-        #         # broadcast
-        #         await self.__send_node_broadcast(node, iter_output.output)
-
-        #         # run each of the output nodes
-        #         for output_node in output_nodes:
-        #             await self.process_regular_node(output_node)
-
-        #         # run each of the collector nodes
-        #         for collector, timer, collector_node in collectors:
-        #             await self.progress.suspend()
-        #             iterate_inputs = await self.__gather_collector_inputs(
-        #                 collector_node
-        #             )
-        #             await self.progress.suspend()
-        #             with timer.run():
-        #                 run_collector_iterate(collector_node, iterate_inputs, collector)
-
-        #         # clear cache for next iteration
-        #         self.node_cache.delete_many(all_iterated_nodes)
-
-        #         await self.progress.suspend()
-        #         await update_progress()
-        #         # cooperative yield so the event loop can run
-        #         # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
-        #         await asyncio.sleep(0)
-        #         await self.progress.suspend()
-        #     except Aborted:
-        #         raise
-        #     except Exception as e:
-        #         if generator_output.generator.fail_fast:
-        #             raise e
-        #         else:
-        #             deferred_errors.append(str(e))
 
         # reset cached value
         self.node_cache.delete_many(all_iterated_nodes)
