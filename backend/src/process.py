@@ -33,7 +33,7 @@ from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict
 from progress_controller import Aborted, ProgressController, ProgressToken
-from util import timed_supplier
+from util import combine_sets, timed_supplier
 
 Output = List[object]
 
@@ -797,9 +797,7 @@ class Executor:
             except Aborted:
                 raise
             except StopIteration:
-                logger.info("stop iteration exception")
                 total_stopiters = total_stopiters + 1
-                logger.info(f"{total_stopiters=}, {num_generators=}")
                 if total_stopiters >= num_generators:
                     break
             except Exception as e:
@@ -858,15 +856,14 @@ class Executor:
         # reset cached value
         self.node_cache.delete_many(all_iterated_nodes)
         for node in generator_nodes:
+            generator_output = await self.process_generator_node(node)
             self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
 
-        # re-broadcast final value
-        # TODO: Why?
-        for node in generator_nodes:
+            # re-broadcast final value
+            # TODO: Why?
             await self.__send_node_broadcast(node, generator_output.partial_output)
 
-        # finish generator
-        for node in generator_nodes:
+            # finish generator
             self.__send_node_progress_done(node, iter_timers[node.id].iterations)
             self.__send_node_finish(node, iter_timers[node.id].get_time_since_start())
 
@@ -896,12 +893,44 @@ class Executor:
         self.__send_chain_start()
 
         # we first need to run generator nodes in topological order
-        generator_nodes = [
-            self.chain.nodes[node_id]
-            for node_id in self.chain.topological_order()
-            if isinstance(self.chain.nodes[node_id], GeneratorNode)
-        ]
-        await self.__iterate_generator_nodes(generator_nodes)  # type: ignore
+        generator_nodes: list[GeneratorNode] = []
+        for node_id in self.chain.topological_order():
+            generator_node = self.chain.nodes[node_id]
+            if isinstance(generator_node, GeneratorNode):
+                generator_nodes.append(generator_node)
+
+        # Group nodes to run by shared lineage
+        # TODO: there's probably a better way of doing this
+        gens_by_outs: dict[NodeId, set[NodeId]] = {}
+        for node in generator_nodes:
+            collector_nodes, output_nodes, __all_iterated_nodes = (
+                self.__get_iterated_nodes(node)
+            )
+            for collector in collector_nodes:
+                if gens_by_outs.get(collector.id, None) is not None:
+                    gens_by_outs[collector.id].add(node.id)
+                else:
+                    gens_by_outs[collector.id] = {node.id}
+            for out_node in output_nodes:
+                if gens_by_outs.get(out_node.id, None) is not None:
+                    gens_by_outs[out_node.id].add(node.id)
+                else:
+                    gens_by_outs[out_node.id] = {node.id}
+
+        # example:
+        # { out1: {gen1, gen2}, out2: {gen1}, out3: {gen3} }
+        # this means we need to group gen1 and gen2 into one group, and gen 3 into another
+
+        groups: list[set[NodeId]] = list(gens_by_outs.values())
+        combined_groups = combine_sets(groups)
+
+        for group in combined_groups:
+            nodes_to_run: list[GeneratorNode] = []
+            for node_id in group:
+                generator_node = self.chain.nodes[node_id]
+                if isinstance(generator_node, GeneratorNode):
+                    nodes_to_run.append(generator_node)
+            await self.__iterate_generator_nodes(nodes_to_run)
 
         # now the output nodes outside of iterators
 

@@ -38,7 +38,7 @@ from .. import value_group
         """
     ),
     iterator_outputs=IteratorOutputInfo(outputs=0),
-    kind="generator
+    kind="generator",
 )
 def range_node(
     start: int,
