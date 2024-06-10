@@ -136,8 +136,8 @@ class NodeData:
     outputs: list[BaseOutput]
     group_layout: list[InputId | NestedIdGroup]
 
-    iterator_inputs: list[IteratorInputInfo]
-    iterator_outputs: list[IteratorOutputInfo]
+    iterable_inputs: list[IteratorInputInfo]
+    iterable_outputs: list[IteratorOutputInfo]
 
     key_info: KeyInfo | None
     suggestions: list[SpecialSuggestion]
@@ -150,11 +150,11 @@ class NodeData:
     run: RunFn
 
     @property
-    def single_iterator_input(self) -> IteratorInputInfo:
-        assert len(self.iterator_inputs) == 1
-        return self.iterator_inputs[0]
+    def single_iterable_input(self) -> IteratorInputInfo:
+        assert len(self.iterable_inputs) == 1
+        return self.iterable_inputs[0]
 
     @property
-    def single_iterator_output(self) -> IteratorOutputInfo:
-        assert len(self.iterator_outputs) == 1
-        return self.iterator_outputs[0]
+    def single_iterable_output(self) -> IteratorOutputInfo:
+        assert len(self.iterable_outputs) == 1
+        return self.iterable_outputs[0]

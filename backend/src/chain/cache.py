@@ -56,7 +56,7 @@ def get_cache_strategies(chain: Chain) -> dict[NodeId, CacheStrategy]:
 
             if isinstance(node, GeneratorNode):
                 # we only care about non-iterator outputs
-                iterator_output = node.data.single_iterator_output
+                iterator_output = node.data.single_iterable_output
                 out_edges = [
                     out_edge
                     for out_edge in out_edges

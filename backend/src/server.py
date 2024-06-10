@@ -147,8 +147,8 @@ async def nodes(_request: Request):
             "groupLayout": [
                 g.to_dict() if isinstance(g, Group) else g for g in node.group_layout
             ],
-            "iteratorInputs": [x.to_dict() for x in node.iterator_inputs],
-            "iteratorOutputs": [x.to_dict() for x in node.iterator_outputs],
+            "iteratorInputs": [x.to_dict() for x in node.iterable_inputs],
+            "iteratorOutputs": [x.to_dict() for x in node.iterable_outputs],
             "keyInfo": node.key_info.to_dict() if node.key_info else None,
             "suggestions": [x.to_dict() for x in node.suggestions],
             "description": node.description,

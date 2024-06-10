@@ -197,7 +197,7 @@ class Chain:
                 elif isinstance(source, GeneratorNode):
                     if (
                         in_edge.source.output_id
-                        in source.data.single_iterator_output.outputs
+                        in source.data.single_iterable_output.outputs
                     ):
                         iterator = source
                         break
