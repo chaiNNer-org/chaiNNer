@@ -150,7 +150,7 @@ class NodeGroup:
         iterator_inputs = to_list(iterator_inputs)
         iterator_outputs = to_list(iterator_outputs)
 
-        if kind == "newIterator":  # Generator
+        if kind == "generator":  # Generator
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
         elif kind == "collector":
             assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0

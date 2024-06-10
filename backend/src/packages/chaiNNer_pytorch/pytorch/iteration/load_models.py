@@ -43,7 +43,7 @@ from ..io.load_model import load_model_node
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    kind="newIterator",
+    kind="generator",
     node_context=True,
 )
 def load_models_node(

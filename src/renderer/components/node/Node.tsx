@@ -257,7 +257,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     };
 
     const startingNode = isStartingNode(schema);
-    const isNewIterator = schema.kind === 'newIterator';
+    const isNewIterator = schema.kind === 'generator';
     const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
     const reload = useRunNode(
         data,

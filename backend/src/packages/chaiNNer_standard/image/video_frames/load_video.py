@@ -54,7 +54,7 @@ from .. import video_frames_group
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
     node_context=True,
-    kind="newIterator",
+    kind="generator",
 )
 def load_video_node(
     node_context: NodeContext,

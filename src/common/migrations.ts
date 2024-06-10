@@ -1968,6 +1968,16 @@ const saveVideoAdvancedModeMigration: ModernMigration = (data) => {
     return data;
 };
 
+const newIteratorToGenerator: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.type === 'newIterator') {
+            node.type = 'generator';
+        }
+    });
+
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -2028,6 +2038,7 @@ const migrations = [
     normalMapGeneratorInvert,
     saveVideoInputPatchMigration,
     saveVideoAdvancedModeMigration,
+    newIteratorToGenerator,
 ];
 
 export const currentMigration = migrations.length;

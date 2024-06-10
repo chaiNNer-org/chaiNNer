@@ -73,7 +73,7 @@ export class ChainLineage {
         exclude: ReadonlySet<InputId>
     ): Lineage | null {
         switch (schema.kind) {
-            case 'newIterator': {
+            case 'generator': {
                 // iterator source nodes do not support iterated inputs
                 return null;
             }
@@ -177,7 +177,7 @@ export class ChainLineage {
                 // the lineage of the first iterated input (if any).
                 return this.getInputLineage(nodeId);
             }
-            case 'newIterator': {
+            case 'generator': {
                 // iterator source nodes create a new lineage
                 if (schema.iteratorOutputs.length !== 1) {
                     throw new Error(

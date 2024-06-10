@@ -33,7 +33,7 @@ class GeneratorNode:
         self.id: NodeId = node_id
         self.schema_id: str = schema_id
         self.data: NodeData = registry.get_node(schema_id)
-        assert self.data.kind == "newIterator"
+        assert self.data.kind == "generator"
 
     def has_side_effects(self) -> bool:
         return self.data.side_effects

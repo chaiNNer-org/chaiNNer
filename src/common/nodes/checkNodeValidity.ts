@@ -179,7 +179,7 @@ export const checkAssignedLineage = (
             }
             break;
         }
-        case 'newIterator': {
+        case 'generator': {
             if (sourceLineage) {
                 return nonIteratorInput();
             }

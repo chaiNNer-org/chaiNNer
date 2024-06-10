@@ -52,7 +52,7 @@ Row major:    Column major:
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="Input1 * Input2"),
-    kind="newIterator",
+    kind="generator",
 )
 def split_spritesheet_node(
     sprite_sheet: np.ndarray,

@@ -98,7 +98,7 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    kind="newIterator",
+    kind="generator",
 )
 def load_images_node(
     directory: Path,

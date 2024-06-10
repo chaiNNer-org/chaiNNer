@@ -55,7 +55,7 @@ from ..io.load_image import load_image_node
         ).with_docs("A counter that starts at 0 and increments by 1 for each image."),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1, 4, 5, 6, 7, 8]),
-    kind="newIterator",
+    kind="generator",
 )
 def load_image_pairs_node(
     directory_a: Path,

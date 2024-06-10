@@ -10,4 +10,4 @@ FeatureId = NewType("FeatureId", str)
 
 RunFn = Callable[..., Any]
 
-NodeKind = Literal["regularNode", "newIterator", "collector"]
+NodeKind = Literal["regularNode", "generator", "collector"]

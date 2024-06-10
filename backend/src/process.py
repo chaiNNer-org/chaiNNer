@@ -180,7 +180,7 @@ def run_node(
         if node.kind == "collector":
             assert isinstance(raw_output, Collector)
             return CollectorOutput(raw_output)
-        if node.kind == "newIterator":
+        if node.kind == "generator":
             return enforce_iterator_output(raw_output, node)
 
         assert node.kind == "regularNode"
