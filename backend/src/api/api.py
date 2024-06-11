@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib
 import os
-import typing
 from dataclasses import asdict, dataclass, field
 from typing import (
     Any,
@@ -513,13 +512,13 @@ L = TypeVar("L")
 
 @dataclass
 class Generator(Generic[I]):
-    supplier: Callable[[], typing.Generator[I | Exception, None, None]]
+    supplier: Callable[[], Iterable[I | Exception]]
     expected_length: int
     fail_fast: bool = True
 
     @staticmethod
     def from_iter(
-        supplier: Callable[[], typing.Generator[I | Exception, None, None]],
+        supplier: Callable[[], Iterable[I | Exception]],
         expected_length: int,
         fail_fast: bool = True,
     ) -> Generator[I]:
