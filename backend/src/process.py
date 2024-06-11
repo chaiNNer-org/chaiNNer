@@ -740,6 +740,12 @@ class Executor:
 
             self.__send_node_progress(node, [], 0, expected_length)
 
+        # Assert that all expected lengths are the same
+        if not len(set(expected_lengths.values())) <= 1:
+            raise AssertionError(
+                "Expected all connected iterators to have the same length"
+            )
+
         total_stopiters = 0
         # iterate
         while True:
@@ -846,30 +852,29 @@ class Executor:
     async def __process_nodes(self):
         self.__send_chain_start()
 
-        # we first need to run generator nodes in topological order
         generator_nodes: list[GeneratorNode] = []
-        for node_id in self.chain.topological_order():
-            generator_node = self.chain.nodes[node_id]
-            if isinstance(generator_node, GeneratorNode):
-                generator_nodes.append(generator_node)
 
         # Group nodes to run by shared lineage
         # TODO: there's probably a better way of doing this
         gens_by_outs: dict[NodeId, set[NodeId]] = {}
-        for node in generator_nodes:
-            collector_nodes, output_nodes, __all_iterated_nodes = (
-                self.__get_iterated_nodes(node)
-            )
-            for collector in collector_nodes:
-                if gens_by_outs.get(collector.id, None) is not None:
-                    gens_by_outs[collector.id].add(node.id)
-                else:
-                    gens_by_outs[collector.id] = {node.id}
-            for out_node in output_nodes:
-                if gens_by_outs.get(out_node.id, None) is not None:
-                    gens_by_outs[out_node.id].add(node.id)
-                else:
-                    gens_by_outs[out_node.id] = {node.id}
+        for node_id in self.chain.topological_order():
+            node = self.chain.nodes[node_id]
+            if isinstance(node, GeneratorNode):
+                # we first need to run generator nodes in topological order
+                generator_nodes.append(node)
+                collector_nodes, output_nodes, __all_iterated_nodes = (
+                    self.__get_iterated_nodes(node)
+                )
+                for collector in collector_nodes:
+                    if gens_by_outs.get(collector.id, None) is not None:
+                        gens_by_outs[collector.id].add(node.id)
+                    else:
+                        gens_by_outs[collector.id] = {node.id}
+                for out_node in output_nodes:
+                    if gens_by_outs.get(out_node.id, None) is not None:
+                        gens_by_outs[out_node.id].add(node.id)
+                    else:
+                        gens_by_outs[out_node.id] = {node.id}
 
         # example:
         # { out1: {gen1, gen2}, out2: {gen1}, out3: {gen3} }
@@ -878,6 +883,7 @@ class Executor:
         groups: list[set[NodeId]] = list(gens_by_outs.values())
         combined_groups = combine_sets(groups)
 
+        # TODO: Look for a way to avoid duplicating this work
         for group in combined_groups:
             nodes_to_run: list[GeneratorNode] = []
             for node_id in group:
