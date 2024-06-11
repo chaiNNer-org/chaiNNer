@@ -79,7 +79,7 @@ def load_video_node(
                 break
 
     return (
-        Generator.from_iter(gen_supplier=iterator, expected_length=frame_count),
+        Generator.from_iter(supplier=iterator, expected_length=frame_count),
         video_dir,
         video_name,
         loader.metadata.fps,

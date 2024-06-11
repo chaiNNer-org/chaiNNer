@@ -513,17 +513,17 @@ L = TypeVar("L")
 
 @dataclass
 class Generator(Generic[I]):
-    gen_supplier: Callable[[], typing.Generator[I | Exception, None, None]]
+    supplier: Callable[[], typing.Generator[I | Exception, None, None]]
     expected_length: int
     fail_fast: bool = True
 
     @staticmethod
     def from_iter(
-        gen_supplier: Callable[[], typing.Generator[I | Exception, None, None]],
+        supplier: Callable[[], typing.Generator[I | Exception, None, None]],
         expected_length: int,
         fail_fast: bool = True,
     ) -> Generator[I]:
-        return Generator(gen_supplier, expected_length, fail_fast=fail_fast)
+        return Generator(supplier, expected_length, fail_fast=fail_fast)
 
     @staticmethod
     def from_list(
