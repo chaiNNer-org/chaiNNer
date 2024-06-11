@@ -750,6 +750,7 @@ class Executor:
         # iterate
         while True:
             deferred_errors: list[str] = []
+            generator_output = None
             try:
                 # iterate each iterator
                 for node in generator_nodes:
@@ -808,7 +809,7 @@ class Executor:
                 if total_stopiters >= num_generators:
                     break
             except Exception as e:
-                if generator_output.generator.fail_fast:
+                if generator_output and generator_output.generator.fail_fast:
                     raise e
                 else:
                     deferred_errors.append(str(e))
