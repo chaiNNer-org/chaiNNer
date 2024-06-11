@@ -23,44 +23,21 @@ def timed_supplier(supplier: Callable[[], T]) -> Callable[[], tuple[T, float]]:
 ###
 
 
-def _find(parent: dict[str, str], i: str) -> str:
-    if parent[i] == i:
-        return i
-    else:
-        parent[i] = _find(parent, parent[i])
-        return parent[i]
-
-
-def _union(parent: dict[str, str], rank: dict[str, int], x: str, y: str) -> None:
-    root_x = _find(parent, x)
-    root_y = _find(parent, y)
-
-    if root_x != root_y:
-        if rank[root_x] > rank[root_y]:
-            parent[root_y] = root_x
-        elif rank[root_x] < rank[root_y]:
-            parent[root_x] = root_y
-        else:
-            parent[root_y] = root_x
-            rank[root_x] += 1
-
-
 def combine_sets(sets: list[set[NodeId]]) -> list[set[NodeId]]:
-    elements = {elem for s in sets for elem in s}
-    parent: dict[str, str] = {elem: elem for elem in elements}
-    rank: dict[str, int] = {elem: 0 for elem in elements}
-
-    for s in sets:
-        s = list(s)  # noqa: PLW2901
-        for i in range(1, len(s)):
-            _union(parent, rank, s[i - 1], s[i])
-
-    combined: dict[str, set[NodeId]] = {}
-    for elem in elements:
-        root = _find(parent, elem)
-        if root in combined:
-            combined[root].add(elem)
-        else:
-            combined[root] = {elem}
-
-    return list(combined.values())
+    combined = True
+    while combined:
+        combined = False
+        new_sets = []
+        while sets:
+            current = sets.pop()
+            merged = False
+            for i, s in enumerate(sets):
+                if current & s:  # Check for intersection
+                    sets[i] = current | s  # Union
+                    merged = True
+                    combined = True
+                    break
+            if not merged:
+                new_sets.append(current)
+        sets = new_sets
+    return sets
