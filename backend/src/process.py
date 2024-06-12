@@ -33,7 +33,7 @@ from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict
 from progress_controller import Aborted, ProgressController, ProgressToken
-from util import combine_sets, timed_supplier
+from util import timed_supplier
 
 Output = List[object]
 
@@ -850,6 +850,40 @@ class Executor:
             error_string = "- " + "\n- ".join(deferred_errors)
             raise Exception(f"Errors occurred during iteration:\n{error_string}")
 
+    def __combine_sets(self, set_list: list[set[NodeId]]) -> list[set[NodeId]]:
+        """
+        Combines sets in a list which have at least one intersecting value
+
+        Example:
+            in: [{gen1, gen2}, {gen1, gen4}, {gen3}]
+            out: [{gen1, gen2, gen4}, {gen3}]
+        Note:
+            This code was written by ChatGPT. I tried to make my own algorithm for this, as well as
+            find resources to help online, and was unsuccessful. From all my testing, this implementation
+            seems to be both correct and performant. However, if you are familiar with this problem
+            and you know a better way to do this, please submit a PR with a modification.
+        """
+        sets = [set(x) for x in set_list]
+        combined = True
+        while combined:
+            combined = False
+            new_sets = []
+            # Process each set in the input list
+            while sets:
+                current = sets.pop()
+                merged = False
+                # Compare the current set with the remaining sets
+                for i, s in enumerate(sets):
+                    if current & s:  # Check for intersection
+                        sets[i] = current | s  # Union of sets with common elements
+                        merged = True
+                        combined = True  # Indicates that a merge occurred
+                        break
+                if not merged:
+                    new_sets.append(current)  # No merge, add current set to new_sets
+            sets = new_sets  # Update sets with the remaining sets
+        return sets
+
     async def __process_nodes(self):
         self.__send_chain_start()
 
@@ -877,12 +911,8 @@ class Executor:
                     else:
                         gens_by_outs[out_node.id] = {node.id}
 
-        # example:
-        # { out1: {gen1, gen2}, out2: {gen1}, out3: {gen3} }
-        # this means we need to group gen1 and gen2 into one group, and gen 3 into another
-
         groups: list[set[NodeId]] = list(gens_by_outs.values())
-        combined_groups = combine_sets(groups)
+        combined_groups = self.__combine_sets(groups)
 
         # TODO: Look for a way to avoid duplicating this work
         for group in combined_groups:
