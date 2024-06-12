@@ -698,9 +698,7 @@ class Executor:
         output_nodes: set[FunctionNode] = set()
         all_iterated_nodes: set[NodeId] = set()
 
-        generator_suppliers: dict[
-            NodeId, typing.Generator[Output | Exception, None, None]
-        ] = {}
+        generator_suppliers: dict[NodeId, typing.Iterator[Output | Exception]] = {}
 
         # timing iterations
         iter_timers: dict[NodeId, _IterationTimer] = {}
