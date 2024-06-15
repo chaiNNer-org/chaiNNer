@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getIncomers, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { NodeData } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -8,6 +7,7 @@ import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { useAsyncEffect } from './useAsyncEffect';
+import { useAutomaticNode } from './useAutomaticNode';
 import { useSettings } from './useSettings';
 
 /**
@@ -41,15 +41,8 @@ export const useRunNode = (
     );
     const lastInputHash = useRef<string>();
 
-    const { getEdges, getNodes, getNode } = useReactFlow();
-    const thisNode = getNode(id);
-    const hasIncomingConnections =
-        thisNode && getIncomers(thisNode, getNodes(), getEdges()).length > 0;
-
-    const isNewIterator = schema.kind === 'newIterator';
-    const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
-
-    const shouldRun = isValid && !hasIncomingConnections && !isNewIterator && !hasStaticValueInput;
+    const { isAutomatic, hasIncomingConnections } = useAutomaticNode(id, schemaId);
+    const shouldRun = isValid && isAutomatic;
 
     useAsyncEffect(
         () => async (token) => {

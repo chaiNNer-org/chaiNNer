@@ -34,6 +34,7 @@ from .. import io_group
     see_also=[
         "chainner:ncnn:load_models",
     ],
+    side_effects=True,
 )
 def load_model_node(
     param_path: Path, bin_path: Path
