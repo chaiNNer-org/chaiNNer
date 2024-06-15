@@ -8,7 +8,7 @@ import { ExpressionJson, fromJson } from '../../../common/types/json';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NodeState } from '../../helpers/nodeState';
-import { useAutomaticNode } from '../../hooks/useAutomaticNode';
+import { useAutomaticFeatures } from '../../hooks/useAutomaticFeatures';
 import { useIsCollapsedNode } from '../../hooks/useIsCollapsedNode';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
@@ -81,7 +81,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
 
     const currentTypes = stale ? undefined : outputDataEntry?.types;
 
-    const { isAutomatic } = useAutomaticNode(id, schemaId);
+    const { isAutomatic } = useAutomaticFeatures(id, schemaId);
 
     useEffect(() => {
         if (isAutomatic) {

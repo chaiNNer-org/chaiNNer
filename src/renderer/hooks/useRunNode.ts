@@ -7,7 +7,7 @@ import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { useAsyncEffect } from './useAsyncEffect';
-import { useAutomaticNode } from './useAutomaticNode';
+import { useAutomaticFeatures } from './useAutomaticFeatures';
 import { useSettings } from './useSettings';
 
 /**
@@ -41,7 +41,7 @@ export const useRunNode = (
     );
     const lastInputHash = useRef<string>();
 
-    const { isAutomatic, hasIncomingConnections } = useAutomaticNode(id, schemaId);
+    const { isAutomatic, hasIncomingConnections } = useAutomaticFeatures(id, schemaId);
     const shouldRun = isValid && isAutomatic;
 
     useAsyncEffect(

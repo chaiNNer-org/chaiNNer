@@ -6,7 +6,7 @@ import { BackendContext } from '../contexts/BackendContext';
 /**
  * Determines whether a node should use automatic ahead-of-time features, such as individually running the node or determining certain type features automatically.
  */
-export const useAutomaticNode = (id: string, schemaId: SchemaId) => {
+export const useAutomaticFeatures = (id: string, schemaId: SchemaId) => {
     const { schemata } = useContext(BackendContext);
     const schema = schemata.get(schemaId);
 
