@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from api import Iterator, IteratorOutputInfo
+from api import Generator, IteratorOutputInfo
 from nodes.properties.inputs import ImageInput, NumberInput, OrderEnum, RowOrderDropdown
 from nodes.properties.outputs import ImageOutput, NumberOutput
 from nodes.utils.utils import get_h_w_c
@@ -52,14 +52,14 @@ Row major:    Column major:
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="Input1 * Input2"),
-    kind="newIterator",
+    kind="generator",
 )
 def split_spritesheet_node(
     sprite_sheet: np.ndarray,
     rows: int,
     columns: int,
     order: OrderEnum,
-) -> Iterator[tuple[np.ndarray, int]]:
+) -> Generator[tuple[np.ndarray, int]]:
     h, w, _ = get_h_w_c(sprite_sheet)
     assert (
         h % rows == 0
@@ -88,4 +88,4 @@ def split_spritesheet_node(
         return sprite, index
 
     # We just need the index, so we can pass in a list of None's
-    return Iterator.from_range(rows * columns, get_sprite)
+    return Generator.from_range(rows * columns, get_sprite)

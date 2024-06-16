@@ -1026,7 +1026,7 @@ exports[`Read save file DiffusePBR.chn 1`] = `
         "y": -315,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
   ],
   "tamperedWith": false,
@@ -1989,7 +1989,7 @@ exports[`Read save file big ol test.chn 1`] = `
         "y": 336,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
   ],
   "tamperedWith": false,
@@ -11536,7 +11536,7 @@ exports[`Read save file image-iterator.chn 1`] = `
         "y": 157,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
   ],
   "tamperedWith": false,
@@ -17128,7 +17128,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 4485,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17151,7 +17151,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 3300,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17209,7 +17209,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 2160,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17267,7 +17267,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 2160,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17325,7 +17325,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 3300,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17383,7 +17383,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 2160,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17441,7 +17441,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -930,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17499,7 +17499,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -930,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17557,7 +17557,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 150,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17615,7 +17615,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -1695,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17673,7 +17673,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 915,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17731,7 +17731,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 4485,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17754,7 +17754,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 150,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17812,7 +17812,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 3300,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17870,7 +17870,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 915,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17928,7 +17928,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -1695,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -17986,7 +17986,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -930,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18044,7 +18044,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 915,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18102,7 +18102,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -1695,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18160,7 +18160,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 150,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18218,7 +18218,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": -1695,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18276,7 +18276,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 2160,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18334,7 +18334,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
         "y": 3300,
       },
       "selected": false,
-      "type": "newIterator",
+      "type": "generator",
     },
     {
       "data": {
@@ -18383,7 +18383,7 @@ exports[`Read save file video-frame-iterator.chn 1`] = `
 
 exports[`Write save file DiffusePBR.chn 1`] = `
 {
-  "checksum": "5bf275b7ad3cb6ff2729c963bc815689",
+  "checksum": "ca516748dd9606002fcf7171b88c80b3",
   "content": {
     "edges": [
       {
@@ -19403,7 +19403,7 @@ exports[`Write save file DiffusePBR.chn 1`] = `
           "y": -315,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
     ],
     "viewport": {
@@ -19575,7 +19575,7 @@ exports[`Write save file add noise with seed edge.chn 1`] = `
 
 exports[`Write save file big ol test.chn 1`] = `
 {
-  "checksum": "769c4801d536496e1ac53e5b78a6e686",
+  "checksum": "1f9b89cc1f0991406912a6f070f5af69",
   "content": {
     "edges": [
       {
@@ -20181,7 +20181,7 @@ exports[`Write save file big ol test.chn 1`] = `
           "y": 336,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
     ],
     "viewport": {
@@ -29702,7 +29702,7 @@ exports[`Write save file image-input-output.chn 1`] = `
 
 exports[`Write save file image-iterator.chn 1`] = `
 {
-  "checksum": "53ba8ed665e5727dcfd081ce3ae68c44",
+  "checksum": "734450a5e79700af416697dcde73357a",
   "content": {
     "edges": [
       {
@@ -29779,7 +29779,7 @@ exports[`Write save file image-iterator.chn 1`] = `
           "y": 157,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
     ],
     "viewport": {
@@ -34631,7 +34631,7 @@ exports[`Write save file utilities.chn 1`] = `
 
 exports[`Write save file video-frame-iterator.chn 1`] = `
 {
-  "checksum": "bae43b912447225ed777d36d222d14a7",
+  "checksum": "ddb650764a6b459f82018448b95dea21",
   "content": {
     "edges": [
       {
@@ -35415,7 +35415,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 4485,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35432,7 +35432,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 3300,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35476,7 +35476,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 2160,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35520,7 +35520,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 2160,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35564,7 +35564,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 3300,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35608,7 +35608,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 2160,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35652,7 +35652,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -930,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35696,7 +35696,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -930,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35740,7 +35740,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 150,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35784,7 +35784,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -1695,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35828,7 +35828,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 915,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35872,7 +35872,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 4485,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35889,7 +35889,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 150,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35933,7 +35933,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 3300,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -35977,7 +35977,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 915,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36021,7 +36021,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -1695,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36065,7 +36065,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -930,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36109,7 +36109,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 915,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36153,7 +36153,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -1695,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36197,7 +36197,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 150,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36241,7 +36241,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": -1695,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36285,7 +36285,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 2160,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {
@@ -36329,7 +36329,7 @@ exports[`Write save file video-frame-iterator.chn 1`] = `
           "y": 3300,
         },
         "selected": false,
-        "type": "newIterator",
+        "type": "generator",
       },
       {
         "data": {

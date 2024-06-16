@@ -6,7 +6,7 @@ from pathlib import Path
 from sanic.log import logger
 from spandrel import ModelDescriptor
 
-from api import Iterator, IteratorOutputInfo, NodeContext
+from api import Generator, IteratorOutputInfo, NodeContext
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
@@ -43,14 +43,14 @@ from ..io.load_model import load_model_node
         ),
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
-    kind="newIterator",
+    kind="generator",
     node_context=True,
 )
 def load_models_node(
     context: NodeContext,
     directory: Path,
     fail_fast: bool,
-) -> tuple[Iterator[tuple[ModelDescriptor, str, str, int]], Path]:
+) -> tuple[Generator[tuple[ModelDescriptor, str, str, int]], Path]:
     logger.debug(f"Iterating over models in directory: {directory}")
 
     def load_model(path: Path, index: int):
@@ -62,4 +62,4 @@ def load_models_node(
     supported_filetypes = [".pt", ".pth", ".ckpt", ".safetensors"]
     model_files: list[Path] = list_all_files_sorted(directory, supported_filetypes)
 
-    return Iterator.from_list(model_files, load_model, fail_fast), directory
+    return Generator.from_list(model_files, load_model, fail_fast), directory

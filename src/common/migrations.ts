@@ -22,6 +22,7 @@ import {
     ParsedTargetHandle,
     assertNever,
     deriveUniqueId,
+    parseSourceHandle,
     parseTargetHandle,
     stringifySourceHandle,
     stringifyTargetHandle,
@@ -1968,6 +1969,130 @@ const saveVideoAdvancedModeMigration: ModernMigration = (data) => {
     return data;
 };
 
+const newIteratorToGenerator: ModernMigration = (data) => {
+    data.nodes.forEach((node) => {
+        if (node.type === 'newIterator') {
+            node.type = 'generator';
+        }
+    });
+
+    return data;
+};
+
+const splitLoadImagePairs: ModernMigration = (data) => {
+    const newNodes: Node<NodeData>[] = [];
+    const newEdges: Edge<EdgeData>[] = [];
+    data.nodes.forEach((node) => {
+        if (node.data.schemaId === 'chainner:image:load_image_pairs') {
+            const nodeAId = deriveUniqueId(`${node.id}A`);
+            const nodeAData = {
+                0: node.data.inputData[0],
+                1: false,
+                2: true,
+                3: '**/*',
+                4: node.data.inputData[2],
+                5: node.data.inputData[3],
+                6: node.data.inputData[4],
+            };
+            const nodeA: Node<NodeData> = {
+                ...node,
+                id: nodeAId,
+                position: {
+                    x: node.position.x,
+                    y: node.position.y - 250,
+                },
+                data: {
+                    ...node.data,
+                    id: nodeAId,
+                    schemaId: 'chainner:image:load_images' as SchemaId,
+                    inputData: nodeAData,
+                    nodeName: `${node.data.nodeName ?? 'Load Images'} A`,
+                },
+            };
+
+            const nodeBId = deriveUniqueId(`${node.id}B`);
+            const nodeBData = {
+                0: node.data.inputData[1],
+                1: false,
+                2: true,
+                3: '**/*',
+                4: node.data.inputData[2],
+                5: node.data.inputData[3],
+                6: node.data.inputData[4],
+            };
+            const nodeB: Node<NodeData> = {
+                ...node,
+                id: nodeBId,
+                position: {
+                    x: node.position.x,
+                    y: node.position.y + 250,
+                },
+                data: {
+                    ...node.data,
+                    id: nodeBId,
+                    schemaId: 'chainner:image:load_images' as SchemaId,
+                    inputData: nodeBData,
+                    nodeName: `${node.data.nodeName ?? 'Load Images'} B`,
+                },
+            };
+            newNodes.push(nodeA, nodeB);
+
+            const sourceEdges = data.edges.filter((e) => e.source === node.id);
+            for (const edge of sourceEdges) {
+                if (edge.sourceHandle) {
+                    const parsed = parseSourceHandle(edge.sourceHandle);
+                    if ([0, 2, 4, 6].includes(parsed.outputId)) {
+                        edge.source = nodeAId;
+                        edge.sourceHandle = `${nodeAId}-${parsed.outputId / 2}`;
+                    } else if ([1, 3, 5, 7].includes(parsed.outputId)) {
+                        edge.source = nodeBId;
+                        edge.sourceHandle = `${nodeBId}-${(parsed.outputId - 1) / 2}`;
+                    } else if (parsed.outputId === 8) {
+                        edge.source = nodeAId;
+                        edge.sourceHandle = `${nodeAId}-${4}`;
+                        const newEdge = {
+                            ...edge,
+                            id: deriveUniqueId(edge.id),
+                            source: nodeBId,
+                            sourceHandle: `${nodeBId}-${4}`,
+                        };
+                        newEdges.push(newEdge);
+                    }
+                }
+            }
+            const targetEdges = data.edges.filter((e) => e.target === node.id);
+            for (const edge of targetEdges) {
+                if (edge.targetHandle) {
+                    const parsed = parseTargetHandle(edge.targetHandle);
+                    if (parsed.inputId === 0) {
+                        edge.target = nodeAId;
+                        edge.targetHandle = `${nodeAId}-${0}`;
+                    } else if (parsed.inputId === 1) {
+                        edge.target = nodeBId;
+                        edge.targetHandle = `${nodeBId}-${0}`;
+                    } else if (parsed.inputId === 3) {
+                        edge.target = nodeAId;
+                        edge.targetHandle = `${nodeAId}-${5}`;
+                        const newEdge = {
+                            ...edge,
+                            id: deriveUniqueId(edge.id),
+                            target: nodeBId,
+                            targetHandle: `${nodeBId}-${5}`,
+                        };
+                        newEdges.push(newEdge);
+                    }
+                }
+            }
+        }
+    });
+
+    data.nodes = data.nodes
+        .filter((n) => n.data.schemaId !== 'chainner:image:load_image_pairs')
+        .concat(newNodes);
+    data.edges = data.edges.concat(newEdges);
+    return data;
+};
+
 // ==============
 
 const versionToMigration = (version: string) => {
@@ -2028,6 +2153,8 @@ const migrations = [
     normalMapGeneratorInvert,
     saveVideoInputPatchMigration,
     saveVideoAdvancedModeMigration,
+    newIteratorToGenerator,
+    splitLoadImagePairs,
 ];
 
 export const currentMigration = migrations.length;

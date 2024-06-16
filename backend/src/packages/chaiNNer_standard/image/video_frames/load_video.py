@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 
-from api import Iterator, IteratorOutputInfo, NodeContext
+from api import Generator, IteratorOutputInfo, NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.video import VideoLoader
@@ -54,14 +54,14 @@ from .. import video_frames_group
     ],
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
     node_context=True,
-    kind="newIterator",
+    kind="generator",
 )
 def load_video_node(
     node_context: NodeContext,
     path: Path,
     use_limit: bool,
     limit: int,
-) -> tuple[Iterator[tuple[np.ndarray, int]], Path, str, float, Any]:
+) -> tuple[Generator[tuple[np.ndarray, int]], Path, str, float, Any]:
     video_dir, video_name, _ = split_file_path(path)
 
     loader = VideoLoader(path, FFMpegEnv.get_integrated(node_context.storage_dir))
@@ -79,7 +79,7 @@ def load_video_node(
                 break
 
     return (
-        Iterator.from_iter(iter_supplier=iterator, expected_length=frame_count),
+        Generator.from_iter(supplier=iterator, expected_length=frame_count),
         video_dir,
         video_name,
         loader.metadata.fps,
