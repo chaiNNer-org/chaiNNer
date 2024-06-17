@@ -17,8 +17,8 @@ export const useAutomaticFeatures = (id: string, schemaId: SchemaId) => {
     const hasIncomingConnections =
         thisNode && getIncomers(thisNode, getNodes(), getEdges()).length > 0;
 
-    // If the node is an iterator, it should not use automatic features
-    const isNewIterator = schema.kind === 'newIterator';
+    // If the node is a generator, it should not use automatic features
+    const isGenerator = schema.kind === 'generator';
     // Same if it has any static input values
     const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
     // We should only use automatic features if the node has side effects
@@ -26,7 +26,7 @@ export const useAutomaticFeatures = (id: string, schemaId: SchemaId) => {
 
     return {
         isAutomatic:
-            hasSideEffects && !hasIncomingConnections && !isNewIterator && !hasStaticValueInput,
+            hasSideEffects && !hasIncomingConnections && !isGenerator && !hasStaticValueInput,
         hasIncomingConnections,
     };
 };

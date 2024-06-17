@@ -7,7 +7,7 @@ from sanic.log import logger
 
 from api import NodeId
 
-from .chain import Chain, Edge, FunctionNode, NewIteratorNode
+from .chain import Chain, Edge, FunctionNode, GeneratorNode
 
 
 class CacheStrategy:
@@ -54,9 +54,9 @@ def get_cache_strategies(chain: Chain) -> dict[NodeId, CacheStrategy]:
         else:
             # the node is NOT implicitly iterated
 
-            if isinstance(node, NewIteratorNode):
+            if isinstance(node, GeneratorNode):
                 # we only care about non-iterator outputs
-                iterator_output = node.data.single_iterator_output
+                iterator_output = node.data.single_iterable_output
                 out_edges = [
                     out_edge
                     for out_edge in out_edges

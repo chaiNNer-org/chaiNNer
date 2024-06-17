@@ -453,7 +453,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         // find iterator nodes for later
         const iteratorNodeIds = new Set(
             nodes
-                .filter((n) => schemata.get(n.data.schemaId).kind === 'newIterator')
+                .filter((n) => schemata.get(n.data.schemaId).kind === 'generator')
                 .map((n) => n.data.id)
         );
         executingIteratorNodesRef.current = iteratorNodeIds;

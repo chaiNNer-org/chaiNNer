@@ -25,7 +25,7 @@ import { ipcRenderer } from './safeIpc';
 
 const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {
     regularNode: Node,
-    newIterator: Node,
+    generator: Node,
     collector: Node,
     breakPoint: BreakPoint,
 };

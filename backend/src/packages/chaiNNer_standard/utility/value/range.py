@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from api import Iterator, IteratorOutputInfo, KeyInfo
+from api import Generator, IteratorOutputInfo, KeyInfo
 from nodes.properties.inputs import BoolInput, NumberInput
 from nodes.properties.outputs import NumberOutput
 
@@ -38,17 +38,17 @@ from .. import value_group
         """
     ),
     iterator_outputs=IteratorOutputInfo(outputs=0),
-    kind="newIterator",
+    kind="generator",
 )
 def range_node(
     start: int,
     start_inclusive: bool,
     end: int,
     end_inclusive: bool,
-) -> Iterator[int]:
+) -> Generator[int]:
     if not start_inclusive:
         start += 1
     if end_inclusive:
         end += 1
     count = end - start
-    return Iterator.from_range(count, lambda i: start + i)
+    return Generator.from_range(count, lambda i: start + i)

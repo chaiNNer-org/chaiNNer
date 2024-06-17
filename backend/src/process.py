@@ -4,6 +4,7 @@ import asyncio
 import functools
 import gc
 import time
+import typing
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -17,8 +18,8 @@ from api import (
     BaseOutput,
     Collector,
     ExecutionOptions,
+    Generator,
     InputId,
-    Iterator,
     Lazy,
     NodeContext,
     NodeData,
@@ -28,11 +29,11 @@ from api import (
     registry,
 )
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
-from chain.chain import Chain, CollectorNode, FunctionNode, NewIteratorNode, Node
+from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict
 from progress_controller import Aborted, ProgressController, ProgressToken
-from util import timed_supplier
+from util import combine_sets, timed_supplier
 
 Output = List[object]
 
@@ -132,38 +133,40 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     return RegularOutput(output)
 
 
-def enforce_iterator_output(raw_output: object, node: NodeData) -> IteratorOutput:
+def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOutput:
     l = len(node.outputs)
-    iterator_output = node.single_iterator_output
+    generator_output = node.single_iterable_output
 
     partial: list[object] = [None] * l
 
-    if l == len(iterator_output.outputs):
-        assert isinstance(raw_output, Iterator), "Expected the output to be an iterator"
-        return IteratorOutput(iterator=raw_output, partial_output=partial)
+    if l == len(generator_output.outputs):
+        assert isinstance(
+            raw_output, Generator
+        ), "Expected the output to be a generator"
+        return GeneratorOutput(generator=raw_output, partial_output=partial)
 
-    assert l > len(iterator_output.outputs)
+    assert l > len(generator_output.outputs)
     assert isinstance(raw_output, (tuple, list))
 
     iterator, *rest = raw_output
     assert isinstance(
-        iterator, Iterator
-    ), "Expected the first tuple element to be an iterator"
-    assert len(rest) == l - len(iterator_output.outputs)
+        iterator, Generator
+    ), "Expected the first tuple element to be a generator"
+    assert len(rest) == l - len(generator_output.outputs)
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
-        if o.id not in iterator_output.outputs:
+        if o.id not in generator_output.outputs:
             partial[i] = o.enforce(rest.pop(0))
 
-    return IteratorOutput(iterator=iterator, partial_output=partial)
+    return GeneratorOutput(generator=iterator, partial_output=partial)
 
 
 def run_node(
     node: NodeData, context: NodeContext, inputs: list[object], node_id: NodeId
 ) -> NodeOutput | CollectorOutput:
     if node.kind == "collector":
-        ignored_inputs = node.single_iterator_input.inputs
+        ignored_inputs = node.single_iterable_input.inputs
     else:
         ignored_inputs = []
 
@@ -178,8 +181,8 @@ def run_node(
         if node.kind == "collector":
             assert isinstance(raw_output, Collector)
             return CollectorOutput(raw_output)
-        if node.kind == "newIterator":
-            return enforce_iterator_output(raw_output, node)
+        if node.kind == "generator":
+            return enforce_generator_output(raw_output, node)
 
         assert node.kind == "regularNode"
         return enforce_output(raw_output, node)
@@ -196,13 +199,13 @@ def run_node(
 def run_collector_iterate(
     node: CollectorNode, inputs: list[object], collector: Collector
 ) -> None:
-    iterator_input = node.data.single_iterator_input
+    iterable_input = node.data.single_iterable_input
 
     def get_partial_inputs(values: list[object]) -> list[object]:
         partial_inputs: list[object] = []
         index = 0
         for i in node.data.inputs:
-            if i.id in iterator_input.inputs:
+            if i.id in iterable_input.inputs:
                 partial_inputs.append(values[index])
                 index += 1
             else:
@@ -212,7 +215,7 @@ def run_collector_iterate(
     enforced_inputs: list[object] = []
     try:
         for i in node.data.inputs:
-            if i.id in iterator_input.inputs:
+            if i.id in iterable_input.inputs:
                 enforced_inputs.append(i.enforce_(inputs[len(enforced_inputs)]))
     except Exception as e:
         input_dict = collect_input_information(
@@ -317,8 +320,8 @@ class RegularOutput:
 
 
 @dataclass(frozen=True)
-class IteratorOutput:
-    iterator: Iterator
+class GeneratorOutput:
+    generator: Generator
     partial_output: Output
 
 
@@ -327,7 +330,7 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = Union[RegularOutput, IteratorOutput]
+NodeOutput = Union[RegularOutput, GeneratorOutput]
 
 ExecutionId = NewType("ExecutionId", str)
 
@@ -407,7 +410,7 @@ class Executor:
         self.inputs: InputMap = InputMap.from_chain(chain)
         self.send_broadcast_data: bool = send_broadcast_data
         self.options: ExecutionOptions = options
-        self.cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)
+        self.node_cache: OutputCache[NodeOutput] = OutputCache(parent=parent_cache)
         self.__broadcast_tasks: list[asyncio.Task[None]] = []
         self.__context_cache: dict[str, _ExecutorNodeContext] = {}
 
@@ -423,7 +426,7 @@ class Executor:
 
     async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
         # Return cached output value from an already-run node if that cached output exists
-        cached = self.cache.get(node_id)
+        cached = self.node_cache.get(node_id)
         if cached is not None:
             return cached
 
@@ -447,20 +450,20 @@ class Executor:
         assert isinstance(result, RegularOutput)
         return result
 
-    async def process_iterator_node(self, node: NewIteratorNode) -> IteratorOutput:
+    async def process_generator_node(self, node: GeneratorNode) -> GeneratorOutput:
         """
         Processes the given iterator node.
 
-        This will **not** iterate the returned iterator. Only `node-start` and
+        This will **not** iterate the returned generator. Only `node-start` and
         `node-broadcast` events will be sent.
         """
         result = await self.process(node.id)
-        assert isinstance(result, IteratorOutput)
+        assert isinstance(result, GeneratorOutput)
         return result
 
     async def process_collector_node(self, node: CollectorNode) -> CollectorOutput:
         """
-        Processes the given iterator node.
+        Processes the given collector node.
 
         This will **not** iterate the returned collector. Only a `node-start` event
         will be sent.
@@ -483,9 +486,9 @@ class Executor:
             # this generally shouldn't be possible
             raise ValueError("A collector was not run before another node needed it.")
 
-        if isinstance(output, IteratorOutput):
+        if isinstance(output, GeneratorOutput):
             value = output.partial_output[output_index]
-            assert value is not None, "An iterator output was not assigned correctly"
+            assert value is not None, "A generator output was not assigned correctly"
             return value
 
         assert isinstance(output, RegularOutput)
@@ -508,9 +511,9 @@ class Executor:
         # we want to ignore some inputs if we are running a collector node
         ignore: set[int] = set()
         if isinstance(node, CollectorNode):
-            iterator_input = node.data.single_iterator_input
+            iterable_input = node.data.single_iterable_input
             for input_index, i in enumerate(node.data.inputs):
-                if i.id in iterator_input.inputs:
+                if i.id in iterable_input.inputs:
                     ignore.add(input_index)
 
         # some inputs are lazy, so we want to lazily resolve them
@@ -544,7 +547,7 @@ class Executor:
         Returns the input values to be consumed by `Collector.on_iterate`.
         """
 
-        iterator_input = node.data.single_iterator_input
+        iterable_input = node.data.single_iterable_input
 
         assigned_inputs = self.inputs.get(node.id)
         assert len(assigned_inputs) == len(node.data.inputs)
@@ -552,7 +555,7 @@ class Executor:
         inputs = []
         for input_index, node_input in enumerate(assigned_inputs):
             i = node.data.inputs[input_index]
-            if i.id in iterator_input.inputs:
+            if i.id in iterable_input.inputs:
                 inputs.append(await self.__resolve_node_input(node_input))
 
         return inputs
@@ -572,7 +575,7 @@ class Executor:
         """
         Process a single node.
 
-        In the case of iterators and collectors, it will only run the node itself,
+        In the case of generator and collectors, it will only run the node itself,
         not the actual iteration or collection.
         """
 
@@ -613,23 +616,23 @@ class Executor:
         if isinstance(output, RegularOutput):
             await self.__send_node_broadcast(node, output.output)
             self.__send_node_finish(node, execution_time)
-        elif isinstance(output, IteratorOutput):
+        elif isinstance(output, GeneratorOutput):
             await self.__send_node_broadcast(node, output.partial_output)
             # TODO: execution time
 
         # Cache the output of the node
         if not isinstance(output, CollectorOutput):
-            self.cache.set(node.id, output, self.cache_strategy[node.id])
+            self.node_cache.set(node.id, output, self.cache_strategy[node.id])
 
         await self.progress.suspend()
 
         return output
 
     def __get_iterated_nodes(
-        self, node: NewIteratorNode
+        self, node: GeneratorNode
     ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
         """
-        Returns all collector and output nodes iterated by the given iterator node
+        Returns all collector and output nodes iterated by the given generator node
         """
         collectors: set[CollectorNode] = set()
         output_nodes: set[FunctionNode] = set()
@@ -643,8 +646,8 @@ class Executor:
 
             if isinstance(n, CollectorNode):
                 collectors.add(n)
-            elif isinstance(n, NewIteratorNode):
-                raise ValueError("Nested iterators are not supported")
+            elif isinstance(n, GeneratorNode):
+                raise ValueError("Nested sequences are not supported")
             else:
                 assert isinstance(n, FunctionNode)
 
@@ -656,98 +659,114 @@ class Executor:
                     target_node = self.chain.nodes[edge.target.id]
                     visit(target_node)
 
-        iterator_output = node.data.single_iterator_output
+        iterable_output = node.data.single_iterable_output
         for edge in self.chain.edges_from(node.id):
             # only follow iterator outputs
-            if edge.source.output_id in iterator_output.outputs:
+            if edge.source.output_id in iterable_output.outputs:
                 target_node = self.chain.nodes[edge.target.id]
                 visit(target_node)
 
         return collectors, output_nodes, seen
 
-    def __iterator_fill_partial_output(
-        self, node: NewIteratorNode, partial_output: Output, values: object
+    def __generator_fill_partial_output(
+        self, node: GeneratorNode, partial_output: Output, values: object
     ) -> Output:
-        iterator_output = node.data.single_iterator_output
+        iterable_output = node.data.single_iterable_output
 
         values_list: list[object] = []
-        if len(iterator_output.outputs) == 1:
+        if len(iterable_output.outputs) == 1:
             values_list.append(values)
         else:
             assert isinstance(values, (tuple, list))
             values_list.extend(values)
 
-        assert len(values_list) == len(iterator_output.outputs)
+        assert len(values_list) == len(iterable_output.outputs)
 
         output: Output = partial_output.copy()
         for index, o in enumerate(node.data.outputs):
-            if o.id in iterator_output.outputs:
+            if o.id in iterable_output.outputs:
                 output[index] = o.enforce(values_list.pop(0))
 
         return output
 
-    async def __iterate_iterator_node(self, node: NewIteratorNode):
+    async def __iterate_generator_nodes(self, generator_nodes: list[GeneratorNode]):
         await self.progress.suspend()
 
-        # run the iterator node itself before anything else
-        iterator_output = await self.process_iterator_node(node)
-
-        collector_nodes, output_nodes, all_iterated_nodes = self.__get_iterated_nodes(
-            node
-        )
-        all_iterated_nodes = {n.id for n in all_iterated_nodes}
-
-        if len(collector_nodes) == 0 and len(output_nodes) == 0:
-            # unusual, but this can happen
-            # since we don't need to actually iterate the iterator, we can stop here
-            return
-
-        def fill_partial_output(values: object) -> RegularOutput:
-            return RegularOutput(
-                self.__iterator_fill_partial_output(
-                    node, iterator_output.partial_output, values
-                )
-            )
-
-        # run each of the collector nodes
+        num_generators = len(generator_nodes)
+        expected_lengths = {}
         collectors: list[tuple[Collector, _Timer, CollectorNode]] = []
-        for collector_node in collector_nodes:
-            await self.progress.suspend()
-            timer = _Timer()
-            with timer.run():
-                collector_output = await self.process_collector_node(collector_node)
-            assert isinstance(collector_output, CollectorOutput)
-            collectors.append((collector_output.collector, timer, collector_node))
+        output_nodes: set[FunctionNode] = set()
+        all_iterated_nodes: set[NodeId] = set()
+
+        generator_suppliers: dict[NodeId, typing.Iterator[Output | Exception]] = {}
 
         # timing iterations
-        iter_times = _IterationTimer(self.progress)
-        expected_length = iterator_output.iterator.expected_length
+        iter_timers: dict[NodeId, _IterationTimer] = {}
 
-        async def update_progress():
-            iter_times.add()
-            iterations = iter_times.iterations
-            self.__send_node_progress(
-                node,
-                iter_times.times,
-                iterations,
-                max(expected_length, iterations),
+        # run the generator nodes before anything else
+        for node in generator_nodes:
+            generator_output = await self.process_generator_node(node)
+            generator_suppliers[node.id] = generator_output.generator.supplier()
+
+            collector_nodes, __output_nodes, __all_iterated_nodes = (
+                self.__get_iterated_nodes(node)
+            )
+            for iterated_node in __all_iterated_nodes:
+                all_iterated_nodes.add(iterated_node.id)
+            for o_node in __output_nodes:
+                output_nodes.add(o_node)
+
+            if len(collector_nodes) == 0 and len(output_nodes) == 0:
+                # unusual, but this can happen
+                # since we don't need to actually iterate the iterator, we can stop here
+                return
+
+            # run each of the collector nodes
+            for collector_node in collector_nodes:
+                await self.progress.suspend()
+                timer = _Timer()
+                with timer.run():
+                    collector_output = await self.process_collector_node(collector_node)
+                assert isinstance(collector_output, CollectorOutput)
+                collectors.append((collector_output.collector, timer, collector_node))
+
+            expected_length = generator_output.generator.expected_length
+            expected_lengths[node.id] = expected_length
+
+            iter_times = _IterationTimer(self.progress)
+            iter_timers[node.id] = iter_times
+
+            self.__send_node_progress(node, [], 0, expected_length)
+
+        # Assert that all expected lengths are the same
+        if not len(set(expected_lengths.values())) <= 1:
+            raise AssertionError(
+                "Expected all connected iterators to have the same length"
             )
 
+        total_stopiters = 0
         # iterate
-        self.__send_node_progress(node, [], 0, expected_length)
-
-        deferred_errors: list[str] = []
-        for values in iterator_output.iterator.iter_supplier():
+        while True:
+            deferred_errors: list[str] = []
+            generator_output = None
             try:
-                if isinstance(values, Exception):
-                    raise values
+                # iterate each iterator
+                for node in generator_nodes:
+                    generator_output = await self.process_generator_node(node)
+                    generator_supplier = generator_suppliers[node.id]
 
-                # write current values to cache
-                iter_output = fill_partial_output(values)
-                self.cache.set(node.id, iter_output, StaticCaching)
+                    values = next(generator_supplier)
 
-                # broadcast
-                await self.__send_node_broadcast(node, iter_output.output)
+                    # write current values to cache
+                    iter_output = RegularOutput(
+                        self.__generator_fill_partial_output(
+                            node, generator_output.partial_output, values
+                        )
+                    )
+                    self.node_cache.set(node.id, iter_output, StaticCaching)
+
+                    # broadcast
+                    await self.__send_node_broadcast(node, iter_output.output)
 
                 # run each of the output nodes
                 for output_node in output_nodes:
@@ -763,34 +782,49 @@ class Executor:
                     with timer.run():
                         run_collector_iterate(collector_node, iterate_inputs, collector)
 
-                # clear cache for next iteration
-                self.cache.delete_many(all_iterated_nodes)
+                self.node_cache.delete_many(all_iterated_nodes)
 
                 await self.progress.suspend()
-                await update_progress()
+                for node in generator_nodes:
+                    iter_times = iter_timers[node.id]
+                    iter_times.add()
+                    iterations = iter_times.iterations
+                    self.__send_node_progress(
+                        node,
+                        iter_times.times,
+                        iterations,
+                        max(expected_lengths[node.id], iterations),
+                    )
                 # cooperative yield so the event loop can run
                 # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
                 await asyncio.sleep(0)
                 await self.progress.suspend()
+
             except Aborted:
                 raise
+            except StopIteration:
+                total_stopiters = total_stopiters + 1
+                if total_stopiters >= num_generators:
+                    break
             except Exception as e:
-                if iterator_output.iterator.fail_fast:
+                if generator_output and generator_output.generator.fail_fast:
                     raise e
                 else:
                     deferred_errors.append(str(e))
 
         # reset cached value
-        self.cache.delete_many(all_iterated_nodes)
-        self.cache.set(node.id, iterator_output, self.cache_strategy[node.id])
+        self.node_cache.delete_many(all_iterated_nodes)
+        for node in generator_nodes:
+            generator_output = await self.process_generator_node(node)
+            self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
 
-        # re-broadcast final value
-        # TODO: Why?
-        await self.__send_node_broadcast(node, iterator_output.partial_output)
+            # re-broadcast final value
+            # TODO: Why?
+            await self.__send_node_broadcast(node, generator_output.partial_output)
 
-        # finish iterator
-        self.__send_node_progress_done(node, iter_times.iterations)
-        self.__send_node_finish(node, iter_times.get_time_since_start())
+            # finish generator
+            self.__send_node_progress_done(node, iter_timers[node.id].iterations)
+            self.__send_node_finish(node, iter_timers[node.id].get_time_since_start())
 
         # finalize collectors
         for collector, timer, collector_node in collectors:
@@ -804,7 +838,7 @@ class Executor:
             # TODO: execution time
             self.__send_node_finish(collector_node, timer.duration)
 
-            self.cache.set(
+            self.node_cache.set(
                 collector_node.id,
                 collector_output,
                 self.cache_strategy[collector_node.id],
@@ -817,26 +851,56 @@ class Executor:
     async def __process_nodes(self):
         self.__send_chain_start()
 
-        # we first need to run iterator nodes in topological order
+        generator_nodes: list[GeneratorNode] = []
+
+        # Group nodes to run by shared lineage
+        # TODO: there's probably a better way of doing this
+        gens_by_outs: dict[NodeId, set[NodeId]] = {}
         for node_id in self.chain.topological_order():
             node = self.chain.nodes[node_id]
-            if isinstance(node, NewIteratorNode):
-                await self.__iterate_iterator_node(node)
+            if isinstance(node, GeneratorNode):
+                # we first need to run generator nodes in topological order
+                generator_nodes.append(node)
+                collector_nodes, output_nodes, __all_iterated_nodes = (
+                    self.__get_iterated_nodes(node)
+                )
+                for collector in collector_nodes:
+                    if gens_by_outs.get(collector.id, None) is not None:
+                        gens_by_outs[collector.id].add(node.id)
+                    else:
+                        gens_by_outs[collector.id] = {node.id}
+                for out_node in output_nodes:
+                    if gens_by_outs.get(out_node.id, None) is not None:
+                        gens_by_outs[out_node.id].add(node.id)
+                    else:
+                        gens_by_outs[out_node.id] = {node.id}
+
+        groups: list[set[NodeId]] = list(gens_by_outs.values())
+        combined_groups = combine_sets(groups)
+
+        # TODO: Look for a way to avoid duplicating this work
+        for group in combined_groups:
+            nodes_to_run: list[GeneratorNode] = []
+            for node_id in group:
+                generator_node = self.chain.nodes[node_id]
+                if isinstance(generator_node, GeneratorNode):
+                    nodes_to_run.append(generator_node)
+            await self.__iterate_generator_nodes(nodes_to_run)
 
         # now the output nodes outside of iterators
 
         # Now run everything that is not in an iterator lineage
-        non_iterator_output_nodes = [
+        non_iterable_output_nodes = [
             node
             for node, iter_node in self.chain.get_parent_iterator_map().items()
             if iter_node is None and node.has_side_effects()
         ]
-        for output_node in non_iterator_output_nodes:
+        for output_node in non_iterable_output_nodes:
             await self.progress.suspend()
             await self.process_regular_node(output_node)
 
         # clear cache after the chain is done
-        self.cache.clear()
+        self.node_cache.clear()
 
         # Run cleanup functions
         for context in self.__context_cache.values():
@@ -877,7 +941,7 @@ class Executor:
     def __send_chain_start(self):
         # all nodes except the cached ones
         nodes = set(self.chain.nodes.keys())
-        nodes.difference_update(self.cache.keys())
+        nodes.difference_update(self.node_cache.keys())
 
         self.queue.put(
             {

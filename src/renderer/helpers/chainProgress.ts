@@ -43,7 +43,7 @@ export const getInitialChainProgress = (
 
     for (const node of nodes) {
         let weight = 1;
-        if (schemata.get(node.data.schemaId).kind === 'newIterator') {
+        if (schemata.get(node.data.schemaId).kind === 'generator') {
             // more weight for iterators
             weight = 4;
         }

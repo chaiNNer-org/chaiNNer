@@ -106,13 +106,7 @@ export const checkNodeValidity = ({
             });
             if (sourceLineage !== undefined) {
                 // eslint-disable-next-line @typescript-eslint/no-use-before-define
-                const lineageValid = checkAssignedLineage(
-                    sourceLineage,
-                    nodeId,
-                    input.id,
-                    schema,
-                    chainLineage
-                );
+                const lineageValid = checkAssignedLineage(sourceLineage, nodeId, input.id, schema);
                 if (!lineageValid.isValid) {
                     return lineageValid;
                 }
@@ -154,32 +148,18 @@ export const checkAssignedLineage = (
     sourceLineage: Lineage | null,
     nodeId: string,
     inputId: InputId,
-    schema: NodeSchema,
-    chainLineage: ChainLineage
+    schema: NodeSchema
 ): Validity => {
     const input = schema.inputs.find((i) => i.id === inputId)!;
 
-    const differentLineage = () =>
-        invalid("Cannot connect node to 2 sequences that don't share the same source node.");
     const nonIteratorInput = () =>
         invalid(`Input ${input.label} cannot be connected to a sequence.`);
 
     switch (schema.kind) {
         case 'regularNode': {
-            // regular is auto-iterated, so it has to be treated separately
-            if (sourceLineage) {
-                const targetLineage = chainLineage.getInputLineage(nodeId, {
-                    exclude: new Set([inputId]),
-                });
-                if (targetLineage && !targetLineage.equals(sourceLineage)) {
-                    return differentLineage();
-                }
-            } else {
-                // it's always valid connect a node with no lineage
-            }
             break;
         }
-        case 'newIterator': {
+        case 'generator': {
             if (sourceLineage) {
                 return nonIteratorInput();
             }
@@ -190,13 +170,6 @@ export const checkAssignedLineage = (
             if (isIterated) {
                 if (!sourceLineage) {
                     return invalid(`Input ${input.label} expects a sequence.`);
-                }
-
-                const targetLineage = chainLineage.getInputLineage(nodeId, {
-                    exclude: new Set([inputId]),
-                });
-                if (targetLineage && !targetLineage.equals(sourceLineage)) {
-                    return differentLineage();
                 }
             } else if (sourceLineage) {
                 return nonIteratorInput();

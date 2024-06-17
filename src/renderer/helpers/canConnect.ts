@@ -91,8 +91,7 @@ export const canConnect = (
         sourceLineage,
         targetHandle.nodeId,
         targetHandle.inputId,
-        targetSchema,
-        chainLineage
+        targetSchema
     );
     if (!lineageValid.isValid) {
         return lineageValid;
