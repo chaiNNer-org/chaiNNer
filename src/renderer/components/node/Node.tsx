@@ -14,12 +14,7 @@ import { useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { Input, NodeData } from '../../../common/common-types';
 import { DisabledStatus } from '../../../common/nodes/disabled';
-import {
-    EMPTY_ARRAY,
-    getInputValue,
-    isStartingNode,
-    parseSourceHandle,
-} from '../../../common/util';
+import { EMPTY_ARRAY, getInputValue, parseSourceHandle } from '../../../common/util';
 import { Validity } from '../../../common/Validity';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
 import { BackendContext } from '../../contexts/BackendContext';
@@ -30,6 +25,7 @@ import {
 } from '../../contexts/ExecutionContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
+
 import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { NodeState, useNodeStateFromData } from '../../helpers/nodeState';
 import { NO_DISABLED, UseDisabled, useDisabled } from '../../hooks/useDisabled';
@@ -256,15 +252,9 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
         }
     };
 
-    const startingNode = isStartingNode(schema);
-    const isNewIterator = schema.kind === 'generator';
-    const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
-    const reload = useRunNode(
-        data,
-        validity.isValid && startingNode && !isNewIterator && !hasStaticValueInput
-    );
+    const { reload, isLive } = useRunNode(data, validity.isValid);
     const filesToWatch = useMemo(() => {
-        if (!startingNode) return EMPTY_ARRAY;
+        if (!isLive) return EMPTY_ARRAY;
 
         const files: string[] = [];
         for (const input of schema.inputs) {
@@ -278,7 +268,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
 
         if (files.length === 0) return EMPTY_ARRAY;
         return files;
-    }, [startingNode, data.inputData, schema]);
+    }, [isLive, data.inputData, schema]);
     useWatchFiles(filesToWatch, reload);
 
     const disabled = useDisabled(data);
@@ -286,7 +276,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
     const menu = useNodeMenu(data, {
         disabled,
         passthrough,
-        reload: startingNode ? reload : undefined,
+        reload: isLive ? reload : undefined,
     });
 
     const toggleCollapse = useCallback(() => {

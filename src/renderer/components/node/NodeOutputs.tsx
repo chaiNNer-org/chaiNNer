@@ -5,10 +5,10 @@ import { OutputId, OutputKind, Size } from '../../../common/common-types';
 import { log } from '../../../common/log';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
 import { ExpressionJson, fromJson } from '../../../common/types/json';
-import { isStartingNode } from '../../../common/util';
 import { BackendContext } from '../../contexts/BackendContext';
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { NodeState } from '../../helpers/nodeState';
+import { useAutomaticFeatures } from '../../hooks/useAutomaticFeatures';
 import { useIsCollapsedNode } from '../../hooks/useIsCollapsedNode';
 import { GenericOutput } from '../outputs/GenericOutput';
 import { LargeImageOutput } from '../outputs/LargeImageOutput';
@@ -81,14 +81,16 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
 
     const currentTypes = stale ? undefined : outputDataEntry?.types;
 
+    const { isAutomatic } = useAutomaticFeatures(id, schemaId);
+
     useEffect(() => {
-        if (isStartingNode(schema)) {
+        if (isAutomatic) {
             for (const output of schema.outputs) {
                 const type = evalExpression(currentTypes?.[output.id]);
                 setManualOutputType(id, output.id, type);
             }
         }
-    }, [id, currentTypes, schema, setManualOutputType]);
+    }, [id, currentTypes, schema, setManualOutputType, isAutomatic]);
 
     const isCollapsed = useIsCollapsedNode();
     if (isCollapsed) {

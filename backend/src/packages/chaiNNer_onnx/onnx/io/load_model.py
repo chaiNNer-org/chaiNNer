@@ -33,6 +33,7 @@ from .. import io_group
     see_also=[
         "chainner:onnx:load_models",
     ],
+    side_effects=True,
 )
 def load_model_node(path: Path) -> tuple[OnnxModel, Path, str]:
     assert os.path.exists(path), f"Model file at location {path} does not exist"

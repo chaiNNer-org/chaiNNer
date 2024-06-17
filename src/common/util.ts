@@ -237,10 +237,6 @@ export const topologicalSort = <T>(
     return result.reverse();
 };
 
-export const isStartingNode = (schema: NodeSchema) => {
-    return !schema.inputs.some((i) => i.hasHandle) && schema.outputs.length > 0;
-};
-
 export const isEndingNode = (schema: NodeSchema) => {
     return !schema.outputs.some((i) => i.hasHandle) && schema.inputs.length > 0;
 };

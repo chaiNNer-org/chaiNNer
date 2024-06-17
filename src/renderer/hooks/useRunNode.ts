@@ -7,6 +7,7 @@ import { AlertBoxContext } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { useAsyncEffect } from './useAsyncEffect';
+import { useAutomaticFeatures } from './useAutomaticFeatures';
 import { useSettings } from './useSettings';
 
 /**
@@ -16,8 +17,8 @@ import { useSettings } from './useSettings';
  */
 export const useRunNode = (
     { inputData, id, schemaId }: NodeData,
-    shouldRun: boolean
-): (() => void) => {
+    isValid: boolean
+): { reload: () => void; isLive: boolean } => {
     const { sendToast } = useContext(AlertBoxContext);
     const { addIndividuallyRunning, removeIndividuallyRunning } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
@@ -39,6 +40,10 @@ export const useRunNode = (
         [reloadCounter, inputs]
     );
     const lastInputHash = useRef<string>();
+
+    const { isAutomatic, hasIncomingConnections } = useAutomaticFeatures(id, schemaId);
+    const shouldRun = isValid && isAutomatic;
+
     useAsyncEffect(
         () => async (token) => {
             if (inputHash === lastInputHash.current) {
@@ -85,5 +90,11 @@ export const useRunNode = (
         };
     }, [backend, id]);
 
-    return reload;
+    useEffect(() => {
+        if (hasIncomingConnections && didEverRun.current) {
+            backend.clearNodeCacheIndividual(id).catch(log.error);
+        }
+    }, [backend, hasIncomingConnections, id]);
+
+    return { reload, isLive: shouldRun };
 };

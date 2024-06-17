@@ -65,6 +65,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
     see_also=[
         "chainner:pytorch:load_models",
     ],
+    side_effects=True,
 )
 def load_model_node(
     context: NodeContext, path: Path
