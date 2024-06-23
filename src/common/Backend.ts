@@ -174,8 +174,10 @@ export class Backend {
             return resp.data;
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                if (ServerError.isJson(error.response?.data)) {
-                    throw ServerError.fromJson(error.response?.data);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const responseData = error.response?.data;
+                if (ServerError.isJson(responseData)) {
+                    throw ServerError.fromJson(responseData);
                 }
                 if (error.response?.data) {
                     return error.response.data as T;
