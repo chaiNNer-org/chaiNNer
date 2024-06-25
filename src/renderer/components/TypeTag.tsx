@@ -316,6 +316,7 @@ export interface TypeTagsProps {
     type: Type;
     isOptional: boolean;
     longText?: boolean;
+    lengthType?: Type;
 }
 
 const Punctuation = memo(({ children }: React.PropsWithChildren<unknown>) => {
@@ -405,20 +406,29 @@ const TagRenderer = memo(({ tag, longText }: TagRendererProps) => {
     );
 });
 
-export const TypeTags = memo(({ type, isOptional, longText = false }: TypeTagsProps) => {
-    const { t } = useTranslation();
-    const tags = getTypeText(withoutNull(type));
+export const TypeTags = memo(
+    ({ type, isOptional, longText = false, lengthType = undefined }: TypeTagsProps) => {
+        const { t } = useTranslation();
+        const tags = getTypeText(withoutNull(type));
+        if (lengthType) {
+            tags.push(
+                ...getTypeText(lengthType).map(
+                    (e) => ({ kind: 'string', value: `[${e.value}]` } as TagValue)
+                )
+            );
+        }
 
-    return (
-        <>
-            {tags.map((tag) => (
-                <TagRenderer
-                    key={`${tag.kind};${tag.value}`}
-                    longText={longText}
-                    tag={tag}
-                />
-            ))}
-            {isOptional && <TypeTag isOptional>{t('typeTags.optional', 'optional')}</TypeTag>}
-        </>
-    );
-});
+        return (
+            <>
+                {tags.map((tag) => (
+                    <TagRenderer
+                        key={`${tag.kind};${tag.value}`}
+                        longText={longText}
+                        tag={tag}
+                    />
+                ))}
+                {isOptional && <TypeTag isOptional>{t('typeTags.optional', 'optional')}</TypeTag>}
+            </>
+        );
+    }
+);

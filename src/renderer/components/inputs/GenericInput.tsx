@@ -8,7 +8,7 @@ import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
-export const GenericInput = memo(({ input, definitionType }: InputProps<'generic'>) => {
+export const GenericInput = memo(({ input, definitionType, lengthType }: InputProps<'generic'>) => {
     const { label, optional, hint, description } = input;
 
     const { conditionallyInactive } = useContext(InputContext);
@@ -55,6 +55,7 @@ export const GenericInput = memo(({ input, definitionType }: InputProps<'generic
                         <Center>
                             <TypeTags
                                 isOptional={optional}
+                                lengthType={lengthType}
                                 type={definitionType}
                             />
                         </Center>

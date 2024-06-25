@@ -15,7 +15,16 @@ import {
     union,
     without,
 } from '@chainner/navi';
-import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
+import {
+    Input,
+    InputId,
+    InputSchemaValue,
+    IteratorInputInfo,
+    IteratorOutputInfo,
+    NodeSchema,
+    Output,
+    OutputId,
+} from '../common-types';
 import { EMPTY_MAP, assertNever, lazyKeyed, topologicalSort } from '../util';
 import { assign, assignOk } from './assign';
 import { fromJson } from './json';
@@ -397,6 +406,8 @@ export class FunctionDefinition {
 
     readonly inputConversions: ReadonlyMap<InputId, InputConversion>;
 
+    readonly iterableInputInfo: readonly IteratorInputInfo[];
+
     readonly outputDefaults: ReadonlyMap<OutputId, NonNeverType>;
 
     readonly outputExpressions: ReadonlyMap<OutputId, Expression>;
@@ -404,6 +415,8 @@ export class FunctionDefinition {
     readonly outputGenerics: ReadonlySet<OutputId>;
 
     readonly outputEvaluationOrder: readonly OutputId[];
+
+    readonly iterableOutputInfo: readonly IteratorOutputInfo[];
 
     get isGeneric() {
         return this.inputGenerics.size > 0 || this.outputGenerics.size > 0;
@@ -461,6 +474,10 @@ export class FunctionDefinition {
         this.inputDataAdapters = getInputDataAdapters(schema, scope);
         this.inputNullable = new Set(schema.inputs.filter((i) => i.optional).map((i) => i.id));
 
+        // iterable info
+        this.iterableInputInfo = schema.iteratorInputs;
+        this.iterableOutputInfo = schema.iteratorOutputs;
+
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         this.defaultInstance = FunctionInstance.fromDefinition(this);
     }
@@ -510,18 +527,26 @@ export class FunctionInstance {
 
     readonly outputErrors: readonly FunctionOutputError[];
 
+    readonly inputLengths: ReadonlyMap<InputId, NonNeverType>;
+
+    readonly outputLengths: ReadonlyMap<OutputId, NonNeverType>;
+
     private constructor(
         definition: FunctionDefinition,
         inputs: ReadonlyMap<InputId, NonNeverType>,
         outputs: ReadonlyMap<OutputId, NonNeverType>,
         inputErrors: readonly FunctionInputAssignmentError[],
-        outputErrors: readonly FunctionOutputError[]
+        outputErrors: readonly FunctionOutputError[],
+        inputLengths: ReadonlyMap<InputId, NonNeverType>,
+        outputLengths: ReadonlyMap<OutputId, NonNeverType>
     ) {
         this.definition = definition;
         this.inputs = inputs;
         this.outputs = outputs;
         this.inputErrors = inputErrors;
         this.outputErrors = outputErrors;
+        this.inputLengths = inputLengths;
+        this.outputLengths = outputLengths;
     }
 
     static fromDefinition(definition: FunctionDefinition): FunctionInstance {
@@ -530,7 +555,9 @@ export class FunctionInstance {
             definition.inputDefaults,
             definition.outputDefaults,
             [],
-            []
+            [],
+            new Map(),
+            new Map()
         );
     }
 
@@ -555,6 +582,7 @@ export class FunctionInstance {
 
         // evaluate inputs
         const inputs = new Map<InputId, NonNeverType>();
+        const inputLengths = new Map<InputId, NonNeverType>();
         for (const id of definition.inputEvaluationOrder) {
             let type: Type;
             if (definition.inputGenerics.has(id)) {
@@ -584,6 +612,16 @@ export class FunctionInstance {
 
             inputs.set(id, type);
             scope.assignParameter(getInputParamName(id), type);
+
+            const iterableInputInfo = definition.iterableInputInfo.find((i) =>
+                i.inputs.includes(id)
+            );
+            if (iterableInputInfo) {
+                const lengthType = evaluate(fromJson(iterableInputInfo.lengthType), scope);
+                if (lengthType.type !== 'never') {
+                    inputLengths.set(id, lengthType);
+                }
+            }
         }
 
         // we don't need to evaluate the outputs of if they aren't generic
@@ -593,12 +631,15 @@ export class FunctionInstance {
                 inputs,
                 definition.outputDefaults,
                 inputErrors,
-                outputErrors
+                outputErrors,
+                inputLengths,
+                new Map()
             );
         }
 
         // evaluate outputs
         const outputs = new Map<OutputId, NonNeverType>();
+        const outputLengths = new Map<OutputId, NonNeverType>();
         if (passthrough) {
             // pass through the mapped inputs
 
@@ -606,6 +647,8 @@ export class FunctionInstance {
                 const mappedInput = passthrough.getInput(id);
                 const type = inputs.get(mappedInput)!; // we set all inputs
                 outputs.set(id, type);
+                const mappedInputLength = inputLengths.get(mappedInput);
+                if (mappedInputLength) outputLengths.set(id, mappedInputLength);
             }
         } else {
             // compute outputs normally
@@ -645,10 +688,28 @@ export class FunctionInstance {
 
                 outputs.set(id, type);
                 scope.assignParameter(getOutputParamName(id), type);
+
+                const iterableOutputInfo = definition.iterableOutputInfo.find((i) =>
+                    i.outputs.includes(id)
+                );
+                if (iterableOutputInfo) {
+                    const lengthType = evaluate(fromJson(iterableOutputInfo.lengthType), scope);
+                    if (lengthType.type !== 'never') {
+                        outputLengths.set(id, lengthType);
+                    }
+                }
             }
         }
 
-        return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);
+        return new FunctionInstance(
+            definition,
+            inputs,
+            outputs,
+            inputErrors,
+            outputErrors,
+            inputLengths,
+            outputLengths
+        );
     }
 
     canAssign(inputId: InputId, type: Type): boolean {

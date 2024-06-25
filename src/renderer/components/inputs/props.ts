@@ -24,4 +24,5 @@ export interface InputProps<Kind extends InputKind, Value extends string | numbe
     readonly nodeId?: string;
     readonly nodeSchemaId?: SchemaId;
     readonly testCondition: (condition: Condition) => boolean;
+    readonly lengthType?: Type;
 }

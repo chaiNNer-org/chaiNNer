@@ -98,7 +98,8 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
         return null;
     }
 
-    const functions = functionDefinitions.get(schemaId)?.outputDefaults;
+    const functionDef = functionDefinitions.get(schemaId);
+    const functions = functionDef?.outputDefaults;
     return (
         <>
             {schema.outputs.map((output) => {
@@ -107,7 +108,9 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                 }
 
                 const definitionType = functions?.get(output.id) ?? NeverType.instance;
+
                 const type = nodeState.type.instance?.outputs.get(output.id);
+                const outputLength = nodeState.type.instance?.outputLengths.get(output.id);
 
                 const size =
                     outputHeight?.[output.id] && nodeWidth
@@ -127,6 +130,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                         isConnected={nodeState.connectedOutputs.has(output.id)}
                         isIterated={iteratedOutputs.has(output.id)}
                         key={`${id}-${output.id}`}
+                        lengthType={outputLength}
                         output={output}
                         type={type}
                     >
@@ -134,6 +138,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                             animated={animated}
                             definitionType={definitionType}
                             id={id}
+                            lengthType={outputLength}
                             output={output}
                             schema={nodeState.schema}
                             setSize={setSize}
