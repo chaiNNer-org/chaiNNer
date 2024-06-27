@@ -89,6 +89,7 @@ class NodeBroadcastData(TypedDict):
     nodeId: NodeId
     data: dict[OutputId, object]
     types: dict[OutputId, object]
+    expectedLength: int | None
 
 
 class NodeBroadcastEvent(TypedDict):

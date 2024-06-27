@@ -17,16 +17,13 @@ export const useAutomaticFeatures = (id: string, schemaId: SchemaId) => {
     const hasIncomingConnections =
         thisNode && getIncomers(thisNode, getNodes(), getEdges()).length > 0;
 
-    // If the node is a generator, it should not use automatic features
-    const isGenerator = schema.kind === 'generator';
     // Same if it has any static input values
     const hasStaticValueInput = schema.inputs.some((i) => i.kind === 'static');
     // We should only use automatic features if the node has side effects
     const { hasSideEffects } = schema;
 
     return {
-        isAutomatic:
-            hasSideEffects && !hasIncomingConnections && !isGenerator && !hasStaticValueInput,
+        isAutomatic: hasSideEffects && !hasIncomingConnections && !hasStaticValueInput,
         hasIncomingConnections,
     };
 };

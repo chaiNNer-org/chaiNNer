@@ -341,6 +341,7 @@ export interface BackendEventMap {
         nodeId: string;
         data: OutputData;
         types: OutputTypes;
+        expectedLength?: number | null;
     };
     'backend-status': {
         message: string;

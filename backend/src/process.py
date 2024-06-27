@@ -617,7 +617,9 @@ class Executor:
             await self.__send_node_broadcast(node, output.output)
             self.__send_node_finish(node, execution_time)
         elif isinstance(output, GeneratorOutput):
-            await self.__send_node_broadcast(node, output.partial_output)
+            await self.__send_node_broadcast(
+                node, output.partial_output, output.generator.expected_length
+            )
             # TODO: execution time
 
         # Cache the output of the node
@@ -1006,9 +1008,7 @@ class Executor:
         )
 
     async def __send_node_broadcast(
-        self,
-        node: Node,
-        output: Output,
+        self, node: Node, output: Output, expected_length: int | None = None
     ):
         def compute_broadcast_data():
             if self.progress.aborted:
@@ -1030,6 +1030,7 @@ class Executor:
                         "nodeId": node.id,
                         "data": data,
                         "types": types,
+                        "expectedLength": expected_length,
                     },
                 }
             )

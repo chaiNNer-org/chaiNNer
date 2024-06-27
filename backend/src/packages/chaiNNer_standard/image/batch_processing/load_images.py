@@ -104,6 +104,7 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
         length_type="if Input4 { min(uint, Input5) } else { uint }",
     ),
     kind="generator",
+    side_effects=True,
 )
 def load_images_node(
     directory: Path,

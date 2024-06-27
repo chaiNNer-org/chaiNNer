@@ -28,7 +28,7 @@ from api import (
     NodeId,
 )
 from chain.cache import OutputCache
-from chain.chain import Chain, FunctionNode
+from chain.chain import Chain, FunctionNode, GeneratorNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
@@ -287,7 +287,22 @@ async def run_individual(request: Request):
         node_id = full_data["id"]
         ctx.cache.pop(node_id, None)
 
-        node = FunctionNode(node_id, full_data["schemaId"])
+        schema_data = api.registry.nodes.get(full_data["schemaId"])
+
+        if schema_data is None:
+            raise ValueError(
+                f"Invalid node {full_data['schemaId']} attempted to run individually"
+            )
+
+        node_data, _ = schema_data
+        if node_data.kind == "generator":
+            node = GeneratorNode(node_id, full_data["schemaId"])
+        elif node_data.kind == "regularNode":
+            node = FunctionNode(node_id, full_data["schemaId"])
+        else:
+            raise ValueError(
+                f"Invalid node kind {node_data.kind} attempted to run individually"
+            )
         chain = Chain()
         chain.add_node(node)
 
@@ -319,7 +334,16 @@ async def run_individual(request: Request):
                     old_executor.kill()
 
                 ctx.individual_executors[execution_id] = executor
-                output = await executor.process_regular_node(node)
+                if node_data.kind == "generator":
+                    assert isinstance(node, GeneratorNode)
+                    output = await executor.process_generator_node(node)
+                elif node_data.kind == "regularNode":
+                    assert isinstance(node, FunctionNode)
+                    output = await executor.process_regular_node(node)
+                else:
+                    raise ValueError(
+                        f"Invalid node kind {node_data.kind} attempted to run individually"
+                    )
                 ctx.cache[node_id] = output
             except Aborted:
                 pass
