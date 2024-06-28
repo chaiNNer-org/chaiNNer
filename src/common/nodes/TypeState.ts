@@ -65,7 +65,7 @@ export class TypeState {
     static create(
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
         rawEdges: readonly Edge<EdgeData>[],
-        outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId, Type>>,
+        outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId | 'length', Type>>,
         functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
         passthrough?: PassthroughMap,
         previousTypeState?: TypeState

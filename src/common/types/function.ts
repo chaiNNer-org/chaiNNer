@@ -591,7 +591,7 @@ export class FunctionInstance {
     static fromPartialInputs(
         definition: FunctionDefinition,
         partialInputs: (inputId: InputId) => NonNeverType | undefined,
-        outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP,
+        outputNarrowing: ReadonlyMap<OutputId | 'length', Type> = EMPTY_MAP,
         passthrough?: PassthroughInfo
     ): FunctionInstance {
         const inputErrors: FunctionInputAssignmentError[] = [];
@@ -705,9 +705,31 @@ export class FunctionInstance {
 
                 if (item.type === 'Output') {
                     outputs.set(item.output.id, type);
+                    scope.assignParameter(getOutputParamName(item.output.id), type);
                 } else {
                     for (const id of item.iterOutput.outputs) {
-                        outputLengths.set(id, type);
+                        if (item.iterOutput.outputs.includes(id)) {
+                            const predeterminedLength = outputNarrowing.get('length');
+                            if (predeterminedLength && predeterminedLength.type !== 'never') {
+                                const sequenceType = evaluate(
+                                    fromJson(
+                                        `Sequence { length: ${predeterminedLength.toString()} }`
+                                    ),
+                                    scope
+                                );
+                                if (sequenceType.type !== 'never') {
+                                    outputLengths.set(id, sequenceType);
+                                }
+                            } else {
+                                const lengthType = evaluate(
+                                    fromJson(item.iterOutput.sequenceType),
+                                    scope
+                                );
+                                if (lengthType.type !== 'never') {
+                                    outputLengths.set(id, lengthType);
+                                }
+                            }
+                        }
                     }
                 }
                 scope.assignParameter(item.param, type);

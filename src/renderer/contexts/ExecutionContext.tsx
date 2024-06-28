@@ -262,6 +262,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         let broadcastData;
         let types;
         let progress;
+        let expectedLength;
 
         for (const { type, data } of events) {
             if (type === 'node-start') {
@@ -272,6 +273,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             } else if (type === 'node-broadcast') {
                 broadcastData = data.data;
                 types = data.types;
+                expectedLength = data.expectedLength;
             } else {
                 progress = data;
             }
@@ -312,6 +314,11 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                     }
                 }
             }
+        }
+
+        if (expectedLength) {
+            const type = evaluate(fromJson(expectedLength), getChainnerScope());
+            setManualOutputType(nodeId, 'length', type);
         }
     };
     const nodeEventBacklog = useEventBacklog({

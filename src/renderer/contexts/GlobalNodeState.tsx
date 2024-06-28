@@ -137,7 +137,11 @@ interface Global {
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
     exportViewportScreenshotToClipboard: () => void;
-    setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
+    setManualOutputType: (
+        nodeId: string,
+        outputId: OutputId | 'length',
+        type: Expression | undefined
+    ) => void;
     clearManualOutputTypes: (nodes: Iterable<string>) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     chainLineageRef: Readonly<React.MutableRefObject<ChainLineage>>;
@@ -204,10 +208,14 @@ export const GlobalProvider = memo(
         );
 
         const [manualOutputTypes, setManualOutputTypes] = useState(() => ({
-            map: new Map<string, Map<OutputId, Type>>(),
+            map: new Map<string, Map<OutputId | 'length', Type>>(),
         }));
         const setManualOutputType = useCallback(
-            (nodeId: string, outputId: OutputId, expression: Expression | undefined): void => {
+            (
+                nodeId: string,
+                outputId: OutputId | 'length',
+                expression: Expression | undefined
+            ): void => {
                 const getType = () => {
                     if (expression === undefined) {
                         return undefined;
@@ -262,7 +270,7 @@ export const GlobalProvider = memo(
                 // remove manual overrides of nodes that no longer exist
                 if (manualOutputTypes.map.size > 0) {
                     const ids = [...manualOutputTypes.map.keys()];
-                    for (const id of ids.filter((key) => !nodeMap.has(key))) {
+                    for (const id of ids.filter((key) => !nodeMap.has(key) && key !== 'length')) {
                         // use interior mutability to not cause updates
                         manualOutputTypes.map.delete(id);
                     }
