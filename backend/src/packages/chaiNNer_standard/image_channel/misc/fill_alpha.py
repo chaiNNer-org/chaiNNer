@@ -9,7 +9,6 @@ from chainner_ext import (
     fill_alpha_nearest_color,
 )
 
-import navi
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -32,16 +31,8 @@ class AlphaFillMethod(Enum):
         EnumInput(AlphaFillMethod, label="Fill Method"),
     ],
     outputs=[
-        ImageOutput(
-            "RGB",
-            image_type=navi.Image(size_as="Input0"),
-            channels=3,
-        ),
-        ImageOutput(
-            "Alpha",
-            image_type=navi.Image(size_as="Input0"),
-            channels=1,
-        ),
+        ImageOutput("RGB", size_as=0, channels=3),
+        ImageOutput("Alpha", size_as=0, channels=1),
     ],
 )
 def fill_alpha_node(

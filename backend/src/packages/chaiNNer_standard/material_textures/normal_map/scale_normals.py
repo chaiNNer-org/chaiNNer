@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-import navi
 from nodes.impl.normals.addition import AdditionMethod, strengthen_normals
 from nodes.impl.normals.util import xyz_to_bgr
 from nodes.properties.inputs import EnumInput, ImageInput, SliderInput
@@ -29,11 +28,7 @@ from .. import normal_map_group
         ),
     ],
     outputs=[
-        ImageOutput(
-            "Normal Map",
-            image_type=navi.Image(size_as="Input0"),
-            channels=3,
-        ),
+        ImageOutput("Normal Map", size_as=0, channels=3),
     ],
 )
 def scale_normals_node(

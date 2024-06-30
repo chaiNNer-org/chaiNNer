@@ -213,7 +213,7 @@ Let's take a look at the inputs and outputs of the Create Border node. This node
 
 ### Documentation
 
-Inputs and outputs both allow optional documentation to be added to add more information about it to the Node Documentation modal. You can add documentation to an input or output using the `.with_docs()` method, like so: 
+Inputs and outputs both allow optional documentation to be added to add more information about it to the Node Documentation modal. You can add documentation to an input or output using the `.with_docs()` method, like so:
 
 ```python
     inputs=[
@@ -303,10 +303,7 @@ from .. import adjustments_group
         ),
     ],
     outputs=[
-        ImageOutput(
-            image_type=navi.Image(size_as="Input0"),
-            channels=4,
-        )
+        ImageOutput(size_as=0, channels=4)
     ],
 )
 def opacity_node(img: np.ndarray, opacity: float) -> np.ndarray:

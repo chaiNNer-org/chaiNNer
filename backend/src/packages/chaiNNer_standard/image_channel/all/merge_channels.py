@@ -27,8 +27,8 @@ from .. import all_group
     ],
     outputs=[
         ImageOutput(
+            size_as=0,
             image_type=navi.Image(
-                size_as="Input0",
                 channels="""
                     match (
                         Input0.channels
@@ -41,7 +41,7 @@ from .. import all_group
                         int(4..) => 4
                     }
                     """,
-            )
+            ),
         )
     ],
     deprecated=True,

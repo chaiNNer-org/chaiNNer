@@ -102,7 +102,10 @@ export const HistoryProvider = memo(
             if (selfUpdate) return noop;
 
             const id = setTimeout(() => {
-                historyRef.current = historyRef.current.commit([getNodes(), getEdges()]);
+                historyRef.current = historyRef.current.commit([
+                    getNodes().map((n) => ({ ...n, selected: false })),
+                    getEdges(),
+                ]);
             }, 250);
             return () => clearTimeout(id);
             // eslint-disable-next-line react-hooks/exhaustive-deps

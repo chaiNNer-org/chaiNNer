@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-import navi
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput, SliderInput
 from nodes.properties.outputs import ImageOutput
@@ -89,11 +88,7 @@ def spec_to_metal(
     ],
     outputs=[
         ImageOutput("Albedo", shape_as=0),
-        ImageOutput(
-            "Metal",
-            image_type=navi.Image(size_as="Input1"),
-            channels=1,
-        ),
+        ImageOutput("Metal", size_as=1, channels=1),
         ImageOutput(
             "Roughness",
             image_type="""

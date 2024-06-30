@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-import navi
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
 from nodes.utils.utils import get_h_w_c
@@ -20,35 +19,17 @@ from .. import all_group
     icon="MdCallSplit",
     inputs=[ImageInput()],
     outputs=[
-        ImageOutput(
-            "R Channel",
-            image_type=navi.Image(size_as="Input0"),
-            channels=1,
-            assume_normalized=True,
-        )
+        ImageOutput("R Channel", size_as=0, channels=1, assume_normalized=True)
         .with_docs("The red channel.")
         .with_id(2),
-        ImageOutput(
-            "G Channel",
-            image_type=navi.Image(size_as="Input0"),
-            channels=1,
-            assume_normalized=True,
-        )
+        ImageOutput("G Channel", size_as=0, channels=1, assume_normalized=True)
         .with_docs("The green channel.")
         .with_id(1),
-        ImageOutput(
-            "B Channel",
-            image_type=navi.Image(size_as="Input0"),
-            channels=1,
-            assume_normalized=True,
-        )
+        ImageOutput("B Channel", size_as=0, channels=1, assume_normalized=True)
         .with_docs("The blue channel.")
         .with_id(0),
         ImageOutput(
-            "A Channel",
-            image_type=navi.Image(size_as="Input0"),
-            channels=1,
-            assume_normalized=True,
+            "A Channel", size_as=0, channels=1, assume_normalized=True
         ).with_docs("The alpha (transparency mask) channel."),
     ],
 )

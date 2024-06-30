@@ -1,3 +1,4 @@
+import axios, { AxiosRequestConfig } from 'axios';
 import {
     BackendJsonNode,
     Category,
@@ -155,24 +156,38 @@ export class Backend {
     }
 
     private async fetchJson<T>(path: string, method: 'POST' | 'GET', json?: unknown): Promise<T> {
-        const options: RequestInit = {
+        const options: AxiosRequestConfig = {
             method,
-            cache: 'no-cache',
+            url: `${this.url}${path}`,
         };
         const { signal } = this.abortController;
         if (json !== undefined) {
-            options.body = JSON.stringify(json);
+            options.data = json;
             options.headers = {
                 'Content-Type': 'application/json',
             };
             options.signal = signal;
         }
-        const resp = await fetch(`${this.url}${path}`, options);
-        const result = (await resp.json()) as T;
-        if (ServerError.isJson(result)) {
-            throw ServerError.fromJson(result);
+
+        try {
+            const resp = await axios.request<T>(options);
+            return resp.data;
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const responseData = error.response?.data;
+                if (ServerError.isJson(responseData)) {
+                    throw ServerError.fromJson(responseData);
+                }
+                if (error.response?.data) {
+                    return error.response.data as T;
+                }
+            }
+            if (ServerError.isJson(error)) {
+                throw ServerError.fromJson(error);
+            }
+            throw error;
         }
-        return result;
     }
 
     /**
