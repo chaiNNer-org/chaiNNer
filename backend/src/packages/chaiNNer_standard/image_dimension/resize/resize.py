@@ -15,7 +15,7 @@ from nodes.properties.inputs import (
     ResizeFilterInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c, round_half_up
+from nodes.utils.utils import assert_image_dimensions, get_h_w_c, round_half_up
 
 from .. import resize_group
 
@@ -114,7 +114,7 @@ def resize_node(
     filter: ResizeFilter,
     separate_alpha: bool,
 ) -> np.ndarray:
-    h, w, _ = get_h_w_c(img)
+    h, w, c = get_h_w_c(img)
 
     out_dims: tuple[int, int]
     if mode == ImageResizeMode.PERCENTAGE:
@@ -124,6 +124,8 @@ def resize_node(
         )
     else:
         out_dims = (width, height)
+
+    assert_image_dimensions((out_dims[1], out_dims[0], c))
 
     return resize(
         img,

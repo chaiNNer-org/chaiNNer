@@ -11,7 +11,7 @@ from api import BaseOutput, BroadcastData, InputId, OutputKind
 from ...impl.image_utils import normalize, to_uint8
 from ...impl.resize import ResizeFilter, resize
 from ...utils.format import format_image_with_channels
-from ...utils.utils import get_h_w_c, round_half_up
+from ...utils.utils import IMAGE_SIZE_LIMIT, get_h_w_c, round_half_up
 
 
 class NumPyOutput(BaseOutput[np.ndarray]):
@@ -60,6 +60,9 @@ class ImageOutput(NumPyOutput):
             )
         if shape_as is not None:
             image_type = navi.intersect_with_error(image_type, f"Input{shape_as}")
+        image_type = navi.fn(
+            "assert_image_size", image_type, navi.literal(IMAGE_SIZE_LIMIT)
+        )
 
         super().__init__(image_type, label, kind=kind, has_handle=has_handle)
 

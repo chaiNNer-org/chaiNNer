@@ -12,7 +12,7 @@ from nodes.properties.inputs import (
     ResizeFilterInput,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c, round_half_up
+from nodes.utils.utils import assert_image_dimensions, get_h_w_c, round_half_up
 
 from .. import resize_group
 
@@ -168,7 +168,9 @@ def resize_to_side_node(
     condition: ResizeCondition,
     filter: ResizeFilter,
 ) -> np.ndarray:
-    h, w, _ = get_h_w_c(img)
+    h, w, c = get_h_w_c(img)
     out_dims = resize_to_side_conditional(w, h, target, side, condition)
+
+    assert_image_dimensions((out_dims[1], out_dims[0], c))
 
     return resize(img, out_dims, filter)
