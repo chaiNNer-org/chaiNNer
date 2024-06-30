@@ -1,4 +1,5 @@
 import navi
+from nodes.impl.upscale.basic_upscale import PaddingType
 
 from ...impl.color.convert_data import (
     color_spaces,
@@ -99,4 +100,22 @@ def BorderInput() -> DropDownInput:
                 }
             }
         """,
+    )
+
+
+def PaddingTypeInput() -> DropDownInput:
+    return EnumInput(
+        PaddingType,
+        label="Padding",
+        default=PaddingType.NONE,
+        option_labels={
+            PaddingType.REFLECT_MIRROR: "Reflect (Mirror)",
+            PaddingType.WRAP: "Wrap (Tile)",
+            PaddingType.REPLICATE: "Replicate Edges",
+        },
+    ).with_docs(
+        "Adding padding to an image can eliminate artifacts at the edges of an image, at the cost of increasing processing time.",
+        "**Always** use *Wrap (Tile)* when upscaling tiled images to avoid artifacts at the tile borders.",
+        "For very small images (e.g. pixel art smaller than 100x100px), use *Reflect (Mirror)* or *Replicate Edges* to increase the upscale quality.",
+        hint=True,
     )
