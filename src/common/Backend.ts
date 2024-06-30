@@ -183,7 +183,7 @@ export class Backend {
                     return error.response.data as T;
                 }
                 if (axios.isCancel(error)) {
-                    return {} as T;
+                    return { type: 'success' } as T;
                 }
             }
             if (ServerError.isJson(error)) {
