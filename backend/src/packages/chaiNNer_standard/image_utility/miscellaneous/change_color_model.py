@@ -45,8 +45,8 @@ COLOR_SPACES_WITH_ALPHA_PARTNER = [
     ],
     outputs=[
         ImageOutput(
+            size_as=0,
             image_type=navi.Image(
-                size_as="Input0",
                 channels="""
                     if Input2.supportsAlpha and Input3 {
                         4

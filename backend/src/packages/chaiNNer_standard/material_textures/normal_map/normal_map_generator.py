@@ -240,8 +240,8 @@ def normalize(x: np.ndarray, y: np.ndarray):
     outputs=[
         ImageOutput(
             "Normal Map",
+            size_as=0,
             image_type=navi.Image(
-                size_as="Input0",
                 channels="match Input7 { AlphaOutput::None => 3, _ => 4 }",
             ),
         ),

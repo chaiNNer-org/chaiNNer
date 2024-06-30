@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 import pymatting
 
-import navi
 from nodes.groups import if_enum_group, linked_inputs_group
 from nodes.impl.color.color import Color
 from nodes.properties.inputs import (
@@ -62,10 +61,7 @@ class KeyMethod(Enum):
         ),
     ],
     outputs=[
-        ImageOutput(
-            image_type=navi.Image(size_as="Input0"),
-            channels=4,
-        ),
+        ImageOutput(size_as=0, channels=4),
     ],
 )
 def chroma_key_node(
