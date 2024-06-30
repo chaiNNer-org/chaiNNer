@@ -20,18 +20,17 @@ from nodes.impl.upscale.auto_split_tiles import (
     estimate_tile_size,
     parse_tile_size_input,
 )
-from nodes.impl.upscale.convenient_upscale import convenient_upscale
-from nodes.impl.upscale.custom_scale import custom_scale_upscale
+from nodes.impl.upscale.basic_upscale import PaddingType, UpscaleInfo, basic_upscale
 from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
     NumberInput,
+    PaddingTypeInput,
     SrModelInput,
     TileSizeDropdown,
 )
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c
 
 from ...settings import PyTorchSettings, get_settings
 from .. import processing_group
@@ -179,16 +178,17 @@ def upscale(
                 " faster than what the automatic mode picks.",
                 hint=True,
             ),
+            if_enum_group(2, CUSTOM)(
+                NumberInput(
+                    "Custom Tile Size",
+                    min=1,
+                    max=None,
+                    default=TILE_SIZE_256,
+                    unit="px",
+                ).with_id(6),
+            ),
         ),
-        if_enum_group(2, CUSTOM)(
-            NumberInput(
-                "Custom Tile Size",
-                min=1,
-                max=None,
-                default=TILE_SIZE_256,
-                unit="px",
-            ).with_id(6),
-        ),
+        PaddingTypeInput().with_id(7),
         if_group(
             Condition.type(1, "Image { channels: 4 } ")
             & (
@@ -264,6 +264,7 @@ def upscale_image_node(
     custom_scale: int,
     tile_size: TileSize,
     custom_tile_size: int,
+    padding: PaddingType,
     separate_alpha: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
@@ -273,33 +274,24 @@ def upscale_image_node(
         after="node" if exec_options.force_cache_wipe else "chain",
     )
 
-    in_nc = model.input_channels
-    out_nc = model.output_channels
-    scale = model.scale
+    info = UpscaleInfo(
+        in_nc=model.input_channels, out_nc=model.output_channels, scale=model.scale
+    )
+    if not use_custom_scale or not info.supports_custom_scale:
+        custom_scale = model.scale
 
-    def inner_upscale(img: np.ndarray) -> np.ndarray:
-        h, w, c = get_h_w_c(img)
-        logger.debug(
-            f"Upscaling a {h}x{w}x{c} image with a {scale}x model (in_nc: {in_nc}, out_nc:"
-            f" {out_nc})"
-        )
-
-        return convenient_upscale(
-            img,
-            in_nc,
-            out_nc,
-            lambda i: upscale(
-                i,
-                model,
-                TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
-                exec_options,
-                context,
-            ),
-            separate_alpha,
-            clip=False,  # pytorch_auto_split already does clipping internally
-        )
-
-    if not use_custom_scale or scale == 1 or in_nc != out_nc:
-        # no custom scale
-        custom_scale = scale
-    return custom_scale_upscale(img, inner_upscale, scale, custom_scale, separate_alpha)
+    return basic_upscale(
+        img,
+        lambda i: upscale(
+            i,
+            model,
+            TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
+            exec_options,
+            context,
+        ),
+        upscale_info=info,
+        scale=custom_scale,
+        separate_alpha=separate_alpha,
+        padding=padding,
+        clip=False,  # pytorch_auto_split already does clipping internally
+    )
