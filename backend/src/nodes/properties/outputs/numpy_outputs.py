@@ -165,7 +165,7 @@ class LargeImageOutput(ImageOutput):
     ):
         super().__init__(
             label,
-            image_type,
+            image_type=image_type,
             kind=kind,
             has_handle=has_handle,
             assume_normalized=assume_normalized,
