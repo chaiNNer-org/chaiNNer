@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-import navi
 from api import KeyInfo
 from nodes.impl.pil_utils import convert_to_bgra
 from nodes.properties.inputs import ImageInput, SliderInput
@@ -22,11 +21,7 @@ from .. import adjustments_group
         SliderInput("Opacity", max=100, default=100, precision=1, step=1, unit="%"),
     ],
     outputs=[
-        ImageOutput(
-            image_type=navi.Image(size_as="Input0"),
-            channels=4,
-            assume_normalized=True,
-        )
+        ImageOutput(size_as=0, channels=4, assume_normalized=True),
     ],
     key_info=KeyInfo.number(1),
 )

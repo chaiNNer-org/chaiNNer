@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-import navi
 from api import NodeContext
 from nodes.groups import Condition, if_group
 from nodes.impl.onnx.model import OnnxRemBg
@@ -51,7 +50,7 @@ from .. import processing_group
             """,
             channels=4,
         ),
-        ImageOutput("Mask", image_type=navi.Image(size_as="Input0"), channels=1),
+        ImageOutput("Mask", size_as=0, channels=1),
     ],
     node_context=True,
 )

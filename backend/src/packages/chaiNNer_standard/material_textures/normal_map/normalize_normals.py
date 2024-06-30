@@ -4,7 +4,6 @@ from enum import Enum
 
 import numpy as np
 
-import navi
 from nodes.impl.normals.util import gr_to_xyz, xyz_to_bgr
 from nodes.properties.inputs import EnumInput, ImageInput
 from nodes.properties.outputs import ImageOutput
@@ -42,11 +41,7 @@ class BChannel(Enum):
         ),
     ],
     outputs=[
-        ImageOutput(
-            "Normal Map",
-            image_type=navi.Image(size_as="Input0"),
-            channels=3,
-        ),
+        ImageOutput("Normal Map", size_as=0, channels=3),
     ],
 )
 def normalize_normals_node(img: np.ndarray, b: BChannel) -> np.ndarray:

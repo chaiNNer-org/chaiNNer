@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 
-import navi
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.properties.inputs import ImageInput
 from nodes.properties.outputs import ImageOutput
@@ -63,11 +62,7 @@ def metal_to_spec(
     ],
     outputs=[
         ImageOutput("Diffuse", shape_as=0),
-        ImageOutput(
-            "Specular",
-            image_type=navi.Image(size_as="Input1"),
-            channels=3,
-        ),
+        ImageOutput("Specular", size_as=1, channels=3),
         ImageOutput(
             "Gloss",
             image_type="""

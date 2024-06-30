@@ -46,11 +46,13 @@ class ImageOutput(NumPyOutput):
     def __init__(
         self,
         label: str = "Image",
+        *,
         image_type: navi.ExpressionJson = "Image",
         kind: OutputKind = "generic",
         has_handle: bool = True,
         channels: int | None = None,
         shape_as: int | InputId | None = None,
+        size_as: int | InputId | None = None,
         assume_normalized: bool = False,
     ):
         # narrow down type
@@ -60,6 +62,10 @@ class ImageOutput(NumPyOutput):
             )
         if shape_as is not None:
             image_type = navi.intersect_with_error(image_type, f"Input{shape_as}")
+        if size_as is not None:
+            image_type = navi.intersect_with_error(
+                image_type, navi.Image(size_as=f"Input{size_as}")
+            )
 
         super().__init__(image_type, label, kind=kind, has_handle=has_handle)
 
@@ -159,7 +165,7 @@ class LargeImageOutput(ImageOutput):
     ):
         super().__init__(
             label,
-            image_type,
+            image_type=image_type,
             kind=kind,
             has_handle=has_handle,
             assume_normalized=assume_normalized,
