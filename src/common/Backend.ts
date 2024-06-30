@@ -135,8 +135,6 @@ export class ServerError extends Error {
     }
 }
 export class CancelError extends Error {
-    type = 'cancel';
-
     message: string;
 
     config: AxiosRequestConfig | undefined;
@@ -145,10 +143,6 @@ export class CancelError extends Error {
         super();
         this.message = message ?? 'The request was cancelled';
         this.config = config;
-    }
-
-    static isCancel(cancel: unknown): cancel is CancelError {
-        return cancel instanceof CancelError;
     }
 
     static fromCancel(cancelData: Cancel, config?: AxiosRequestConfig): CancelError {
