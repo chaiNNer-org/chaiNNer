@@ -479,7 +479,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            if (!CancelError.isCancel(err)) {
+            if (!(err instanceof CancelError)) {
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `An unexpected error occurred: ${String(err)}`,
