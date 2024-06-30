@@ -479,10 +479,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            if (
-                !(err instanceof DOMException && err.name === 'AbortError') &&
-                !CancelError.isCancel(err)
-            ) {
+            if (!CancelError.isCancel(err)) {
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `An unexpected error occurred: ${String(err)}`,
