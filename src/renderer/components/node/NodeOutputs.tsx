@@ -110,7 +110,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                 const definitionType = functions?.get(output.id) ?? NeverType.instance;
 
                 const type = nodeState.type.instance?.outputs.get(output.id);
-                const outputLength = nodeState.type.instance?.outputLengths.get(output.id);
+                const outputLength = nodeState.type.instance?.outputSequence.get(output.id);
 
                 const size =
                     outputHeight?.[output.id] && nodeWidth
@@ -130,17 +130,17 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                         isConnected={nodeState.connectedOutputs.has(output.id)}
                         isIterated={iteratedOutputs.has(output.id)}
                         key={`${id}-${output.id}`}
-                        lengthType={outputLength}
                         output={output}
+                        sequenceType={outputLength}
                         type={type}
                     >
                         <OutputType
                             animated={animated}
                             definitionType={definitionType}
                             id={id}
-                            lengthType={outputLength}
                             output={output}
                             schema={nodeState.schema}
+                            sequenceType={outputLength}
                             setSize={setSize}
                             size={size}
                             type={type ?? NeverType.instance}

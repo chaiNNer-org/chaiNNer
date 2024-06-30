@@ -8,60 +8,64 @@ import { TypeTags } from '../TypeTag';
 import { WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
 
-export const GenericInput = memo(({ input, definitionType, lengthType }: InputProps<'generic'>) => {
-    const { label, optional, hint, description } = input;
+export const GenericInput = memo(
+    ({ input, definitionType, sequenceType }: InputProps<'generic'>) => {
+        const { label, optional, hint, description } = input;
 
-    const { conditionallyInactive } = useContext(InputContext);
+        const { conditionallyInactive } = useContext(InputContext);
 
-    return (
-        <WithoutLabel>
-            <Box
-                display="flex"
-                flexDirection="row"
-            >
-                <Tooltip
-                    hasArrow
-                    borderRadius={8}
-                    label={
-                        hint ? <Markdown nonInteractive>{description ?? ''}</Markdown> : undefined
-                    }
-                    openDelay={500}
-                    px={2}
-                    py={1}
+        return (
+            <WithoutLabel>
+                <Box
+                    display="flex"
+                    flexDirection="row"
                 >
-                    <HStack
-                        m={0}
-                        p={0}
-                        spacing={0}
+                    <Tooltip
+                        hasArrow
+                        borderRadius={8}
+                        label={
+                            hint ? (
+                                <Markdown nonInteractive>{description ?? ''}</Markdown>
+                            ) : undefined
+                        }
+                        openDelay={500}
+                        px={2}
+                        py={1}
                     >
-                        <Text
-                            opacity={conditionallyInactive ? 0.7 : undefined}
-                            textDecoration={conditionallyInactive ? 'line-through' : undefined}
+                        <HStack
+                            m={0}
+                            p={0}
+                            spacing={0}
                         >
-                            {label}
-                        </Text>
-                        {hint && (
-                            <Center
-                                h="auto"
-                                m={0}
-                                p={0}
+                            <Text
+                                opacity={conditionallyInactive ? 0.7 : undefined}
+                                textDecoration={conditionallyInactive ? 'line-through' : undefined}
                             >
-                                <QuestionIcon
-                                    boxSize={3}
-                                    ml={1}
+                                {label}
+                            </Text>
+                            {hint && (
+                                <Center
+                                    h="auto"
+                                    m={0}
+                                    p={0}
+                                >
+                                    <QuestionIcon
+                                        boxSize={3}
+                                        ml={1}
+                                    />
+                                </Center>
+                            )}
+                            <Center>
+                                <TypeTags
+                                    isOptional={optional}
+                                    sequenceType={sequenceType}
+                                    type={definitionType}
                                 />
                             </Center>
-                        )}
-                        <Center>
-                            <TypeTags
-                                isOptional={optional}
-                                lengthType={lengthType}
-                                type={definitionType}
-                            />
-                        </Center>
-                    </HStack>
-                </Tooltip>
-            </Box>
-        </WithoutLabel>
-    );
-});
+                        </HStack>
+                    </Tooltip>
+                </Box>
+            </WithoutLabel>
+        );
+    }
+);

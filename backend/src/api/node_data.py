@@ -9,7 +9,15 @@ import navi
 from .group import NestedIdGroup
 from .input import BaseInput
 from .output import BaseOutput
-from .types import FeatureId, InputId, NodeKind, OutputId, RunFn
+from .types import (
+    FeatureId,
+    InputId,
+    IterInputId,
+    IterOutputId,
+    NodeKind,
+    OutputId,
+    RunFn,
+)
 
 
 class IteratorInputInfo:
@@ -18,6 +26,7 @@ class IteratorInputInfo:
         inputs: int | InputId | list[int] | list[InputId] | list[int | InputId],
         length_type: navi.ExpressionJson = "uint",
     ) -> None:
+        self.id: IterInputId = IterInputId(0)
         self.inputs: list[InputId] = (
             [InputId(x) for x in inputs]
             if isinstance(inputs, list)
@@ -27,8 +36,9 @@ class IteratorInputInfo:
 
     def to_dict(self):
         return {
+            "id": self.id,
             "inputs": self.inputs,
-            "lengthType": self.length_type,
+            "sequenceType": navi.named("Sequence", {"length": self.length_type}),
         }
 
 
@@ -38,6 +48,7 @@ class IteratorOutputInfo:
         outputs: int | OutputId | list[int] | list[OutputId] | list[int | OutputId],
         length_type: navi.ExpressionJson = "uint",
     ) -> None:
+        self.id: IterOutputId = IterOutputId(0)
         self.outputs: list[OutputId] = (
             [OutputId(x) for x in outputs]
             if isinstance(outputs, list)
@@ -47,8 +58,9 @@ class IteratorOutputInfo:
 
     def to_dict(self):
         return {
+            "id": self.id,
             "outputs": self.outputs,
-            "lengthType": self.length_type,
+            "sequenceType": navi.named("Sequence", {"length": self.length_type}),
         }
 
 

@@ -20,5 +20,5 @@ export interface OutputProps {
     readonly animated: boolean;
     readonly size: Readonly<Size> | undefined;
     readonly setSize: (size: Readonly<Size>) => void;
-    readonly lengthType?: Type;
+    readonly sequenceType?: Type;
 }
