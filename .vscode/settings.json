@@ -3,6 +3,7 @@
   "files.trimFinalNewlines": false,
   "files.trimTrailingWhitespace": true,
   "python.analysis.typeCheckingMode": "basic",
+  "eslint.format.enable": true,
   "cSpell.words": [
     "absdiff",
     "arange",
