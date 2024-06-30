@@ -179,6 +179,12 @@ export class Backend {
                 if (ServerError.isJson(responseData)) {
                     throw ServerError.fromJson(responseData);
                 }
+                if (ServerError.isJson(responseData)) {
+                    throw ServerError.fromJson(responseData);
+                }
+                if (axios.isCancel(error)) {
+                    return {} as T;
+                }
                 if (error.response?.data) {
                     return error.response.data as T;
                 }
