@@ -147,11 +147,7 @@ export class CancelError extends Error {
     }
 
     static isCancel(cancel: unknown): cancel is CancelError {
-        if (typeof cancel !== 'object' || cancel === null) {
-            return false;
-        }
-        const obj = cancel as Record<string, unknown>;
-        return typeof obj.message === 'string' && obj.type === 'cancel';
+        return cancel instanceof CancelError;
     }
 
     static fromCancel(cancelData: Cancel, config?: AxiosRequestConfig): CancelError {
