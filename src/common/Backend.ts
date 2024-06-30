@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, Cancel } from 'axios';
 import {
     BackendJsonNode,
     Category,
@@ -133,6 +133,31 @@ export class ServerError extends Error {
         return new ServerError(json.message, json.description, json.status);
     }
 }
+export class CancelError extends Error {
+    type = 'cancel';
+
+    message: string;
+
+    config: AxiosRequestConfig | undefined;
+
+    constructor(message: string | undefined, config?: AxiosRequestConfig) {
+        super();
+        this.message = message ?? 'The request was cancelled';
+        this.config = config;
+    }
+
+    static isCancel(cancel: unknown): cancel is CancelError {
+        if (typeof cancel !== 'object' || cancel === null) {
+            return false;
+        }
+        const obj = cancel as Record<string, unknown>;
+        return typeof obj.message === 'string' && obj.type === 'cancel';
+    }
+
+    static fromCancel(cancelData: Cancel, config?: AxiosRequestConfig): CancelError {
+        return new CancelError(cancelData.message, config);
+    }
+}
 
 /**
  * A wrapper to communicate with the backend.
@@ -183,7 +208,7 @@ export class Backend {
                     return error.response.data as T;
                 }
                 if (axios.isCancel(error)) {
-                    return { type: 'success' } as T;
+                    throw CancelError.fromCancel(error, error.config);
                 }
             }
             if (ServerError.isJson(error)) {

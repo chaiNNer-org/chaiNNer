@@ -8,6 +8,7 @@ import {
     BackendEventMap,
     BackendStatusResponse,
     BackendWorkerStatusResponse,
+    CancelError,
 } from '../../common/Backend';
 import { EdgeData, NodeData, OutputId } from '../../common/common-types';
 import { formatExecutionErrorMessage } from '../../common/formatExecutionErrorMessage';
@@ -478,7 +479,10 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 });
             }
         } catch (err: unknown) {
-            if (!(err instanceof DOMException && err.name === 'AbortError')) {
+            if (
+                !(err instanceof DOMException && err.name === 'AbortError') &&
+                !CancelError.isCancel(err)
+            ) {
                 sendAlert({
                     type: AlertType.ERROR,
                     message: `An unexpected error occurred: ${String(err)}`,
