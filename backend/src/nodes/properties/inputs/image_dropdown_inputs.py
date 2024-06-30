@@ -116,6 +116,6 @@ def PaddingTypeInput() -> DropDownInput:
     ).with_docs(
         "Adding padding to an image can eliminate artifacts at the edges of an image, at the cost of increasing processing time.",
         "**Always** use *Wrap (Tile)* when upscaling tiled images to avoid artifacts at the tile borders.",
-        "For very small images (e.g. pixel art smaller 100x100px), use *Reflect (Mirror)* or *Replicate Edges* to increase the upscale quality.",
+        "For very small images (e.g. pixel art smaller than 100x100px), use *Reflect (Mirror)* or *Replicate Edges* to increase the upscale quality.",
         hint=True,
     )
