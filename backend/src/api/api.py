@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib
 import os
-import typing
 from dataclasses import asdict, dataclass, field
 from typing import (
     Any,
@@ -513,22 +512,21 @@ L = TypeVar("L")
 
 @dataclass
 class Generator(Generic[I]):
-    supplier: Callable[[], typing.Iterator[I | Exception]]
+    supplier: Callable[[], Iterable[I | Exception]]
     expected_length: int
     fail_fast: bool = True
 
-    @staticmethod
-    def from_iter(
-        supplier: Callable[[], typing.Iterator[I | Exception]],
-        expected_length: int,
-        fail_fast: bool = True,
-    ) -> Generator[I]:
-        return Generator(supplier, expected_length, fail_fast=fail_fast)
+    def with_fail_fast(self, fail_fast: bool) -> Generator[I]:
+        return Generator(self.supplier, self.expected_length, fail_fast=fail_fast)
 
     @staticmethod
-    def from_list(
-        l: list[L], map_fn: Callable[[L, int], I], fail_fast: bool = True
+    def from_iter(
+        supplier: Callable[[], Iterable[I | Exception]], expected_length: int
     ) -> Generator[I]:
+        return Generator(supplier, expected_length)
+
+    @staticmethod
+    def from_list(l: list[L], map_fn: Callable[[L, int], I]) -> Generator[I]:
         """
         Creates a new generator from a list that is mapped using the given
         function. The iterable will be equivalent to `map(map_fn, l)`.
@@ -541,12 +539,10 @@ class Generator(Generic[I]):
                 except Exception as e:
                     yield e
 
-        return Generator(supplier, len(l), fail_fast=fail_fast)
+        return Generator(supplier, len(l))
 
     @staticmethod
-    def from_range(
-        count: int, map_fn: Callable[[int], I], fail_fast: bool = True
-    ) -> Generator[I]:
+    def from_range(count: int, map_fn: Callable[[int], I]) -> Generator[I]:
         """
         Creates a new generator the given number of items where each item is
         lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
@@ -560,7 +556,7 @@ class Generator(Generic[I]):
                 except Exception as e:
                     yield e
 
-        return Generator(supplier, count, fail_fast=fail_fast)
+        return Generator(supplier, count)
 
 
 N = TypeVar("N")

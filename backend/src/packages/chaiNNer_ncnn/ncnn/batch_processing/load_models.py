@@ -82,4 +82,7 @@ def load_models_node(
 
     model_files = list(zip(param_files, bin_files))
 
-    return Generator.from_list(model_files, load_model, fail_fast), directory
+    return (
+        Generator.from_list(model_files, load_model).with_fail_fast(fail_fast),
+        directory,
+    )
