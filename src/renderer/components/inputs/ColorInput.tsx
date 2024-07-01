@@ -300,7 +300,7 @@ export const ColorInput = memo(
         input,
         definitionType,
         isConnected,
-        lengthType,
+        sequenceType,
     }: InputProps<'color', string>) => {
         const { label, optional, def, channels } = input;
         const { conditionallyInactive } = useContext(InputContext);
@@ -363,7 +363,7 @@ export const ColorInput = memo(
                     <Center>
                         <TypeTags
                             isOptional={optional}
-                            lengthType={lengthType}
+                            sequenceType={sequenceType}
                             type={definitionType}
                         />
                     </Center>

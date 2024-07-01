@@ -33,16 +33,18 @@ from .. import video_frames_group
     icon="MdVideoCameraBack",
     inputs=[
         VideoFileInput(primary_input=True),
-        BoolInput("Use limit", default=False),
+        BoolInput("Use limit", default=False).with_id(1),
         if_group(Condition.bool(1, True))(
-            NumberInput("Limit", default=10, min=1).with_docs(
+            NumberInput("Limit", default=10, min=1)
+            .with_docs(
                 "Limit the number of frames to iterate over. This can be useful for testing the iterator without having to iterate over all frames of the video."
                 " Will not copy audio if limit is used."
             )
+            .with_id(2)
         ),
     ],
     outputs=[
-        ImageOutput("Frame Image", channels=3),
+        ImageOutput("Frame", channels=3),
         NumberOutput(
             "Frame Index",
             output_type="if Input1 { min(uint, Input2 - 1) } else { uint }",
@@ -52,7 +54,9 @@ from .. import video_frames_group
         NumberOutput("FPS", output_type="0.."),
         AudioStreamOutput().suggest(),
     ],
-    iterator_outputs=IteratorOutputInfo(outputs=[0, 1]),
+    iterator_outputs=IteratorOutputInfo(
+        outputs=[0, 1], length_type="if Input1 { min(uint, Input2) } else { uint }"
+    ),
     node_context=True,
     kind="generator",
 )

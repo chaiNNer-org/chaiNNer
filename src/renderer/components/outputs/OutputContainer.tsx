@@ -82,7 +82,7 @@ interface OutputContainerProps {
     generic: boolean;
     isConnected: boolean;
     isIterated: boolean;
-    lengthType?: Type;
+    sequenceType?: Type;
 }
 
 export const OutputContainer = memo(
@@ -95,7 +95,7 @@ export const OutputContainer = memo(
         generic,
         isConnected,
         isIterated,
-        lengthType,
+        sequenceType,
     }: React.PropsWithChildren<OutputContainerProps>) => {
         let contents = children;
         if (output.hasHandle) {
@@ -140,7 +140,7 @@ export const OutputContainer = memo(
                             >
                                 <TypeTags
                                     isOptional={false}
-                                    lengthType={lengthType}
+                                    sequenceType={sequenceType}
                                     type={type}
                                 />
                             </Center>

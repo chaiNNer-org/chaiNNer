@@ -76,11 +76,13 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
                 "For information on how to use WCMatch glob expressions, see [here](https://facelessuser.github.io/wcmatch/glob/)."
             ),
         ),
-        BoolInput("Use limit", default=False),
+        BoolInput("Use limit", default=False).with_id(4),
         if_group(Condition.bool(4, True))(
-            NumberInput("Limit", default=10, min=1).with_docs(
+            NumberInput("Limit", default=10, min=1)
+            .with_docs(
                 "Limit the number of images to iterate over. This can be useful for testing the iterator without having to iterate over all images."
             )
+            .with_id(5)
         ),
         BoolInput("Stop on first error", default=False).with_docs(
             "Instead of collecting errors and throwing them at the end of processing, stop iteration and throw an error as soon as one occurs.",
@@ -97,7 +99,10 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
             output_type="if Input4 { min(uint, Input5 - 1) } else { uint }",
         ),
     ],
-    iterator_outputs=IteratorOutputInfo(outputs=[0, 2, 3, 4]),
+    iterator_outputs=IteratorOutputInfo(
+        outputs=[0, 2, 3, 4],
+        length_type="if Input4 { min(uint, Input5) } else { uint }",
+    ),
     kind="generator",
 )
 def load_images_node(

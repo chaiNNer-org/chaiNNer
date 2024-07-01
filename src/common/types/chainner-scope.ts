@@ -26,6 +26,10 @@ import {
 const code = `
 struct null;
 
+struct Sequence {
+    length: uint,
+}
+
 struct Error { message: string }
 def error(message: invStrSet("")): Error {
     Error { message }

@@ -115,7 +115,7 @@ const isImageDefinition = lazyKeyed((type: Type) => {
 const isImage = lazyKeyed((type: Type) => isSubsetOf(type, getImageType()));
 
 export const GenericOutput = memo(
-    ({ output, type, id, schema, definitionType, lengthType }: OutputProps) => {
+    ({ output, type, id, schema, definitionType, sequenceType }: OutputProps) => {
         // We first check the definition type first, because it changes less, which makes it more efficient to cache.
         const viewImage = isImageDefinition(definitionType) ?? isImage(type);
 
@@ -138,7 +138,7 @@ export const GenericOutput = memo(
                 <TypeTags
                     longText
                     isOptional={false}
-                    lengthType={lengthType}
+                    sequenceType={sequenceType}
                     type={type}
                 />
                 <Text

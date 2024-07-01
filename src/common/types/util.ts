@@ -8,6 +8,7 @@ import {
     Type,
     UnionType,
     getStructDescriptor,
+    intersect,
     isStructInstance,
     without,
 } from '@chainner/navi';
@@ -66,3 +67,32 @@ export const errorType = errorDescriptor.default;
 
 export const withoutNull = (type: Type): Type => without(type, nullType);
 export const withoutError = (type: Type): Type => without(type, errorType);
+
+export const splitOutputTypeAndError = (type: Type): [Type, string | undefined] => {
+    const error = intersect(type, errorType);
+    if (error.type === 'never') {
+        // no error
+        return [type, undefined];
+    }
+
+    const pureType = without(type, errorType);
+
+    // get the error message
+    if (error.underlying !== 'struct' || error.type !== 'instance') {
+        throw new Error('Error type is not a struct');
+    }
+
+    const messageType = error.getField('message')!;
+    const messageItems = messageType.underlying === 'union' ? messageType.items : [messageType];
+    const messages: string[] = [];
+    for (const item of messageItems) {
+        if (item.underlying === 'string' && item.type === 'literal') {
+            messages.push(item.value);
+        }
+    }
+    if (messages.length === 0) {
+        messages.push('Unknown error');
+    }
+
+    return [pureType, messages.join(' ')];
+};
