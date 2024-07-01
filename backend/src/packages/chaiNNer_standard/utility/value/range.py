@@ -37,7 +37,14 @@ from .. import value_group
         string::concat(toString(start), "..", toString(stop))
         """
     ),
-    iterator_outputs=IteratorOutputInfo(outputs=0),
+    iterator_outputs=IteratorOutputInfo(
+        outputs=0,
+        length_type="""
+            let start = if Input1 { Input0 } else { Input0 + 1 };
+            let stop = if Input3 { Input2 } else { Input2 - 1 };
+            max(0, stop - start + 1)
+        """,
+    ),
     kind="generator",
 )
 def range_node(
