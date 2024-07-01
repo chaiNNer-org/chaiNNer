@@ -3,6 +3,7 @@ import {
     IntIntervalType,
     IntervalType,
     NeverType,
+    NumberPrimitive,
     Type,
     intInterval,
     isNumericLiteral,
@@ -280,6 +281,68 @@ const getTypeText = (type: Type): TagValue[] => {
     return tags;
 };
 
+const getLengthTag = (length: NumberPrimitive): TagValue[] => {
+    if (isNumericLiteral(length))
+        return [
+            {
+                kind: 'literal',
+                value: `[${length.toString()}]`,
+                tooltip: `A sequence with exactly ${length.toString()} elements.`,
+            },
+        ];
+
+    const rangeType = getSimplifiedNumberRange(length);
+    if (rangeType) {
+        const { min, max } = rangeType;
+        if (min === 0) {
+            if (max === Infinity) {
+                return [
+                    {
+                        kind: 'literal',
+                        value: `[?]`,
+                        tooltip: `A sequence with an unknown number of elements.`,
+                    },
+                ];
+            }
+            return [
+                {
+                    kind: 'literal',
+                    value: `[≤${max}]`,
+                    tooltip: `A sequence with at most ${max} elements.`,
+                },
+            ];
+        }
+        if (max === Infinity) {
+            return [
+                {
+                    kind: 'literal',
+                    value: `[≥${min}]`,
+                    tooltip: `A sequence with at least ${min} elements.`,
+                },
+            ];
+        }
+        return [
+            {
+                kind: 'literal',
+                value: `[${min}..${max}]`,
+                tooltip: `A sequence with between ${min} and ${max} elements.`,
+            },
+        ];
+    }
+
+    return [];
+};
+const getSequenceTags = (type: Type): TagValue[] => {
+    if (!isStructInstance(type)) return [];
+
+    const length = type.getField('length') ?? NeverType.instance;
+    if (length.underlying === 'number') {
+        return getLengthTag(length);
+    }
+
+    return [];
+};
+
 export interface TypeTagProps {
     isOptional?: boolean;
 }
@@ -316,6 +379,7 @@ export interface TypeTagsProps {
     type: Type;
     isOptional: boolean;
     longText?: boolean;
+    sequenceType?: Type;
 }
 
 const Punctuation = memo(({ children }: React.PropsWithChildren<unknown>) => {
@@ -405,20 +469,25 @@ const TagRenderer = memo(({ tag, longText }: TagRendererProps) => {
     );
 });
 
-export const TypeTags = memo(({ type, isOptional, longText = false }: TypeTagsProps) => {
-    const { t } = useTranslation();
-    const tags = getTypeText(withoutNull(type));
+export const TypeTags = memo(
+    ({ type, isOptional, longText = false, sequenceType }: TypeTagsProps) => {
+        const { t } = useTranslation();
+        const tags = getTypeText(withoutNull(type));
+        if (sequenceType) {
+            tags.push(...getSequenceTags(sequenceType));
+        }
 
-    return (
-        <>
-            {tags.map((tag) => (
-                <TagRenderer
-                    key={`${tag.kind};${tag.value}`}
-                    longText={longText}
-                    tag={tag}
-                />
-            ))}
-            {isOptional && <TypeTag isOptional>{t('typeTags.optional', 'optional')}</TypeTag>}
-        </>
-    );
-});
+        return (
+            <>
+                {tags.map((tag) => (
+                    <TagRenderer
+                        key={`${tag.kind};${tag.value}`}
+                        longText={longText}
+                        tag={tag}
+                    />
+                ))}
+                {isOptional && <TypeTag isOptional>{t('typeTags.optional', 'optional')}</TypeTag>}
+            </>
+        );
+    }
+);

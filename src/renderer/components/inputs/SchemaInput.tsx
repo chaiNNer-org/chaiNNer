@@ -95,6 +95,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
     );
 
     const inputType = type.instance?.inputs.get(inputId) ?? NeverType.instance;
+    const inputLength = type.instance?.inputSequence.get(inputId);
 
     const InputType = InputComponents[kind];
     let inputElement = (
@@ -108,6 +109,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
             nodeId={nodeId}
             nodeSchemaId={schemaId}
             resetValue={resetValue}
+            sequenceType={inputLength}
             setSize={setSize}
             setValue={setValue}
             size={size}
@@ -141,6 +143,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
 
     if (fused) {
         const outputType = nodeState.type.instance?.outputs.get(fused.outputId);
+        const sequenceType = nodeState.type.instance?.outputSequence.get(fused.outputId);
 
         const fusedOutputHandle = (
             <OutputHandle
@@ -167,6 +170,7 @@ export const SchemaInput = memo(({ input, nodeState, afterInput }: SingleInputPr
                     <Center pr="0.5em">
                         <TypeTags
                             isOptional={false}
+                            sequenceType={sequenceType}
                             type={outputType}
                         />
                     </Center>

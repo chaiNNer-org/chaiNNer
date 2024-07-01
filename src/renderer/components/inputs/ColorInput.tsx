@@ -294,7 +294,14 @@ const ColorPickerPopover = memo(({ color, onChange, kinds }: ColorPickerProps) =
 });
 
 export const ColorInput = memo(
-    ({ value, setValue, input, definitionType, isConnected }: InputProps<'color', string>) => {
+    ({
+        value,
+        setValue,
+        input,
+        definitionType,
+        isConnected,
+        sequenceType,
+    }: InputProps<'color', string>) => {
         const { label, optional, def, channels } = input;
         const { conditionallyInactive } = useContext(InputContext);
 
@@ -356,6 +363,7 @@ export const ColorInput = memo(
                     <Center>
                         <TypeTags
                             isOptional={optional}
+                            sequenceType={sequenceType}
                             type={definitionType}
                         />
                     </Center>

@@ -15,11 +15,22 @@ import {
     union,
     without,
 } from '@chainner/navi';
-import { Input, InputId, InputSchemaValue, NodeSchema, Output, OutputId } from '../common-types';
-import { EMPTY_MAP, assertNever, lazyKeyed, topologicalSort } from '../util';
+import {
+    Input,
+    InputId,
+    InputSchemaValue,
+    IteratorInputId,
+    IteratorInputInfo,
+    IteratorOutputId,
+    IteratorOutputInfo,
+    NodeSchema,
+    Output,
+    OutputId,
+} from '../common-types';
+import { EMPTY_MAP, assertNever, isNotNullish, lazyKeyed, topologicalSort } from '../util';
 import { assign, assignOk } from './assign';
-import { fromJson } from './json';
-import { errorType, withoutError } from './util';
+import { ExpressionJson, fromJson } from './json';
+import { splitOutputTypeAndError, withoutError } from './util';
 import type { PassthroughInfo } from '../PassthroughMap';
 
 const getConversionScope = lazyKeyed((parentScope: Scope) => {
@@ -28,202 +39,259 @@ const getConversionScope = lazyKeyed((parentScope: Scope) => {
     return scope.createScope();
 });
 
-type IdType<P extends 'Input' | 'Output'> = P extends 'Input' ? InputId : OutputId;
-const getParamRefs = <P extends 'Input' | 'Output'>(
+type GenericParam = 'Input' | 'Output' | 'IterInput' | 'IterOutput';
+type ParamRef<P extends GenericParam = GenericParam> = `${P}${number}`;
+const getParamRefs = <R extends ParamRef>(
     expression: Expression,
-    param: P,
-    valid: ReadonlySet<IdType<P>>
-): Set<IdType<P>> => {
-    const refs = new Set<IdType<P>>();
+    valid: ReadonlySet<R>
+): Set<R> => {
+    const refs = new Set<R>();
     for (const ref of getReferences(expression)) {
-        if (ref.startsWith(param)) {
-            const rest = ref.slice(param.length);
-            if (/^\d+$/.test(rest)) {
-                const id = Number(rest) as IdType<P>;
-                if (valid.has(id)) {
-                    refs.add(id);
-                }
-            }
+        const paramRef = ref as R;
+        if (valid.has(paramRef)) {
+            refs.add(paramRef);
         }
     }
     return refs;
 };
 
 export const getInputParamName = (inputId: InputId) => `Input${inputId}` as const;
+export const getIterInputParamName = (id: IteratorInputId) => `IterInput${id}` as const;
 export const getOutputParamName = (outputId: OutputId) => `Output${outputId}` as const;
+export const getIterOutputParamName = (id: IteratorOutputId) => `IterOutput${id}` as const;
 
-interface InputInfo {
-    expression: Expression;
-    inputRefs: Set<InputId>;
-    input: Input;
+interface BaseDesc<P extends GenericParam> {
+    readonly type: P;
+    /**
+     * The type expression of the input/output.
+     *
+     * If `undefined`, then the expression is a constant. Use `default` instead.
+     */
+    readonly expression?: Expression;
+    /**
+     * The default type expression of the input/output.
+     */
+    readonly default: NonNeverType;
+    /**
+     * A label that uniquely identifies the input/output.
+     *
+     * This will be used in error messages, so it has to be human-readable.
+     */
+    readonly label: string;
+    readonly param: ParamRef<P>;
+    readonly references: Set<ParamRef>;
 }
-const evaluateInputs = (
-    schema: NodeSchema,
-    scope: Scope
-): { ordered: InputInfo[]; defaults: Map<InputId, NonNeverType> } => {
-    const inputIds = new Set(schema.inputs.map((i) => i.id));
+type Descriptor = InputDesc | IterInputDesc | OutputDesc | IterOutputDesc;
+interface InputDesc extends BaseDesc<'Input'> {
+    readonly input: Input;
+}
+interface IterInputDesc extends BaseDesc<'IterInput'> {
+    readonly iterInput: IteratorInputInfo;
+}
+interface OutputDesc extends BaseDesc<'Output'> {
+    readonly output: Output;
+}
+interface IterOutputDesc extends BaseDesc<'IterOutput'> {
+    readonly iterOutput: IteratorOutputInfo;
+}
 
-    const infos = new Map<InputId, InputInfo>();
+type Intermediate<D extends Descriptor> = Omit<Required<D>, 'default'>;
+const finalizeIntermediate = <D extends Descriptor>(
+    desc: Intermediate<D>,
+    defaultType: NonNeverType
+): D => {
+    return {
+        ...desc,
+        expression: desc.references.size === 0 ? undefined : desc.expression,
+        default: defaultType,
+    } as unknown as D;
+};
+
+const parseExpression = (expression: ExpressionJson, label: string): Expression => {
+    try {
+        return fromJson(expression);
+    } catch (error) {
+        throw new Error(
+            `Unable to parse input type of ${label}:\n` +
+                `JSON: ${JSON.stringify(expression)}\n` +
+                `${String(error)}`
+        );
+    }
+};
+
+const evaluateInputs = (schema: NodeSchema, scope: Scope) => {
+    const validRefs = new Set([
+        ...schema.inputs.map(({ id }) => getInputParamName(id)),
+        ...schema.iteratorInputs.map(({ id }) => getIterInputParamName(id)),
+    ]);
+
+    const unordered = new Map<ParamRef, Intermediate<InputDesc> | Intermediate<IterInputDesc>>();
     for (const input of schema.inputs) {
-        try {
-            const expression = fromJson(input.type);
-            infos.set(input.id, {
-                expression,
-                inputRefs: getParamRefs(expression, 'Input', inputIds),
-                input,
-            });
-        } catch (error) {
-            const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
-            throw new Error(
-                `Unable to parse input type of ${name}:\n` +
-                    `JSON: ${JSON.stringify(input.type)}\n` +
-                    `${String(error)}`
-            );
-        }
+        const label = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
+        const param = getInputParamName(input.id);
+        const expression = parseExpression(input.type, label);
+        unordered.set(param, {
+            type: 'Input',
+            expression,
+            label,
+            param,
+            references: getParamRefs(expression, validRefs),
+            input,
+        });
+    }
+    for (const iterInput of schema.iteratorInputs) {
+        const label = `${schema.name} (id: ${schema.schemaId}) > Iterator Input ${iterInput.id}`;
+        const expression = parseExpression(iterInput.sequenceType, label);
+        const param = getIterInputParamName(iterInput.id);
+        unordered.set(param, {
+            type: 'IterInput',
+            expression,
+            label,
+            param,
+            references: getParamRefs(expression, validRefs),
+            iterInput,
+        });
     }
 
-    const ordered = topologicalSort(infos.values(), (node) =>
-        [...node.inputRefs].map((ref) => infos.get(ref)!)
+    const orderedInputs = topologicalSort(unordered.values(), (node) =>
+        [...node.references].map((ref) => unordered.get(ref)!)
     );
-    if (!ordered) {
+    if (!orderedInputs) {
         throw new Error(
             `The types of the inputs of ${schema.name} (id: ${schema.schemaId}) has a cyclic dependency.` +
                 ` Carefully review the uses for 'Input*' variables in the input types of that node.`
         );
     }
-    ordered.reverse();
+    orderedInputs.reverse();
 
     const expressionScopeBuilder = new ScopeBuilder('evaluateInputs scope', scope);
-    for (const inputId of inputIds) {
-        expressionScopeBuilder.add(new ParameterDefinition(getInputParamName(inputId)));
+    for (const ref of validRefs) {
+        expressionScopeBuilder.add(new ParameterDefinition(ref));
     }
     const expressionScope = expressionScopeBuilder.createScope();
 
-    const defaults = new Map<InputId, NonNeverType>();
-    for (const { expression, input } of ordered) {
-        const name = `${schema.name} (id: ${schema.schemaId}) > ${input.label} (id: ${input.id})`;
-
+    const ordered: (InputDesc | IterInputDesc)[] = [];
+    const inputs: InputDesc[] = [];
+    const iterInputs: IterInputDesc[] = [];
+    for (const item of orderedInputs) {
         let type: Type;
         try {
-            type = evaluate(expression, expressionScope);
+            type = evaluate(item.expression, expressionScope);
         } catch (error) {
-            throw new Error(`Unable to evaluate input type of ${name}: ${String(error)}`);
+            throw new Error(`Unable to evaluate input type of ${item.label}: ${String(error)}`);
         }
         if (type.type === 'never') {
-            throw new Error(`The input type of ${name} is always 'never'. This is a bug.`);
+            throw new Error(
+                `The input type of ${item.label} is always 'never'. This is a bug in the type.`
+            );
         }
 
-        defaults.set(input.id, type);
-        expressionScope.assignParameter(getInputParamName(input.id), type);
-    }
-
-    return { ordered, defaults };
-};
-
-const splitOutputTypeAndError = (type: Type): [Type, string | undefined] => {
-    const error = intersect(type, errorType);
-    if (error.type === 'never') {
-        // no error
-        return [type, undefined];
-    }
-
-    const pureType = without(type, errorType);
-
-    // get the error message
-    if (error.underlying !== 'struct' || error.type !== 'instance') {
-        throw new Error('Error type is not a struct');
-    }
-
-    const messageType = error.getField('message')!;
-    const messageItems = messageType.underlying === 'union' ? messageType.items : [messageType];
-    const messages: string[] = [];
-    for (const item of messageItems) {
-        if (item.underlying === 'string' && item.type === 'literal') {
-            messages.push(item.value);
+        let final;
+        if (item.type === 'Input') {
+            final = finalizeIntermediate(item, type);
+            inputs.push(final);
+        } else {
+            final = finalizeIntermediate(item, type);
+            iterInputs.push(final);
         }
-    }
-    if (messages.length === 0) {
-        messages.push('Unknown error');
+
+        ordered.push(final);
+        expressionScope.assignParameter(item.param, type);
     }
 
-    return [pureType, messages.join(' ')];
+    return { ordered, inputs, iterInputs };
 };
 
-interface OutputInfo {
-    expression: Expression;
-    inputRefs: Set<InputId>;
-    outputRefs: Set<OutputId>;
-    output: Output;
-}
 const evaluateOutputs = (
     schema: NodeSchema,
     scope: Scope,
-    inputDefaults: ReadonlyMap<InputId, NonNeverType>
-): { ordered: OutputInfo[]; defaults: Map<OutputId, NonNeverType> } => {
-    const inputIds = new Set(inputDefaults.keys());
-    const outputIds = new Set(schema.outputs.map((i) => i.id));
+    inputs: readonly (InputDesc | IterInputDesc)[]
+) => {
+    const validRefs = new Set([
+        ...schema.inputs.map(({ id }) => getInputParamName(id)),
+        ...schema.iteratorInputs.map(({ id }) => getIterInputParamName(id)),
+        ...schema.outputs.map(({ id }) => getOutputParamName(id)),
+        ...schema.iteratorOutputs.map(({ id }) => getIterOutputParamName(id)),
+    ]);
 
-    const infos = new Map<OutputId, OutputInfo>();
+    const unordered = new Map<ParamRef, Intermediate<OutputDesc> | Intermediate<IterOutputDesc>>();
     for (const output of schema.outputs) {
-        try {
-            const expression = fromJson(output.type);
-            infos.set(output.id, {
-                expression,
-                // Collecting input references isn't necessary for the evaluation, but they will be
-                // needed by `FunctionDefinition`'s constructor, so we collect them here while we're
-                // at it.
-                inputRefs: getParamRefs(expression, 'Input', inputIds),
-                outputRefs: getParamRefs(expression, 'Output', outputIds),
-                output,
-            });
-        } catch (error) {
-            const name = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
-            throw new Error(
-                `Unable to parse input type of ${name}:\n` +
-                    `JSON: ${JSON.stringify(output.type)}\n` +
-                    `${String(error)}`
-            );
-        }
+        const label = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
+        const param = getOutputParamName(output.id);
+        const expression = parseExpression(output.type, label);
+        unordered.set(param, {
+            type: 'Output',
+            expression,
+            label,
+            param,
+            references: getParamRefs(expression, validRefs),
+            output,
+        });
+    }
+    for (const iterOutput of schema.iteratorOutputs) {
+        const label = `${schema.name} (id: ${schema.schemaId}) > Iterator output ${iterOutput.id}`;
+        const param = getIterOutputParamName(iterOutput.id);
+        const expression = parseExpression(iterOutput.sequenceType, label);
+        unordered.set(param, {
+            type: 'IterOutput',
+            expression,
+            label,
+            param,
+            references: getParamRefs(expression, validRefs),
+            iterOutput,
+        });
     }
 
-    const ordered = topologicalSort(infos.values(), (node) =>
-        [...node.outputRefs].map((ref) => infos.get(ref)!)
+    const orderedOutputs = topologicalSort(unordered.values(), (node) =>
+        [...node.references].map((ref) => unordered.get(ref)).filter(isNotNullish)
     );
-    if (!ordered) {
+    if (!orderedOutputs) {
         throw new Error(
             `The types of the output of ${schema.name} (id: ${schema.schemaId}) has a cyclic dependency.` +
                 ` Carefully review the uses for 'Output*' variables in that node.`
         );
     }
-    ordered.reverse();
+    orderedOutputs.reverse();
 
     const expressionScopeBuilder = new ScopeBuilder('evaluateOutputs scope', scope);
-    for (const [inputId, inputType] of inputDefaults) {
-        expressionScopeBuilder.add(new ParameterDefinition(getInputParamName(inputId), inputType));
+    for (const input of inputs) {
+        expressionScopeBuilder.add(new ParameterDefinition(input.param, input.default));
     }
-    for (const outputId of outputIds) {
-        expressionScopeBuilder.add(new ParameterDefinition(getOutputParamName(outputId)));
+    for (const { id } of schema.outputs) {
+        expressionScopeBuilder.add(new ParameterDefinition(getOutputParamName(id)));
+    }
+    for (const { id } of schema.iteratorOutputs) {
+        expressionScopeBuilder.add(new ParameterDefinition(getIterOutputParamName(id)));
     }
     const expressionScope = expressionScopeBuilder.createScope();
 
-    const defaults = new Map<OutputId, NonNeverType>();
-    for (const { expression, output } of ordered) {
-        const name = `${schema.name} (id: ${schema.schemaId}) > ${output.label} (id: ${output.id})`;
-
+    const ordered: (OutputDesc | IterOutputDesc)[] = [];
+    const outputs: OutputDesc[] = [];
+    const iterOutputs: IterOutputDesc[] = [];
+    for (const item of orderedOutputs) {
         let type: Type;
         try {
-            type = withoutError(evaluate(expression, expressionScope));
+            type = withoutError(evaluate(item.expression, expressionScope));
         } catch (error) {
-            throw new Error(`Unable to evaluate output type of ${name}: ${String(error)}`);
+            throw new Error(`Unable to evaluate output type of ${item.label}: ${String(error)}`);
         }
         if (type.type === 'never') {
-            throw new Error(`The output type of ${name} is always 'never'. This is a bug.`);
+            throw new Error(`The output type of ${item.label} is always 'never'. This is a bug.`);
         }
 
-        defaults.set(output.id, type);
-        expressionScope.assignParameter(getOutputParamName(output.id), type);
+        let final;
+        if (item.type === 'Output') {
+            final = finalizeIntermediate(item, type);
+            outputs.push(final);
+        } else {
+            final = finalizeIntermediate(item, type);
+            iterOutputs.push(final);
+        }
+
+        ordered.push(final);
+        expressionScope.assignParameter(item.param, type);
     }
-    return { ordered, defaults };
+    return { ordered, outputs, iterOutputs };
 };
 
 const getInputDataAdapters = (
@@ -389,25 +457,13 @@ export class FunctionDefinition {
 
     readonly inputConvertibleDefaults: ReadonlyMap<InputId, NonNeverType>;
 
-    readonly inputExpressions: ReadonlyMap<InputId, Expression>;
-
-    readonly inputGenerics: ReadonlySet<InputId>;
-
-    readonly inputEvaluationOrder: readonly InputId[];
+    readonly inputEvaluationOrder: readonly (InputDesc | IterInputDesc)[];
 
     readonly inputConversions: ReadonlyMap<InputId, InputConversion>;
 
     readonly outputDefaults: ReadonlyMap<OutputId, NonNeverType>;
 
-    readonly outputExpressions: ReadonlyMap<OutputId, Expression>;
-
-    readonly outputGenerics: ReadonlySet<OutputId>;
-
-    readonly outputEvaluationOrder: readonly OutputId[];
-
-    get isGeneric() {
-        return this.inputGenerics.size > 0 || this.outputGenerics.size > 0;
-    }
+    readonly outputEvaluationOrder: readonly (OutputDesc | IterOutputDesc)[];
 
     /**
      * Optional per-input functions that take the current input data for their
@@ -428,14 +484,8 @@ export class FunctionDefinition {
 
         // inputs
         const inputs = evaluateInputs(schema, scope);
-        this.inputDefaults = inputs.defaults;
-        this.inputExpressions = new Map(
-            inputs.ordered.map(({ expression, input }) => [input.id, expression])
-        );
-        this.inputGenerics = new Set(
-            inputs.ordered.filter((i) => i.inputRefs.size > 0).map(({ input }) => input.id)
-        );
-        this.inputEvaluationOrder = inputs.ordered.map(({ input }) => input.id);
+        this.inputEvaluationOrder = inputs.ordered;
+        this.inputDefaults = new Map(inputs.inputs.map((i) => [i.input.id, i.default] as const));
         this.inputConversions = getConversions(schema, scope);
         this.inputConvertibleDefaults = new Map(
             [...this.inputDefaults].map(([id, d]) => {
@@ -445,17 +495,11 @@ export class FunctionDefinition {
         );
 
         // outputs
-        const outputs = evaluateOutputs(schema, scope, this.inputDefaults);
-        this.outputDefaults = outputs.defaults;
-        this.outputExpressions = new Map(
-            outputs.ordered.map(({ expression, output }) => [output.id, expression])
+        const outputs = evaluateOutputs(schema, scope, inputs.ordered);
+        this.outputEvaluationOrder = outputs.ordered;
+        this.outputDefaults = new Map(
+            outputs.outputs.map((o) => [o.output.id, o.default] as const)
         );
-        this.outputGenerics = new Set(
-            outputs.ordered
-                .filter((i) => i.inputRefs.size > 0 || i.outputRefs.size > 0)
-                .map(({ output }) => output.id)
-        );
-        this.outputEvaluationOrder = outputs.ordered.map(({ output }) => output.id);
 
         // input literal values
         this.inputDataAdapters = getInputDataAdapters(schema, scope);
@@ -510,18 +554,26 @@ export class FunctionInstance {
 
     readonly outputErrors: readonly FunctionOutputError[];
 
+    readonly inputSequence: ReadonlyMap<InputId, NonNeverType>;
+
+    readonly outputSequence: ReadonlyMap<OutputId, NonNeverType>;
+
     private constructor(
         definition: FunctionDefinition,
         inputs: ReadonlyMap<InputId, NonNeverType>,
         outputs: ReadonlyMap<OutputId, NonNeverType>,
         inputErrors: readonly FunctionInputAssignmentError[],
-        outputErrors: readonly FunctionOutputError[]
+        outputErrors: readonly FunctionOutputError[],
+        inputSequence: ReadonlyMap<InputId, NonNeverType>,
+        outputSequence: ReadonlyMap<OutputId, NonNeverType>
     ) {
         this.definition = definition;
         this.inputs = inputs;
         this.outputs = outputs;
         this.inputErrors = inputErrors;
         this.outputErrors = outputErrors;
+        this.inputSequence = inputSequence;
+        this.outputSequence = outputSequence;
     }
 
     static fromDefinition(definition: FunctionDefinition): FunctionInstance {
@@ -530,7 +582,9 @@ export class FunctionInstance {
             definition.inputDefaults,
             definition.outputDefaults,
             [],
-            []
+            [],
+            new Map(),
+            new Map()
         );
     }
 
@@ -545,25 +599,27 @@ export class FunctionInstance {
 
         // scope
         const scopeBuilder = new ScopeBuilder('function instance', definition.scope);
-        for (const [inputId, type] of definition.inputDefaults) {
-            scopeBuilder.add(new ParameterDefinition(getInputParamName(inputId), type));
+        for (const { param, default: type } of definition.inputEvaluationOrder) {
+            scopeBuilder.add(new ParameterDefinition(param, type));
         }
-        for (const [outputId, type] of definition.outputDefaults) {
-            scopeBuilder.add(new ParameterDefinition(getOutputParamName(outputId), type));
+        for (const { param, default: type } of definition.outputEvaluationOrder) {
+            scopeBuilder.add(new ParameterDefinition(param, type));
         }
         const scope = scopeBuilder.createScope();
 
         // evaluate inputs
         const inputs = new Map<InputId, NonNeverType>();
-        for (const id of definition.inputEvaluationOrder) {
+        const inputLengths = new Map<InputId, NonNeverType>();
+        for (const item of definition.inputEvaluationOrder) {
             let type: Type;
-            if (definition.inputGenerics.has(id)) {
-                type = evaluate(definition.inputExpressions.get(id)!, scope);
+            if (item.expression) {
+                type = evaluate(item.expression, scope);
             } else {
-                type = definition.inputDefaults.get(id)!;
+                type = item.default;
             }
 
-            if (type.type !== 'never') {
+            if (type.type !== 'never' && item.type === 'Input') {
+                const { id } = item.input;
                 const assignedType = partialInputs(id);
                 if (assignedType) {
                     const converted = definition.convertInput(id, assignedType);
@@ -579,76 +635,94 @@ export class FunctionInstance {
                 // If the output type is never, then there is some error with the input.
                 // However, we don't have the means to communicate this error yet, so we'll just
                 // ignore it for now.
-                type = definition.inputDefaults.get(id)!;
+                type = item.default;
             }
 
-            inputs.set(id, type);
-            scope.assignParameter(getInputParamName(id), type);
-        }
-
-        // we don't need to evaluate the outputs of if they aren't generic
-        if (definition.outputGenerics.size === 0 && outputNarrowing.size === 0 && !passthrough) {
-            return new FunctionInstance(
-                definition,
-                inputs,
-                definition.outputDefaults,
-                inputErrors,
-                outputErrors
-            );
+            if (item.type === 'Input') {
+                inputs.set(item.input.id, type);
+            } else {
+                for (const id of item.iterInput.inputs) {
+                    inputLengths.set(id, type);
+                }
+            }
+            scope.assignParameter(item.param, type);
         }
 
         // evaluate outputs
         const outputs = new Map<OutputId, NonNeverType>();
+        const outputLengths = new Map<OutputId, NonNeverType>();
         if (passthrough) {
             // pass through the mapped inputs
 
-            for (const id of definition.outputEvaluationOrder) {
-                const mappedInput = passthrough.getInput(id);
-                const type = inputs.get(mappedInput)!; // we set all inputs
-                outputs.set(id, type);
+            for (const item of definition.outputEvaluationOrder) {
+                if (item.type === 'Output') {
+                    const { id } = item.output;
+                    const mappedInput = passthrough.getInput(id);
+                    const type = inputs.get(mappedInput)!; // we set all inputs
+                    outputs.set(id, type);
+                    const mappedInputLength = inputLengths.get(mappedInput);
+                    if (mappedInputLength) outputLengths.set(id, mappedInputLength);
+                }
             }
         } else {
             // compute outputs normally
 
-            for (const id of definition.outputEvaluationOrder) {
+            for (const item of definition.outputEvaluationOrder) {
                 let type: Type;
-                if (definition.outputGenerics.has(id)) {
-                    type = evaluate(definition.outputExpressions.get(id)!, scope);
+                if (item.expression) {
+                    type = evaluate(item.expression, scope);
 
-                    if (type.type === 'never') {
-                        const message =
-                            definition.schema.outputs.find((o) => o.id === id)?.neverReason ??
-                            undefined;
-                        outputErrors.push({ outputId: id, message });
-                    } else {
-                        let message;
-                        [type, message] = splitOutputTypeAndError(type);
+                    if (item.type === 'Output') {
+                        const { id } = item.output;
                         if (type.type === 'never') {
+                            const message = item.output.neverReason ?? undefined;
                             outputErrors.push({ outputId: id, message });
+                        } else {
+                            let message;
+                            [type, message] = splitOutputTypeAndError(type);
+                            if (type.type === 'never') {
+                                outputErrors.push({ outputId: id, message });
+                            }
                         }
                     }
                 } else {
-                    type = definition.outputDefaults.get(id)!;
+                    type = item.default;
                 }
 
-                const narrowing = outputNarrowing.get(id);
-                if (narrowing) {
-                    type = intersect(narrowing, type);
+                if (item.type === 'Output') {
+                    const narrowing = outputNarrowing.get(item.output.id);
+                    if (narrowing) {
+                        type = intersect(narrowing, type);
+                    }
                 }
 
                 if (type.type === 'never') {
                     // If the output type is never, then there is some error with the input.
                     // However, we don't have the means to communicate this error yet, so we'll just
                     // ignore it for now.
-                    type = definition.outputDefaults.get(id)!;
+                    type = item.default;
                 }
 
-                outputs.set(id, type);
-                scope.assignParameter(getOutputParamName(id), type);
+                if (item.type === 'Output') {
+                    outputs.set(item.output.id, type);
+                } else {
+                    for (const id of item.iterOutput.outputs) {
+                        outputLengths.set(id, type);
+                    }
+                }
+                scope.assignParameter(item.param, type);
             }
         }
 
-        return new FunctionInstance(definition, inputs, outputs, inputErrors, outputErrors);
+        return new FunctionInstance(
+            definition,
+            inputs,
+            outputs,
+            inputErrors,
+            outputErrors,
+            inputLengths,
+            outputLengths
+        );
     }
 
     canAssign(inputId: InputId, type: Type): boolean {

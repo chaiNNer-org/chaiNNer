@@ -36,7 +36,7 @@ Row major:    Column major:
             hint=True,
         ),
     ],
-    iterator_inputs=IteratorInputInfo(inputs=0),
+    iterator_inputs=IteratorInputInfo(inputs=0, length_type="Input1 * Input2"),
     outputs=[
         ImageOutput(
             image_type="""

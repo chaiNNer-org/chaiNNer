@@ -16,6 +16,8 @@ export interface Size {
 export type SchemaId = string & { readonly __schemaId: never };
 export type InputId = number & { readonly __inputId: never };
 export type OutputId = number & { readonly __outputId: never };
+export type IteratorInputId = number & { readonly __iteratorInputId: never };
+export type IteratorOutputId = number & { readonly __iteratorOutputId: never };
 export type GroupId = number & { readonly __groupId: never };
 export type PackageId = string & { readonly __packageId: never };
 export type FeatureId = string & { readonly __featureId: never };
@@ -279,12 +281,14 @@ export type OutputHeight = Readonly<Record<OutputId, number>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
 
 export interface IteratorInputInfo {
+    readonly id: IteratorInputId;
     readonly inputs: readonly InputId[];
-    readonly lengthType: ExpressionJson;
+    readonly sequenceType: ExpressionJson;
 }
 export interface IteratorOutputInfo {
+    readonly id: IteratorOutputId;
     readonly outputs: readonly OutputId[];
-    readonly lengthType: ExpressionJson;
+    readonly sequenceType: ExpressionJson;
 }
 
 export type KeyInfo = EnumKeyInfo | NumberKeyInfo | TypeKeyInfo;

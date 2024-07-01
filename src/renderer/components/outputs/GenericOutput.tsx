@@ -114,41 +114,44 @@ const isImageDefinition = lazyKeyed((type: Type) => {
 });
 const isImage = lazyKeyed((type: Type) => isSubsetOf(type, getImageType()));
 
-export const GenericOutput = memo(({ output, type, id, schema, definitionType }: OutputProps) => {
-    // We first check the definition type first, because it changes less, which makes it more efficient to cache.
-    const viewImage = isImageDefinition(definitionType) ?? isImage(type);
+export const GenericOutput = memo(
+    ({ output, type, id, schema, definitionType, sequenceType }: OutputProps) => {
+        // We first check the definition type first, because it changes less, which makes it more efficient to cache.
+        const viewImage = isImageDefinition(definitionType) ?? isImage(type);
 
-    return (
-        <Flex
-            alignItems="center"
-            h="2rem"
-            style={{ contain: 'layout size' }}
-            verticalAlign="middle"
-            w="full"
-        >
-            {viewImage && (
-                <ViewImageButton
-                    id={id}
-                    output={output}
-                    schema={schema}
-                />
-            )}
-            <Spacer />
-            <TypeTags
-                longText
-                isOptional={false}
-                type={type}
-            />
-            <Text
-                h="full"
-                lineHeight="2rem"
-                marginInlineEnd="0.5rem"
-                ml={1}
-                textAlign="right"
-                whiteSpace="nowrap"
+        return (
+            <Flex
+                alignItems="center"
+                h="2rem"
+                style={{ contain: 'layout size' }}
+                verticalAlign="middle"
+                w="full"
             >
-                {output.label}
-            </Text>
-        </Flex>
-    );
-});
+                {viewImage && (
+                    <ViewImageButton
+                        id={id}
+                        output={output}
+                        schema={schema}
+                    />
+                )}
+                <Spacer />
+                <TypeTags
+                    longText
+                    isOptional={false}
+                    sequenceType={sequenceType}
+                    type={type}
+                />
+                <Text
+                    h="full"
+                    lineHeight="2rem"
+                    marginInlineEnd="0.5rem"
+                    ml={1}
+                    textAlign="right"
+                    whiteSpace="nowrap"
+                >
+                    {output.label}
+                </Text>
+            </Flex>
+        );
+    }
+);
