@@ -63,4 +63,7 @@ def load_models_node(
     supported_filetypes = [".onnx"]
     model_files = list_all_files_sorted(directory, supported_filetypes)
 
-    return Generator.from_list(model_files, load_model, fail_fast), directory
+    return (
+        Generator.from_list(model_files, load_model).with_fail_fast(fail_fast),
+        directory,
+    )
