@@ -13,6 +13,7 @@ from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
 
 from sanic.log import logger
 
+import navi
 from api import (
     BaseInput,
     BaseOutput,
@@ -20,6 +21,8 @@ from api import (
     ExecutionOptions,
     Generator,
     InputId,
+    IteratorOutputInfo,
+    IterOutputId,
     Lazy,
     NodeContext,
     NodeData,
@@ -143,7 +146,11 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
         assert isinstance(
             raw_output, Generator
         ), "Expected the output to be a generator"
-        return GeneratorOutput(generator=raw_output, partial_output=partial)
+        return GeneratorOutput(
+            info=generator_output,
+            generator=raw_output,
+            partial_output=partial,
+        )
 
     assert l > len(generator_output.outputs)
     assert isinstance(raw_output, (tuple, list))
@@ -159,7 +166,11 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
         if o.id not in generator_output.outputs:
             partial[i] = o.enforce(rest.pop(0))
 
-    return GeneratorOutput(generator=iterator, partial_output=partial)
+    return GeneratorOutput(
+        info=generator_output,
+        generator=iterator,
+        partial_output=partial,
+    )
 
 
 def run_node(
@@ -321,6 +332,7 @@ class RegularOutput:
 
 @dataclass(frozen=True)
 class GeneratorOutput:
+    info: IteratorOutputInfo
     generator: Generator
     partial_output: Output
 
@@ -618,7 +630,13 @@ class Executor:
             self.__send_node_finish(node, execution_time)
         elif isinstance(output, GeneratorOutput):
             await self.__send_node_broadcast(
-                node, output.partial_output, output.generator.expected_length
+                node,
+                output.partial_output,
+                output_sequence_types={
+                    output.info.id: navi.named(
+                        "Sequence", {"length": output.generator.expected_length}
+                    )
+                },
             )
             # TODO: execution time
 
@@ -1010,7 +1028,10 @@ class Executor:
         )
 
     async def __send_node_broadcast(
-        self, node: Node, output: Output, expected_length: int | None = None
+        self,
+        node: Node,
+        output: Output,
+        output_sequence_types: dict[IterOutputId, object] | None = None,
     ):
         def compute_broadcast_data():
             if self.progress.aborted:
@@ -1032,7 +1053,7 @@ class Executor:
                         "nodeId": node.id,
                         "data": data,
                         "types": types,
-                        "expectedLength": expected_length,
+                        "sequenceTypes": output_sequence_types,
                     },
                 }
             )

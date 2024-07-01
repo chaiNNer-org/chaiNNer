@@ -1,6 +1,6 @@
 import isDeepEqual from 'fast-deep-equal/react';
 import { useCallback, useState } from 'react';
-import { OutputData, OutputTypes } from '../../common/common-types';
+import { IterOutputTypes, OutputData, OutputTypes } from '../../common/common-types';
 import { EMPTY_MAP } from '../../common/util';
 import { useMemoObject } from './useMemo';
 
@@ -9,6 +9,7 @@ export interface OutputDataEntry {
     lastExecutionTime: number | undefined;
     data: OutputData | undefined;
     types: OutputTypes | undefined;
+    sequenceTypes: IterOutputTypes | undefined;
 }
 
 export interface OutputDataActions {
@@ -17,7 +18,8 @@ export interface OutputDataActions {
         executionTime: number | undefined,
         nodeInputHash: string,
         data: OutputData | undefined,
-        types: OutputTypes | undefined
+        types: OutputTypes | undefined,
+        sequenceTypes: IterOutputTypes | undefined
     ): void;
     delete(nodeId: string): void;
     clear(): void;
@@ -28,7 +30,7 @@ export const useOutputDataStore = () => {
 
     const actions: OutputDataActions = {
         set: useCallback(
-            (nodeId, executionTime, inputHash, data, types) => {
+            (nodeId, executionTime, inputHash, data, types, sequenceTypes) => {
                 setMap((prev) => {
                     const existingEntry = prev.get(nodeId);
 
@@ -36,6 +38,7 @@ export const useOutputDataStore = () => {
                     const entry: OutputDataEntry = {
                         data: useExisting ? existingEntry.data : data,
                         types: useExisting ? existingEntry.types : types,
+                        sequenceTypes: useExisting ? existingEntry.sequenceTypes : sequenceTypes,
                         inputHash: useExisting ? existingEntry.inputHash : inputHash,
                         lastExecutionTime: executionTime ?? existingEntry?.lastExecutionTime,
                     };

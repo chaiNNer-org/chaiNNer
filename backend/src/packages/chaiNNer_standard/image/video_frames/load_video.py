@@ -46,8 +46,8 @@ from .. import video_frames_group
     outputs=[
         ImageOutput("Frame", channels=3),
         NumberOutput(
-            "Frame Index",
-            output_type="if Input1 { min(uint, Input2 - 1) } else { uint }",
+            "Index",
+            output_type="min(uint, max(0, IterOutput0.length - 1))",
         ).with_docs("A counter that starts at 0 and increments by 1 for each frame."),
         DirectoryOutput("Video Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
@@ -58,6 +58,7 @@ from .. import video_frames_group
         outputs=[0, 1], length_type="if Input1 { min(uint, Input2) } else { uint }"
     ),
     node_context=True,
+    side_effects=True,
     kind="generator",
 )
 def load_video_node(

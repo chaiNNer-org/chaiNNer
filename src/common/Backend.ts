@@ -6,6 +6,7 @@ import {
     FeatureState,
     InputId,
     InputValue,
+    IterOutputTypes,
     NodeSchema,
     OutputData,
     OutputTypes,
@@ -341,7 +342,7 @@ export interface BackendEventMap {
         nodeId: string;
         data: OutputData;
         types: OutputTypes;
-        expectedLength?: number | null;
+        sequenceTypes?: IterOutputTypes | null;
     };
     'backend-status': {
         message: string;

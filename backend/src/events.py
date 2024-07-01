@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Literal, TypedDict, Union
 
-from api import ErrorValue, InputId, NodeId, OutputId
+from api import ErrorValue, InputId, IterOutputId, NodeId, OutputId
 
 # General events
 
@@ -89,7 +89,7 @@ class NodeBroadcastData(TypedDict):
     nodeId: NodeId
     data: dict[OutputId, object]
     types: dict[OutputId, object]
-    expectedLength: int | None
+    sequenceTypes: dict[IterOutputId, object] | None
 
 
 class NodeBroadcastEvent(TypedDict):

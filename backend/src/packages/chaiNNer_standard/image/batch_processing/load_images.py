@@ -94,10 +94,7 @@ def list_glob(directory: Path, globexpr: str, ext_filter: list[str]) -> list[Pat
         DirectoryOutput("Directory", output_type="Input0"),
         TextOutput("Subdirectory Path"),
         TextOutput("Name"),
-        NumberOutput(
-            "Index",
-            output_type="if Input4 { min(uint, Input5 - 1) } else { uint }",
-        ),
+        NumberOutput("Index", output_type="min(uint, max(0, IterOutput0.length - 1))"),
     ],
     iterator_outputs=IteratorOutputInfo(
         outputs=[0, 2, 3, 4],

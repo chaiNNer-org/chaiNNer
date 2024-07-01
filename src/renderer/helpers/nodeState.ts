@@ -1,4 +1,3 @@
-import { NonNeverType } from '@chainner/navi';
 import { useMemo } from 'react';
 import { useContext, useContextSelector } from 'use-context-selector';
 import {
@@ -25,14 +24,13 @@ import { useMemoObject } from '../hooks/useMemo';
 export interface TypeInfo {
     readonly instance: FunctionInstance | undefined;
     readonly connectedInputs: ReadonlySet<InputId>;
-    readonly iteratedInputLengths?: ReadonlyMap<InputId, NonNeverType>;
-    readonly iteratedOutputLengths?: ReadonlyMap<OutputId, NonNeverType>;
 }
 
 const useTypeInfo = (id: string): TypeInfo => {
     const instance = useContextSelector(GlobalVolatileContext, (c) =>
         c.typeState.functions.get(id)
     );
+
     const connectedInputsString = useContextSelector(GlobalVolatileContext, (c) => {
         const connected = c.typeState.edges.byTarget.get(id);
         return IdSet.from(connected?.map((connection) => connection.inputId) ?? EMPTY_ARRAY);
