@@ -16,7 +16,7 @@ import { SchemaMap } from '../../common/SchemaMap';
 import { ChainnerSettings } from '../../common/settings/settings';
 import { FunctionDefinition } from '../../common/types/function';
 import { ProgressController, ProgressMonitor, ProgressToken } from '../../common/ui/progress';
-import { assertNever, delay } from '../../common/util';
+import { EMPTY_MAP, assertNever, delay } from '../../common/util';
 import { RunArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
@@ -143,7 +143,14 @@ const ensureStaticCorrectness = (
     }
 
     const byId = new Map(nodes.map((n) => [n.id, n]));
-    const typeState = TypeState.create(byId, edges, new Map(), functionDefinitions, passthrough);
+    const typeState = TypeState.create(
+        byId,
+        edges,
+        EMPTY_MAP,
+        EMPTY_MAP,
+        functionDefinitions,
+        passthrough
+    );
     const chainLineage = new ChainLineage(schemata, nodes, edges);
 
     const invalidNodes = nodes.flatMap((node) => {
