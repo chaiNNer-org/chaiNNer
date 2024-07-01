@@ -65,7 +65,7 @@ def get_item_types(metadata: VideoMetadata):
     ],
     iterator_outputs=IteratorOutputInfo(
         outputs=[0, 1], length_type="if Input1 { min(uint, Input2) } else { uint }"
-    ).with_item_types(VideoMetadata, get_item_types),
+    ).with_item_types(VideoMetadata, get_item_types),  # type: ignore
     node_context=True,
     side_effects=True,
     kind="generator",
