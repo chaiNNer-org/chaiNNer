@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any, Callable, Generic, Mapping, Protocol, TypeVar
 
 import navi
 
 from .group import NestedIdGroup
 from .input import BaseInput
+from .iter import Generator
 from .output import BaseOutput
 from .types import (
     FeatureId,
@@ -42,6 +43,13 @@ class IteratorInputInfo:
         }
 
 
+M_co = TypeVar("M_co", covariant=True)
+
+
+class AnyConstructor(Protocol, Generic[M_co]):
+    def __call__(self, *args: Any, **kwargs: Any) -> M_co: ...
+
+
 class IteratorOutputInfo:
     def __init__(
         self,
@@ -56,12 +64,38 @@ class IteratorOutputInfo:
         )
         self.length_type: navi.ExpressionJson = length_type
 
+        self._metadata_constructor: Any | None = None
+        self._item_types_fn: (
+            Callable[[Any], Mapping[OutputId, navi.ExpressionJson]] | None
+        ) = None
+
+    def with_item_types(
+        self,
+        class_: AnyConstructor[M_co],
+        fn: Callable[[M_co], Mapping[OutputId, navi.ExpressionJson]],
+    ):
+        self._metadata_constructor = class_
+        self._item_types_fn = fn
+        return self
+
     def to_dict(self):
         return {
             "id": self.id,
             "outputs": self.outputs,
             "sequenceType": navi.named("Sequence", {"length": self.length_type}),
         }
+
+    def get_broadcast_sequence_type(self, generator: Generator) -> navi.ExpressionJson:
+        return navi.named("Sequence", {"length": generator.expected_length})
+
+    def get_broadcast_item_types(
+        self, generator: Generator
+    ) -> Mapping[OutputId, navi.ExpressionJson]:
+        if self._item_types_fn is not None and self._metadata_constructor is not None:
+            metadata = generator.metadata
+            if isinstance(metadata, self._metadata_constructor):
+                return self._item_types_fn(metadata)
+        return {}
 
 
 class KeyInfo:

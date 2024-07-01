@@ -5,10 +5,11 @@ from typing import Any
 
 import numpy as np
 
-from api import Generator, IteratorOutputInfo, NodeContext
+import navi
+from api import Generator, IteratorOutputInfo, NodeContext, OutputId
 from nodes.groups import Condition, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
-from nodes.impl.video import VideoLoader
+from nodes.impl.video import VideoLoader, VideoMetadata
 from nodes.properties.inputs import BoolInput, NumberInput, VideoFileInput
 from nodes.properties.outputs import (
     AudioStreamOutput,
@@ -20,6 +21,14 @@ from nodes.properties.outputs import (
 from nodes.utils.utils import split_file_path
 
 from .. import video_frames_group
+
+
+def get_item_types(metadata: VideoMetadata):
+    return {
+        OutputId(0): navi.Image(
+            width=metadata.width, height=metadata.height, channels=3
+        ),
+    }
 
 
 @video_frames_group.register(
@@ -56,7 +65,7 @@ from .. import video_frames_group
     ],
     iterator_outputs=IteratorOutputInfo(
         outputs=[0, 1], length_type="if Input1 { min(uint, Input2) } else { uint }"
-    ),
+    ).with_item_types(VideoMetadata, get_item_types),
     node_context=True,
     side_effects=True,
     kind="generator",
@@ -84,7 +93,9 @@ def load_video_node(
                 break
 
     return (
-        Generator.from_iter(supplier=iterator, expected_length=frame_count),
+        Generator.from_iter(
+            supplier=iterator, expected_length=frame_count
+        ).with_metadata(loader.metadata),
         video_dir,
         video_name,
         loader.metadata.fps,

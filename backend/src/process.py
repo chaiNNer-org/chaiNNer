@@ -17,6 +17,7 @@ import navi
 from api import (
     BaseInput,
     BaseOutput,
+    BroadcastData,
     Collector,
     ExecutionOptions,
     Generator,
@@ -34,7 +35,7 @@ from api import (
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
-from events import EventConsumer, InputsDict
+from events import EventConsumer, InputsDict, NodeBroadcastData
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
 
@@ -298,8 +299,8 @@ class _IterationTimer:
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
-    data: dict[OutputId, object] = {}
-    types: dict[OutputId, object] = {}
+    data: dict[OutputId, BroadcastData | None] = {}
+    types: dict[OutputId, navi.ExpressionJson | None] = {}
     for index, node_output in enumerate(node_outputs):
         try:
             value = output[index]
@@ -309,6 +310,21 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
         except Exception as e:
             logger.error(f"Error broadcasting output: {e}")
     return data, types
+
+
+def compute_sequence_broadcast(
+    generators: Iterable[Generator], node_iter_outputs: Iterable[IteratorOutputInfo]
+):
+    sequence_types: dict[IterOutputId, navi.ExpressionJson] = {}
+    item_types: dict[OutputId, navi.ExpressionJson] = {}
+    for g, iter_output in zip(generators, node_iter_outputs):
+        try:
+            sequence_types[iter_output.id] = iter_output.get_broadcast_sequence_type(g)
+            for output_id, type in iter_output.get_broadcast_item_types(g).items():
+                item_types[output_id] = type
+        except Exception as e:
+            logger.error(f"Error broadcasting output: {e}")
+    return sequence_types, item_types
 
 
 class NodeExecutionError(Exception):
@@ -632,11 +648,7 @@ class Executor:
             await self.__send_node_broadcast(
                 node,
                 output.partial_output,
-                output_sequence_types={
-                    output.info.id: navi.named(
-                        "Sequence", {"length": output.generator.expected_length}
-                    )
-                },
+                generators=[output.generator],
             )
             # TODO: execution time
 
@@ -1031,13 +1043,19 @@ class Executor:
         self,
         node: Node,
         output: Output,
-        output_sequence_types: dict[IterOutputId, object] | None = None,
+        generators: Iterable[Generator] | None = None,
     ):
         def compute_broadcast_data():
             if self.progress.aborted:
                 # abort the broadcast if the chain was aborted
                 return None
-            return compute_broadcast(output, node.data.outputs)
+            foo = compute_broadcast(output, node.data.outputs)
+            if generators is None:
+                return (*foo, {}, {})
+            return (
+                *foo,
+                *compute_sequence_broadcast(generators, node.data.iterable_outputs),
+            )
 
         async def send_broadcast():
             # TODO: Add the time it takes to compute the broadcast data to the execution time
@@ -1045,18 +1063,19 @@ class Executor:
             if result is None or self.progress.aborted:
                 return
 
-            data, types = result
-            self.queue.put(
-                {
-                    "event": "node-broadcast",
-                    "data": {
-                        "nodeId": node.id,
-                        "data": data,
-                        "types": types,
-                        "sequenceTypes": output_sequence_types,
-                    },
-                }
-            )
+            data, types, sequence_types, item_types = result
+
+            # assign item types
+            for output_id, type in item_types.items():
+                types[output_id] = type
+
+            evant_data: NodeBroadcastData = {
+                "nodeId": node.id,
+                "data": data,
+                "types": types,
+                "sequenceTypes": sequence_types,
+            }
+            self.queue.put({"event": "node-broadcast", "data": evant_data})
 
         # Only broadcast the output if the node has outputs
         if self.send_broadcast_data and len(node.data.outputs) > 0:
