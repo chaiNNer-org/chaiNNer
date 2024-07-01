@@ -130,4 +130,7 @@ def load_images_node(
     if use_limit:
         just_image_files = just_image_files[:limit]
 
-    return Generator.from_list(just_image_files, load_image, fail_fast), directory
+    return (
+        Generator.from_list(just_image_files, load_image).with_fail_fast(fail_fast),
+        directory,
+    )
