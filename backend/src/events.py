@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Literal, TypedDict, Union
 
-from api import ErrorValue, InputId, IterOutputId, NodeId, OutputId
+import navi
+from api import BroadcastData, ErrorValue, InputId, IterOutputId, NodeId, OutputId
 
 # General events
 
@@ -87,9 +88,9 @@ class NodeProgressUpdateEvent(TypedDict):
 
 class NodeBroadcastData(TypedDict):
     nodeId: NodeId
-    data: dict[OutputId, object]
-    types: dict[OutputId, object]
-    sequenceTypes: dict[IterOutputId, object] | None
+    data: dict[OutputId, BroadcastData | None]
+    types: dict[OutputId, navi.ExpressionJson | None]
+    sequenceTypes: dict[IterOutputId, navi.ExpressionJson] | None
 
 
 class NodeBroadcastEvent(TypedDict):
