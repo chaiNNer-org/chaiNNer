@@ -708,7 +708,9 @@ class Executor:
         # run the generator nodes before anything else
         for node in generator_nodes:
             generator_output = await self.process_generator_node(node)
-            generator_suppliers[node.id] = generator_output.generator.supplier()
+            generator_suppliers[node.id] = (
+                generator_output.generator.supplier().__iter__()
+            )
 
             collector_nodes, __output_nodes, __all_iterated_nodes = (
                 self.__get_iterated_nodes(node)
