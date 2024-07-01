@@ -1,4 +1,4 @@
-import { Expression, Type, evaluate } from '@chainner/navi';
+import { Expression } from '@chainner/navi';
 import { dirname, parse } from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -18,6 +18,7 @@ import {
     InputId,
     InputKind,
     InputValue,
+    IterOutputId,
     Mutable,
     NodeData,
     OutputId,
@@ -83,6 +84,7 @@ import {
 } from '../hooks/useOutputDataStore';
 import { getSessionStorageOrDefault, useSessionStorage } from '../hooks/useSessionStorage';
 import { useSettings } from '../hooks/useSettings';
+import { useTypeMap } from '../hooks/useTypeMap';
 import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
@@ -137,12 +139,13 @@ interface Global {
     setZoom: SetState<number>;
     exportViewportScreenshot: () => void;
     exportViewportScreenshotToClipboard: () => void;
-    setManualOutputType: (
+    setManualOutputType: (nodeId: string, outputId: OutputId, type: Expression | undefined) => void;
+    setManualSequenceOutputType: (
         nodeId: string,
-        outputId: OutputId | 'length',
+        iterOutputId: IterOutputId,
         type: Expression | undefined
     ) => void;
-    clearManualOutputTypes: (nodes: Iterable<string>) => void;
+    clearManualTypes: (nodes: Iterable<string>) => void;
     typeStateRef: Readonly<React.MutableRefObject<TypeState>>;
     chainLineageRef: Readonly<React.MutableRefObject<ChainLineage>>;
     outputDataActions: OutputDataActions;
@@ -207,56 +210,22 @@ export const GlobalProvider = memo(
             [addEdgeChanges]
         );
 
-        const [manualOutputTypes, setManualOutputTypes] = useState(() => ({
-            map: new Map<string, Map<OutputId | 'length', Type>>(),
-        }));
-        const setManualOutputType = useCallback(
-            (
-                nodeId: string,
-                outputId: OutputId | 'length',
-                expression: Expression | undefined
-            ): void => {
-                const getType = () => {
-                    if (expression === undefined) {
-                        return undefined;
-                    }
+        const [manualOutputTypes, setManualOutputType, clearManualOutputTypes] = useTypeMap<
+            string,
+            OutputId
+        >(scope);
+        const [
+            manualSequenceOutputTypes,
+            setManualSequenceOutputType,
+            clearManualSequenceOutputTypes,
+        ] = useTypeMap<string, IterOutputId>(scope);
 
-                    try {
-                        return evaluate(expression, scope);
-                    } catch (error) {
-                        log.error(error);
-                        return undefined;
-                    }
-                };
-
-                setManualOutputTypes(({ map }) => {
-                    let inner = map.get(nodeId);
-                    const type = getType();
-                    if (type) {
-                        if (!inner) {
-                            inner = new Map();
-                            map.set(nodeId, inner);
-                        }
-
-                        inner.set(outputId, type);
-                    } else {
-                        inner?.delete(outputId);
-                    }
-                    return { map };
-                });
+        const clearManualTypes = useCallback(
+            (nodes: Iterable<string>) => {
+                clearManualOutputTypes(nodes);
+                clearManualSequenceOutputTypes(nodes);
             },
-            [setManualOutputTypes, scope]
-        );
-        const clearManualOutputTypes = useCallback(
-            (nodes: Iterable<string>): void => {
-                setManualOutputTypes(({ map }) => {
-                    for (const nodeId of nodes) {
-                        map.delete(nodeId);
-                    }
-                    return { map };
-                });
-            },
-            [setManualOutputTypes]
+            [clearManualOutputTypes, clearManualSequenceOutputTypes]
         );
 
         const [typeState, setTypeState] = useState(TypeState.empty);
@@ -270,7 +239,7 @@ export const GlobalProvider = memo(
                 // remove manual overrides of nodes that no longer exist
                 if (manualOutputTypes.map.size > 0) {
                     const ids = [...manualOutputTypes.map.keys()];
-                    for (const id of ids.filter((key) => !nodeMap.has(key) && key !== 'length')) {
+                    for (const id of ids.filter((key) => !nodeMap.has(key))) {
                         // use interior mutability to not cause updates
                         manualOutputTypes.map.delete(id);
                     }
@@ -280,6 +249,7 @@ export const GlobalProvider = memo(
                     nodeMap,
                     getEdges(),
                     manualOutputTypes.map,
+                    manualSequenceOutputTypes.map,
                     functionDefinitions,
                     passthrough,
                     typeStateRef.current
@@ -296,6 +266,7 @@ export const GlobalProvider = memo(
             nodeChanges,
             edgeChanges,
             manualOutputTypes,
+            manualSequenceOutputTypes,
             functionDefinitions,
             schemata,
             passthrough,
@@ -1329,7 +1300,8 @@ export const GlobalProvider = memo(
             exportViewportScreenshot,
             exportViewportScreenshotToClipboard,
             setManualOutputType,
-            clearManualOutputTypes,
+            setManualSequenceOutputType,
+            clearManualTypes,
             typeStateRef,
             chainLineageRef,
             outputDataActions,

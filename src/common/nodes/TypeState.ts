@@ -1,5 +1,5 @@
 import { EvaluationError, NonNeverType, Type, isSameType } from '@chainner/navi';
-import { EdgeData, InputId, NodeData, OutputId, SchemaId } from '../common-types';
+import { EdgeData, InputId, IterOutputId, NodeData, OutputId, SchemaId } from '../common-types';
 import { log } from '../log';
 import { PassthroughMap } from '../PassthroughMap';
 import {
@@ -22,23 +22,38 @@ const assignmentErrorEquals = (
         isSameType(a.inputType, b.inputType)
     );
 };
+const mapEqual = <K, V extends NonNullable<unknown>>(
+    a: ReadonlyMap<K, V>,
+    b: ReadonlyMap<K, V>,
+    eq: (a: V, b: V) => boolean
+): boolean => {
+    if (a.size !== b.size) return false;
+    for (const [key, value] of a) {
+        const otherValue = b.get(key);
+        if (otherValue === undefined || !eq(value, otherValue)) return false;
+    }
+    return true;
+};
+const arrayEqual = <T>(
+    a: ReadonlyArray<T>,
+    b: ReadonlyArray<T>,
+    eq: (a: T, b: T) => boolean
+): boolean => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+        if (!eq(a[i], b[i])) return false;
+    }
+    return true;
+};
 const instanceEqual = (a: FunctionInstance, b: FunctionInstance): boolean => {
     if (a.definition !== b.definition) return false;
 
-    for (const [key, value] of a.inputs) {
-        const otherValue = b.inputs.get(key);
-        if (!otherValue || !isSameType(value, otherValue)) return false;
-    }
+    if (!mapEqual(a.inputs, b.inputs, isSameType)) return false;
+    if (!mapEqual(a.inputSequence, b.inputSequence, isSameType)) return false;
+    if (!mapEqual(a.outputs, b.outputs, isSameType)) return false;
+    if (!mapEqual(a.outputSequence, b.outputSequence, isSameType)) return false;
 
-    for (const [key, value] of a.outputs) {
-        const otherValue = b.outputs.get(key);
-        if (!otherValue || !isSameType(value, otherValue)) return false;
-    }
-
-    if (a.inputErrors.length !== b.inputErrors.length) return false;
-    for (let i = 0; i < a.inputErrors.length; i += 1) {
-        if (!assignmentErrorEquals(a.inputErrors[i], b.inputErrors[i])) return false;
-    }
+    if (!arrayEqual(a.inputErrors, b.inputErrors, assignmentErrorEquals)) return false;
 
     return true;
 };
@@ -65,7 +80,8 @@ export class TypeState {
     static create(
         nodesMap: ReadonlyMap<string, Node<NodeData>>,
         rawEdges: readonly Edge<EdgeData>[],
-        outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId | 'length', Type>>,
+        outputNarrowing: ReadonlyMap<string, ReadonlyMap<OutputId, Type>>,
+        sequenceOutputNarrowing: ReadonlyMap<string, ReadonlyMap<IterOutputId, Type>>,
         functionDefinitions: ReadonlyMap<SchemaId, FunctionDefinition>,
         passthrough?: PassthroughMap,
         previousTypeState?: TypeState
@@ -127,6 +143,7 @@ export class TypeState {
                         return undefined;
                     },
                     outputNarrowing.get(n.id),
+                    sequenceOutputNarrowing.get(n.id),
                     passthroughInfo
                 );
             } catch (error) {

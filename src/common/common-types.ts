@@ -16,8 +16,8 @@ export interface Size {
 export type SchemaId = string & { readonly __schemaId: never };
 export type InputId = number & { readonly __inputId: never };
 export type OutputId = number & { readonly __outputId: never };
-export type IteratorInputId = number & { readonly __iteratorInputId: never };
-export type IteratorOutputId = number & { readonly __iteratorOutputId: never };
+export type IterInputId = number & { readonly __iteratorInputId: never };
+export type IterOutputId = number & { readonly __iteratorOutputId: never };
 export type GroupId = number & { readonly __groupId: never };
 export type PackageId = string & { readonly __packageId: never };
 export type FeatureId = string & { readonly __featureId: never };
@@ -279,14 +279,15 @@ export type InputHeight = Readonly<Record<InputId, number>>;
 export type OutputData = Readonly<Record<OutputId, unknown>>;
 export type OutputHeight = Readonly<Record<OutputId, number>>;
 export type OutputTypes = Readonly<Partial<Record<OutputId, ExpressionJson | null>>>;
+export type IterOutputTypes = Readonly<Partial<Record<IterOutputId, ExpressionJson | null>>>;
 
 export interface IteratorInputInfo {
-    readonly id: IteratorInputId;
+    readonly id: IterInputId;
     readonly inputs: readonly InputId[];
     readonly sequenceType: ExpressionJson;
 }
 export interface IteratorOutputInfo {
-    readonly id: IteratorOutputId;
+    readonly id: IterOutputId;
     readonly outputs: readonly OutputId[];
     readonly sequenceType: ExpressionJson;
 }
