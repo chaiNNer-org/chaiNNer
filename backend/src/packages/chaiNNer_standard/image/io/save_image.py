@@ -92,6 +92,17 @@ class TiffColorDepth(Enum):
     F32 = "f32"
 
 
+class TiffCompression(Enum):
+    NONE = 1
+    LZW = 5
+    ZIP = 8
+
+    @property
+    def cv2_code(self) -> int:
+        # OpenCV is a beautiful piece of software, so surely they won't forget to define the TIFF compression constants, right?
+        return self.value
+
+
 SUPPORTED_DDS_FORMATS: list[tuple[DDSFormat, str]] = [
     ("BC1_UNORM_SRGB", "BC1 (4bpp, sRGB, 1-bit Alpha)"),
     ("BC1_UNORM", "BC1 (4bpp, Linear, 1-bit Alpha)"),
@@ -232,6 +243,18 @@ def DdsMipMapsDropdown() -> DropDownInput:
                     TiffColorDepth.F32: "32 Bits/Channel (Float)",
                 },
             ).with_id(16),
+            if_enum_group(16, (TiffColorDepth.U8, TiffColorDepth.U16))(
+                EnumInput(
+                    TiffCompression,
+                    "Compression",
+                    default=TiffCompression.LZW,
+                    option_labels={
+                        TiffCompression.NONE: "None",
+                        TiffCompression.LZW: "LZW (lossless)",
+                        TiffCompression.ZIP: "ZIP (lossless)",
+                    },
+                ).with_id(18),
+            ),
         ),
         if_enum_group(4, ImageFormat.DDS)(
             DdsFormatDropdown().with_id(6),
@@ -302,6 +325,7 @@ def save_image_node(
     jpeg_chroma_subsampling: JpegSubsampling,
     jpeg_progressive: bool,
     tiff_color_depth: TiffColorDepth,
+    tiff_compression: TiffCompression,
     dds_format: DDSFormat,
     dds_bc7_compression: BC7Compression,
     dds_error_metric: DDSErrorMetric,
@@ -386,6 +410,10 @@ def save_image_node(
             ]
         elif image_format == ImageFormat.WEBP:
             params = [cv2.IMWRITE_WEBP_QUALITY, 101 if webp_lossless else quality]
+        elif (
+            image_format == ImageFormat.TIFF and tiff_color_depth != TiffColorDepth.F32
+        ):
+            params = [cv2.IMWRITE_TIFF_COMPRESSION, tiff_compression.cv2_code]
         else:
             params = []
 
