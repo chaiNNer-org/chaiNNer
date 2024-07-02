@@ -85,6 +85,37 @@ export const canConnect = (
         );
     }
 
+    const outputSequenceType = sourceFn.outputSequence.get(sourceOutputId);
+    if (outputSequenceType !== undefined) {
+        const schema = targetSchema;
+        const input = schema.inputs.find((i) => i.id === targetInputId)!;
+
+        const inputSequenceType = targetFn.inputSequence.get(targetInputId);
+        if (inputSequenceType) {
+            const inputSequenceTypeNotNull = withoutNull(inputSequenceType);
+
+            const error = simpleError(outputSequenceType, inputSequenceTypeNotNull);
+            if (error) {
+                return invalid(
+                    `Input ${input.label} requires ${error.definition} but would be connected with ${error.assigned}.`
+                );
+            }
+
+            const traceTree = generateAssignmentErrorTrace(
+                outputSequenceType,
+                inputSequenceTypeNotNull
+            );
+            if (traceTree) {
+                const trace = printErrorTrace(traceTree);
+                return invalid(
+                    `Input ${
+                        input.label
+                    } cannot be connected with an incompatible value. ${trace.join(' ')}`
+                );
+            }
+        }
+    }
+
     // Iterator lineage check
     const sourceLineage = chainLineage.getOutputLineage(sourceHandle);
     const lineageValid = checkAssignedLineage(
