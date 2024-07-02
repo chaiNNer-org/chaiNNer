@@ -3,12 +3,13 @@ from __future__ import annotations
 import onnx
 import onnx.inliner
 import re2
+from sanic.log import logger
 
-from .model import OnnxGeneric, OnnxInfo, OnnxModel, OnnxRemBg
+from .model import OnnxGeneric, OnnxInfo, OnnxModel, OnnxRemBg, SizeReq
 from .utils import (
+    ModelShapeInference,
     get_opset,
     get_tensor_fp_datatype,
-    image_to_image_shape_inference,
 )
 
 re2_options = re2.Options()
@@ -24,6 +25,23 @@ U2NET_SILUETA = re2.compile(b"1808.+1827.+1828.+2296.+1831.+1850.+1958", re2_opt
 U2NET_ISNET = re2.compile(
     b"/stage1/rebnconvin/conv_s1/Conv.+/stage1/rebnconvin/relu_s1/Relu", re2_options
 )
+
+
+def _detect_size_req(infer: ModelShapeInference):
+    if infer.fixed_input_width is not None and infer.fixed_input_height is not None:
+        shape = infer.infer_shape((infer.fixed_input_width, infer.fixed_input_height))
+        return SizeReq(), shape
+
+    for size in [16, 64, 256, 512]:
+        try:
+            shape = infer.infer_shape((size, size))
+            out_h, out_w, _ = shape[1]
+            if out_h is not None and out_w is not None:
+                return SizeReq(multiple_of=size), shape
+        except Exception:
+            logger.error(f"Failed to infer shape for size {size}", exc_info=True)
+
+    return SizeReq(), None
 
 
 def load_onnx_model(model_or_bytes: onnx.ModelProto | bytes) -> OnnxModel:
@@ -53,22 +71,30 @@ def load_onnx_model(model_or_bytes: onnx.ModelProto | bytes) -> OnnxModel:
         return OnnxRemBg(model_as_bytes, info)
     else:
         try:
-            i_hwc, o_hwc = image_to_image_shape_inference(model, (512, 512))
-            i_h, i_w, i_c = i_hwc
-            o_h, o_w, o_c = o_hwc
+            infer = ModelShapeInference(model)
+            info.fixed_input_width = infer.fixed_input_width
+            info.fixed_input_height = infer.fixed_input_height
+            info.input_channels = infer.input_channels
+            info.output_channels = infer.output_channels
 
-            def get_scale(i: int | None, o: int | None) -> int | None:
-                if i is None or o is None:
-                    return None
-                if o % i != 0:
-                    return None
-                return o // i
+            size_req, shape_result = _detect_size_req(infer)
+            info.size_req = size_req
 
-            info.scale_width = get_scale(i_w, o_w)
-            info.scale_height = get_scale(i_h, o_h)
+            if shape_result:
+                i_hwc, o_hwc = shape_result
+                i_h, i_w, _i_c = i_hwc
+                o_h, o_w, o_c = o_hwc
 
-            info.input_channels = i_c
-            info.output_channels = o_c
+                def get_scale(i: int | None, o: int | None) -> int | None:
+                    if i is None or o is None:
+                        return None
+                    if o % i != 0:
+                        return None
+                    return o // i
+
+                info.scale_width = get_scale(i_w, o_w)
+                info.scale_height = get_scale(i_h, o_h)
+                info.output_channels = o_c
         except Exception:
             pass
 

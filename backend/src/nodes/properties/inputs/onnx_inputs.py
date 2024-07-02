@@ -1,7 +1,7 @@
 import navi
 from api import BaseInput
 
-from ...impl.onnx.model import OnnxModel, OnnxModels, OnnxRemBg
+from ...impl.onnx.model import OnnxGeneric, OnnxModel, OnnxModels, OnnxRemBg
 from .generic_inputs import DropDownInput
 
 
@@ -22,6 +22,7 @@ class OnnxGenericModelInput(OnnxModelInput):
         self, label: str = "Model", input_type: navi.ExpressionJson = "OnnxModel"
     ):
         super().__init__(label, navi.intersect(input_type, "OnnxGenericModel"))
+        self.associated_type = OnnxGeneric
 
     def enforce(self, value: object):
         assert isinstance(value, OnnxModels)
