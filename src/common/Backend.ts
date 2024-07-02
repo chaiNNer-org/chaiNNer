@@ -17,7 +17,6 @@ import {
     SchemaId,
     Version,
 } from './common-types';
-import { assertNever } from './util';
 
 export interface BackendSuccessResponse {
     type: 'success';
@@ -201,7 +200,6 @@ export class Backend {
                 if (axios.isCancel(error)) {
                     throw CancelError.fromCancel(error, error.config);
                 }
-                assertNever(error);
             }
             if (ServerError.isJson(error)) {
                 throw ServerError.fromJson(error);
