@@ -452,15 +452,18 @@ class Executor:
 
         self._storage_dir = storage_dir
 
-    async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
+    async def process(
+        self, node_id: NodeId, perform_cache: bool = True
+    ) -> NodeOutput | CollectorOutput:
         # Return cached output value from an already-run node if that cached output exists
-        cached = self.node_cache.get(node_id)
-        if cached is not None:
-            return cached
+        if perform_cache:
+            cached = self.node_cache.get(node_id)
+            if cached is not None:
+                return cached
 
         node = self.chain.nodes[node_id]
         try:
-            return await self.__process(node)
+            return await self.__process(node, perform_cache)
         except Aborted:
             raise
         except NodeExecutionError:
@@ -478,14 +481,16 @@ class Executor:
         assert isinstance(result, RegularOutput)
         return result
 
-    async def process_generator_node(self, node: GeneratorNode) -> GeneratorOutput:
+    async def process_generator_node(
+        self, node: GeneratorNode, perform_cache: bool = True
+    ) -> GeneratorOutput:
         """
         Processes the given iterator node.
 
         This will **not** iterate the returned generator. Only `node-start` and
         `node-broadcast` events will be sent.
         """
-        result = await self.process(node.id)
+        result = await self.process(node.id, perform_cache)
         assert isinstance(result, GeneratorOutput)
         return result
 
@@ -599,7 +604,9 @@ class Executor:
 
         return context
 
-    async def __process(self, node: Node) -> NodeOutput | CollectorOutput:
+    async def __process(
+        self, node: Node, perform_cache: bool = True
+    ) -> NodeOutput | CollectorOutput:
         """
         Process a single node.
 
@@ -653,7 +660,7 @@ class Executor:
             # TODO: execution time
 
         # Cache the output of the node
-        if not isinstance(output, CollectorOutput):
+        if perform_cache and not isinstance(output, CollectorOutput):
             self.node_cache.set(node.id, output, self.cache_strategy[node.id])
 
         await self.progress.suspend()

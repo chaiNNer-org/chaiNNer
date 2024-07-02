@@ -207,6 +207,16 @@ async def run(request: Request):
         chain = parse_json(full_data["data"])
         optimize(chain)
 
+        # Remove all Generator values from the cache for each new run
+        # Otherwise, their state will cause them to resume from where they left off
+        schema_data = api.registry.nodes
+        for node in chain.nodes.values():
+            node_schema = schema_data.get(node.schema_id)
+            if node_schema:
+                node_data, _ = node_schema
+                if node_data.kind == "generator" and ctx.cache.get(node.id):
+                    ctx.cache.pop(node.id)
+
         logger.info("Running new executor...")
         executor = Executor(
             id=executor_id,
@@ -344,7 +354,8 @@ async def run_individual(request: Request):
                     raise ValueError(
                         f"Invalid node kind {node_data.kind} attempted to run individually"
                     )
-                ctx.cache[node_id] = output
+                if not isinstance(node, GeneratorNode):
+                    ctx.cache[node_id] = output
             except Aborted:
                 pass
             finally:
