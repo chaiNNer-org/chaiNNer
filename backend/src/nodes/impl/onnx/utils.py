@@ -4,7 +4,8 @@ from typing import Any, Literal, Tuple, Union
 
 import onnx
 from onnx.onnx_pb import ModelProto, ValueInfoProto
-from onnx.tools import update_model_dims
+
+from .update_model_dims import update_inputs_outputs_dims
 
 OnnxTensorFormat = Literal["BCHW", "BHWC"]
 OnnxTensorShape = Tuple[
@@ -75,72 +76,90 @@ def is_image_to_image(model: ModelProto) -> bool:
     return is_tensor_input(i) and is_tensor_input(o)
 
 
-def image_to_image_shape_inference(
-    model: ModelProto, input_size: tuple[int, int]
-) -> tuple[
-    tuple[int | None, int | None, int | None],
-    tuple[int | None, int | None, int | None],
-]:
-    """
-    input_shape: The size of the input tensors as width, height.
+class ModelShapeInference:
+    def __init__(self, model: ModelProto):
+        self.model = model
 
-    return: The shapes of the input and output tensors in HWC format.
-    """
-    i = model.graph.input[0]
-    o = model.graph.output[0]
+        i = model.graph.input[0]
+        o = model.graph.output[0]
 
-    if not is_tensor_input(i) or not is_tensor_input(o):
-        raise ValueError("Expected tensor inputs and outputs")
+        if not is_tensor_input(i) or not is_tensor_input(o):
+            raise ValueError("Expected tensor inputs and outputs")
 
-    # modify model to have a fixed input size
-    input_shape = to_onnx_tensor_shape(i.type.tensor_type)
-    output_shape = to_onnx_tensor_shape(o.type.tensor_type)
+        # modify model to have a fixed input size
+        self.input_shape = to_onnx_tensor_shape(i.type.tensor_type)
+        self.output_shape = to_onnx_tensor_shape(o.type.tensor_type)
 
-    parsed_input_shape = parse_onnx_shape(input_shape)
-    tensor_format = parsed_input_shape[0]
+        parsed_input_shape = parse_onnx_shape(self.input_shape)
+        self.tensor_format = parsed_input_shape[0]
+        self.input_channels = parsed_input_shape[1]
+        self.fixed_input_width = parsed_input_shape[2]
+        self.fixed_input_height = parsed_input_shape[3]
 
-    b = _or_else(_as_int(input_shape[0]), 1)
-    c = parsed_input_shape[1]
-    h = _or_else(parsed_input_shape[3], input_size[1])
-    w = _or_else(parsed_input_shape[2], input_size[0])
+        self.output_channels = _as_int(
+            self.output_shape[1]
+            if self.tensor_format == "BCHW"
+            else self.output_shape[3]
+        )
 
-    new_inputs: list[Any]
-    if tensor_format == "BCHW":
-        new_inputs = [b, c, h, w]
-    elif tensor_format == "BHWC":
-        new_inputs = [b, h, w, c]
-    else:
-        raise ValueError(f"Unknown tensor format: {tensor_format}")
+    def infer_shape(
+        self, input_size: tuple[int, int]
+    ) -> tuple[
+        tuple[int | None, int | None, int | None],
+        tuple[int | None, int | None, int | None],
+    ]:
+        """
+        input_shape: The size of the input tensors as width, height.
 
-    update_model_dims.update_inputs_outputs_dims(
-        model,
-        {i.name: new_inputs},
-        {o.name: list(output_shape)},
-    )
+        return: The shapes of the input and output tensors in HWC format.
 
-    # infer the output shape using the fixed input size
-    inferred_model = onnx.shape_inference.infer_shapes(model)
-    i = inferred_model.graph.input[0]
-    o = inferred_model.graph.output[0]
+        **This will mutate the model.**
+        """
+        b = _or_else(_as_int(self.input_shape[0]), 1)
+        c = self.input_channels
+        h = _or_else(self.fixed_input_height, input_size[1])
+        w = _or_else(self.fixed_input_width, input_size[0])
 
-    input_shape = to_onnx_tensor_shape(i.type.tensor_type)
-    output_shape = to_onnx_tensor_shape(o.type.tensor_type)
+        new_inputs: list[Any]
+        if self.tensor_format == "BCHW":
+            new_inputs = [b, c, h, w]
+        elif self.tensor_format == "BHWC":
+            new_inputs = [b, h, w, c]
+        else:
+            raise ValueError(f"Unknown tensor format: {self.tensor_format}")
 
-    # output in HWC format
-    input_shape = input_shape[1:]
-    output_shape = output_shape[1:]
+        i = self.model.graph.input[0]
+        o = self.model.graph.output[0]
 
-    if tensor_format == "BCHW":
-        input_shape = input_shape[::-1]
-        output_shape = output_shape[::-1]
+        update_inputs_outputs_dims(
+            self.model,
+            {i.name: new_inputs},
+            {o.name: list(self.output_shape)},
+        )
 
-    input_shape = tuple(_as_int(dim) for dim in input_shape)
-    output_shape = tuple(_as_int(dim) for dim in output_shape)
+        # infer the output shape using the fixed input size
+        inferred_model = onnx.shape_inference.infer_shapes(self.model, strict_mode=True)
+        i = inferred_model.graph.input[0]
+        o = inferred_model.graph.output[0]
 
-    assert len(input_shape) == 3
-    assert len(output_shape) == 3
+        input_shape = to_onnx_tensor_shape(i.type.tensor_type)
+        output_shape = to_onnx_tensor_shape(o.type.tensor_type)
 
-    return input_shape[0:3], output_shape
+        # output in HWC format
+        input_shape = input_shape[1:]
+        output_shape = output_shape[1:]
+
+        if self.tensor_format == "BCHW":
+            input_shape = input_shape[::-1]
+            output_shape = output_shape[::-1]
+
+        input_shape = tuple(_as_int(dim) for dim in input_shape)
+        output_shape = tuple(_as_int(dim) for dim in output_shape)
+
+        assert len(input_shape) == 3
+        assert len(output_shape) == 3
+
+        return input_shape[0:3], output_shape
 
 
 def get_tensor_fp_datatype(model: ModelProto) -> str:
