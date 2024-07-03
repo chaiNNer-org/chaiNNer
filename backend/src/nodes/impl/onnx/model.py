@@ -2,7 +2,7 @@
 # It is important that is does not contain types that depend on ONNX.
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final, Literal, Union
 
 OnnxSubType = Literal["Generic", "RemBg"]
@@ -45,9 +45,6 @@ class SizeReq:
         return w - width, h - height
 
 
-NO_SIZE_REQ = SizeReq()
-
-
 @dataclass
 class OnnxInfo:
     opset: int
@@ -62,7 +59,7 @@ class OnnxInfo:
     input_channels: int | None = None
     output_channels: int | None = None
 
-    size_req: SizeReq = NO_SIZE_REQ
+    size_req: SizeReq = field(default_factory=SizeReq)
 
 
 class OnnxGeneric:
