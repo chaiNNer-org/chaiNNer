@@ -198,8 +198,12 @@ export class Backend {
                 if (error.response?.data) {
                     return error.response.data as T;
                 }
-                if (axios.isCancel(error)) {
+                // Note: Don't use axios.isCancel as it is currently bugged
+                if (error instanceof axios.CanceledError) {
                     throw CancelError.fromCancel(error, error.config);
+                }
+                if (error instanceof axios.AxiosError) {
+                    throw error;
                 }
                 assertNever(error);
             }
