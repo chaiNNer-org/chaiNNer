@@ -226,11 +226,16 @@ function* getSpecialSuggestions(
     schemata: readonly NodeSchema[],
     searchQuery: string
 ): Iterable<SuggestionGroupItem> {
+    const equalIgnoreCase = (a: string, b: string) => {
+        // the length check isn't 100% correct, but it's good enough for our mostly-ASCII suggestions
+        return a.length === b.length && a.toLowerCase() === b.toLowerCase();
+    };
+
     const parse = (
         s: SpecialSuggestion,
         schema: NodeSchema
     ): { inputs: Partial<InputData> } | undefined => {
-        if (searchQuery === s.query) {
+        if (equalIgnoreCase(searchQuery, s.query)) {
             return { inputs: s.inputs };
         }
         if (s.parseInput != null && searchQuery.startsWith(s.query)) {
