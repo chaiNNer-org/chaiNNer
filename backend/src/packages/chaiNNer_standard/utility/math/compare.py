@@ -29,7 +29,7 @@ class Comparison(Enum):
             label="Operation",
             option_labels={
                 Comparison.EQUAL: "L == R",
-                Comparison.NOT_EQUAL: "L == R",
+                Comparison.NOT_EQUAL: "L != R",
                 Comparison.GREATER: "L > R",
                 Comparison.LESS: "L < R",
                 Comparison.GREATER_EQUAL: "L >= R",
