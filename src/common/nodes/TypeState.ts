@@ -75,17 +75,23 @@ export class TypeState {
         const functions = new Map<string, FunctionInstance>();
         const evaluationErrors = new Map<string, EvaluationError>();
 
-        const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
+        const getSourceType = (
+            id: string,
+            inputId: InputId
+        ): { output: NonNeverType | undefined; sequence: NonNeverType | undefined } => {
             const edge = edges.get(id, inputId);
             if (edge) {
                 const sourceNode = nodesMap.get(edge.source);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
-                    return functionInstance?.outputs.get(edge.outputId);
+                    return {
+                        output: functionInstance?.outputs.get(edge.outputId),
+                        sequence: functionInstance?.outputSequence.get(edge.outputId),
+                    };
                 }
             }
-            return undefined;
+            return { output: undefined, sequence: undefined };
         };
         const addNode = (n: Node<NodeData>): FunctionInstance | undefined => {
             const cached = functions.get(n.id);
@@ -105,9 +111,11 @@ export class TypeState {
             try {
                 instance = FunctionInstance.fromPartialInputs(
                     definition,
-                    (id): NonNeverType | undefined => {
+                    (
+                        id
+                    ): { output: NonNeverType | undefined; sequence: NonNeverType | undefined } => {
                         const edgeSource = getSourceType(n.id, id);
-                        if (edgeSource) {
+                        if (edgeSource.output && edgeSource.sequence) {
                             return edgeSource;
                         }
 
@@ -116,15 +124,15 @@ export class TypeState {
                         if (inputValue !== undefined) {
                             const foo = definition.inputDataAdapters.get(id)?.(inputValue);
                             if (foo !== undefined) {
-                                return foo;
+                                return { output: foo, sequence: undefined };
                             }
                         }
 
                         if (inputValue === undefined && definition.inputNullable.has(id)) {
-                            return nullType;
+                            return { output: nullType, sequence: undefined };
                         }
 
-                        return undefined;
+                        return { output: undefined, sequence: undefined };
                     },
                     outputNarrowing.get(n.id),
                     passthroughInfo
