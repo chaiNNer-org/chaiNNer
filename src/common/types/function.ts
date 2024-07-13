@@ -642,6 +642,17 @@ export class FunctionInstance {
                 inputs.set(item.input.id, type);
             } else {
                 for (const id of item.iterInput.inputs) {
+                    const upstreamLength = inputLengths.get(id);
+                    if (upstreamLength) {
+                        const newType = assign(upstreamLength, type).assignedType;
+                        if (newType.type === 'never') {
+                            inputErrors.push({
+                                inputId: id,
+                                inputType: type,
+                                assignedType: upstreamLength,
+                            });
+                        }
+                    }
                     inputLengths.set(id, type);
                 }
             }
