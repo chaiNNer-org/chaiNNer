@@ -28,7 +28,7 @@ from api import (
     NodeId,
 )
 from chain.cache import OutputCache
-from chain.chain import Chain, FunctionNode
+from chain.chain import Chain, FunctionNode, GeneratorNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
@@ -207,6 +207,16 @@ async def run(request: Request):
         chain = parse_json(full_data["data"])
         optimize(chain)
 
+        # Remove all Generator values from the cache for each new run
+        # Otherwise, their state will cause them to resume from where they left off
+        schema_data = api.registry.nodes
+        for node in chain.nodes.values():
+            node_schema = schema_data.get(node.schema_id)
+            if node_schema:
+                node_data, _ = node_schema
+                if node_data.kind == "generator" and ctx.cache.get(node.id):
+                    ctx.cache.pop(node.id)
+
         logger.info("Running new executor...")
         executor = Executor(
             id=executor_id,
@@ -287,7 +297,22 @@ async def run_individual(request: Request):
         node_id = full_data["id"]
         ctx.cache.pop(node_id, None)
 
-        node = FunctionNode(node_id, full_data["schemaId"])
+        schema_data = api.registry.nodes.get(full_data["schemaId"])
+
+        if schema_data is None:
+            raise ValueError(
+                f"Invalid node {full_data['schemaId']} attempted to run individually"
+            )
+
+        node_data, _ = schema_data
+        if node_data.kind == "generator":
+            node = GeneratorNode(node_id, full_data["schemaId"])
+        elif node_data.kind == "regularNode":
+            node = FunctionNode(node_id, full_data["schemaId"])
+        else:
+            raise ValueError(
+                f"Invalid node kind {node_data.kind} attempted to run individually"
+            )
         chain = Chain()
         chain.add_node(node)
 
@@ -319,8 +344,18 @@ async def run_individual(request: Request):
                     old_executor.kill()
 
                 ctx.individual_executors[execution_id] = executor
-                output = await executor.process_regular_node(node)
-                ctx.cache[node_id] = output
+                if node_data.kind == "generator":
+                    assert isinstance(node, GeneratorNode)
+                    output = await executor.process_generator_node(node)
+                elif node_data.kind == "regularNode":
+                    assert isinstance(node, FunctionNode)
+                    output = await executor.process_regular_node(node)
+                else:
+                    raise ValueError(
+                        f"Invalid node kind {node_data.kind} attempted to run individually"
+                    )
+                if not isinstance(node, GeneratorNode):
+                    ctx.cache[node_id] = output
             except Aborted:
                 pass
             finally:

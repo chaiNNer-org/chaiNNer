@@ -58,7 +58,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
     } = nodeState;
 
     const { functionDefinitions } = useContext(BackendContext);
-    const { setManualOutputType } = useContext(GlobalContext);
+    const { setManualOutputType, setManualSequenceOutputType } = useContext(GlobalContext);
     const outputDataEntry = useContextSelector(GlobalVolatileContext, (c) =>
         c.outputDataMap.get(id)
     );
@@ -80,6 +80,7 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
     );
 
     const currentTypes = stale ? undefined : outputDataEntry?.types;
+    const currentSequenceTypes = stale ? undefined : outputDataEntry?.sequenceTypes;
 
     const { isAutomatic } = useAutomaticFeatures(id, schemaId);
 
@@ -89,8 +90,20 @@ export const NodeOutputs = memo(({ nodeState, animated }: NodeOutputProps) => {
                 const type = evalExpression(currentTypes?.[output.id]);
                 setManualOutputType(id, output.id, type);
             }
+            for (const iterOutput of schema.iteratorOutputs) {
+                const type = evalExpression(currentSequenceTypes?.[iterOutput.id]);
+                setManualSequenceOutputType(id, iterOutput.id, type);
+            }
         }
-    }, [id, currentTypes, schema, setManualOutputType, isAutomatic]);
+    }, [
+        id,
+        currentTypes,
+        currentSequenceTypes,
+        schema,
+        setManualOutputType,
+        setManualSequenceOutputType,
+        isAutomatic,
+    ]);
 
     const isCollapsed = useIsCollapsedNode();
     if (isCollapsed) {

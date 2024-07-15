@@ -119,6 +119,7 @@ export const NodeExample = memo(({ selectedSchema }: NodeExampleProps) => {
             new Map([[nodeId, node]]),
             EMPTY_ARRAY,
             EMPTY_MAP,
+            EMPTY_MAP,
             functionDefinitions,
             PassthroughMap.EMPTY
         );

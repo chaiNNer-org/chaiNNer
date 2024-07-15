@@ -19,9 +19,9 @@ import {
     Input,
     InputId,
     InputSchemaValue,
-    IteratorInputId,
+    IterInputId,
+    IterOutputId,
     IteratorInputInfo,
-    IteratorOutputId,
     IteratorOutputInfo,
     NodeSchema,
     Output,
@@ -56,9 +56,9 @@ const getParamRefs = <R extends ParamRef>(
 };
 
 export const getInputParamName = (inputId: InputId) => `Input${inputId}` as const;
-export const getIterInputParamName = (id: IteratorInputId) => `IterInput${id}` as const;
+export const getIterInputParamName = (id: IterInputId) => `IterInput${id}` as const;
 export const getOutputParamName = (outputId: OutputId) => `Output${outputId}` as const;
-export const getIterOutputParamName = (id: IteratorOutputId) => `IterOutput${id}` as const;
+export const getIterOutputParamName = (id: IterOutputId) => `IterOutput${id}` as const;
 
 interface BaseDesc<P extends GenericParam> {
     readonly type: P;
@@ -592,6 +592,7 @@ export class FunctionInstance {
         definition: FunctionDefinition,
         partialInputs: (inputId: InputId) => NonNeverType | undefined,
         outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP,
+        sequenceOutputNarrowing: ReadonlyMap<IterOutputId, Type> = EMPTY_MAP,
         passthrough?: PassthroughInfo
     ): FunctionInstance {
         const inputErrors: FunctionInputAssignmentError[] = [];
@@ -689,11 +690,12 @@ export class FunctionInstance {
                     type = item.default;
                 }
 
-                if (item.type === 'Output') {
-                    const narrowing = outputNarrowing.get(item.output.id);
-                    if (narrowing) {
-                        type = intersect(narrowing, type);
-                    }
+                const narrowing =
+                    item.type === 'Output'
+                        ? outputNarrowing.get(item.output.id)
+                        : sequenceOutputNarrowing.get(item.iterOutput.id);
+                if (narrowing) {
+                    type = intersect(narrowing, type);
                 }
 
                 if (type.type === 'never') {
@@ -705,6 +707,7 @@ export class FunctionInstance {
 
                 if (item.type === 'Output') {
                     outputs.set(item.output.id, type);
+                    scope.assignParameter(getOutputParamName(item.output.id), type);
                 } else {
                     for (const id of item.iterOutput.outputs) {
                         outputLengths.set(id, type);

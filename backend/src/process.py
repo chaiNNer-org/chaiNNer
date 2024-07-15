@@ -13,13 +13,17 @@ from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
 
 from sanic.log import logger
 
+import navi
 from api import (
     BaseInput,
     BaseOutput,
+    BroadcastData,
     Collector,
     ExecutionOptions,
     Generator,
     InputId,
+    IteratorOutputInfo,
+    IterOutputId,
     Lazy,
     NodeContext,
     NodeData,
@@ -31,7 +35,7 @@ from api import (
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
 from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
-from events import EventConsumer, InputsDict
+from events import EventConsumer, InputsDict, NodeBroadcastData
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
 
@@ -143,7 +147,11 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
         assert isinstance(
             raw_output, Generator
         ), "Expected the output to be a generator"
-        return GeneratorOutput(generator=raw_output, partial_output=partial)
+        return GeneratorOutput(
+            info=generator_output,
+            generator=raw_output,
+            partial_output=partial,
+        )
 
     assert l > len(generator_output.outputs)
     assert isinstance(raw_output, (tuple, list))
@@ -159,7 +167,11 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
         if o.id not in generator_output.outputs:
             partial[i] = o.enforce(rest.pop(0))
 
-    return GeneratorOutput(generator=iterator, partial_output=partial)
+    return GeneratorOutput(
+        info=generator_output,
+        generator=iterator,
+        partial_output=partial,
+    )
 
 
 def run_node(
@@ -287,8 +299,8 @@ class _IterationTimer:
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
-    data: dict[OutputId, object] = {}
-    types: dict[OutputId, object] = {}
+    data: dict[OutputId, BroadcastData | None] = {}
+    types: dict[OutputId, navi.ExpressionJson | None] = {}
     for index, node_output in enumerate(node_outputs):
         try:
             value = output[index]
@@ -298,6 +310,21 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
         except Exception as e:
             logger.error(f"Error broadcasting output: {e}")
     return data, types
+
+
+def compute_sequence_broadcast(
+    generators: Iterable[Generator], node_iter_outputs: Iterable[IteratorOutputInfo]
+):
+    sequence_types: dict[IterOutputId, navi.ExpressionJson] = {}
+    item_types: dict[OutputId, navi.ExpressionJson] = {}
+    for g, iter_output in zip(generators, node_iter_outputs):
+        try:
+            sequence_types[iter_output.id] = iter_output.get_broadcast_sequence_type(g)
+            for output_id, type in iter_output.get_broadcast_item_types(g).items():
+                item_types[output_id] = type
+        except Exception as e:
+            logger.error(f"Error broadcasting output: {e}")
+    return sequence_types, item_types
 
 
 class NodeExecutionError(Exception):
@@ -321,6 +348,7 @@ class RegularOutput:
 
 @dataclass(frozen=True)
 class GeneratorOutput:
+    info: IteratorOutputInfo
     generator: Generator
     partial_output: Output
 
@@ -424,15 +452,18 @@ class Executor:
 
         self._storage_dir = storage_dir
 
-    async def process(self, node_id: NodeId) -> NodeOutput | CollectorOutput:
+    async def process(
+        self, node_id: NodeId, perform_cache: bool = True
+    ) -> NodeOutput | CollectorOutput:
         # Return cached output value from an already-run node if that cached output exists
-        cached = self.node_cache.get(node_id)
-        if cached is not None:
-            return cached
+        if perform_cache:
+            cached = self.node_cache.get(node_id)
+            if cached is not None:
+                return cached
 
         node = self.chain.nodes[node_id]
         try:
-            return await self.__process(node)
+            return await self.__process(node, perform_cache)
         except Aborted:
             raise
         except NodeExecutionError:
@@ -450,14 +481,16 @@ class Executor:
         assert isinstance(result, RegularOutput)
         return result
 
-    async def process_generator_node(self, node: GeneratorNode) -> GeneratorOutput:
+    async def process_generator_node(
+        self, node: GeneratorNode, perform_cache: bool = True
+    ) -> GeneratorOutput:
         """
         Processes the given iterator node.
 
         This will **not** iterate the returned generator. Only `node-start` and
         `node-broadcast` events will be sent.
         """
-        result = await self.process(node.id)
+        result = await self.process(node.id, perform_cache)
         assert isinstance(result, GeneratorOutput)
         return result
 
@@ -571,7 +604,9 @@ class Executor:
 
         return context
 
-    async def __process(self, node: Node) -> NodeOutput | CollectorOutput:
+    async def __process(
+        self, node: Node, perform_cache: bool = True
+    ) -> NodeOutput | CollectorOutput:
         """
         Process a single node.
 
@@ -617,11 +652,15 @@ class Executor:
             await self.__send_node_broadcast(node, output.output)
             self.__send_node_finish(node, execution_time)
         elif isinstance(output, GeneratorOutput):
-            await self.__send_node_broadcast(node, output.partial_output)
+            await self.__send_node_broadcast(
+                node,
+                output.partial_output,
+                generators=[output.generator],
+            )
             # TODO: execution time
 
         # Cache the output of the node
-        if not isinstance(output, CollectorOutput):
+        if perform_cache and not isinstance(output, CollectorOutput):
             self.node_cache.set(node.id, output, self.cache_strategy[node.id])
 
         await self.progress.suspend()
@@ -1011,12 +1050,19 @@ class Executor:
         self,
         node: Node,
         output: Output,
+        generators: Iterable[Generator] | None = None,
     ):
         def compute_broadcast_data():
             if self.progress.aborted:
                 # abort the broadcast if the chain was aborted
                 return None
-            return compute_broadcast(output, node.data.outputs)
+            foo = compute_broadcast(output, node.data.outputs)
+            if generators is None:
+                return (*foo, {}, {})
+            return (
+                *foo,
+                *compute_sequence_broadcast(generators, node.data.iterable_outputs),
+            )
 
         async def send_broadcast():
             # TODO: Add the time it takes to compute the broadcast data to the execution time
@@ -1024,17 +1070,19 @@ class Executor:
             if result is None or self.progress.aborted:
                 return
 
-            data, types = result
-            self.queue.put(
-                {
-                    "event": "node-broadcast",
-                    "data": {
-                        "nodeId": node.id,
-                        "data": data,
-                        "types": types,
-                    },
-                }
-            )
+            data, types, sequence_types, item_types = result
+
+            # assign item types
+            for output_id, type in item_types.items():
+                types[output_id] = type
+
+            evant_data: NodeBroadcastData = {
+                "nodeId": node.id,
+                "data": data,
+                "types": types,
+                "sequenceTypes": sequence_types,
+            }
+            self.queue.put({"event": "node-broadcast", "data": evant_data})
 
         # Only broadcast the output if the node has outputs
         if self.send_broadcast_data and len(node.data.outputs) > 0:

@@ -167,7 +167,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         outputDataActions,
         getInputHash,
         setManualOutputType,
-        clearManualOutputTypes,
+        clearManualTypes,
     } = useContext(GlobalContext);
     const {
         schemata,
@@ -262,6 +262,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         let broadcastData;
         let types;
         let progress;
+        let sequenceTypes;
 
         for (const { type, data } of events) {
             if (type === 'node-start') {
@@ -272,6 +273,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             } else if (type === 'node-broadcast') {
                 broadcastData = data.data;
                 types = data.types;
+                sequenceTypes = data.sequenceTypes ?? undefined;
             } else {
                 progress = data;
             }
@@ -281,14 +283,26 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             setNodeStatus(executionStatus, [nodeId]);
         }
 
-        if (executionTime !== undefined || broadcastData !== undefined || types !== undefined) {
+        if (
+            executionTime !== undefined ||
+            broadcastData !== undefined ||
+            types !== undefined ||
+            sequenceTypes !== undefined
+        ) {
             // TODO: This is incorrect. The inputs of the node might have changed since
             // the chain started running. However, sending the then current input hashes
             // of the chain to the backend along with the rest of its data and then making
             // the backend send us those hashes is incorrect too because of iterators, I
             // think.
             const inputHash = getInputHash(nodeId);
-            outputDataActions.set(nodeId, executionTime, inputHash, broadcastData, types);
+            outputDataActions.set(
+                nodeId,
+                executionTime,
+                inputHash,
+                broadcastData,
+                types,
+                sequenceTypes
+            );
         }
 
         if (progress) {
@@ -492,7 +506,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
             nodeEventBacklog.processAll();
             clearNodeStatusMap();
             setStatus(ExecutionStatus.READY);
-            clearManualOutputTypes(iteratorNodeIds);
+            clearManualTypes(iteratorNodeIds);
         }
     }, [
         getNodes,
@@ -509,7 +523,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         packageSettings,
         clearNodeStatusMap,
         nodeEventBacklog,
-        clearManualOutputTypes,
+        clearManualTypes,
     ]);
 
     const resume = useCallback(async () => {
