@@ -180,7 +180,7 @@ class UpscalerName(Enum):
     REAL_ESRGAN_4_ANIME6B = "R-ESRGAN 4x+ Anime6B"
     SCUNET_GAN = "ScuNET GAN"
     SCUNET_PSNR = "ScuNET PSNR"
-    SWIN_IR_4 = "SwinIR 4x"
+    SWIN_IR_4 = "SwinIR_4x"
 
 
 UPSCALE_NAME_LABELS = {
