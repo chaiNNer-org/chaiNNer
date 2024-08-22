@@ -147,7 +147,7 @@ class IFNet(nn.Module):
         flow2=None,  # noqa: ANN001
         img1_blurred=None  # noqa: ANN001
     ):
-        def compute_flow(img0_blurred, img1_blurred, timestep):
+        def compute_flow(img0_blurred: np.ndarray, img1_blurred: np.ndarray, timestep: float) -> None:
             f0 = self.encode(img0_blurred[:, :3])
             f1 = self.encode(img1_blurred[:, :3])
             flow = None
@@ -240,14 +240,14 @@ class IFNet(nn.Module):
             flow2 = compute_flow(img1_blurred, img1_blurred, timestep)
 
         # subtract flow2 from flow1 to compensate for shifts
-        new_flow = flow1 - flow2
+        compensated_flow = flow1 - flow2
 
-        # warp original unblurred image with the new flow
-        aligned_img0 = warp(img0, new_flow[:, :2], device)
+        # warp image with the compensated flow
+        aligned_img0 = warp(img0, compensated_flow[:, :2], device)
 
         # add clamp here instead of in warplayer script, as it changes the output there
         aligned_img0 = aligned_img0.clamp(0, 1)
-        return aligned_img0, new_flow, flow2, img1_blurred
+        return aligned_img0, compensated_flow, flow2, img1_blurred
 
     def forward(
         self,
