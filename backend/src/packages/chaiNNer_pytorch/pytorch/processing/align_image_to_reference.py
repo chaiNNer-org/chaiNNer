@@ -15,7 +15,6 @@ from pathlib import Path
 import numpy as np
 import requests
 import torch
-
 from api import NodeContext
 from nodes.impl.pytorch.rife.IFNet_HDv3_v4_14_align import IFNet
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
@@ -109,7 +108,7 @@ def align_images(
     target_img_resized = resize(
         target_img, (source_w, source_h), filter=ResizeFilter.LANCZOS
     )
-    
+
     # padding because rife can only work with multiples of 32 (changes with precision mode)
     pad_h, pad_w = calculate_padding(source_h, source_w, precision_mode)
     top_pad = pad_h // 2
