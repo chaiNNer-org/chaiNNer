@@ -145,9 +145,11 @@ class IFNet(nn.Module):
         ensemble,  # noqa: ANN001
         device,  # noqa: ANN001
         flow2=None,  # noqa: ANN001
-        img1_blurred=None  # noqa: ANN001
+        img1_blurred=None,  # noqa: ANN001
     ):
-        def compute_flow(img0_blurred: np.ndarray, img1_blurred: np.ndarray, timestep: float) -> None:
+        def compute_flow(
+            img0_blurred: np.ndarray, img1_blurred: np.ndarray, timestep: float
+        ) -> None:
             f0 = self.encode(img0_blurred[:, :3])
             f1 = self.encode(img1_blurred[:, :3])
             flow = None
@@ -157,7 +159,14 @@ class IFNet(nn.Module):
                 if flow is None:
                     flow, mask = block[i](
                         torch.cat(
-                            (img0_blurred[:, :3], img1_blurred[:, :3], f0, f1, timestep), 1
+                            (
+                                img0_blurred[:, :3],
+                                img1_blurred[:, :3],
+                                f0,
+                                f1,
+                                timestep,
+                            ),
+                            1,
                         ),
                         None,
                         scale=scale_list[i],
@@ -277,7 +286,15 @@ class IFNet(nn.Module):
         img1_blurred = None
         for _iteration in range(num_iterations):
             aligned_img0, flow, flow2, img1_blurred = self.align_images(
-                img0, img1, timestep, scale_list, blur_strength, ensemble, device, flow2, img1_blurred
+                img0,
+                img1,
+                timestep,
+                scale_list,
+                blur_strength,
+                ensemble,
+                device,
+                flow2,
+                img1_blurred,
             )
             img0 = aligned_img0  # use the aligned image as img0 for the next iteration
 
