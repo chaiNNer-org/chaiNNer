@@ -34,10 +34,7 @@ def parse_ckpt_state_dict(checkpoint: dict):
     schema_id="chainner:pytorch:load_model",
     name="Load Model",
     description=[
-        (
-            "Load PyTorch state dict (.pth), TorchScript (.pt), or Checkpoint (.ckpt) files into an"
-            " auto-detected supported model architecture."
-        ),
+        ("Load PyTorch model file into an auto-detected supported model architecture."),
         (
             "- For Super-Resolution, we support most variations of the RRDB"
             " architecture (ESRGAN, Real-ESRGAN, RealSR, BSRGAN, SPSR), Real-ESRGAN's"
