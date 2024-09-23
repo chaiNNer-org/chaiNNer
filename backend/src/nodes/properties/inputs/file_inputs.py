@@ -111,6 +111,9 @@ def PthFileInput(primary_input: bool = False) -> FileInput:
         file_kind="pth",
         filetypes=[".pt", ".pth", ".ckpt", ".safetensors"],
         primary_input=primary_input,
+    ).with_docs(
+        "Supports PyTorch state dict (.pth), TorchScript (.pt), Checkpoint (.ckpt), or SafeTensors (.safetensors) files.",
+        "Use SafeTensors files for better security (the other file types might be able to execute arbitrary code when loaded).",
     )
 
 
