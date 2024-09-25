@@ -105,12 +105,10 @@ def align_images(
 
     source_h, source_w, _ = get_h_w_c(source_img)
 
-    # resize, then shift reference left because rife shifts slightly to the right
+    # resize image to reference
     target_img_resized = resize(
         target_img, (source_w, source_h), filter=ResizeFilter.LANCZOS
     )
-    target_img_resized = np.roll(target_img_resized, -1, axis=1)
-    target_img_resized[:, -1] = target_img_resized[:, -2]
 
     # padding because rife can only work with multiples of 32 (changes with precision mode)
     pad_h, pad_w = calculate_padding(source_h, source_w, precision_mode)
