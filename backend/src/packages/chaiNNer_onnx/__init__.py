@@ -31,9 +31,9 @@ def get_onnx_runtime():
     else:
         return Dependency(
             display_name="ONNX Runtime",
-            pypi_name="onnxruntime",
+            pypi_name="onnxruntime-directml",
             version="1.17.1",
-            size_estimate=6 * MB,
+            size_estimate=30 * MB,
         )
 
 
@@ -49,6 +49,7 @@ package = add_package(
             version="1.16.0",
             size_estimate=12 * MB,
         ),
+        
         Dependency(
             display_name="ONNX Optimizer",
             pypi_name="onnxoptimizer",
