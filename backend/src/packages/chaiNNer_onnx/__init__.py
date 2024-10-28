@@ -15,7 +15,7 @@ else:
         f"{general} {conversion} It is fastest when CUDA is supported. If TensorRT is"
         " installed on the system, it can also be configured to use that."
     )
-    inst_hint = f"{general} It does not support AMD GPUs."
+    inst_hint = f"{general} It does not support AMD GPUs, in linux."
 
 
 def get_onnx_runtime():
@@ -39,7 +39,7 @@ def get_onnx_runtime():
         else:
             return Dependency(
                 display_name="ONNX Runtime",
-                pypi_name="onnxruntiml",
+                pypi_name="onnxruntime",
                 version="1.17.1",
                 size_estimate=6 * MB,          
         }
