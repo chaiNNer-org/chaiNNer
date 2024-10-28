@@ -2,7 +2,7 @@ from sanic.log import logger
 
 from api import KB, MB, Dependency, add_package
 from gpu import nvidia
-from system import is_arm_mac
+from system import is_arm_mac, is_windows
 
 general = "ONNX uses .onnx models to upscale images."
 conversion = "It also helps to convert between PyTorch and NCNN."
@@ -29,13 +29,20 @@ def get_onnx_runtime():
             extra_index_url="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/",
         )
     else:
-        return Dependency(
-            display_name="ONNX Runtime",
-            pypi_name="onnxruntime-directml",
-            version="1.17.1",
-            size_estimate=30 * MB,
+        if is_windows:
+            return Dependency(
+                display_name="ONNX Runtime (DirectMl)",
+                pypi_name="onnxruntime-directml",
+                version="1.17.1",
+                size_estimate=30 * MB,
         )
-
+        else:
+            return Dependency(
+                display_name="ONNX Runtime",
+                pypi_name="onnxruntiml",
+                version="1.17.1",
+                size_estimate=6 * MB,          
+        }
 
 package = add_package(
     __file__,
