@@ -42,7 +42,7 @@ def get_onnx_runtime():
                 pypi_name="onnxruntime",
                 version="1.17.1",
                 size_estimate=6 * MB,          
-        }
+            )
 
 package = add_package(
     __file__,
