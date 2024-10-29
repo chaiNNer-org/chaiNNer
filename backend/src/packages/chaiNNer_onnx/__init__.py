@@ -28,21 +28,21 @@ def get_onnx_runtime():
             import_name="onnxruntime",
             extra_index_url="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/",
         )
-    else:
-        if is_windows:
-            return Dependency(
-                display_name="ONNX Runtime (DirectMl)",
-                pypi_name="onnxruntime-directml",
-                version="1.17.1",
-                size_estimate=30 * MB,
+    elif is_windows:
+        return Dependency(
+            display_name="ONNX Runtime (DirectMl)",
+            pypi_name="onnxruntime-directml",
+            version="1.17.1",
+            size_estimate=30 * MB,
         )
-        else:
-            return Dependency(
-                display_name="ONNX Runtime",
-                pypi_name="onnxruntime",
-                version="1.17.1",
-                size_estimate=6 * MB,          
-            )
+    else:
+        return Dependency(
+            display_name="ONNX Runtime",
+            pypi_name="onnxruntime",
+            version="1.17.1",
+            size_estimate=6 * MB,
+        )
+
 
 package = add_package(
     __file__,
@@ -56,7 +56,6 @@ package = add_package(
             version="1.16.0",
             size_estimate=12 * MB,
         ),
-        
         Dependency(
             display_name="ONNX Optimizer",
             pypi_name="onnxoptimizer",
@@ -83,6 +82,3 @@ onnx_category = package.add_category(
     color="#63B3ED",
     install_hint=inst_hint,
 )
-
-
-logger.debug(f"Loaded package {package.name}")
