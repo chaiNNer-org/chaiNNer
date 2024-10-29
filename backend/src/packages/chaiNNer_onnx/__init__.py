@@ -82,3 +82,6 @@ onnx_category = package.add_category(
     color="#63B3ED",
     install_hint=inst_hint,
 )
+
+
+logger.debug(f"Loaded package {package.name}")
