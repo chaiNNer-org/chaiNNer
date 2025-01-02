@@ -123,7 +123,7 @@ As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.co
 
 ## Troubleshooting
 
-For troubleshooting information, view the [troubleshooting document](docs/troubleshooting.md).
+For troubleshooting information, view the [troubleshooting document](https://github.com/chaiNNer-org/chaiNNer/wiki/06--Troubleshooting).
 
 ## Building chaiNNer Yourself
 
@@ -131,4 +131,10 @@ I provide pre-built versions of chaiNNer here on GitHub. However, if you would l
 
 ## FAQ
 
-For FAQ information, view the [FAQ document](docs/FAQ.md).
+For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/chaiNNer/wiki/07--FAQ).
+
+## Documentation
+
+For in-depth documentation covering various aspects of ChaiNNer, including CLI usage, data representation, and a contributor's guide, kindly refer to our [ChaiNNer Wiki](https://github.com/chaiNNer-org/chaiNNer/wiki).
+
+
