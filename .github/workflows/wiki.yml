@@ -6,7 +6,7 @@ on:
     paths:
       - docs/** # This includes all sub folders
     branches:
-      - main # This can be changed to any branch of your preference
+      - misc/wiki-workflow # This can be changed to any branch of your preference
 
 env:
   USER_TOKEN: ${{ secrets.GEARTRACKER_USER_GH_TOKEN }} # This is the repository secret
