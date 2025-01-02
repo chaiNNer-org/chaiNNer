@@ -9,9 +9,9 @@ on:
       - main # This can be changed to any branch of your preference
 
 env:
-  USER_TOKEN: ${{ secrets.GEARTRACKER_USER_GH_TOKEN }} # This is the repository secret
-  USER_NAME: geartracker # Enter the username of your (bot) account
-  USER_EMAIL: gtracker@gear-productions.com # Enter the e-mail of your (bot) account
+  USER_TOKEN: <USER_TOKEN_ENV_VARIABLE> # This is the repository secret
+  USER_NAME: <USER_NAME> # Enter the username of your (bot) account
+  USER_EMAIL: <USER_EMAIL> # Enter the e-mail of your (bot) account
   OWNER: ${{ github.event.repository.owner.login }} # This is the repository owner
   REPOSITORY_NAME: ${{ github.event.repository.name }} # This is the repository name
 
