@@ -1,4 +1,4 @@
-# Welcome to the ChaiNNer Wiki!
+# Welcome to the ChaiNNer Wiki !
 
 This wiki serves as a comprehensive guide to ChaiNNer, a visual programming language and development environment for chaining image processing tasks together. Below are the key sections of the documentation:
 
