@@ -45,7 +45,15 @@ class NoiseType(Enum):
                 NoiseColor.GRAY: "Monochrome",
             },
         ),
-        SliderInput("Amount", min=0, max=100, default=50),
+        SliderInput(
+            "Amount",
+            min=0.0,
+            max=100.0,
+            default=50.0,
+            precision=1,
+            step=0.1,
+            slider_step=0.1,
+        ),
         seed_group(SeedInput()),
     ],
     outputs=[
@@ -67,18 +75,18 @@ def add_noise_node(
     img: np.ndarray,
     noise_type: NoiseType,
     noise_color: NoiseColor,
-    amount: int,
+    amount: float,
     seed: Seed,
 ) -> np.ndarray:
     if noise_type == NoiseType.GAUSSIAN:
-        return gaussian_noise(img, amount / 100, noise_color, seed.value)
+        return gaussian_noise(img, amount / 100.0, noise_color, seed.value)
     elif noise_type == NoiseType.UNIFORM:
-        return uniform_noise(img, amount / 100, noise_color, seed.value)
+        return uniform_noise(img, amount / 100.0, noise_color, seed.value)
     elif noise_type == NoiseType.SALT_AND_PEPPER:
-        return salt_and_pepper_noise(img, amount / 100, noise_color, seed.value)
+        return salt_and_pepper_noise(img, amount / 100.0, noise_color, seed.value)
     elif noise_type == NoiseType.POISSON:
-        return poisson_noise(img, amount / 100, noise_color, seed.value)
+        return poisson_noise(img, amount / 100.0, noise_color, seed.value)
     elif noise_type == NoiseType.SPECKLE:
-        return speckle_noise(img, amount / 100, noise_color, seed.value)
+        return speckle_noise(img, amount / 100.0, noise_color, seed.value)
     else:
         raise ValueError(f"Unknown noise type: {noise_type}")
