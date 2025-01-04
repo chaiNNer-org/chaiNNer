@@ -2,7 +2,7 @@ from sanic.log import logger
 
 from api import KB, MB, Dependency, add_package
 from gpu import nvidia
-from system import is_arm_mac
+from system import is_arm_mac, is_windows
 
 general = "ONNX uses .onnx models to upscale images."
 conversion = "It also helps to convert between PyTorch and NCNN."
@@ -15,7 +15,7 @@ else:
         f"{general} {conversion} It is fastest when CUDA is supported. If TensorRT is"
         " installed on the system, it can also be configured to use that."
     )
-    inst_hint = f"{general} It does not support AMD GPUs."
+    inst_hint = f"{general} It does not support AMD GPUs, in linux."
 
 
 def get_onnx_runtime():
@@ -27,6 +27,13 @@ def get_onnx_runtime():
             size_estimate=120 * MB,
             import_name="onnxruntime",
             extra_index_url="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/",
+        )
+    elif is_windows:
+        return Dependency(
+            display_name="ONNX Runtime (DirectMl)",
+            pypi_name="onnxruntime-directml",
+            version="1.17.1",
+            size_estimate=15 * MB,
         )
     else:
         return Dependency(
