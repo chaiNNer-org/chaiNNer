@@ -23,6 +23,8 @@ For help, suggestions, or just to hang out, you can join the [chaiNNer Discord s
 
 Remember: chaiNNer is still a work in progress and in alpha. While it is slowly getting more to where we want it, it is going to take quite some time to have every possible feature we want to add. If you're knowledgeable in TypeScript, React, or Python, feel free to contribute to this project and help us get closer to that goal.
 
+Note: As of right now, chaiNNer is not under active development. This may resume in the future, but at the moment there is no active dev work aside from community contributions via PRs.
+
 ## Installation
 
 Download the latest release from the [Github releases page](https://github.com/chaiNNer-org/chaiNNer/releases) and run the installer best suited for your system. Simple as that.
