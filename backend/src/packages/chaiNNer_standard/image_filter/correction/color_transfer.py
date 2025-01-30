@@ -42,7 +42,7 @@ TRANSFER_COLOR_ALGORITHM_LABELS = {
     icon="MdInput",
     inputs=[
         ImageInput("Image", channels=[3, 4]),
-        ImageInput("Reference Image", channels=[3, 4]),
+        ImageInput("Goal Reference Image", channels=[3, 4]),
         EnumInput(
             TransferColorAlgorithm,
             label="Algorithm",
@@ -50,6 +50,9 @@ TRANSFER_COLOR_ALGORITHM_LABELS = {
             default=TransferColorAlgorithm.MEAN_STD,
         ).with_id(5),
         if_enum_group(5, TransferColorAlgorithm.MEAN_STD)(
+            ImageInput("Initial Reference Image", channels=[3, 4])
+            .make_optional()
+            .with_id(6),
             EnumInput(
                 TransferColorSpace,
                 label="Colorspace",
@@ -65,10 +68,14 @@ def color_transfer_node(
     img: np.ndarray,
     ref_img: np.ndarray,
     algorithm: TransferColorAlgorithm,
+    init_img: np.ndarray | None,
     colorspace: TransferColorSpace,
     overflow_method: OverflowMethod,
     reciprocal_scale: bool,
 ) -> np.ndarray:
+    if init_img is None:
+        init_img = img
+
     _, _, img_c = get_h_w_c(img)
 
     # Preserve alpha
@@ -76,6 +83,13 @@ def color_transfer_node(
     if img_c == 4:
         alpha = img[:, :, 3]
     bgr_img = img[:, :, :3]
+
+    _, _, init_img_c = get_h_w_c(init_img)
+
+    init_alpha = None
+    if init_img_c == 4:
+        init_alpha = init_img[:, :, 3]
+    bgr_init_img = init_img[:, :, :3]
 
     _, _, ref_img_c = get_h_w_c(ref_img)
 
@@ -86,9 +100,9 @@ def color_transfer_node(
 
     # Don't process RGB data if the pixel is fully transparent, since
     # such RGB data is indeterminate.
-    valid_rgb_indices = np.ones(img.shape[:-1], dtype=bool)
-    if alpha is not None:
-        valid_rgb_indices = alpha > 0
+    init_valid_rgb_indices = np.ones(init_img.shape[:-1], dtype=bool)
+    if init_alpha is not None:
+        init_valid_rgb_indices = init_alpha > 0
 
     ref_valid_rgb_indices = np.ones(ref_img.shape[:-1], dtype=bool)
     if ref_alpha is not None:
@@ -99,19 +113,20 @@ def color_transfer_node(
         transfer = mean_std_transfer(
             bgr_img,
             bgr_ref_img,
+            bgr_init_img,
             colorspace,
             overflow_method,
             reciprocal_scale=reciprocal_scale,
-            valid_indices=valid_rgb_indices,
+            valid_indices=init_valid_rgb_indices,
             ref_valid_indices=ref_valid_rgb_indices,
         )
     elif algorithm == TransferColorAlgorithm.LINEAR_HISTOGRAM:
         transfer = linear_histogram_transfer(
-            bgr_img, bgr_ref_img, valid_rgb_indices, ref_valid_rgb_indices
+            bgr_img, bgr_ref_img, init_valid_rgb_indices, ref_valid_rgb_indices
         )
     elif algorithm == TransferColorAlgorithm.PRINCIPAL_COLOR:
         transfer = principal_color_transfer(
-            bgr_img, bgr_ref_img, valid_rgb_indices, ref_valid_rgb_indices
+            bgr_img, bgr_ref_img, init_valid_rgb_indices, ref_valid_rgb_indices
         )
 
     if alpha is not None:
