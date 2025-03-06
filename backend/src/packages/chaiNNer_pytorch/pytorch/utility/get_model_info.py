@@ -3,8 +3,7 @@ from __future__ import annotations
 from spandrel import ModelDescriptor
 
 from nodes.properties.inputs import ModelInput
-from nodes.properties.outputs import NumberOutput
-from nodes.properties.outputs import TextOutput
+from nodes.properties.outputs import NumberOutput, TextOutput
 
 from .. import utility_group
 
@@ -13,7 +12,7 @@ from .. import utility_group
     schema_id="chainner:pytorch:model_dim",
     name="Get Model Info",
     description="""Returns the purpose, architecture and scale of a PyTorch model.""",
-    icon="BsRulers",
+    icon="ImInfo",
     inputs=[ModelInput()],
     outputs=[
         NumberOutput("Scale", output_type="Input0.scale"),
