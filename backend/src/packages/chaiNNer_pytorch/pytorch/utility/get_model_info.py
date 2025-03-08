@@ -21,4 +21,4 @@ from .. import utility_group
     ],
 )
 def get_model_info_node(model: ModelDescriptor) -> tuple[int, string, string]:
-    return model.scale, model.arch, model.subType
+    return (model.scale, model.architecture.name, model.purpose)

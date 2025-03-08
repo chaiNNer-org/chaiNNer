@@ -28,7 +28,9 @@ from .. import utility_group
     ],
 )
 def get_model_info_node(model: OnnxModel) -> tuple[int, string]:
+    scale_width = model.info.scale_width
+    scale_height = model.info.scale_height
     return (
-        model.scaleWidth if model.scaleWidth == model.scaleHeight else 0,
-        model.subType,
+        scale_width if scale_width == scale_height else 0,
+        model.sub_type,
     )
