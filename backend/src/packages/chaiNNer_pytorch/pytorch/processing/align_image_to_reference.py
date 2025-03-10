@@ -430,14 +430,14 @@ def align_images(
             "100% or 200% works great in most cases. 400% is only needed if both input images are very high quality.",
             hint=True,
         ),
-        BoolInput("Low Quality Input", default=False).with_docs(
-            "Enables better handling for low-quality input images. When turned on general shapes are prioritized over high-frequency details like noise, grain, or compression artifacts by averaging the warping across a small area.",
-            "Also fixes an issue sometimes noticeable in Anime images, where lines can get slightly thicker/thinner due to warping.",
-            hint=True,
-        ),
         BoolInput("Wide Search", default=False).with_docs(
             "Enables a larger search radius at the cost of some speed. When turned on completely different crops like 4:3 and 16:9, shearing, and rotations up to 45° can be aligned.",
             "Recommended if the misalignment is larger than about 20 pixel.",
+            hint=True,
+        ),
+        BoolInput("Low Quality Input", default=False).with_docs(
+            "Enables better handling for low-quality input images. When turned on general shapes are prioritized over high-frequency details like noise, grain, or compression artifacts by averaging the warping across a small area.",
+            "Also fixes an issue sometimes noticeable in Anime images, where lines can get slightly thicker/thinner due to warping.",
             hint=True,
         ),
     ],
@@ -450,8 +450,8 @@ def align_image_to_reference_node(
     ref: np.ndarray,
     fmask: np.ndarray | None,
     precision: PrecisionMode,
-    lq_input: bool,
     wide_search: bool,
+    lq_input: bool,
 ) -> np.ndarray:
     exec_options = get_settings(context)
     context.add_cleanup(
