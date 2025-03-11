@@ -22,7 +22,7 @@ def gen_grid(
     src_w: int,
     out_h: int,
     out_w: int,
-    device: str,
+    device: str | torch.device,
 ):
     # generates the grid from homograhpy to warp with grid_sample
     grid_y, grid_x = torch.meshgrid(
@@ -56,7 +56,7 @@ class XFeat(nn.Module):
         detection_threshold: float = 0.05,
         height: int = 480,
         width: int = 704,
-        device: str = "cuda",
+        device: str | torch.device = "cuda",
     ):
         super().__init__()
         self.dev = torch.device(device)
@@ -158,7 +158,7 @@ class XFeat(nn.Module):
         threshold: float = 0.05,
         kernel_size: int = 5,
     ):
-        B, _, H, W = x.shape  # noqa: N806
+        B, _, _, _ = x.shape  # noqa: N806
         pad = kernel_size // 2
         local_max = nn.MaxPool2d(kernel_size=kernel_size, stride=1, padding=pad)(x)
         pos = (x == local_max) & (x > threshold)

@@ -1,3 +1,4 @@
+# pyright: reportUnboundVariable=false
 # Original Rife Frame Interpolation by hzwer
 # https://github.com/megvii-research/ECCV2022-RIFE
 # https://github.com/hzwer/Practical-RIFE
@@ -97,10 +98,10 @@ def download_model(
 
 def align_images(
     context: NodeContext,
-    fclip: np.ndarray,
+    clip: np.ndarray,
     ref: np.ndarray,
-    fmask: np.ndarray | None,
-    precision: PrecisionMode,
+    mask: np.ndarray | None,
+    precision_mode: PrecisionMode,
     lq_input: bool,
     wide_search: bool,
     exec_options: PyTorchSettings,
@@ -108,7 +109,7 @@ def align_images(
     # settings
     device = exec_options.device
     fp16 = exec_options.use_fp16
-    precision = precision.value
+    precision = precision_mode.value
     blur = 2 if lq_input else 0
     smooth = 11 if lq_input else 0
 
@@ -152,12 +153,14 @@ def align_images(
             matcher.half()
 
     # convert to tensors
-    fclip = np2tensor(fclip, change_range=True).to(device)
+    fclip = np2tensor(clip, change_range=True).to(device)
     fref = np2tensor(ref, change_range=True).to(device)
-    if fmask is not None:
-        if fmask.ndim == 3:
-            fmask = fmask[:, :, 0]
-        fmask = np2tensor(fmask, change_range=True).to(device)
+    if mask is not None:
+        if mask.ndim == 3:
+            mask = mask[:, :, 0]
+        fmask = np2tensor(mask, change_range=True).to(device)
+    else:
+        fmask = None
 
     # convert to fp16 if needed
     if fp16:
@@ -215,7 +218,7 @@ def align_images(
 
                     # mask area outside the warped image
                     corners_src = np.float32(
-                        [
+                        [  # type: ignore
                             [0, 0],
                             [fclip_w - 1, 0],
                             [fclip_w - 1, fclip_h - 1],
@@ -228,8 +231,10 @@ def align_images(
                     homography_mask = np.ones(
                         (fref_h, fref_w), dtype=np.float32
                     )  # create full white mask
-                    cv2.fillConvexPoly(
-                        homography_mask, np.int32(corners_dst), 0.0
+                    cv2.fillConvexPoly(  # type: ignore
+                        homography_mask,
+                        np.int32(corners_dst),  # type: ignore
+                        0.0,  # type: ignore
                     )  # fill inside corners with black
 
                     # get bounding box
@@ -264,7 +269,7 @@ def align_images(
                     # crop to bounding box
                     fclip = fclip[:, :, min_y:max_y, min_x:max_x]
                     fref = fref[:, :, min_y:max_y, min_x:max_x]
-                    if fmask is not None:
+                    if fmask is not None:  # type: ignore
                         fmask = fmask[:, :, min_y:max_y, min_x:max_x]
 
         # padding for scales
@@ -279,7 +284,7 @@ def align_images(
             p4 = calculate_padding(fref_h_new, fref_w_new, 8)
 
         # flow based alignment with rife
-        with torch.amp.autocast(device.type, enabled=fp16):
+        with torch.amp.autocast(device.type, enabled=fp16):  # type: ignore
             if precision == 1:
                 fclip = rife_align(
                     fclip,
@@ -385,7 +390,7 @@ def align_images(
             if points_found and match_found:
                 fclip = functional.pad(
                     fclip,
-                    (min_x, fref_w - max_x, min_y, fref_h - max_y),
+                    (min_x, fref_w - max_x, min_y, fref_h - max_y),  # type: ignore
                     mode="replicate",
                 )  # pad what was removed from boundry box crop
             fclip = fclip[
@@ -401,7 +406,7 @@ def align_images(
     name="Align Image to Reference",
     description=[
         "Aligns and removes distortions by warping an Image towards a Reference Image. Tips for best results:",
-        "- Always crop black bars or letterboxes on both images.",
+        "- Always crop black borders or letterboxes on both images.",
         "- If Image's brightness or colors are vastly different, make Reference Image roughly match.",
     ],
     icon="BsRulers",
@@ -411,8 +416,8 @@ def align_images(
         ImageInput("Mask")
         .make_optional()
         .with_docs(
-            "Optionally use a black & white mask to exclude areas in white from warping, like a watermark or text that is only on one image. Masked areas will instead be warped like the surroundings.",
-            "The masked areas correspond to the same areas on the Reference Image.",
+            "Optionally use a black & white mask where white excludes areas from warping, like a watermark or text that is only on one image. Masked areas will instead be warped like the surroundings.",
+            "The position of masked areas are based on the Reference Image.",
             hint=True,
         ),
         EnumInput(
@@ -426,18 +431,18 @@ def align_images(
                 PrecisionMode.FOUR_HUNDRED_PERCENT: "400%",
             },
         ).with_docs(
-            "Speed/Quality tradeoff with higher meaning finer alignment up to a subpixel level. Higher is slower and requires more VRAM.",
+            "Speed/Quality tradeoff with higher meaning finer, more exact alignment up to a subpixel level. Higher is slower and requires more VRAM.",
             "100% or 200% works great in most cases. 400% is only needed if both input images are very high quality.",
             hint=True,
         ),
         BoolInput("Wide Search", default=False).with_docs(
-            "Enables a larger search radius at the cost of some speed. When turned on completely different crops like 4:3 and 16:9, shearing, and rotations up to 45° can be aligned.",
+            "Enables a large search radius. When turned on completely different crops, shearing, and rotations up to 45° can be aligned.",
             "Recommended if the misalignment is larger than about 20 pixel.",
             hint=True,
         ),
         BoolInput("Low Quality Input", default=False).with_docs(
             "Enables better handling for low-quality input images. When turned on general shapes are prioritized over high-frequency details like noise, grain, or compression artifacts by averaging the warping across a small area.",
-            "Also fixes an issue sometimes noticeable in Anime images, where lines can get slightly thicker/thinner due to warping.",
+            "Also fixes an issue sometimes noticeable in Anime images, where lines can get slightly thicker/thinner due to the warping.",
             hint=True,
         ),
     ],
@@ -446,10 +451,10 @@ def align_images(
 )
 def align_image_to_reference_node(
     context: NodeContext,
-    fclip: np.ndarray,
+    clip: np.ndarray,
     ref: np.ndarray,
-    fmask: np.ndarray | None,
-    precision: PrecisionMode,
+    mask: np.ndarray | None,
+    precision_mode: PrecisionMode,
     wide_search: bool,
     lq_input: bool,
 ) -> np.ndarray:
@@ -461,10 +466,10 @@ def align_image_to_reference_node(
 
     return align_images(
         context,
-        fclip,
+        clip,
         ref,
-        fmask,
-        precision,
+        mask,
+        precision_mode,
         lq_input,
         wide_search,
         exec_options,
