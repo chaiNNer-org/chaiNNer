@@ -23,8 +23,8 @@ def get_onnx_runtime():
         return Dependency(
             display_name="ONNX Runtime (GPU)",
             pypi_name="onnxruntime-gpu",
-            version="1.17.1",
-            size_estimate=120 * MB,
+            version="1.19.2",
+            size_estimate=226 * MB,
             import_name="onnxruntime",
             extra_index_url="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/",
         )
@@ -39,8 +39,8 @@ def get_onnx_runtime():
         return Dependency(
             display_name="ONNX Runtime",
             pypi_name="onnxruntime",
-            version="1.17.1",
-            size_estimate=6 * MB,
+            version="1.19.2",
+            size_estimate=13 * MB,
         )
 
 
@@ -53,21 +53,21 @@ package = add_package(
         Dependency(
             display_name="ONNX",
             pypi_name="onnx",
-            version="1.16.0",
-            size_estimate=12 * MB,
+            version="1.17.0",
+            size_estimate=16 * MB,
         ),
         Dependency(
             display_name="ONNX Optimizer",
             pypi_name="onnxoptimizer",
             version="0.3.13",
-            size_estimate=300 * KB,
+            size_estimate=700 * KB,
         ),
         get_onnx_runtime(),
         Dependency(
             display_name="Protobuf",
             pypi_name="protobuf",
-            version="4.24.2",
-            size_estimate=500 * KB,
+            version="5.29.2",
+            size_estimate=300 * KB,
         ),
     ],
     icon="ONNX",
