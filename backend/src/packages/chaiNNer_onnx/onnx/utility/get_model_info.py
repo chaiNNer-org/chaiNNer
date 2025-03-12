@@ -27,10 +27,10 @@ from .. import utility_group
         TextOutput("Purpose", output_type="Input0.subType"),
     ],
 )
-def get_model_info_node(model: OnnxModel) -> tuple[int, string]:
+def get_model_info_node(model: OnnxModel) -> tuple[int, str]:
     scale_width = model.info.scale_width
     scale_height = model.info.scale_height
     return (
-        scale_width if scale_width == scale_height else 0,
+        scale_width if (scale_width is not None and scale_width == scale_height) else 0,
         model.sub_type,
     )

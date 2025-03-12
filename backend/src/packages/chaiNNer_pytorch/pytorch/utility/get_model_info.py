@@ -20,5 +20,5 @@ from .. import utility_group
         TextOutput("Purpose", output_type="Input0.subType"),
     ],
 )
-def get_model_info_node(model: ModelDescriptor) -> tuple[int, string, string]:
+def get_model_info_node(model: ModelDescriptor) -> tuple[int, str, str]:
     return (model.scale, model.architecture.name, model.purpose)
