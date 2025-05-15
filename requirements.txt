@@ -1,6 +1,6 @@
 ruff==0.4.0
 debugpy
-pyright==1.1.400
+pyright==1.1.388
 pytest
 appdirs==1.4.4
 viztracer
