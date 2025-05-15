@@ -57,8 +57,8 @@ def convert_to_onnx_impl(
     with BytesIO() as f:
         torch.onnx.export(
             m,
-            dummy_input,
-            f,
+            (dummy_input,),
+            f,  # type: ignore[arg-type]
             opset_version=opset_version,
             verbose=False,
             input_names=[input_name],
