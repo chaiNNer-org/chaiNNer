@@ -312,8 +312,10 @@ async def install_dependencies_request(request: Request):
 
         if len(deps) > 0:
             await worker.stop()
-            await install_dependencies(deps, progress, logger)
-            await worker.start()
+            try:
+                await install_dependencies(deps, progress, logger)
+            finally:
+                await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
         logger.error(f"Error installing dependencies: {ex}", exc_info=True)
