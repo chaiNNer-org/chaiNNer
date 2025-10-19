@@ -35,7 +35,7 @@ jobs:
           git init
           git config user.name $USER_NAME
           git config user.email $USER_EMAIL
-          git remote add origin https://$USER_TOKEN@github.com/$OWNER/$REPOSITORY_NAME.wiki.git
+          git remote add origin https://x-access-token:${USER_TOKEN}@github.com/${OWNER}/${REPOSITORY_NAME}.wiki.git
           git fetch origin
           git checkout master || git checkout -b master
           git pull origin master
