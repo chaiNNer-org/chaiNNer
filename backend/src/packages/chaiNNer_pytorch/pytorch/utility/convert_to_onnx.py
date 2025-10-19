@@ -87,9 +87,9 @@ def convert_to_onnx_node(
     opset: Opset,
     verify: bool,
 ) -> tuple[OnnxGeneric, str, str]:
-    assert is_onnx_supported(model), (
-        f"{model.architecture} is not supported for ONNX conversion at this time."
-    )
+    assert is_onnx_supported(
+        model
+    ), f"{model.architecture} is not supported for ONNX conversion at this time."
 
     fp16 = bool(is_fp16)
     exec_options = get_settings(context)
