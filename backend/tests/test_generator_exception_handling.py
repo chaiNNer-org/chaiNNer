@@ -17,6 +17,8 @@ backend_src = Path(__file__).parent.parent / "src"
 spec = importlib.util.spec_from_file_location(
     "api.iter", backend_src / "api" / "iter.py"
 )
+assert spec is not None, "Failed to load module spec"
+assert spec.loader is not None, "Module spec has no loader"
 iter_module = importlib.util.module_from_spec(spec)
 sys.modules["api.iter"] = iter_module
 spec.loader.exec_module(iter_module)
