@@ -8,8 +8,12 @@ on:
     branches:
       - main # This can be changed to any branch of your preference
 
+permissions:
+  contents: write
+  pages: write
+
 env:
-  USER_TOKEN: ${{ secrets.WIKI_TOKEN }} # This is the repository secret
+  USER_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This is the repository secret
   USER_NAME: github-actions[bot] # Enter the username of your (bot) account
   USER_EMAIL: github-actions[bot]@users.noreply.github.com # Enter the e-mail of your (bot) account
   OWNER: ${{ github.event.repository.owner.login }} # This is the repository owner
