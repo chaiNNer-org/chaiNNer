@@ -79,6 +79,9 @@ export class ChainLineage {
             }
             case 'regularNode': {
                 // regular nodes are auto-iterated, so their lineage is that of the first iterated input
+                // Note: Regular nodes can have multiple iterated inputs with different lineages.
+                // The backend will group and execute all connected generators together in lockstep.
+                // This method returns the lineage of the first iterated input for tracking purposes.
                 let lineage: Lineage | null = null;
 
                 const edges = this.byTargetNode.get(nodeId) ?? EMPTY_ARRAY;
