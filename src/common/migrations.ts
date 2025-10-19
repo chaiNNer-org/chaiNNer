@@ -11,6 +11,7 @@ import {
     InputValue,
     Mutable,
     NodeData,
+    NodeSchema,
     OutputId,
     SchemaId,
     Size,
@@ -2159,12 +2160,27 @@ const migrations = [
 
 export const currentMigration = migrations.length;
 
-export const migrate = (version: string | null, data: unknown, migration?: number) => {
+export const migrate = (
+    version: string | null,
+    data: unknown,
+    migration?: number,
+    schemas?: readonly NodeSchema[]
+) => {
     version ||= '0.0.0';
     migration ??= versionToMigration(version);
 
     try {
-        return migrations.slice(migration).reduce((current, fn) => fn(current as never), data);
+        // Apply legacy migrations first
+        const migratedData = migrations.slice(migration).reduce((current, fn) => fn(current as never), data);
+        
+        // If schemas are available, apply per-node migrations
+        if (schemas && schemas.length > 0) {
+            // Import dynamically to avoid circular dependencies
+            const { applyPerNodeMigrations } = require('./migrations/apply-per-node');
+            return applyPerNodeMigrations(migratedData as SaveData, schemas);
+        }
+        
+        return migratedData;
     } catch (error) {
         log.error(error);
         throw error;

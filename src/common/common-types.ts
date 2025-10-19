@@ -332,6 +332,7 @@ export interface NodeSchema {
     readonly hasSideEffects: boolean;
     readonly deprecated: boolean;
     readonly features: readonly FeatureId[];
+    readonly migrations: readonly unknown[]; // Migration types defined separately
 }
 
 export interface DefaultNode {
