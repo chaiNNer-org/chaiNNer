@@ -92,7 +92,7 @@ def install_dependencies_sync(
     if len(extra_index_urls) > 0:
         extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
 
-    result = subprocess.run(
+    exit_code = subprocess.check_call(
         [
             python_path,
             "-m",
@@ -104,13 +104,9 @@ def install_dependencies_sync(
             *extra_index_args,
         ],
         env=ENV,
-        capture_output=True,
-        text=True,
-        check=False,
     )
-    if result.returncode != 0:
-        error_msg = f"An error occurred while installing dependencies.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
-        raise ValueError(error_msg)
+    if exit_code != 0:
+        raise ValueError("An error occurred while installing dependencies.")
 
     for dep_info in dependencies_to_install:
         installed_packages[dep_info.package_name] = dep_info.version
@@ -235,10 +231,7 @@ async def install_dependencies(
 
     exit_code = process.wait()
     if exit_code != 0:
-        # Read any remaining output from the process
-        remaining_output = process.stdout.read() if process.stdout else ""
-        error_msg = f"An error occurred while installing dependencies.\n\nProcess output:\n{remaining_output}"
-        raise ValueError(error_msg)
+        raise ValueError("An error occurred while installing dependencies.")
 
     await update_progress_cb("Finished installing dependencies...", 1, None)
 
@@ -254,7 +247,7 @@ def uninstall_dependencies_sync(
     if len(dependencies) == 0:
         return
 
-    result = subprocess.run(
+    exit_code = subprocess.check_call(
         [
             python_path,
             "-m",
@@ -264,13 +257,9 @@ def uninstall_dependencies_sync(
             "-y",
         ],
         env=ENV,
-        capture_output=True,
-        text=True,
-        check=False,
     )
-    if result.returncode != 0:
-        error_msg = f"An error occurred while uninstalling dependencies.\n\nSTDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
-        raise ValueError(error_msg)
+    if exit_code != 0:
+        raise ValueError("An error occurred while uninstalling dependencies.")
 
     for dep_info in dependencies:
         installed_packages[dep_info.package_name] = dep_info.version
@@ -357,12 +346,9 @@ async def uninstall_dependencies(
 
     exit_code = process.wait()
     if exit_code != 0:
-        # Read any remaining output from the process
-        remaining_output = process.stdout.read() if process.stdout else ""
-        error_msg = f"An error occurred while uninstalling dependencies.\n\nProcess output:\n{remaining_output}"
-        raise ValueError(error_msg)
+        raise ValueError("An error occurred while installing dependencies.")
 
-    await update_progress_cb("Finished uninstalling dependencies...", 1, None)
+    await update_progress_cb("Finished installing dependencies...", 1, None)
 
     for dep_info in dependencies:
         del installed_packages[dep_info.package_name]
@@ -370,8 +356,8 @@ async def uninstall_dependencies(
 
 __all__ = [
     "DependencyInfo",
+    "python_path",
     "install_dependencies",
     "install_dependencies_sync",
     "installed_packages",
-    "python_path",
 ]
