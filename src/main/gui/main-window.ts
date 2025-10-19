@@ -62,7 +62,8 @@ const initiateSaveDialog = async (
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
     args: OpenArguments,
-    settings: ChainnerSettings
+    settings: ChainnerSettings,
+    canWriteSettings: boolean
 ) => {
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDir());
@@ -74,7 +75,8 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('get-settings', () => currentSettings);
     ipcMain.handle('set-settings', (_, newSettings) => {
         currentSettings = newSettings;
-        if (savingInProgress) {
+        // Only write settings to disk if this instance has write permission
+        if (!canWriteSettings || savingInProgress) {
             return;
         }
         savingInProgress = true;
@@ -513,7 +515,11 @@ const setupProgressListeners = (
     });
 };
 
-export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
+export const createMainWindow = async (
+    args: OpenArguments,
+    settings: ChainnerSettings,
+    canWriteSettings: boolean
+) => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: settings.lastWindowSize.width,
@@ -544,7 +550,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
     setupProgressListeners(mainWindow, progressController);
 
     try {
-        registerEventHandlerPreSetup(mainWindow, args, settings);
+        registerEventHandlerPreSetup(mainWindow, args, settings, canWriteSettings);
         const backend = await createBackend(
             SubProgress.slice(progressController, 0, 0.25),
             args,
