@@ -786,9 +786,9 @@ class Executor:
             )
 
         total_stopiters = 0
+        deferred_errors: list[str] = []
         # iterate
         while True:
-            deferred_errors: list[str] = []
             generator_output = None
             try:
                 # iterate each iterator
@@ -797,6 +797,10 @@ class Executor:
                     generator_supplier = generator_suppliers[node.id]
 
                     values = next(generator_supplier)
+
+                    # Check if the generator yielded an exception
+                    if isinstance(values, Exception):
+                        raise values
 
                     # write current values to cache
                     iter_output = RegularOutput(
