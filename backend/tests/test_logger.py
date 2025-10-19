@@ -19,7 +19,9 @@ def test_logger_setup():
         # Verify logger is configured correctly
         assert logger.name == "chaiNNer.worker"
         assert logger.level == logging.DEBUG
-        assert len(logger.handlers) >= 2  # file and console handlers (may have more from previous calls)
+        assert (
+            len(logger.handlers) >= 2
+        )  # file and console handlers (may have more from previous calls)
 
         # Verify log file is created
         log_file = log_dir / "worker.log"
@@ -53,22 +55,25 @@ def test_separate_process_types():
 
         # Use unique logger names for this test
         import logging as base_logging
-        
+
         # Create fresh loggers for this test
         host_logger = base_logging.getLogger("chaiNNer.test_host")
         host_logger.handlers.clear()
         worker_logger = base_logging.getLogger("chaiNNer.test_worker")
         worker_logger.handlers.clear()
-        
+
         # Now configure them
         from logger import setup_logger
-        
+
         # Manually set up handlers for test loggers
-        for logger_name, log_filename in [("test_host", "host.log"), ("test_worker", "worker.log")]:
+        for logger_name, log_filename in [
+            ("test_host", "host.log"),
+            ("test_worker", "worker.log"),
+        ]:
             test_logger = base_logging.getLogger(f"chaiNNer.{logger_name}")
             test_logger.setLevel(base_logging.INFO)
             test_logger.propagate = False
-            
+
             log_file = log_dir / log_filename
             file_handler = base_logging.FileHandler(log_file, encoding="utf-8")
             file_handler.setLevel(base_logging.INFO)
@@ -102,4 +107,3 @@ def test_separate_process_types():
 
         assert "Worker message" in worker_content
         assert "Host message" not in worker_content
-

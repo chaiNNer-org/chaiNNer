@@ -120,7 +120,9 @@ def setup_logger(
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
 
-    logger.info("Logger initialized for %s process. Log file: %s", process_type, log_file)
+    logger.info(
+        "Logger initialized for %s process. Log file: %s", process_type, log_file
+    )
 
     return logger
 
@@ -160,4 +162,3 @@ def get_logger_from_env() -> logging.Logger:
     if process_type_str == "host":
         process_type = "host"
     return get_logger(process_type)
-
