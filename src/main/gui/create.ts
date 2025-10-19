@@ -52,26 +52,19 @@ export const createGuiApp = (args: OpenArguments) => {
         app.disableHardwareAcceleration();
     }
 
-    // When allowMultipleInstances is true, we don't request the lock, but we still
-    // need to know if this instance should write settings. Only the first instance
-    // (the one that would have gotten the lock) should write settings.
+    // When allowMultipleInstances is true, we still request the lock to determine
+    // which instance should write settings, but we don't quit if we don't get it.
+    // Only the first instance (the one with the lock) will write settings.
     let canWriteSettings = true;
+    const hasLock = app.requestSingleInstanceLock();
+
     if (settings.allowMultipleInstances) {
-        // Try to get the lock to determine if we're the first instance
-        const hasLock = app.requestSingleInstanceLock();
-        if (hasLock) {
-            // We got the lock, so we're the first instance and can write settings
-            canWriteSettings = true;
-            // Release the lock since we want to allow multiple instances
-            app.releaseSingleInstanceLock();
-        } else {
-            // Another instance has the lock, so we shouldn't write settings
-            canWriteSettings = false;
-        }
+        // In multi-instance mode, all instances can run
+        // But only the one with the lock can write settings
+        canWriteSettings = hasLock;
     } else {
-        // Single instance mode - try to get the lock
-        const hasInstanceLock = app.requestSingleInstanceLock();
-        if (!hasInstanceLock) {
+        // In single instance mode, only the one with the lock can run
+        if (!hasLock) {
             app.quit();
             return;
         }
