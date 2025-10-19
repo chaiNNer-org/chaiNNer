@@ -6,68 +6,21 @@ instead of showing errors when exceptions occurred during iteration.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Callable, Generic, Iterable, TypeVar
+import importlib.util
+import sys
+from pathlib import Path
 
-I = TypeVar("I")
-L = TypeVar("L")
+# Import Generator directly from api.iter without triggering api.__init__
+# which requires sanic and other server dependencies
+backend_src = Path(__file__).parent.parent / "src"
+spec = importlib.util.spec_from_file_location(
+    "api.iter", backend_src / "api" / "iter.py"
+)
+iter_module = importlib.util.module_from_spec(spec)
+sys.modules["api.iter"] = iter_module
+spec.loader.exec_module(iter_module)
 
-
-@dataclass
-class Generator(Generic[I]):
-    """Copy of Generator class from api.iter to avoid dependency issues in tests"""
-
-    supplier: Callable[[], Iterable[I | Exception]]
-    expected_length: int
-    fail_fast: bool = True
-    metadata: object | None = None
-
-    def with_fail_fast(self, fail_fast: bool):
-        self.fail_fast = fail_fast
-        return self
-
-    def with_metadata(self, metadata: object):
-        self.metadata = metadata
-        return self
-
-    @staticmethod
-    def from_iter(
-        supplier: Callable[[], Iterable[I | Exception]], expected_length: int
-    ) -> Generator[I]:
-        return Generator(supplier, expected_length)
-
-    @staticmethod
-    def from_list(l: list[L], map_fn: Callable[[L, int], I]) -> Generator[I]:
-        """
-        Creates a new generator from a list that is mapped using the given
-        function. The iterable will be equivalent to `map(map_fn, l)`.
-        """
-
-        def supplier():
-            for i, x in enumerate(l):
-                try:
-                    yield map_fn(x, i)
-                except Exception as e:
-                    yield e
-
-        return Generator(supplier, len(l))
-
-    @staticmethod
-    def from_range(count: int, map_fn: Callable[[int], I]) -> Generator[I]:
-        """
-        Creates a new generator the given number of items where each item is
-        lazily evaluated. The iterable will be equivalent to `map(map_fn, range(count))`.
-        """
-        assert count >= 0
-
-        def supplier():
-            for i in range(count):
-                try:
-                    yield map_fn(i)
-                except Exception as e:
-                    yield e
-
-        return Generator(supplier, count)
+Generator = iter_module.Generator
 
 
 def test_generator_yields_exception_on_error():
