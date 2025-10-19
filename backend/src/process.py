@@ -786,9 +786,9 @@ class Executor:
             )
 
         total_stopiters = 0
+        deferred_errors: list[str] = []
         # iterate
         while True:
-            deferred_errors: list[str] = []
             generator_output = None
             try:
                 # iterate each iterator

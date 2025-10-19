@@ -149,3 +149,40 @@ def test_generator_fail_fast_flag():
     gen_with_fail_fast = gen.with_fail_fast(False)
     assert gen_with_fail_fast.fail_fast is False, "fail_fast should be False"
     assert gen_with_fail_fast is gen, "with_fail_fast should return self"
+
+
+def test_generator_multiple_exceptions():
+    """Test that Generator yields multiple Exception objects for multiple failures"""
+
+    def failing_map_fn(x: int, i: int) -> int:
+        if x in [2, 4]:
+            raise ValueError(f"Test error for value {x}")
+        return x * 2
+
+    items = [1, 2, 3, 4, 5]
+    gen = Generator.from_list(items, failing_map_fn)
+
+    # Get the iterator
+    iterator = gen.supplier().__iter__()
+
+    # First value should succeed
+    val1 = next(iterator)
+    assert val1 == 2, "First value should be 1 * 2 = 2"
+
+    # Second value should be an Exception
+    val2 = next(iterator)
+    assert isinstance(val2, Exception), "Second value should be an Exception"
+    assert "Test error for value 2" in str(val2)
+
+    # Third value should succeed
+    val3 = next(iterator)
+    assert val3 == 6, "Third value should be 3 * 2 = 6"
+
+    # Fourth value should be an Exception
+    val4 = next(iterator)
+    assert isinstance(val4, Exception), "Fourth value should be an Exception"
+    assert "Test error for value 4" in str(val4)
+
+    # Fifth value should succeed
+    val5 = next(iterator)
+    assert val5 == 10, "Fifth value should be 5 * 2 = 10"
