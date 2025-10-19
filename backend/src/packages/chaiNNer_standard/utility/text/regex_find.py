@@ -26,6 +26,7 @@ class OutputMode(Enum):
         "This node has 2 modes for output: full match and pattern.",
         "- **Full Match:** return the full match. E.g. for the regex `\\d+` and the text `My two cats caught 32 mice in 14 days`, the output will be `32`."
         "\n- **Pattern:** using the same pattern syntax as in other nodes, return a formatted pattern of the match. E.g. for the regex `(\\w+) is (\\w+)`, the pattern is `{1}={2}`, and the text `My name is Jane.`, the output will be `name=Jane`.",
+        "\n\nThe **Found** output is a boolean that indicates whether a match was found. If no match is found, the text output will be empty and Found will be False.",
     ],
     icon="MdTextFields",
     inputs=[
