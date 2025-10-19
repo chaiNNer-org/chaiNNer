@@ -10,9 +10,10 @@ import {
     Switch,
 } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect } from 'react';
 import { Setting } from '../../../common/common-types';
 import { log } from '../../../common/log';
+import { appDataPath } from '../../appConstants';
 import { getCacheLocation } from '../../env';
 import { ipcRenderer } from '../../safeIpc';
 import { SettingsProps } from './props';
@@ -111,11 +112,7 @@ export const NumberSetting = memo(({ setting, value, setValue }: SettingsProps<'
 });
 
 const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>) => {
-    const locationPromise = useMemo(async () => {
-        return ipcRenderer
-            .invoke('get-appdata')
-            .then((appDataPath) => getCacheLocation(appDataPath, setting.directory));
-    }, [setting.directory]);
+    const cacheLocation = getCacheLocation(appDataPath, setting.directory);
 
     return (
         <SettingContainer
@@ -127,8 +124,8 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     isDisabled={setting.disabled || !value}
                     visibility={value ? 'visible' : 'hidden'}
                     onClick={() => {
-                        locationPromise
-                            .then(async (cacheLocation) => {
+                        Promise.resolve()
+                            .then(async () => {
                                 const files = await ipcRenderer.invoke('fs-readdir', cacheLocation);
                                 await Promise.all(
                                     files.map((file) =>
@@ -152,8 +149,8 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     onChange={() => {
                         if (!value) {
                             // Make sure the cache directory exists
-                            locationPromise
-                                .then(async (cacheLocation) => {
+                            Promise.resolve()
+                                .then(async () => {
                                     try {
                                         await ipcRenderer.invoke('fs-access', cacheLocation);
                                     } catch (error) {

@@ -64,6 +64,25 @@ const registerEventHandlerPreSetup = (
     args: OpenArguments,
     settings: ChainnerSettings
 ) => {
+    // Synchronous handlers for preload script
+    ipcMain.on('get-app-version-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = version;
+    });
+    ipcMain.on('get-is-mac-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = isMac;
+    });
+    ipcMain.on('get-is-arm-mac-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = isArmMac;
+    });
+    ipcMain.on('get-appdata-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = getRootDir();
+    });
+
+    // Legacy async handlers - kept for backwards compatibility during transition
     ipcMain.handle('get-app-version', () => version);
     ipcMain.handle('get-appdata', () => getRootDir());
     ipcMain.handle('refresh-nodes', () => args.refresh);
@@ -159,6 +178,7 @@ const registerEventHandlerPreSetup = (
     });
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
+    // Legacy async handlers - kept for backwards compatibility during transition
     ipcMain.handle('get-is-mac', () => isMac);
     ipcMain.handle('get-is-arm-mac', () => isArmMac);
     ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));

@@ -26,32 +26,19 @@ import {
 import { memo, useEffect, useRef, useState } from 'react';
 import semver from 'semver';
 import logo from '../../../public/icons/png/256x256.png';
+import { appVersion } from '../../appConstants';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../helpers/github';
-import { useAsyncEffect } from '../../hooks/useAsyncEffect';
 import { useSettings } from '../../hooks/useSettings';
 import { useStored } from '../../hooks/useStored';
-import { ipcRenderer } from '../../safeIpc';
 import { Markdown } from '../Markdown';
 
 export const AppInfo = memo(() => {
     const { checkForUpdatesOnStartup } = useSettings();
 
-    const [appVersion, setAppVersion] = useState<string | null>(null);
-    useAsyncEffect(
-        () => ({
-            supplier: () => ipcRenderer.invoke('get-app-version'),
-            successEffect: setAppVersion,
-        }),
-        []
-    );
-
     const [updateVersion, setUpdateVersion] = useState<GitHubRelease>();
     const [changelog, setChangelog] = useState<string>();
 
     useEffect(() => {
-        if (!appVersion) {
-            return;
-        }
         getLatestVersionIfUpdateAvailable(appVersion)
             .then((data) => {
                 if (data) {
@@ -60,7 +47,7 @@ export const AppInfo = memo(() => {
                 }
             })
             .catch(() => {});
-    }, [appVersion]);
+    }, []);
 
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
@@ -74,14 +61,14 @@ export const AppInfo = memo(() => {
 
     useEffect(() => {
         if (checkForUpdatesOnStartup) {
-            if (appVersion && updateVersion) {
+            if (updateVersion) {
                 if (lastIgnoredUpdate && semver.lte(lastIgnoredUpdate, updateVersion.tag_name)) {
                     return;
                 }
                 onAlertOpen();
             }
         }
-    }, [appVersion, lastIgnoredUpdate, checkForUpdatesOnStartup, onAlertOpen, updateVersion]);
+    }, [lastIgnoredUpdate, checkForUpdatesOnStartup, onAlertOpen, updateVersion]);
 
     return (
         <>
@@ -98,7 +85,7 @@ export const AppInfo = memo(() => {
                     chaiNNer
                 </Heading>
                 <Tag display={{ base: 'none', lg: 'inherit' }}>Alpha</Tag>
-                <Tag>v{appVersion ?? '#.#.#'}</Tag>
+                <Tag>v{appVersion}</Tag>
                 {updateVersion && (
                     <Tooltip
                         closeOnClick

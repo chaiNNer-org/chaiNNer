@@ -33,6 +33,7 @@ import {
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
+import { isMac as isRunningOnMac } from '../appConstants';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
@@ -46,7 +47,6 @@ import { useMemoArray } from '../hooks/useMemo';
 import { useNodesMenu } from '../hooks/useNodesMenu';
 import { usePaneNodeSearchMenu } from '../hooks/usePaneNodeSearchMenu';
 import { useSettings } from '../hooks/useSettings';
-import { ipcRenderer } from '../safeIpc';
 
 const compareById = (a: Edge | Node, b: Edge | Node) => a.id.localeCompare(b.id);
 
@@ -435,20 +435,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [selectionMenu, setSelectedNodes]
     );
 
-    const [isMac, setIsMac] = useState(false);
-    useEffect(() => {
-        ipcRenderer
-            .invoke('get-is-mac')
-            .then((result) => {
-                setIsMac(result);
-            })
-            .catch(log.error);
-    }, []);
-
-    const multiSelectionKeyCode = useMemo(() => (isMac ? ['Meta'] : ['Control']), [isMac]);
+    const multiSelectionKeyCode = useMemo(() => (isRunningOnMac ? ['Meta'] : ['Control']), []);
     const deleteKeyCode = useMemo(
-        () => (isMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
-        [isMac]
+        () => (isRunningOnMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
+        []
     );
 
     const onLayout = useCallback(() => {
