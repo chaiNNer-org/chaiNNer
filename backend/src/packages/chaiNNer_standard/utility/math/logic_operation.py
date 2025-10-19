@@ -42,7 +42,7 @@ OP_LABEL: dict[LogicOperation, str] = {
         ).with_id(0),
         BoolInput("A", has_handle=True).with_id(1),
         if_enum_group(0, (LogicOperation.AND, LogicOperation.OR, LogicOperation.XOR))(
-            BoolInput("B", has_handle=True).with_id(2).make_lazy(),
+            BoolInput("B", has_handle=True).with_id(2).make_lazy().make_optional(),
         ),
     ],
     outputs=[
@@ -101,12 +101,15 @@ OP_LABEL: dict[LogicOperation, str] = {
         ),
     ],
 )
-def logic_operation_node(op: LogicOperation, a: bool, b: Lazy[bool]) -> bool:
+def logic_operation_node(op: LogicOperation, a: bool, b: Lazy[bool] | None) -> bool:
     if op == LogicOperation.AND:
+        assert b is not None
         return a and b.value
     if op == LogicOperation.OR:
+        assert b is not None
         return a or b.value
     if op == LogicOperation.XOR:
+        assert b is not None
         return a != b.value
     if op == LogicOperation.NOT:
         return not a
