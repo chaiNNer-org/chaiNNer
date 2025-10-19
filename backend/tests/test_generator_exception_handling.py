@@ -4,6 +4,7 @@ Test to verify that Generator exceptions are properly handled during iteration.
 This test validates the fix for the issue where Load Images would run forever
 instead of showing errors when exceptions occurred during iteration.
 """
+
 from __future__ import annotations
 
 import importlib.util
