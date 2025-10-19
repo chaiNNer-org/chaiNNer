@@ -114,7 +114,7 @@ def onnx_auto_split(
             lr_img = _flip_r_b_channels(lr_img)
             lr_img = _into_batched_form(lr_img, change_shape)
 
-            output: np.ndarray = session.run([output_name], {input_name: lr_img})[0]
+            output = np.asarray(session.run([output_name], {input_name: lr_img})[0])
 
             output = _into_standard_image_form(output, change_shape)
             output = _flip_r_b_channels(output)

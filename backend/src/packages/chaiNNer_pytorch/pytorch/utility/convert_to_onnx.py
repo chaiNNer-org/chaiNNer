@@ -87,9 +87,9 @@ def convert_to_onnx_node(
     opset: Opset,
     verify: bool,
 ) -> tuple[OnnxGeneric, str, str]:
-    assert is_onnx_supported(
-        model
-    ), f"{model.architecture} is not supported for ONNX conversion at this time."
+    assert is_onnx_supported(model), (
+        f"{model.architecture} is not supported for ONNX conversion at this time."
+    )
 
     fp16 = bool(is_fp16)
     exec_options = get_settings(context)
@@ -145,9 +145,11 @@ def verify_models(pytorch_model: ImageModelDescriptor, onnx_model: bytes, fp16: 
     session = ort.InferenceSession(onnx_model, providers=["CPUExecutionProvider"])
     input_name = session.get_inputs()[0].name
     output_name = session.get_outputs()[0].name
-    onnx_out = session.run(
-        [output_name],
-        {input_name: dummy_input.detach().cpu().numpy()},
-    )[0]
+    onnx_out = np.asarray(
+        session.run(
+            [output_name],
+            {input_name: dummy_input.detach().cpu().numpy()},
+        )[0]
+    )
 
     np.testing.assert_allclose(torch_out, onnx_out, rtol=0.01, atol=0.001)

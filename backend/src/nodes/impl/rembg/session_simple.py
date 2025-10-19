@@ -14,7 +14,7 @@ class SimpleSession(BaseSession):
         h, w, _ = get_h_w_c(img)
         ort_outs = self.inner_session.run(None, self.normalize(img))
 
-        pred = ort_outs[0][:, 0, :, :]
+        pred = np.asarray(ort_outs[0])[:, 0, :, :]
 
         ma = np.max(pred)
         mi = np.min(pred)
