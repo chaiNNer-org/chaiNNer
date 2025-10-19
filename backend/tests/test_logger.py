@@ -62,8 +62,8 @@ def test_separate_process_types():
         worker_logger = base_logging.getLogger("chaiNNer.test_worker")
         worker_logger.handlers.clear()
 
-        # Now configure them
-        from logger import setup_logger
+        # Now configure them manually
+        # (We can't use setup_logger here as it would interfere with the global loggers)
 
         # Manually set up handlers for test loggers
         for logger_name, log_filename in [
