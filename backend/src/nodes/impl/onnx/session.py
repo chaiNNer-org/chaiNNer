@@ -25,6 +25,9 @@ def create_inference_session(
             "trt_engine_cache_enable": tensorrt_cache_path is not None,
             "trt_engine_cache_path": tensorrt_cache_path,
             "trt_fp16_enable": should_tensorrt_fp16,
+            "trt_dump_subgraphs": tensorrt_cache_path is not None,
+            "trt_timing_cache_enable": tensorrt_cache_path is not None,
+            "trt_timing_cache_path": tensorrt_cache_path,
         },
     )
     cuda: ProviderDesc = (
