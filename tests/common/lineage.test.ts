@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { ChainLineage, Lineage } from '../../src/common/nodes/lineage';
-import { SchemaMap } from '../../src/common/SchemaMap';
-import { NodeSchema } from '../../src/common/common-types';
 import { Edge, Node } from 'reactflow';
+import { describe, expect, it } from 'vitest';
+import { NodeSchema } from '../../src/common/common-types';
+import { ChainLineage } from '../../src/common/nodes/lineage';
+import { SchemaMap } from '../../src/common/SchemaMap';
 
 describe('ChainLineage - Multiple Iterators', () => {
     it('should allow regular nodes to have multiple iterated inputs from different generators', () => {
@@ -46,9 +46,7 @@ describe('ChainLineage - Multiple Iterators', () => {
                 { id: 0, label: 'Image', type: 'Image', kind: 'generic', hasHandle: true },
                 { id: 1, label: 'Model', type: 'Model', kind: 'generic', hasHandle: true },
             ],
-            outputs: [
-                { id: 0, label: 'Image', type: 'Image', kind: 'generic' },
-            ],
+            outputs: [{ id: 0, label: 'Image', type: 'Image', kind: 'generic' }],
             groupLayout: [],
             defaultNodes: [],
         };
