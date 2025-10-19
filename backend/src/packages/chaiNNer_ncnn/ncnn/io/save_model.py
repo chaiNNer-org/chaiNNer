@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import DirectoryInput, NcnnModelInput, RelativePathInput

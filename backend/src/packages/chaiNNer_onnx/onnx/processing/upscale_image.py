@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import onnxruntime as ort
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import NodeContext
 from nodes.groups import Condition, if_enum_group, if_group

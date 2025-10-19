@@ -4,7 +4,9 @@ import cv2
 import numpy as np
 import torch
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 from spandrel import ImageModelDescriptor
 from torchvision.transforms.functional import normalize as tv_normalize
 

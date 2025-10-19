@@ -3,7 +3,9 @@ from sys import float_info
 import numpy as np
 from onnx import numpy_helper as onph
 from onnx.onnx_pb import AttributeProto, NodeProto, TensorProto
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 INT64_MIN, INT64_MAX = np.iinfo(np.int64).min, np.iinfo(np.int64).max
 FLOAT32_MAX = float_info.max

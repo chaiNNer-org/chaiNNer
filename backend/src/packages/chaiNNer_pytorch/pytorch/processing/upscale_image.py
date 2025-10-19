@@ -5,7 +5,9 @@ import weakref
 import numpy as np
 import psutil
 import torch
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 from spandrel import ImageModelDescriptor, ModelTiling
 
 from api import KeyInfo, NodeContext, Progress

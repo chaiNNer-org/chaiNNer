@@ -1,4 +1,6 @@
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import InputId, OutputId
 

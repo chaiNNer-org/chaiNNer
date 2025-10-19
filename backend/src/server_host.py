@@ -12,7 +12,7 @@ from typing import Final
 
 import psutil
 from sanic import Sanic
-from sanic.log import access_logger, logger
+from sanic.log import access_logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
@@ -28,9 +28,12 @@ from dependencies.store import (
 )
 from events import EventQueue
 from gpu import nvidia
+from logger import get_logger
 from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
+
+logger = get_logger("host")
 
 
 class AppContext:

@@ -4,7 +4,9 @@ import os
 from pathlib import Path
 
 import onnx
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxModel

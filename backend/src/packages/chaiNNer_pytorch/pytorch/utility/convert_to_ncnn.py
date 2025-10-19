@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 from spandrel import ImageModelDescriptor
 from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT

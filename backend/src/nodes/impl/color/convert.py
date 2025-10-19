@@ -4,7 +4,9 @@ from dataclasses import dataclass, field
 from typing import Callable, Generic, Iterable, TypeVar
 
 import numpy as np
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from .convert_data import color_spaces, color_spaces_or_detectors, conversions
 from .convert_model import (

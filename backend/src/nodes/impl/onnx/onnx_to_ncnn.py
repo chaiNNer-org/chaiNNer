@@ -8,7 +8,9 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer,
 )
 from onnx.onnx_pb import AttributeProto, GraphProto, ModelProto, NodeProto, TensorProto
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from ..ncnn.model import (
     DTYPE_FP16,

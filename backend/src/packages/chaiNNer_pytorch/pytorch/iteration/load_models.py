@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 from spandrel import ModelDescriptor
 
 from api import Generator, IteratorOutputInfo, NodeContext

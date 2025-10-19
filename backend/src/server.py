@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Final, TypedDict
 
 from sanic import Sanic
-from sanic.log import access_logger, logger
+from sanic.log import access_logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
@@ -33,6 +33,7 @@ from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
+from logger import get_logger
 from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
@@ -42,6 +43,8 @@ from response import (
     success_response,
 )
 from server_config import ServerConfig
+
+logger = get_logger("worker")
 
 
 class AppContext:

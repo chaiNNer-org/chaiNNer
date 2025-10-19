@@ -9,7 +9,9 @@ from typing import Any, Literal
 
 import ffmpeg
 import numpy as np
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import Collector, IteratorInputInfo, KeyInfo, NodeContext
 from nodes.groups import Condition, if_enum_group, if_group

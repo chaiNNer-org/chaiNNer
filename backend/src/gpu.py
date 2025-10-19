@@ -5,7 +5,9 @@ from functools import cached_property
 from typing import Callable, Sequence
 
 import pynvml as nv
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 _FP16_ARCH_ABILITY_MAP = {
     nv.NVML_DEVICE_ARCH_KEPLER: False,

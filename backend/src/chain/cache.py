@@ -3,7 +3,9 @@ from __future__ import annotations
 import gc
 from typing import Generic, Iterable, TypeVar
 
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import NodeId
 

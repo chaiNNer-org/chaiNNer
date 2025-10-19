@@ -11,8 +11,6 @@ from typing import (
     TypeVar,
 )
 
-from sanic.log import logger
-
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
 from .node_check import (
@@ -33,6 +31,10 @@ from .node_data import (
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
+
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 KB = 1024**1
 MB = 1024**2

@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from typing import Callable
 
 import numpy as np
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from ...utils.utils import Padding, Region, Size, get_h_w_c
 from ..image_utils import BorderType, create_border

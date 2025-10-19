@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 
 import torch
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
 from gpu import nvidia

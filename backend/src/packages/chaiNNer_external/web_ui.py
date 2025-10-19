@@ -7,7 +7,9 @@ from dataclasses import dataclass
 from enum import Enum
 
 import requests
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 STABLE_DIFFUSION_TEXT2IMG_PATH = "/sdapi/v1/txt2img"
 STABLE_DIFFUSION_IMG2IMG_PATH = "/sdapi/v1/img2img"

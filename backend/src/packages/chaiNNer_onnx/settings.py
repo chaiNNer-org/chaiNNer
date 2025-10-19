@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from typing import List, cast
 
 import onnxruntime as ort
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import CacheSetting, DropdownSetting, NodeContext, ToggleSetting
 from gpu import nvidia

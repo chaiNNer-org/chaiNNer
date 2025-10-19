@@ -13,9 +13,11 @@ from typing import Iterable
 
 import aiohttp
 from sanic import HTTPResponse, Request
-from sanic.log import logger
 
 from api import Package
+from logger import get_logger
+
+logger = get_logger("host")
 
 
 def _find_free_port():

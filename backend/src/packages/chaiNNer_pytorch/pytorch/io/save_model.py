@@ -5,7 +5,9 @@ from pathlib import Path
 
 import torch
 from safetensors.torch import save_file
-from sanic.log import logger
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 from spandrel import ModelDescriptor
 
 from nodes.properties.inputs import (
