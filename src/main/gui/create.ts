@@ -2,7 +2,8 @@ import electronLog from 'electron-log';
 import { app, dialog } from 'electron/main';
 import { log } from '../../common/log';
 import { lazy } from '../../common/util';
-import { OpenArguments } from '../arguments';
+import { OpenArguments, parseArgs } from '../arguments';
+import { openSaveFile } from '../SaveFile';
 import { readSettings } from '../setting-storage';
 import { createMainWindow } from './main-window';
 
@@ -58,12 +59,46 @@ export const createGuiApp = (args: OpenArguments) => {
         return;
     }
 
-    const createWindow = lazy(() => {
-        createMainWindow(args, settings).catch((error) => {
-            log.error(error);
-            // rethrow to let the global error handler deal with it
-            return Promise.reject(error);
+    // Store reference to main window for second-instance handler
+    // It will be set when the window is created
+    let mainWindowRef: Electron.BrowserWindow | null = null;
+
+    // Register second-instance handler immediately after getting the lock
+    // This prevents race conditions where a second instance is attempted
+    // before the handler is registered in createMainWindow
+    if (!settings.allowMultipleInstances) {
+        app.on('second-instance', (_event, commandLine) => {
+            (async () => {
+                // If window hasn't been created yet, ignore the second instance attempt
+                // The window will be created by the first instance shortly
+                if (!mainWindowRef || mainWindowRef.isDestroyed()) {
+                    log.warn('Second instance attempted before main window was created');
+                    return;
+                }
+
+                const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
+                if (file) {
+                    const result = await openSaveFile(file);
+                    mainWindowRef.webContents.send('file-open', result);
+                }
+                // Focus main window if a second instance was attempted
+                if (mainWindowRef.isMinimized()) mainWindowRef.restore();
+                mainWindowRef.focus();
+            })().catch(log.error);
         });
+    }
+
+    const createWindow = lazy(() => {
+        createMainWindow(args, settings)
+            .then((window) => {
+                // Store the window reference for the second-instance handler
+                mainWindowRef = window;
+            })
+            .catch((error) => {
+                log.error(error);
+                // rethrow to let the global error handler deal with it
+                return Promise.reject(error);
+            });
     });
 
     // This method will be called when Electron has finished

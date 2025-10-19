@@ -218,18 +218,8 @@ const registerEventHandlerPreSetup = (
             ipcMain.handle('get-auto-open', () => undefined);
         }
 
-        app.on('second-instance', (_event, commandLine) => {
-            (async () => {
-                const { file } = parseArgs(commandLine.slice(app.isPackaged ? 2 : 3));
-                if (file) {
-                    const result = await openSaveFile(file);
-                    mainWindow.webContents.send('file-open', result);
-                }
-                // Focus main window if a second instance was attempted
-                if (mainWindow.isMinimized()) mainWindow.restore();
-                mainWindow.focus();
-            })().catch(log.error);
-        });
+        // Note: second-instance handler is registered in create.ts
+        // to avoid race conditions where it's attempted before this function runs
     }
 
     // Handle filesystem
@@ -513,7 +503,10 @@ const setupProgressListeners = (
     });
 };
 
-export const createMainWindow = async (args: OpenArguments, settings: ChainnerSettings) => {
+export const createMainWindow = async (
+    args: OpenArguments,
+    settings: ChainnerSettings
+): Promise<BrowserWindow | undefined> => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
         width: settings.lastWindowSize.width,
@@ -612,4 +605,6 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
     if (args.devtools && !mainWindow.isDestroyed()) {
         mainWindow.webContents.openDevTools();
     }
+
+    return mainWindow;
 };
