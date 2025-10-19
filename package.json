@@ -99,7 +99,7 @@
     "stylelint-prettier": "^2.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
-    "vite": "^5.4.6",
+    "vite": "^5.4.20",
     "vitest": "^1.4.0"
   },
   "dependencies": {
