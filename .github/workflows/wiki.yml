@@ -7,9 +7,14 @@ on:
       - docs/** # This includes all sub folders
     branches:
       - main # This can be changed to any branch of your preference
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
 
 env:
-  USER_TOKEN: ${{ secrets.WIKI_TOKEN }} # This is the repository secret
+  USER_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This is the repository secret
   USER_NAME: github-actions[bot] # Enter the username of your (bot) account
   USER_EMAIL: github-actions[bot]@users.noreply.github.com # Enter the e-mail of your (bot) account
   OWNER: ${{ github.event.repository.owner.login }} # This is the repository owner
@@ -30,7 +35,7 @@ jobs:
           git init
           git config user.name $USER_NAME
           git config user.email $USER_EMAIL
-          git remote add origin https://$USER_TOKEN@github.com/$OWNER/$REPOSITORY_NAME.wiki.git
+          git remote add origin https://x-access-token:${USER_TOKEN}@github.com/${OWNER}/${REPOSITORY_NAME}.wiki.git
           git fetch origin
           git checkout master || git checkout -b master
           git pull origin master
