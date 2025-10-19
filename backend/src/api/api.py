@@ -4,6 +4,7 @@ import importlib
 import os
 from dataclasses import asdict, dataclass, field
 from typing import (
+    TYPE_CHECKING,
     Any,
     Awaitable,
     Callable,
@@ -33,6 +34,9 @@ from .node_data import (
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
+
+if TYPE_CHECKING:
+    from .migration import Migration
 
 KB = 1024**1
 MB = 1024**2
@@ -121,6 +125,7 @@ class NodeGroup:
         node_context: bool = False,
         key_info: KeyInfo | None = None,
         suggestions: list[SpecialSuggestion] | None = None,
+        migrations: list[Migration] | None = None,
     ):
         if not isinstance(description, str):
             description = "\n\n".join(description)
@@ -195,6 +200,7 @@ class NodeGroup:
                 deprecated=deprecated,
                 node_context=node_context,
                 features=features,
+                migrations=migrations or [],
                 run=wrapped_func,
             )
 

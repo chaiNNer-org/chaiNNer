@@ -158,6 +158,7 @@ async def nodes(_request: Request):
             "hasSideEffects": node.side_effects,
             "deprecated": node.deprecated,
             "features": node.features,
+            "migrations": [m.to_dict() for m in node.migrations],
         }
         node_list.append(node_dict)
 

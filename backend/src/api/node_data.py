@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Generic, Mapping, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Generic, Mapping, Protocol, TypeVar
 
 import navi
 
@@ -19,6 +19,9 @@ from .types import (
     OutputId,
     RunFn,
 )
+
+if TYPE_CHECKING:
+    from .migration import Migration
 
 
 class IteratorInputInfo:
@@ -192,6 +195,8 @@ class NodeData:
     deprecated: bool
     node_context: bool
     features: list[FeatureId]
+    
+    migrations: list[Migration]
 
     run: RunFn
 
