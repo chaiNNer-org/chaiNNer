@@ -72,7 +72,7 @@
     "adm-zip": "^0.5.12",
     "concurrently": "^7.2.1",
     "cross-env": "^7.0.3",
-    "electron": "^25.8.4",
+    "electron": "^35.7.5",
     "electron-installer-common": "^0.10.3",
     "eslint": "^8.16.0",
     "eslint-config-airbnb": "^19.0.4",
