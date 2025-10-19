@@ -779,13 +779,20 @@ class Executor:
 
             self.__send_node_progress(node, [], 0, expected_length)
 
-        # Assert that all expected lengths are the same
+        # Assert that all expected lengths are the same, or allow different lengths
+        # When iterators have different lengths, we'll stop at the shortest one
         if not len(set(expected_lengths.values())) <= 1:
-            raise AssertionError(
-                "Expected all connected iterators to have the same length"
+            # Different lengths - we'll iterate until the shortest one finishes
+            min_length = min(expected_lengths.values()) if expected_lengths else 0
+            logger.info(
+                f"Multiple iterators with different lengths detected. "
+                f"Will process {min_length} iterations (shortest iterator length)."
             )
+            for node_id in expected_lengths:
+                expected_lengths[node_id] = min_length
 
         total_stopiters = 0
+        finished_generators: set[NodeId] = set()
         # iterate
         while True:
             deferred_errors: list[str] = []
@@ -793,10 +800,20 @@ class Executor:
             try:
                 # iterate each iterator
                 for node in generator_nodes:
+                    # Skip generators that have already finished
+                    if node.id in finished_generators:
+                        continue
+
                     generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
 
-                    values = next(generator_supplier)
+                    try:
+                        values = next(generator_supplier)
+                    except StopIteration:
+                        # This generator is finished
+                        finished_generators.add(node.id)
+                        total_stopiters += 1
+                        continue
 
                     # write current values to cache
                     iter_output = RegularOutput(
@@ -808,6 +825,11 @@ class Executor:
 
                     # broadcast
                     await self.__send_node_broadcast(node, iter_output.output)
+
+                # Check if all generators are finished
+                if total_stopiters >= num_generators:
+                    break
+
 
                 # run each of the output nodes
                 for output_node in output_nodes:
@@ -827,15 +849,16 @@ class Executor:
 
                 await self.progress.suspend()
                 for node in generator_nodes:
-                    iter_times = iter_timers[node.id]
-                    iter_times.add()
-                    iterations = iter_times.iterations
-                    self.__send_node_progress(
-                        node,
-                        iter_times.times,
-                        iterations,
-                        max(expected_lengths[node.id], iterations),
-                    )
+                    if node.id not in finished_generators:
+                        iter_times = iter_timers[node.id]
+                        iter_times.add()
+                        iterations = iter_times.iterations
+                        self.__send_node_progress(
+                            node,
+                            iter_times.times,
+                            iterations,
+                            max(expected_lengths[node.id], iterations),
+                        )
                 # cooperative yield so the event loop can run
                 # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
                 await asyncio.sleep(0)
@@ -843,10 +866,6 @@ class Executor:
 
             except Aborted:
                 raise
-            except StopIteration:
-                total_stopiters = total_stopiters + 1
-                if total_stopiters >= num_generators:
-                    break
             except Exception as e:
                 if generator_output and generator_output.generator.fail_fast:
                     raise e
