@@ -214,6 +214,7 @@ def deps_to_dep_info(deps: list[api.Dependency]) -> list[DependencyInfo]:
             display_name=dep.display_name,
             version=dep.version,
             extra_index_url=dep.extra_index_url,
+            size_estimate=dep.size_estimate,
         )
         for dep in deps
     ]
@@ -350,7 +351,7 @@ async def setup_sse(request: Request):
         try:
             message = await ctx.setup_queue.get()
             await response.send(
-                f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+                f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
             )
         except Exception:
             break

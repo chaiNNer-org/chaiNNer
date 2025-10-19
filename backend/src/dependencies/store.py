@@ -24,8 +24,41 @@ DEP_MAX_PROGRESS = 0.8
 
 ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
 
-# Minimum free disk space required (in bytes): 500 MB
-MIN_FREE_DISK_SPACE = 500 * 1024 * 1024
+# Buffer for extraction, temporary files, and overhead (100 MB)
+# This is added on top of the actual dependency sizes
+DISK_SPACE_BUFFER = 100 * 1024 * 1024
+
+
+def calculate_required_disk_space(dependencies: list[DependencyInfo]) -> int:
+    """
+    Calculate the required disk space for installing dependencies.
+    Returns the total size in bytes, including a buffer for extraction and overhead.
+    """
+    total_size = 0
+
+    for dep in dependencies:
+        if dep.size_estimate is not None:
+            # Use the provided size estimate
+            total_size += dep.size_estimate
+        elif dep.from_file is not None:
+            # Check the actual file size for local wheel files
+            whl_file = f"{dir_path}/whls/{dep.package_name}/{dep.from_file}"
+            if os.path.isfile(whl_file):
+                try:
+                    total_size += os.path.getsize(whl_file)
+                except Exception:
+                    # If we can't get the file size, use a conservative estimate
+                    total_size += 10 * 1024 * 1024  # 10 MB default
+            else:
+                # File doesn't exist, use conservative estimate
+                total_size += 10 * 1024 * 1024  # 10 MB default
+        else:
+            # No size information available, use conservative estimate
+            total_size += 10 * 1024 * 1024  # 10 MB default
+
+    # Add buffer for extraction, temporary files, and pip overhead
+    # Pip often needs 2-3x the package size during installation
+    return total_size * 3 + DISK_SPACE_BUFFER
 
 
 def check_disk_space(path: str | None = None) -> tuple[int, int]:
@@ -42,7 +75,7 @@ def check_disk_space(path: str | None = None) -> tuple[int, int]:
     except Exception:
         # If we can't check disk space, assume it's available
         # This prevents breaking the installation on systems where disk_usage fails
-        return 0, MIN_FREE_DISK_SPACE + 1
+        return 0, DISK_SPACE_BUFFER + 1
 
 
 @dataclass(frozen=True)
@@ -52,6 +85,7 @@ class DependencyInfo:
     display_name: str | None = None
     from_file: str | None = None
     extra_index_url: str | None = None
+    size_estimate: int | None = None
 
 
 def pin(dependency: DependencyInfo) -> str:
@@ -105,11 +139,13 @@ def install_dependencies_sync(
 
     # Check available disk space before installing
     _total_space, free_space = check_disk_space()
-    if free_space < MIN_FREE_DISK_SPACE:
+    required_space = calculate_required_disk_space(dependencies_to_install)
+
+    if free_space < required_space:
         free_mb = free_space / (1024 * 1024)
-        min_mb = MIN_FREE_DISK_SPACE / (1024 * 1024)
+        required_mb = required_space / (1024 * 1024)
         raise OSError(
-            f"Insufficient disk space. Available: {free_mb:.1f} MB, Required: {min_mb:.1f} MB. "
+            f"Insufficient disk space. Available: {free_mb:.1f} MB, Required: {required_mb:.1f} MB. "
             "Please free up disk space and try again."
         )
 
@@ -169,11 +205,13 @@ async def install_dependencies(
 
     # Check available disk space before installing
     _total_space, free_space = check_disk_space()
-    if free_space < MIN_FREE_DISK_SPACE:
+    required_space = calculate_required_disk_space(dependencies_to_install)
+
+    if free_space < required_space:
         free_mb = free_space / (1024 * 1024)
-        min_mb = MIN_FREE_DISK_SPACE / (1024 * 1024)
+        required_mb = required_space / (1024 * 1024)
         raise OSError(
-            f"Insufficient disk space. Available: {free_mb:.1f} MB, Required: {min_mb:.1f} MB. "
+            f"Insufficient disk space. Available: {free_mb:.1f} MB, Required: {required_mb:.1f} MB. "
             "Please free up disk space and try again."
         )
 
