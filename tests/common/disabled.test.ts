@@ -1,39 +1,41 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any */
 import { expect, test } from 'vitest';
+import { EdgeData, InputId, NodeData, SchemaId } from '../../src/common/common-types';
 import { getEffectivelyDisabledNodes } from '../../src/common/nodes/disabled';
 import { SchemaMap } from '../../src/common/SchemaMap';
-import { InputId, NodeData, SchemaId, EdgeData } from '../../src/common/common-types';
-import type { Node, Edge } from 'reactflow';
+import type { Edge, Node } from 'reactflow';
 
 // Helper to create a minimal node schema
-const createSchema = (schemaId: string, inputs: Array<{ id: InputId; optional: boolean }>) => ({
-    schemaId: schemaId as SchemaId,
-    name: `Test Node ${schemaId}`,
-    description: '',
-    icon: '',
-    category: 'test' as any,
-    nodeGroup: 'test' as any,
-    inputs: inputs.map((i) => ({
-        id: i.id,
-        label: `Input ${i.id}`,
-        optional: i.optional,
-        hasHandle: true,
-        hint: false,
-        kind: 'generic' as const,
-        type: { type: 'any' },
-        conversions: [],
-        suggest: false,
-    })),
-    outputs: [],
-    groupLayout: [],
-    iteratorInputs: [],
-    iteratorOutputs: [],
-    kind: 'regularNode' as const,
-    hasSideEffects: false,
-    deprecated: false,
-    features: [],
-    seeAlso: [],
-    suggestions: [],
-});
+const createSchema = (schemaId: string, inputs: Array<{ id: InputId; optional: boolean }>) =>
+    ({
+        schemaId: schemaId as SchemaId,
+        name: `Test Node ${schemaId}`,
+        description: '',
+        icon: '',
+        category: 'test' as any,
+        nodeGroup: 'test' as any,
+        inputs: inputs.map((i) => ({
+            id: i.id,
+            label: `Input ${i.id}`,
+            optional: i.optional,
+            hasHandle: true,
+            hint: false,
+            kind: 'generic' as const,
+            type: { type: 'instance' as const, class: 'Any' as const },
+            conversions: [],
+            suggest: false,
+        })),
+        outputs: [],
+        groupLayout: [],
+        iteratorInputs: [],
+        iteratorOutputs: [],
+        kind: 'regularNode' as const,
+        hasSideEffects: false,
+        deprecated: false,
+        features: [],
+        seeAlso: [],
+        suggestions: [],
+    } as any);
 
 // Helper to create a node
 const createNode = (id: string, schemaId: string, isDisabled = false): Node<NodeData> => ({
