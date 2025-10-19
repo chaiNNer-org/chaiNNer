@@ -11,7 +11,7 @@ from .. import all_group
 
 @all_group.register(
     schema_id="chainner:image:split_channels",
-    name="Separate RGBA",
+    name="Split R/G/B/A",
     description=(
         "Split image channels into separate channels. "
         "Typically used for splitting off an alpha (transparency) layer."

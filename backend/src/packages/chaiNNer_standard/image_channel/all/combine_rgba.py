@@ -11,9 +11,9 @@ from .. import all_group
 
 @all_group.register(
     schema_id="chainner:image:combine_rgba",
-    name="Combine RGBA",
+    name="Combine R/G/B/A",
     description=(
-        "Merges the given channels together and returns an RGBA image."
+        "Combines the given channels together and returns an RGBA image."
         " All channel images must be a single channel image."
     ),
     icon="MdCallMerge",
@@ -80,9 +80,9 @@ def combine_rgba_node(
     # check same size
     for i in inputs:
         if isinstance(i, np.ndarray):
-            assert (
-                i.shape[:2] == start_shape
-            ), "All channel images must have the same resolution"
+            assert i.shape[:2] == start_shape, (
+                "All channel images must have the same resolution"
+            )
 
     channels = [
         (
