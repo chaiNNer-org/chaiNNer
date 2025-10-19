@@ -23,7 +23,7 @@ def get_onnx_runtime():
         return Dependency(
             display_name="ONNX Runtime (GPU)",
             pypi_name="onnxruntime-gpu",
-            version="1.19.2",
+            version="1.23.0",
             size_estimate=226 * MB,
             import_name="onnxruntime",
             extra_index_url="https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/",
@@ -32,14 +32,14 @@ def get_onnx_runtime():
         return Dependency(
             display_name="ONNX Runtime (DirectMl)",
             pypi_name="onnxruntime-directml",
-            version="1.17.1",
+            version="1.23.0",
             size_estimate=15 * MB,
         )
     else:
         return Dependency(
             display_name="ONNX Runtime",
             pypi_name="onnxruntime",
-            version="1.19.2",
+            version="1.23.1",
             size_estimate=13 * MB,
         )
 
@@ -53,7 +53,7 @@ package = add_package(
         Dependency(
             display_name="ONNX",
             pypi_name="onnx",
-            version="1.17.0",
+            version="1.19.1",
             size_estimate=16 * MB,
         ),
         Dependency(
