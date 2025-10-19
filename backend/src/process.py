@@ -798,6 +798,10 @@ class Executor:
 
                     values = next(generator_supplier)
 
+                    # Check if the generator yielded an exception
+                    if isinstance(values, Exception):
+                        raise values
+
                     # write current values to cache
                     iter_output = RegularOutput(
                         self.__generator_fill_partial_output(
