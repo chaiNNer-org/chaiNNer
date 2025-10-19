@@ -791,29 +791,25 @@ class Executor:
             for node_id in expected_lengths:
                 expected_lengths[node_id] = min_length
 
-        total_stopiters = 0
-        finished_generators: set[NodeId] = set()
         # iterate
         while True:
             deferred_errors: list[str] = []
             generator_output = None
+            any_finished = False
             try:
-                # iterate each iterator
+                # iterate each iterator and collect their values
+                # We need to get values from ALL generators before processing
+                # to ensure proper zipping behavior
                 for node in generator_nodes:
-                    # Skip generators that have already finished
-                    if node.id in finished_generators:
-                        continue
-
                     generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
 
                     try:
                         values = next(generator_supplier)
                     except StopIteration:
-                        # This generator is finished
-                        finished_generators.add(node.id)
-                        total_stopiters += 1
-                        continue
+                        # This generator is finished, so all generators in this group should stop
+                        any_finished = True
+                        break
 
                     # write current values to cache
                     iter_output = RegularOutput(
@@ -826,8 +822,8 @@ class Executor:
                     # broadcast
                     await self.__send_node_broadcast(node, iter_output.output)
 
-                # Check if all generators are finished
-                if total_stopiters >= num_generators:
+                # If any generator finished, stop all of them (zip behavior)
+                if any_finished:
                     break
 
 
@@ -849,16 +845,15 @@ class Executor:
 
                 await self.progress.suspend()
                 for node in generator_nodes:
-                    if node.id not in finished_generators:
-                        iter_times = iter_timers[node.id]
-                        iter_times.add()
-                        iterations = iter_times.iterations
-                        self.__send_node_progress(
-                            node,
-                            iter_times.times,
-                            iterations,
-                            max(expected_lengths[node.id], iterations),
-                        )
+                    iter_times = iter_timers[node.id]
+                    iter_times.add()
+                    iterations = iter_times.iterations
+                    self.__send_node_progress(
+                        node,
+                        iter_times.times,
+                        iterations,
+                        max(expected_lengths[node.id], iterations),
+                    )
                 # cooperative yield so the event loop can run
                 # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
                 await asyncio.sleep(0)
