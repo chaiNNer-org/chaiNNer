@@ -29,11 +29,11 @@ class RotationInterpolationMethod(Enum):
 
 
 INTERPOLATION_METHODS_MAP = {
-    InterpolationMethod.NEAREST: Image.NEAREST,
-    InterpolationMethod.BOX: Image.BOX,
-    InterpolationMethod.LINEAR: Image.BILINEAR,
-    InterpolationMethod.CUBIC: Image.BICUBIC,
-    InterpolationMethod.LANCZOS: Image.LANCZOS,
+    InterpolationMethod.NEAREST: Image.Resampling.NEAREST,
+    InterpolationMethod.BOX: Image.Resampling.BOX,
+    InterpolationMethod.LINEAR: Image.Resampling.BILINEAR,
+    InterpolationMethod.CUBIC: Image.Resampling.BICUBIC,
+    InterpolationMethod.LANCZOS: Image.Resampling.LANCZOS,
 }
 
 

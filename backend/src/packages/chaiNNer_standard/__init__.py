@@ -11,27 +11,27 @@ package = add_package(
         Dependency(
             display_name="Numpy",
             pypi_name="numpy",
-            version="1.24.4",
+            version="2.3.4",
             size_estimate=15 * MB,
         ),
         Dependency(
             display_name="OpenCV",
             pypi_name="opencv-python",
-            version="4.8.0.76",
+            version="4.12.0.88",
             size_estimate=30 * MB,
             import_name="cv2",
         ),
         Dependency(
             display_name="Pillow (PIL)",
             pypi_name="Pillow",
-            version="9.2.0",
+            version="12.0.0",
             size_estimate=3 * MB,
             import_name="PIL",
         ),
         Dependency(
             display_name="pillow-avif-plugin",
             pypi_name="pillow-avif-plugin",
-            version="1.4.3",
+            version="1.5.2",
             size_estimate=11 * MB,
             import_name="pillow_avif",
         ),
@@ -58,7 +58,7 @@ package = add_package(
         Dependency(
             display_name="scipy",
             pypi_name="scipy",
-            version="1.9.3",
+            version="1.16.2",
             size_estimate=42 * MB,
         ),
         Dependency(
@@ -71,7 +71,7 @@ package = add_package(
         Dependency(
             display_name="Numba",
             pypi_name="numba",
-            version="0.57.1",
+            version="0.62.1",
             size_estimate=2.5 * MB,
         ),
         Dependency(

@@ -89,7 +89,7 @@ def _read_pil(path: Path) -> np.ndarray | None:
         return None
 
     im = Image.open(path)
-    if im.mode == "P":
+    if im.mode == "P" and im.palette is not None:
         # convert color palette to actual colors
         im = im.convert(im.palette.mode)
 

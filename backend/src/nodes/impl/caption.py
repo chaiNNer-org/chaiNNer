@@ -22,7 +22,7 @@ def get_font_size(font: ImageFont.FreeTypeFont, text: str) -> tuple[int, int]:
     caption_bb = font.getbbox(text)
     font_width = caption_bb[2] - caption_bb[0]
     font_height = caption_bb[3] - caption_bb[1]
-    return font_width, font_height
+    return int(font_width), int(font_height)  # TODO: verify int cast is safe
 
 
 def get_font(font_size: int):

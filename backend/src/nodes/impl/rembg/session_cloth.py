@@ -67,7 +67,7 @@ class ClothSession(BaseSession):
         pred = np.squeeze(pred, 0)
 
         mask = Image.fromarray(pred.astype("uint8"), mode="L")
-        mask = mask.resize((w, h), Image.LANCZOS)
+        mask = mask.resize((w, h), Image.Resampling.LANCZOS)
 
         masks: list[np.ndarray] = []
 
