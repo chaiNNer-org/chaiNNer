@@ -111,7 +111,10 @@ export function applyPerNodeMigrations(
                     (s) =>
                         s.schemaId === task.schemaId ||
                         s.migrations.some(
-                            (m) => m.kind === 'rename' && m.old === currentSchemaId
+                            (m) => {
+                                const migration = m as Migration;
+                                return migration.kind === 'rename' && migration.old === currentSchemaId;
+                            }
                         )
                 );
                 if (schema) {

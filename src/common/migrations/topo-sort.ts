@@ -31,7 +31,8 @@ function buildDependencyGraph(
     const taskKey = (schemaId: SchemaId, index: number): string =>
         `${schemaId}:${index}`;
     
-    for (const [schemaId, schema] of schemas.entries()) {
+    const schemaEntries = Array.from(schemas.entries());
+    for (const [schemaId, schema] of schemaEntries) {
         const { migrations } = schema;
         
         // Each migration depends on the previous migration in the same node
@@ -105,7 +106,8 @@ export function topologicalSort(
         visiting.add(key);
         
         const deps = graph.get(key) || new Set();
-        for (const dep of deps) {
+        const depsArray = Array.from(deps);
+        for (const dep of depsArray) {
             visit(dep);
         }
         
@@ -124,7 +126,8 @@ export function topologicalSort(
     };
     
     // Visit all migration tasks
-    for (const key of graph.keys()) {
+    const graphKeys = Array.from(graph.keys());
+    for (const key of graphKeys) {
         visit(key);
     }
     

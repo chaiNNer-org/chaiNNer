@@ -53,7 +53,8 @@ function applyChangeInputsMigration(
     migration: ChangeInputsMigration,
     context: MigrationContext
 ): void {
-    const { inputData } = node.data;
+    // Create mutable copy of inputData
+    const inputData = { ...node.data.inputData };
 
     // Remove inputs
     if (migration.remove) {
@@ -70,7 +71,17 @@ function applyChangeInputsMigration(
             const newId = migration.rename[key] ?? oldId;
             newInputData[newId] = value;
         }
-        node.data.inputData = newInputData;
+        Object.assign(inputData, newInputData);
+        
+        // Clear old keys and set new ones
+        for (const key of Object.keys(inputData)) {
+            if (!(key in newInputData)) {
+                delete inputData[Number(key) as InputId];
+            }
+        }
+        for (const [key, value] of Object.entries(newInputData)) {
+            inputData[Number(key) as InputId] = value;
+        }
 
         // Update edges
         for (const edge of context.edges) {
@@ -96,6 +107,9 @@ function applyChangeInputsMigration(
             }
         }
     }
+    
+    // Update node data
+    node.data.inputData = inputData;
 }
 
 /**
