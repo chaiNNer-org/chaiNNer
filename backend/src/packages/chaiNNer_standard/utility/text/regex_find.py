@@ -7,7 +7,7 @@ from chainner_ext import RustRegex
 from nodes.groups import if_enum_group
 from nodes.impl.rust_regex import get_range_text, match_to_replacements_dict
 from nodes.properties.inputs import EnumInput, TextInput
-from nodes.properties.outputs import TextOutput
+from nodes.properties.outputs import BoolOutput, TextOutput
 from nodes.utils.replacement import ReplacementString
 
 from .. import text_group
@@ -54,6 +54,10 @@ class OutputMode(Enum):
         ).with_never_reason(
             "Either the regex pattern or the replacement pattern is invalid"
         ),
+        BoolOutput(
+            "Found",
+            output_type="bool",
+        ),
     ],
     see_also=["chainner:utility:text_replace"],
 )
@@ -62,17 +66,18 @@ def regex_find_node(
     regex_pattern: str,
     output: OutputMode,
     output_pattern: str,
-) -> str:
+) -> tuple[str, bool]:
     r = RustRegex(regex_pattern)
     m = r.search(text)
     if m is None:
-        raise RuntimeError(
-            f"No match found. Unable to find the pattern '{regex_pattern}' in the text."
-        )
+        return ("", False)
 
+    result_text = ""
     if output == OutputMode.FULL_MATCH:
-        return get_range_text(text, m)
+        result_text = get_range_text(text, m)
     elif output == OutputMode.PATTERN:
         replacements = match_to_replacements_dict(r, m, text)
         replacement = ReplacementString(output_pattern)
-        return replacement.replace(replacements)
+        result_text = replacement.replace(replacements)
+
+    return (result_text, True)
