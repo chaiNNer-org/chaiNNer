@@ -19,7 +19,7 @@ import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
 import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
 import { assertNever } from '../../common/util';
-import { OpenArguments, parseArgs } from '../arguments';
+import { OpenArguments } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { isArmMac, isMac } from '../env';
@@ -206,21 +206,19 @@ const registerEventHandlerPreSetup = (
                 mainWindow.webContents.send('file-open', result);
             })().catch(log.error);
         });
+    } else if (args.file) {
+        // Open file with chaiNNer on other platforms
+        const result = openSaveFile(args.file);
+        ipcMain.handle('get-auto-open', () => result);
+    } else if (settings.startupTemplate) {
+        const result = openSaveFile(settings.startupTemplate);
+        ipcMain.handle('get-auto-open', () => result);
     } else {
-        if (args.file) {
-            // Open file with chaiNNer on other platforms
-            const result = openSaveFile(args.file);
-            ipcMain.handle('get-auto-open', () => result);
-        } else if (settings.startupTemplate) {
-            const result = openSaveFile(settings.startupTemplate);
-            ipcMain.handle('get-auto-open', () => result);
-        } else {
-            ipcMain.handle('get-auto-open', () => undefined);
-        }
-
-        // Note: second-instance handler is registered in create.ts
-        // to avoid race conditions where it's attempted before this function runs
+        ipcMain.handle('get-auto-open', () => undefined);
     }
+
+    // Note: second-instance handler is registered in create.ts
+    // to avoid race conditions where it's attempted before this function runs
 
     // Handle filesystem
     ipcMain.handle('fs-read-file', async (event, p, options) => fs.readFile(p, options));
