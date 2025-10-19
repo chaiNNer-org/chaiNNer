@@ -171,11 +171,14 @@ class WorkerServer:
     async def stop(self):
         if self._process:
             self._process.close()
+            self._process = None
         if self._session:
             for resp in self._manually_close:
                 resp.close()
             self._manually_close.clear()
             await self._session.close()
+            self._session = None
+        self._is_ready = False
         logger.info("Worker process stopped")
 
     async def restart(self, extra_flags: Iterable[str] = []):
