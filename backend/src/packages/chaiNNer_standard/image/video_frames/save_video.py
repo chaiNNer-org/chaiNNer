@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import time
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
@@ -155,56 +154,6 @@ PARAMETERS: dict[VideoEncoder, list[Literal["preset", "crf"]]] = {
 }
 
 
-def wait_for_file(file_path: str, timeout: float = 10.0, check_interval: float = 0.1):
-    """
-    Wait for a file to be accessible and stable.
-
-    This helps avoid race conditions where a file is being written by one process
-    and immediately needs to be read by another. On some systems (especially Windows),
-    a file may not be immediately accessible after a process exits.
-
-    Args:
-        file_path: Path to the file to wait for
-        timeout: Maximum time to wait in seconds
-        check_interval: Time between checks in seconds
-
-    Returns:
-        True if the file became accessible, False if timeout occurred
-    """
-    start_time = time.time()
-    last_size = -1
-    stable_count = 0
-
-    while time.time() - start_time < timeout:
-        try:
-            # Check if file exists and is readable
-            if os.path.exists(file_path):
-                # Get file size
-                current_size = os.path.getsize(file_path)
-
-                # Check if file size is stable (not still being written)
-                if current_size == last_size and current_size > 0:
-                    stable_count += 1
-                    # File size has been stable for 2 checks, consider it ready
-                    if stable_count >= 2:
-                        # Try to open the file to ensure it's not locked
-                        with open(file_path, "rb") as f:
-                            # Read a small amount to verify access
-                            f.read(1)
-                        return True
-                else:
-                    stable_count = 0
-                    last_size = current_size
-
-        except OSError:
-            # File is not accessible yet, continue waiting
-            pass
-
-        time.sleep(check_interval)
-
-    return False
-
-
 @dataclass
 class Writer:
     container: VideoFormat
@@ -268,15 +217,9 @@ class Writer:
 
         if self.audio is not None:
             video_path = self.save_path
-
-            # Wait for the video file to be fully written and accessible
-            # This addresses a race condition where the file might not be immediately
-            # available after the ffmpeg process exits, especially on Windows
-            if not wait_for_file(video_path, timeout=10.0):
-                logger.warning(
-                    f"Video file {video_path} did not become accessible within timeout. "
-                    "Attempting to copy audio anyway..."
-                )
+            if not os.path.exists(video_path):
+                logger.error(f"Video file not found at {video_path}")
+                return
 
             base, ext = os.path.splitext(video_path)
             audio_video_path = f"{base}_av{ext}"
@@ -297,34 +240,49 @@ class Writer:
                 output_params["b:a"] = "320k"
 
             try:
-                video_stream = ffmpeg.input(video_path)
+                logger.info(f"Attempting to process audio from: {self.audio}")
+
+                # Create video stream
+                video_stream = ffmpeg.input(str(video_path))
+
+                # Combine video and audio - video first, then audio
                 output_video = ffmpeg.output(
-                    self.audio,
                     video_stream,
-                    audio_video_path,
+                    self.audio,
+                    str(audio_video_path),
                     **output_params,
                 ).overwrite_output()
-                ffmpeg.run(output_video, cmd=self.ffmpeg_env.ffmpeg)
 
-                # Wait for the new file with audio to be fully written
-                if not wait_for_file(audio_video_path, timeout=10.0):
-                    logger.warning(
-                        f"Audio+video file {audio_video_path} did not become accessible within timeout. "
-                        "Attempting to rename anyway..."
+                try:
+                    ffmpeg.run(
+                        output_video,
+                        cmd=self.ffmpeg_env.ffmpeg,
+                        capture_stdout=True,
+                        capture_stderr=True,
+                    )
+                except ffmpeg.Error as e:
+                    error_msg = e.stderr.decode() if hasattr(e, "stderr") else str(e)
+                    logger.error(f"FFmpeg error: {error_msg}")
+                    return
+
+                if os.path.exists(audio_video_path):
+                    os.remove(video_path)
+                    os.rename(audio_video_path, video_path)
+                else:
+                    logger.error(
+                        f"Expected output file not created: {audio_video_path}"
                     )
 
-                # delete original, rename new
-                os.remove(video_path)
-                os.rename(audio_video_path, video_path)
-            except Exception:
+            except Exception as e:
                 logger.warning(
-                    "Failed to copy audio to video, input file probably contains "
-                    "no audio or audio stream is supported by this container. Ignoring audio settings."
+                    f"Failed to copy audio to video: {e!s}. "
+                    "Input file probably contains no audio or audio stream is not supported by this container."
                 )
-                try:
-                    os.remove(audio_video_path)
-                except Exception:
-                    pass
+                if os.path.exists(audio_video_path):
+                    try:
+                        os.remove(audio_video_path)
+                    except Exception:
+                        pass
 
 
 @video_frames_group.register(
