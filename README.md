@@ -65,7 +65,7 @@ To select multiple nodes, hold down shift and drag around all the nodes you want
 
 To perform batch processing on a folder of images, use the "Load Images" node. To process videos, use the "Load Video" node. You can combine the output (collector) nodes in the chain, for example using "Save Image" with "Load Video", and "Save Video" with "Load Images".
 
-You can also use multiple batch iterator nodes together (e.g., "Load Images" and "Load Models") in the same chain. When multiple iterators are connected to the same node, they will be executed in lockstep, iterating together over their respective items.
+You can also use multiple batch iterator nodes together (e.g., "Load Images" and "Load Models") in the same chain. When multiple iterators are connected to the same node, they will be executed in lockstep, iterating together over their respective items. If the iterators have different lengths, the chain will stop when the shortest iterator finishes (similar to Python's `zip()` function).
 
 You can right-click in the editor viewport to show an inline nodes list to select from. You also can get this menu by dragging a connection out to the editor rather than making an actual connection, and it will show compatible nodes to automatically create a connection with.
 
