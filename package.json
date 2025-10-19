@@ -3,7 +3,7 @@
   "productName": "chaiNNer",
   "appId": "app.chainner",
   "desktopName": "chainner.desktop",
-  "version": "0.24.1",
+  "version": "0.25.0",
   "description": "A flowchart-based image processing GUI",
   "main": ".vite/build/main.js",
   "scripts": {
