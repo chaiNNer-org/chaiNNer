@@ -1,8 +1,7 @@
+from api import KB, MB, Dependency, add_package
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
-
-from api import KB, MB, Dependency, add_package
 
 package = add_package(
     __file__,

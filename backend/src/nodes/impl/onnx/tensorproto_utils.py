@@ -3,6 +3,7 @@ from sys import float_info
 import numpy as np
 from onnx import numpy_helper as onph
 from onnx.onnx_pb import AttributeProto, NodeProto, TensorProto
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()

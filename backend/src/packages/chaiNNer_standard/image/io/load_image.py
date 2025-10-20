@@ -7,14 +7,14 @@ from typing import Callable, Iterable, Union
 
 import cv2
 import numpy as np
-import pillow_avif  # type: ignore # noqa: F401
+import pillow_avif  # type: ignore
 from PIL import Image
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 
 from nodes.impl.dds.texconv import dds_to_png_texconv
 from nodes.impl.image_formats import (
+
+from logger import get_logger_from_env
+
     get_available_image_formats,
     get_opencv_formats,
     get_pil_formats,
@@ -25,6 +25,7 @@ from nodes.utils.utils import get_h_w_c, split_file_path
 
 from .. import io_group
 
+logger = get_logger_from_env()
 _Decoder = Callable[[Path], Union[np.ndarray, None]]
 """
 An image decoder.

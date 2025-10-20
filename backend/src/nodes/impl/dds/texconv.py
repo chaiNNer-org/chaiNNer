@@ -10,13 +10,14 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import numpy as np
-from logger import get_logger_from_env
 
-logger = get_logger_from_env()
+from logger import get_logger_from_env
 
 from ...utils.utils import split_file_path
 from ..image_utils import cv_save_image
 from .format import SRGB_FORMATS, DxgiFormat
+
+logger = get_logger_from_env()
 
 __TEXCONV_DIR = os.path.join(
     os.path.dirname(sys.modules["__main__"].__file__),  # type: ignore

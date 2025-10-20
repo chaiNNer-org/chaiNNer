@@ -7,11 +7,12 @@ from json import load as jload
 from pathlib import Path
 
 import numpy as np
+
 from logger import get_logger_from_env
 
-logger = get_logger_from_env()
-
 from ...utils.checked_cast import checked_cast
+
+logger = get_logger_from_env()
 
 param_schema_file = os.path.join(
     os.path.dirname(os.path.realpath(__file__)), "param_schema.json"
@@ -488,7 +489,7 @@ class NcnnModel:
             if k < 0:
                 v = []
                 for vi in vs.split(","):
-                    vi = float(vi) if "." in vi or "e" in vi else int(vi)  # noqa: PLW2901
+                    vi = float(vi) if "." in vi or "e" in vi else int(vi)
                     v.append(vi)
                 k = abs(k + 23300)
                 ks = str(k)

@@ -356,8 +356,8 @@ async def uninstall_dependencies(
 
 __all__ = [
     "DependencyInfo",
-    "python_path",
     "install_dependencies",
     "install_dependencies_sync",
     "installed_packages",
+    "python_path",
 ]

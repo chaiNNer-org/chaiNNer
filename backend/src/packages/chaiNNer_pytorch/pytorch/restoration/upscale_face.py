@@ -4,13 +4,11 @@ import cv2
 import numpy as np
 import torch
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import ImageModelDescriptor
 from torchvision.transforms.functional import normalize as tv_normalize
 
 from api import KeyInfo, NodeContext
+from logger import get_logger_from_env
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
@@ -21,6 +19,7 @@ from nodes.utils.utils import get_h_w_c
 from ...settings import PyTorchSettings, get_settings
 from .. import restoration_group
 
+logger = get_logger_from_env()
 
 def denormalize(img: np.ndarray):
     img = to_uint8(img, normalized=True)

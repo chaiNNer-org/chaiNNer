@@ -11,12 +11,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 import navi
 from api import (
+
+from logger import get_logger_from_env
+
     BaseInput,
     BaseOutput,
     BroadcastData,
@@ -41,6 +40,7 @@ from events import EventConsumer, InputsDict, NodeBroadcastData
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
 
+logger = get_logger_from_env()
 Output = List[object]
 
 
@@ -54,7 +54,7 @@ def collect_input_information(
 
         for value, node_input in zip(inputs, node.inputs):
             if isinstance(value, Lazy) and value.has_value:
-                value = value.value  # noqa: PLW2901
+                value = value.value
 
             if isinstance(value, Lazy):
                 # the value hasn't been computed yet, so we won't do so here
@@ -63,7 +63,7 @@ def collect_input_information(
 
             if not enforced:
                 try:
-                    value = node_input.enforce_(value)  # noqa
+                    value = node_input.enforce_(value)
                 except Exception:
                     logger.error(
                         f"Error enforcing input {node_input.label} (id {node_input.id})",

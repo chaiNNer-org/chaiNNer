@@ -1,16 +1,15 @@
 from dataclasses import dataclass
 
 import torch
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
 from gpu import nvidia
+from logger import get_logger_from_env
 from system import is_arm_mac
 
 from . import package
 
+logger = get_logger_from_env()
 if not is_arm_mac:
     gpu_list = []
     for i in range(torch.cuda.device_count()):

@@ -3,13 +3,12 @@ from __future__ import annotations
 import gc
 from typing import Generic, Iterable, TypeVar
 
+from api import NodeId
 from logger import get_logger_from_env
 
-logger = get_logger_from_env()
-
-from api import NodeId
-
 from .chain import Chain, Edge, FunctionNode, GeneratorNode
+
+logger = get_logger_from_env()
 
 
 class CacheStrategy:

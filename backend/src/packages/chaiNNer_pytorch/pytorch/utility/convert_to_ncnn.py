@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from logger import get_logger_from_env
 
-logger = get_logger_from_env()
 from spandrel import ImageModelDescriptor
 from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT
@@ -55,11 +54,13 @@ def convert_to_ncnn_node(
         )
 
         from ....chaiNNer_onnx.onnx.utility.convert_to_ncnn import (
+
+logger = get_logger_from_env()
             convert_to_ncnn_node as onnx_convert_to_ncnn_node,
         )
     except Exception as e:
         logger.error(e)
-        raise ModuleNotFoundError(  # noqa: B904
+        raise ModuleNotFoundError(
             "Converting to NCNN is done through ONNX as an intermediate format (PyTorch -> ONNX -> NCNN), \
                 and therefore requires the ONNX dependency to be installed. Please install ONNX through the dependency \
                 manager to use this node."

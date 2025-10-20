@@ -1,14 +1,12 @@
 from pathlib import Path
 
 from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import DirectoryInput, NcnnModelInput, RelativePathInput
 
 from .. import io_group
 
+logger = get_logger_from_env()
 
 @io_group.register(
     schema_id="chainner:ncnn:save_model",

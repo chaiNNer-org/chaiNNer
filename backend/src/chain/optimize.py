@@ -1,10 +1,9 @@
+from api import InputId, OutputId
 from logger import get_logger_from_env
 
-logger = get_logger_from_env()
-
-from api import InputId, OutputId
-
 from .chain import Chain, Edge, Node
+
+logger = get_logger_from_env()
 
 
 class _Mutation:
@@ -19,7 +18,7 @@ def __passthrough(
     chain: Chain,
     node: Node,
     input_id: InputId,
-    output_id: OutputId = OutputId(0),  # noqa: B008
+    output_id: OutputId = OutputId(0),
 ):
     """
     Rewires the chain such that the value of the given input is passed through to the given output.

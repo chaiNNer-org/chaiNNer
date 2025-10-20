@@ -3,12 +3,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import ModelDescriptor
 
 from api import Generator, IteratorOutputInfo, NodeContext
+from logger import get_logger_from_env
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
@@ -18,6 +16,7 @@ from nodes.utils.utils import list_all_files_sorted
 from .. import batch_processing_group
 from ..io.load_model import load_model_node
 
+logger = get_logger_from_env()
 
 @batch_processing_group.register(
     schema_id="chainner:pytorch:load_models",

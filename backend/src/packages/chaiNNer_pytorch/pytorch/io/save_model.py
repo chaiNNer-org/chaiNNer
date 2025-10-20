@@ -5,11 +5,9 @@ from pathlib import Path
 
 import torch
 from safetensors.torch import save_file
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import ModelDescriptor
 
+from logger import get_logger_from_env
 from nodes.properties.inputs import (
     DirectoryInput,
     EnumInput,
@@ -19,6 +17,7 @@ from nodes.properties.inputs import (
 
 from .. import io_group
 
+logger = get_logger_from_env()
 
 class WeightFormat(Enum):
     PTH = "pth"

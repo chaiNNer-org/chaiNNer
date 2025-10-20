@@ -96,7 +96,7 @@ def remove_bg(
     mask = None
     for mask in masks:
         if post_process_mask:
-            mask = post_process(mask)  # noqa
+            mask = post_process(mask)
 
         if alpha_matting:
             try:

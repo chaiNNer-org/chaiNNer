@@ -4,9 +4,6 @@ import gc
 
 import numpy as np
 import torch
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import (
     ImageModelDescriptor,
     MaskedImageModelDescriptor,
@@ -15,6 +12,7 @@ from spandrel import (
 )
 
 from api.node_context import NodeContext
+from logger import get_logger_from_env
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput
@@ -22,6 +20,7 @@ from packages.chaiNNer_pytorch.settings import get_settings
 
 from .. import utility_group
 
+logger = get_logger_from_env()
 
 def perform_interp(model_a: dict, model_b: dict, amount: int):
     try:

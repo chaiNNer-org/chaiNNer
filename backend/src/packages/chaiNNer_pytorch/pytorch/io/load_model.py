@@ -3,13 +3,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import MAIN_REGISTRY, ModelDescriptor, ModelLoader
 from spandrel_extra_arches import EXTRA_REGISTRY
 
 from api import NodeContext
+from logger import get_logger_from_env
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.utils import split_file_path
@@ -17,6 +15,7 @@ from nodes.utils.utils import split_file_path
 from ...settings import get_settings
 from .. import io_group
 
+logger = get_logger_from_env()
 MAIN_REGISTRY.add(*EXTRA_REGISTRY)
 
 

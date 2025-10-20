@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import onnxruntime as ort
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 
 from api import NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
@@ -12,6 +9,9 @@ from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxGeneric, SizeReq
 from nodes.impl.onnx.session import get_input_shape, get_onnx_session, get_output_shape
 from nodes.impl.upscale.auto_split_tiles import (
+
+from logger import get_logger_from_env
+
     CUSTOM,
     TILE_SIZE_256,
     TileSize,
@@ -32,6 +32,7 @@ from nodes.utils.utils import get_h_w_c
 from ...settings import get_settings
 from .. import processing_group
 
+logger = get_logger_from_env()
 
 def upscale(
     img: np.ndarray,

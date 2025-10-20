@@ -14,20 +14,20 @@ except ImportError:
     use_gpu = False
 from logger import get_logger_from_env
 
-logger = get_logger_from_env()
-
 from ...utils.utils import get_h_w_c
 from ..image_utils import to_uint8
 from ..upscale.auto_split import Split, Tiler, auto_split
 
+logger = get_logger_from_env()
+
 
 def ncnn_auto_split(
     img: np.ndarray,
-    net,  # noqa: ANN001
+    net,
     input_name: str,
     output_name: str,
-    blob_vkallocator,  # noqa: ANN001
-    staging_vkallocator,  # noqa: ANN001
+    blob_vkallocator,
+    staging_vkallocator,
     tiler: Tiler,
 ) -> np.ndarray:
     def upscale(img: np.ndarray, _: object):

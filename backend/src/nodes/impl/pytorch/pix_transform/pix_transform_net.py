@@ -57,7 +57,7 @@ class PixTransformNet(nn.Module):
             {"params": self.head_net.parameters(), "weight_decay": reg_head}
         ]
 
-    def forward(self, input_):  # noqa: ANN001
+    def forward(self, input_):
         input_spatial = input_[:, self.channels_in - 2 :, :, :]
         input_color = input_[:, 0 : self.channels_in - 2, :, :]
 

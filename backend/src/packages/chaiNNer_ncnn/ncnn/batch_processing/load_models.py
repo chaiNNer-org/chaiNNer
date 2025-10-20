@@ -3,14 +3,13 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import Generator, IteratorOutputInfo
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import BoolInput, DirectoryInput
 from nodes.properties.outputs import (
+
+from logger import get_logger_from_env
+
     DirectoryOutput,
     NcnnModelOutput,
     NumberOutput,
@@ -21,6 +20,7 @@ from nodes.utils.utils import list_all_files_sorted
 from .. import batch_processing_group
 from ..io.load_model import load_model_node
 
+logger = get_logger_from_env()
 
 @batch_processing_group.register(
     schema_id="chainner:ncnn:load_models",

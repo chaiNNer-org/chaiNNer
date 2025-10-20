@@ -8,15 +8,14 @@ from tempfile import mkdtemp
 
 import cv2
 import numpy as np
+
 from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput
 
 from .. import io_group
 
+logger = get_logger_from_env()
 
 @io_group.register(
     schema_id="chainner:image:preview",

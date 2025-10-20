@@ -179,7 +179,7 @@ def match(
     return {"type": "match", "of": of, "arms": arms}
 
 
-def Image(  # noqa: N802
+def Image(
     width: ExpressionJson | None = None,
     height: ExpressionJson | None = None,
     channels: ExpressionJson | None = None,
@@ -207,7 +207,7 @@ def Image(  # noqa: N802
     return named("Image", fields)
 
 
-def Color(  # noqa: N802
+def Color(
     channels: ExpressionJson | None = None,
     channels_as: ExpressionJson | None = None,
 ) -> ExpressionJson:

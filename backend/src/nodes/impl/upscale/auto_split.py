@@ -4,14 +4,15 @@ import math
 from typing import Callable, Union
 
 import numpy as np
-from logger import get_logger_from_env
 
-logger = get_logger_from_env()
+from logger import get_logger_from_env
 
 from ...utils.utils import Region, Size, get_h_w_c
 from .exact_split import exact_split
 from .tile_blending import BlendDirection, TileBlender, TileOverlap, half_sin_blend_fn
 from .tiler import Tiler
+
+logger = get_logger_from_env()
 
 
 class Split:
@@ -75,7 +76,7 @@ def _exact_split(
             raise _SplitEx
         return result
 
-    MAX_ITER = 20  # noqa: N806
+    MAX_ITER = 20
 
     for _ in range(MAX_ITER):
         try:
@@ -123,7 +124,7 @@ def _max_split(
         # the image was too large
         max_tile_size = split_tile_size(max_tile_size)
 
-        logger.warn(
+        logger.warning(
             f"Unable to upscale the whole image at once. Reduced tile size to {max_tile_size}."
         )
 

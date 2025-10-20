@@ -6,15 +6,15 @@ from typing import Literal
 
 import cv2
 import numpy as np
-import pillow_avif  # type: ignore # noqa: F401
+import pillow_avif  # type: ignore
 from PIL import Image
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 
 from api import KeyInfo, Lazy
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
+
+from logger import get_logger_from_env
+
     BC7_FORMATS,
     BC123_FORMATS,
     LEGACY_TO_DXGI,
@@ -39,6 +39,7 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import io_group
 
+logger = get_logger_from_env()
 
 class ImageFormat(Enum):
     PNG = "png"
