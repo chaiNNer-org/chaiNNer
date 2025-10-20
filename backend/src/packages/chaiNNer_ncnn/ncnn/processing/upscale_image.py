@@ -13,15 +13,16 @@ except ImportError:
     from ncnn import ncnn  # type: ignore
 
     use_gpu = False
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
+
 from api import NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.impl.ncnn.session import get_ncnn_net
 from nodes.impl.upscale.auto_split_tiles import (
-
-from logger import get_logger_from_env
-
     CUSTOM,
     TILE_SIZE_256,
     TileSize,
@@ -44,7 +45,6 @@ from system import is_mac
 from ...settings import NcnnSettings, get_settings
 from .. import processing_group
 
-logger = get_logger_from_env()
 
 @contextmanager
 def managed_blob_vkallocator(vkdev: ncnn.VulkanDevice):
@@ -143,7 +143,7 @@ def upscale_impl(
         raise
     except Exception as e:
         logger.error(e)
-        raise RuntimeError("An unexpected error occurred during NCNN processing.")
+        raise RuntimeError("An unexpected error occurred during NCNN processing.")  # noqa: B904
 
 
 @processing_group.register(

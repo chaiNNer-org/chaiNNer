@@ -1,13 +1,12 @@
 from typing import Callable, NewType
 
 import numpy as np
-
 from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from ...utils.utils import get_h_w_c
 from .tiler import MaxTileSize, NoTiling, Tiler
-
-logger = get_logger_from_env()
 
 GB_AMT = 1024**3
 

@@ -3,13 +3,12 @@ from __future__ import annotations
 import onnx
 import onnx.inliner
 import re2
-
-from .model import OnnxGeneric, OnnxInfo, OnnxModel, OnnxRemBg, SizeReq
-from .utils import (
-
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
+
+from .model import OnnxGeneric, OnnxInfo, OnnxModel, OnnxRemBg, SizeReq
+from .utils import (
     ModelShapeInference,
     get_opset,
     get_tensor_fp_datatype,

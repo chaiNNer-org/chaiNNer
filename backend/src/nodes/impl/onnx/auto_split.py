@@ -126,7 +126,7 @@ def onnx_auto_split(
                 or "out of memory" in str(e)
                 or "cudaMalloc" in str(e)
             ):
-                raise RuntimeError(
+                raise RuntimeError(  # noqa: B904
                     "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
                 )
             else:

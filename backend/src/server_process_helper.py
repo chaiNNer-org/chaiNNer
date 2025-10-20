@@ -215,9 +215,9 @@ class WorkerServer:
                             self._is_ready = True
                         return
                     except asyncio.TimeoutError:
-                        logger.warning("Server not ready yet due to timeout")
+                        logger.warn("Server not ready yet due to timeout")
                     except Exception as e:
-                        logger.warning("Server not ready yet", exc_info=e)
+                        logger.warn("Server not ready yet", exc_info=e)
 
                 await asyncio.sleep(0.1)
 

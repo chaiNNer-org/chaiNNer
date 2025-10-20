@@ -4,8 +4,10 @@ import os
 from pathlib import Path
 
 import onnx
-
 from logger import get_logger_from_env
+
+logger = get_logger_from_env()
+
 from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import OnnxFileInput
@@ -14,7 +16,6 @@ from nodes.utils.utils import split_file_path
 
 from .. import io_group
 
-logger = get_logger_from_env()
 
 @io_group.register(
     schema_id="chainner:onnx:load_model",

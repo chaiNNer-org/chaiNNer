@@ -1,11 +1,12 @@
 import os
 
-from api import GB, KB, MB, Dependency, add_package
-from gpu import nvidia
 from logger import get_logger_from_env
-from system import is_arm_mac
 
 logger = get_logger_from_env()
+
+from api import GB, KB, MB, Dependency, add_package
+from gpu import nvidia
+from system import is_arm_mac
 
 general = "PyTorch uses .pth models to upscale images."
 

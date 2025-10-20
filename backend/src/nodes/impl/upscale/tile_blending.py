@@ -72,7 +72,7 @@ class TileBlender:
         ):
             if _prev.blend_fn == blend_fn:
                 # reuse blend
-                self._last_blend = _prev._last_blend
+                self._last_blend = _prev._last_blend  # noqa: SLF001
             result = _prev.result
         else:
             result = np.zeros((height, width, channels), dtype=np.float32)

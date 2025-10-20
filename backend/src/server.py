@@ -82,7 +82,7 @@ class AppContext:
             app_data_dir = Path(user_data_dir(roaming=True)) / default_sub_dir
             logger.info(f"Using app data as storage directory: {app_data_dir}")
             return app_data_dir
-        except:
+        except:  # noqa: E722
             # ignore errors
             pass
 
@@ -104,7 +104,7 @@ CORS(app)
 
 
 class SSEFilter(logging.Filter):
-    def filter(self, record):
+    def filter(self, record):  # noqa: ANN001
         request = record.request  # type: ignore
         return not (
             (request.endswith("/sse")) and record.status == 200  # type: ignore
@@ -603,7 +603,7 @@ async def import_packages(
                 else:
                     count = len(modules)
                     if count > 3:
-                        modules = [*modules[:2], f"and {count - 2} more ..."]
+                        modules = modules[:2] + [f"and {count - 2} more ..."]
                     l = "\n".join("  ->  " + m for m in modules)
                     logger.warning(f"{error}  ->  {count} modules ...\n{l}")
 

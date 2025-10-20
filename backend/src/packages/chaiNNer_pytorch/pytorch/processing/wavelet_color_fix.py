@@ -4,7 +4,7 @@
 
 import numpy as np
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 
 from api import NodeContext
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np

@@ -11,8 +11,6 @@ from typing import (
     TypeVar,
 )
 
-from logger import get_logger_from_env
-
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
 from .node_check import (
@@ -33,6 +31,8 @@ from .node_data import (
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
+
+from logger import get_logger_from_env
 
 logger = get_logger_from_env()
 
@@ -166,7 +166,7 @@ class NodeGroup:
             except CheckFailedError as e:
                 full_error_message = f"Error in {schema_id}: {e}"
                 if level == CheckLevel.ERROR:
-                    raise CheckFailedError(full_error_message)
+                    raise CheckFailedError(full_error_message)  # noqa: B904
                 logger.warning(full_error_message)
 
         def inner_wrapper(wrapped_func: T) -> T:

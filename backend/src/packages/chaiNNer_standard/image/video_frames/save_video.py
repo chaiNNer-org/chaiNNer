@@ -9,15 +9,15 @@ from typing import Any, Literal
 
 import ffmpeg
 import numpy as np
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import Collector, IteratorInputInfo, KeyInfo, NodeContext
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import (
-
-from logger import get_logger_from_env
-
     DirectoryInput,
     EnumInput,
     ImageInput,
@@ -31,7 +31,6 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import video_frames_group
 
-logger = get_logger_from_env()
 
 class VideoFormat(Enum):
     MKV = "mkv"

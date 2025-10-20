@@ -1,8 +1,9 @@
-from api import MB, Dependency, add_package
 from logger import get_logger_from_env
-from system import is_arm_mac, is_mac
 
 logger = get_logger_from_env()
+
+from api import MB, Dependency, add_package
+from system import is_arm_mac, is_mac
 
 general = "NCNN uses .bin/.param models to upscale images."
 recommendation = "It is recommended for AMD users"

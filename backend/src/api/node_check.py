@@ -53,7 +53,7 @@ TYPE_CHECK_LEVEL = _get_check_level("TYPE_CHECK_LEVEL", CHECK_LEVEL)
 
 
 class TypeTransformer(ast.NodeTransformer):
-    def visit_BinOp(self, node: ast.BinOp):
+    def visit_BinOp(self, node: ast.BinOp):  # noqa
         if isinstance(node.op, ast.BitOr):
             return ast.Subscript(
                 value=ast.Name(id="Union", ctx=ast.Load()),
@@ -71,7 +71,7 @@ class TypeTransformer(ast.NodeTransformer):
             )
         return super().visit_BinOp(node)
 
-    def visit_Subscript(self, node: ast.Subscript):
+    def visit_Subscript(self, node: ast.Subscript):  # noqa
         if isinstance(node.value, ast.Name) and node.value.id == "tuple":
             return ast.Subscript(
                 value=ast.Name(id="Tuple", ctx=ast.Load()),

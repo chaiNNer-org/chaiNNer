@@ -1,9 +1,10 @@
-from api import KB, MB, Dependency, add_package
-from gpu import nvidia
 from logger import get_logger_from_env
-from system import is_arm_mac, is_windows
 
 logger = get_logger_from_env()
+
+from api import KB, MB, Dependency, add_package
+from gpu import nvidia
+from system import is_arm_mac, is_windows
 
 general = "ONNX uses .onnx models to upscale images."
 conversion = "It also helps to convert between PyTorch and NCNN."

@@ -7,9 +7,11 @@ import onnx
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from onnx.onnx_pb import TensorProto
+from logger import get_logger_from_env
+
+logger = get_logger_from_env()
 
 from api import NodeContext
-from logger import get_logger_from_env
 from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.utils import safely_optimize_onnx_model
@@ -20,7 +22,6 @@ from nodes.properties.outputs import NumberOutput, OnnxModelOutput
 from .. import utility_group
 from ..processing.upscale_image import upscale_image_node
 
-logger = get_logger_from_env()
 
 def perform_interp(
     model_a_weights: RepeatedCompositeFieldContainer,

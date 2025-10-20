@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa: N812
 from torch import nn
 
 from .xfeat_arch import *
@@ -70,7 +70,7 @@ class XFeat(nn.Module):
         self.interpolator = InterpolateSparse2d("bicubic")
 
     @torch.inference_mode()
-    def detectAndCompute(
+    def detectAndCompute(  # noqa: N802
         self,
         x: torch.Tensor,
         top_k: int | None = None,
@@ -88,12 +88,12 @@ class XFeat(nn.Module):
         if width is None:
             width = self.width
         x, rh1, rw1 = self.preprocess_tensor(x, height, width)
-        B, _, _H1, _W1 = x.shape
-        M1, K1, H1 = self.net(x)
-        M1 = F.normalize(M1, dim=1)
+        B, _, _H1, _W1 = x.shape  # noqa: N806
+        M1, K1, H1 = self.net(x)  # noqa: N806
+        M1 = F.normalize(M1, dim=1)  # noqa: N806
 
         # convert logits to heatmap and extract kpts
-        K1h = self.get_kpts_heatmap(K1)
+        K1h = self.get_kpts_heatmap(K1)  # noqa: N806
         mkpts = self.NMS(K1h, threshold=detection_threshold, kernel_size=5)
 
         # compute reliability scores
@@ -131,7 +131,7 @@ class XFeat(nn.Module):
         target_width: int = 704,
     ):
         # resize to common resolution (must be divisible by 32)
-        H, W = x.shape[-2:]
+        H, W = x.shape[-2:]  # noqa: N806
         if H != target_height or W != target_width:
             rh, rw = H / target_height, W / target_width
             x = F.interpolate(
@@ -147,18 +147,18 @@ class XFeat(nn.Module):
         softmax_temp: float = 1.0,
     ):
         scores = F.softmax(kpts * softmax_temp, 1)[:, :64]
-        B, _, H, W = scores.shape
+        B, _, H, W = scores.shape  # noqa: N806
         heatmap = scores.permute(0, 2, 3, 1).reshape(B, H, W, 8, 8)
         heatmap = heatmap.permute(0, 1, 3, 2, 4).reshape(B, 1, H * 8, W * 8)
         return heatmap
 
-    def NMS(
+    def NMS(  # noqa: N802
         self,
         x: torch.Tensor,
         threshold: float = 0.05,
         kernel_size: int = 5,
     ):
-        B, _, _, _ = x.shape
+        B, _, _, _ = x.shape  # noqa: N806
         pad = kernel_size // 2
         local_max = nn.MaxPool2d(kernel_size=kernel_size, stride=1, padding=pad)(x)
         pos = (x == local_max) & (x > threshold)
@@ -213,8 +213,8 @@ class InterpolateSparse2d(nn.Module):
     def normgrid(
         self,
         x: torch.Tensor,
-        H: int,
-        W: int,
+        H: int,  # noqa: N803
+        W: int,  # noqa: N803
     ):
         return (
             2.0 * (x / (torch.tensor([W - 1, H - 1], device=x.device, dtype=x.dtype)))
@@ -225,8 +225,8 @@ class InterpolateSparse2d(nn.Module):
         self,
         x: torch.Tensor,
         pos: torch.Tensor,
-        H: int,
-        W: int,
+        H: int,  # noqa: N803
+        W: int,  # noqa: N803
     ):
         grid = self.normgrid(pos, H, W).unsqueeze(-2).to(x.dtype)
         x = F.grid_sample(x, grid, mode=self.mode, align_corners=False)

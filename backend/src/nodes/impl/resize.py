@@ -53,8 +53,8 @@ def resize(
     new_w, new_h = out_dims
 
     # check memory
-    GB: int = 2**30
-    MAX_MEMORY = 16 * GB
+    GB: int = 2**30  # noqa: N806
+    MAX_MEMORY = 16 * GB  # noqa: N806
     new_memory = new_w * new_h * c * 4
     if new_memory > MAX_MEMORY:
         raise RuntimeError(

@@ -91,7 +91,7 @@ CORS(app)
 
 
 class SSEFilter(logging.Filter):
-    def filter(self, record):
+    def filter(self, record):  # noqa: ANN001
         request = record.request  # type: ignore
         return not (
             (request.endswith(("/sse", "/setup-sse"))) and record.status == 200  # type: ignore

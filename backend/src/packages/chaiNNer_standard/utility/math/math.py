@@ -26,14 +26,14 @@ class MathOperation(Enum):
 OP_LABEL: dict[MathOperation, str] = {
     MathOperation.ADD: "Add: a + b",
     MathOperation.SUBTRACT: "Subtract: a - b",
-    MathOperation.MULTIPLY: "Multiply: a × b",
+    MathOperation.MULTIPLY: "Multiply: a × b",  # noqa: RUF001
     MathOperation.DIVIDE: "Divide: a ÷ b",
     MathOperation.POWER: "Exponent: a ^ b",
     MathOperation.LOG: "Logarithm: log a of b",
     MathOperation.MAXIMUM: "Maximum: max(a, b)",
     MathOperation.MINIMUM: "Minimum: min(a, b)",
     MathOperation.MODULO: "Modulo: a mod b",
-    MathOperation.PERCENT: "Percent: a × b ÷ 100",
+    MathOperation.PERCENT: "Percent: a × b ÷ 100",  # noqa: RUF001
 }
 
 _special_mod_numbers = (0.0, float("inf"), float("-inf"), float("nan"))

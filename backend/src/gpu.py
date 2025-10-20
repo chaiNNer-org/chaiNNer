@@ -5,7 +5,6 @@ from functools import cached_property
 from typing import Callable, Sequence
 
 import pynvml as nv
-
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -113,7 +112,7 @@ def _try_nvml_shutdown():
     try:
         nv.nvmlShutdown()
     except Exception:
-        logger.warning("Failed to shut down Nvidia GPU.", exc_info=True)
+        logger.warn("Failed to shut down Nvidia GPU.", exc_info=True)
 
 
 def _get_nvidia_info() -> NvInfo:
@@ -133,4 +132,4 @@ def _get_nvidia_info() -> NvInfo:
 nvidia = _get_nvidia_info()
 
 
-__all__ = ["MemoryUsage", "NvDevice", "NvInfo", "nvidia"]
+__all__ = ["nvidia", "NvInfo", "NvDevice", "MemoryUsage"]

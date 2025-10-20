@@ -3,12 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from logger import get_logger_from_env
+
+logger = get_logger_from_env()
+
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput, OnnxModelInput, RelativePathInput
 
 from .. import io_group
 
-logger = get_logger_from_env()
 
 @io_group.register(
     schema_id="chainner:onnx:save_model",

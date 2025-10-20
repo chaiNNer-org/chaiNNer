@@ -171,9 +171,9 @@ def create_noise_node(
     if noise_method == NoiseMethod.SIMPLEX:
         generator_class = SimplexNoise
     elif noise_method == NoiseMethod.VALUE_NOISE:
-        generator_class = lambda dim, seed: ValueNoise(dim, seed, smooth=False)
+        generator_class = lambda dim, seed: ValueNoise(dim, seed, smooth=False)  # noqa: E731
     elif noise_method == NoiseMethod.SMOOTH_VALUE_NOISE:
-        generator_class = lambda dim, seed: ValueNoise(dim, seed, smooth=True)
+        generator_class = lambda dim, seed: ValueNoise(dim, seed, smooth=True)  # noqa: E731
 
     if fractal_method == FractalMethod.NONE:
         return _generate_noise(
@@ -194,7 +194,7 @@ def create_noise_node(
             rel_brightness = 1 / (brightness_ratio**i)
             total_brightness += rel_brightness
             img += _generate_noise(
-                lambda dim: generator_class(dim, seed),
+                lambda dim: generator_class(dim, seed),  # noqa: B023
                 width=width,
                 height=height,
                 scale=scale / (scale_ratio**i),

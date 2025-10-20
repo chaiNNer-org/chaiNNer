@@ -134,9 +134,9 @@ def create_gauss_kernel(parameters: list[tuple[float, float]]) -> np.ndarray:
     kernel = np.zeros((kernel_size, kernel_size))
     x_offsets = [0, 0.25, 0.5, 0.75]
     for y in range(kernel_size):
-        y = y - kernel_radius
+        y = y - kernel_radius  # noqa
         for x in range(kernel_size):
-            x = x - kernel_radius
+            x = x - kernel_radius  # noqa
             # we shift the x value with `abs(x) - 1` to make sure that we sample
             # the top of the bell curve. This will give sharper results.
             s = 0

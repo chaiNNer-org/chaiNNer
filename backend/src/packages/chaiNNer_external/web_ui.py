@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from enum import Enum
 
 import requests
-
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
