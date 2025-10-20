@@ -1,4 +1,4 @@
-import { FileOpenResult, FileSaveResult, PythonInfo, Version } from './common-types';
+import { FileOpenResult, FileSaveResult, PythonInfo } from './common-types';
 import { ChainnerSettings } from './settings/settings';
 import { Progress } from './ui/progress';
 import type { ParsedSaveData, SaveData } from '../main/SaveFile';
@@ -18,7 +18,6 @@ export interface InvokeChannels {
     'get-python': ChannelInfo<PythonInfo>;
     'get-backend-url': ChannelInfo<string>;
     'refresh-nodes': ChannelInfo<boolean>;
-    'get-app-version': ChannelInfo<Version>;
     'dir-select': ChannelInfo<OpenDialogReturnValue, [dirPath: string]>;
     'file-select': ChannelInfo<
         OpenDialogReturnValue,
@@ -35,10 +34,7 @@ export interface InvokeChannels {
     'restart-backend': ChannelInfo<void>;
     'relaunch-application': ChannelInfo<void>;
     'quit-application': ChannelInfo<void>;
-    'get-appdata': ChannelInfo<string>;
     'open-url': ChannelInfo<void, [url: string]>;
-    'get-is-mac': ChannelInfo<boolean>;
-    'get-is-arm-mac': ChannelInfo<boolean>;
     'open-save-file': ChannelInfo<FileOpenResult<ParsedSaveData>, [path: string]>;
 
     // settings
