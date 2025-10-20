@@ -33,7 +33,7 @@ from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
-from logger import get_logger
+from logger import setup_logger
 from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
@@ -44,12 +44,19 @@ from response import (
 )
 from server_config import ServerConfig
 
-logger = get_logger("worker")
+# Logger will be initialized after config is parsed
+logger = None  # type: ignore
 
 
 class AppContext:
     def __init__(self):
         self.config: Final[ServerConfig] = ServerConfig.parse_argv()
+
+        # Initialize logger with logs directory from config
+        global logger
+        log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
+        logger = setup_logger("worker", log_dir=log_dir)
+
         self.executor: Executor | None = None
         self.individual_executors: dict[ExecutionId, Executor] = {}
         self.cache: dict[NodeId, NodeOutput] = {}

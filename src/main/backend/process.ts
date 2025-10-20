@@ -39,6 +39,7 @@ export interface SpawnOptions {
     port: number;
     python: PythonInfo;
     storageDir?: string;
+    logsDir?: string;
     env?: Env;
 }
 
@@ -88,6 +89,10 @@ export class OwnedBackendProcess implements BaseBackendProcess {
 
         if (options.storageDir) {
             args.push('--storage-dir', options.storageDir);
+        }
+
+        if (options.logsDir) {
+            args.push('--logs-dir', options.logsDir);
         }
 
         const backend = spawn(options.python.python, args, {

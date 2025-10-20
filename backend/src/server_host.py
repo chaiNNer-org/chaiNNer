@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 from functools import cached_property
 from json import dumps as stringify
 from json import loads as json_parse
+from pathlib import Path
 from typing import Final
 
 import psutil
@@ -28,22 +29,30 @@ from dependencies.store import (
 )
 from events import EventQueue
 from gpu import nvidia
-from logger import get_logger
+from logger import setup_logger
 from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
 
-logger = get_logger("host")
+# Logger will be initialized after config is parsed
+logger = None  # type: ignore
 
 
 class AppContext:
     def __init__(self):
         self.config: Final[ServerConfig] = ServerConfig.parse_argv()
 
+        # Initialize logger with logs directory from config
+        global logger
+        log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
+        logger = setup_logger("host", log_dir=log_dir)
+
         # flags to pass along to the worker
         worker_flags: list[str] = []
         if self.config.storage_dir is not None:
             worker_flags.extend(["--storage-dir", self.config.storage_dir])
+        if self.config.logs_dir is not None:
+            worker_flags.extend(["--logs-dir", self.config.logs_dir])
         if self.config.trace:
             worker_flags.append("--trace")
 

@@ -31,12 +31,15 @@ Console output includes ANSI color codes for better readability:
 
 ## Log File Location
 
-By default, logs are stored in:
-- **Linux**: `/tmp/chaiNNer/logs/`
-- **Windows**: `%TEMP%\chaiNNer\logs\`
-- **macOS**: `/tmp/chaiNNer/logs/`
+In production builds, logs are stored in the same location as the frontend logs:
+- **Windows**: `C:\Users\<username>\AppData\Roaming\chaiNNer\logs\`
+- **macOS**: `~/Library/Application Support/chaiNNer/logs/`
+- **Linux**: `~/.config/chaiNNer/logs/`
 
-You can also specify a custom log directory if the backend is configured with a `storage_dir`.
+For portable installations, logs are stored in the `logs/` folder next to the executable.
+
+In development mode (when no logs directory is specified), logs fall back to:
+- **All platforms**: `/tmp/chaiNNer/logs/` (or OS temp directory)
 
 ## Usage
 

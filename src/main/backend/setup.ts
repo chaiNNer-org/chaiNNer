@@ -5,7 +5,7 @@ import { PythonInfo } from '../../common/common-types';
 import { log } from '../../common/log';
 import { CriticalError } from '../../common/ui/error';
 import { ProgressToken } from '../../common/ui/progress';
-import { getBackendStorageFolder } from '../platform';
+import { getBackendStorageFolder, getLogsFolder } from '../platform';
 import { checkPythonPaths } from '../python/checkPythonPaths';
 import { getIntegratedPython, getIntegratedPythonExecutable } from '../python/integratedPython';
 import { BackendProcess, BorrowedBackendProcess, OwnedBackendProcess } from './process';
@@ -204,6 +204,7 @@ const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
             port,
             python: pythonInfo,
             storageDir: getBackendStorageFolder(),
+            logsDir: getLogsFolder(),
         });
 
         return backend;
