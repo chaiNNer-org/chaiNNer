@@ -5,7 +5,7 @@ import { withoutNull } from '../types/util';
 import { assertNever } from '../util';
 import { VALID, Validity, invalid } from '../Validity';
 import { testInputCondition } from './condition';
-import { getRequireConditions } from './groupStacks';
+import { getGroupStacks, getRequireConditions } from './groupStacks';
 import { ChainLineage, Lineage } from './lineage';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
@@ -29,6 +29,22 @@ export const checkNodeValidity = ({
     nodeId,
 }: CheckNodeValidityOptions): Validity => {
     const isOptional = (input: Input): boolean => {
+        // Check if input is inside a conditional group with a false condition
+        const conditions = getGroupStacks(schema).inputConditions.get(input.id) ?? [];
+        if (conditions.length > 0) {
+            // If any condition is false, the input is conditionally hidden and therefore optional
+            const allConditionsTrue = conditions.every((c) =>
+                testInputCondition(
+                    c,
+                    inputData,
+                    schema,
+                    (id) => functionInstance?.inputs.get(id),
+                    (id) => connectedInputs.has(id)
+                )
+            );
+            if (!allConditionsTrue) return true;
+        }
+
         if (input.kind !== 'generic' || !input.optional) {
             return input.optional;
         }
@@ -125,6 +141,14 @@ export const checkRequiredInputs = (schema: NodeSchema, inputData: InputData): V
     const missingInputs = schema.inputs.filter((input) => {
         // optional inputs can't be missing
         if (input.optional) return false;
+
+        // Check if input is inside a conditional group
+        const conditions = getGroupStacks(schema).inputConditions.get(input.id) ?? [];
+        if (conditions.length > 0) {
+            // Input is inside a conditional group, so it *might* be optional
+            // We can't fully evaluate the condition without edges/types, so we assume it might be hidden
+            return false;
+        }
 
         const inputValue = inputData[input.id];
         // a value is assigned

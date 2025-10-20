@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from api import SpecialSuggestion
+from api import Lazy, SpecialSuggestion
 from nodes.groups import if_enum_group
 from nodes.properties.inputs import BoolInput, EnumInput
 from nodes.properties.outputs import BoolOutput
@@ -42,7 +42,7 @@ OP_LABEL: dict[LogicOperation, str] = {
         ).with_id(0),
         BoolInput("A", has_handle=True).with_id(1),
         if_enum_group(0, (LogicOperation.AND, LogicOperation.OR, LogicOperation.XOR))(
-            BoolInput("B", default=False, has_handle=True).with_id(2),
+            BoolInput("B", default=False, has_handle=True).with_id(2).make_lazy(),
         ),
     ],
     outputs=[
@@ -101,12 +101,12 @@ OP_LABEL: dict[LogicOperation, str] = {
         ),
     ],
 )
-def logic_operation_node(op: LogicOperation, a: bool, b: bool) -> bool:
+def logic_operation_node(op: LogicOperation, a: bool, b: Lazy[bool]) -> bool:
     if op == LogicOperation.AND:
-        return a and b
+        return a and b.value
     if op == LogicOperation.OR:
-        return a or b
+        return a or b.value
     if op == LogicOperation.XOR:
-        return a != b
+        return a != b.value
     if op == LogicOperation.NOT:
         return not a
