@@ -44,15 +44,18 @@ from response import (
 )
 from server_config import ServerConfig
 
-# Logger will be initialized after config is parsed
-logger = None  # type: ignore
+# Logger will be initialized when AppContext is created
+# For now, use a fallback logger
+from logger import get_logger
+
+logger = get_logger("worker")
 
 
 class AppContext:
     def __init__(self):
         self.config: Final[ServerConfig] = ServerConfig.parse_argv()
 
-        # Initialize logger with logs directory from config
+        # Re-initialize logger with logs directory from config
         global logger
         log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
         logger = setup_logger("worker", log_dir=log_dir)
