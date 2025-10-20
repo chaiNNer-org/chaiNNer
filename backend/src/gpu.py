@@ -91,6 +91,23 @@ class NvInfo:
     def all_support_fp16(self) -> bool:
         return all(gpu.supports_fp16 for gpu in self.devices)
 
+    @property
+    def any_needs_legacy_cuda(self) -> bool:
+        """
+        Check if any device needs legacy CUDA version (12.6 instead of 12.8).
+        CUDA 12.8 dropped support for Pascal (GTX 1000 series) and older architectures.
+        """
+        for gpu in self.devices:
+            arch = gpu.architecture
+            # Pascal and older architectures need CUDA 12.6
+            if arch in (
+                nv.NVML_DEVICE_ARCH_PASCAL,
+                nv.NVML_DEVICE_ARCH_MAXWELL,
+                nv.NVML_DEVICE_ARCH_KEPLER,
+            ):
+                return True
+        return False
+
 
 def _try_nvml_init():
     try:
