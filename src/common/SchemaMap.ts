@@ -28,6 +28,7 @@ const BLANK_SCHEMA: NodeSchema = {
     deprecated: false,
     features: [],
     suggestions: [],
+    migrations: [],
 };
 
 export class SchemaMap {

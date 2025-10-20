@@ -1,6 +1,6 @@
 import { createHash } from 'crypto';
 import { readFile, writeFile } from 'fs/promises';
-import { EdgeData, FileOpenResult, NodeData, Version } from '../common/common-types';
+import { EdgeData, FileOpenResult, NodeData, NodeSchema, Version } from '../common/common-types';
 import { log } from '../common/log';
 import { currentMigration, migrate } from '../common/migrations';
 import { versionGt } from '../common/version';
@@ -29,7 +29,7 @@ const hash = (value: string): string => {
 };
 
 export class SaveFile {
-    static parse(value: string): ParsedSaveData {
+    static parse(value: string, schemas?: readonly NodeSchema[]): ParsedSaveData {
         if (!/^\s*\{/.test(value)) {
             // base64 decode
             // eslint-disable-next-line no-param-reassign
@@ -51,10 +51,10 @@ export class SaveFile {
                 tamperedWith = versionGt(version, '0.6.1') || (migration ?? 0) > 4;
             }
 
-            data = migrate(version, content, migration) as SaveData;
+            data = migrate(version, content, migration, schemas) as SaveData;
         } else {
             // Legacy files
-            data = migrate(null, rawData) as SaveData;
+            data = migrate(null, rawData, undefined, schemas) as SaveData;
         }
 
         return {
@@ -63,8 +63,8 @@ export class SaveFile {
         };
     }
 
-    static async read(path: string): Promise<ParsedSaveData> {
-        return SaveFile.parse(await readFile(path, { encoding: 'utf-8' }));
+    static async read(path: string, schemas?: readonly NodeSchema[]): Promise<ParsedSaveData> {
+        return SaveFile.parse(await readFile(path, { encoding: 'utf-8' }), schemas);
     }
 
     static stringify(content: SaveData, version: Version): string {
