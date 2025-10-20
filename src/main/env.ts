@@ -6,4 +6,7 @@ export const isArmMac: boolean = isMac && !!cpuModel && /Apple M\d/i.test(cpuMod
 
 const env = { ...process.env };
 delete env.PYTHONHOME;
+// Disable user site-packages to prevent chaiNNer from using global Python packages
+// This ensures packages are installed in chaiNNer's isolated environment
+env.PYTHONNOUSERSITE = '1';
 export const sanitizedEnv = env;
