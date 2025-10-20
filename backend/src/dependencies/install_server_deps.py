@@ -4,6 +4,7 @@ import subprocess
 from json import loads as json_parse
 
 from .store import (
+    ENV,
     DependencyInfo,
     install_dependencies_sync,
     installed_packages,
@@ -21,7 +22,8 @@ try:
             "list",
             "--format=json",
             "--disable-pip-version-check",
-        ]
+        ],
+        env=ENV,
     )
     for p in json_parse(pip_list):
         installed_packages[p["name"]] = p["version"]
