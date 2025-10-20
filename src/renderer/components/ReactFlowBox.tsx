@@ -525,10 +525,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     <ControlButton
                         disabled={nodes.length === 0}
                         title={`Export viewport as PNG file\n\nHold ${
-                            isMac ? '⌥' : 'Ctrl'
+                            isRunningOnMac ? '⌥' : 'Ctrl'
                         }+Click to export to clipboard`}
                         onClick={(e) => {
-                            if (isMac ? e.altKey : e.ctrlKey) {
+                            if (isRunningOnMac ? e.altKey : e.ctrlKey) {
                                 exportViewportScreenshotToClipboard();
                             } else {
                                 exportViewportScreenshot();

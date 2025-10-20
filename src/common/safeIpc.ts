@@ -140,6 +140,12 @@ export interface SendChannels {
     'export-viewport': SendChannelInfo<[kind: 'file' | 'clipboard']>;
     'file-changed': SendChannelInfo<[eventType: 'add' | 'change' | 'unlink', path: string]>;
 
+    // Synchronous IPC channels for preload script
+    'get-app-version-sync': SendChannelInfo;
+    'get-is-mac-sync': SendChannelInfo;
+    'get-is-arm-mac-sync': SendChannelInfo;
+    'get-appdata-sync': SendChannelInfo;
+
     // history
     'history-undo': SendChannelInfo;
     'history-redo': SendChannelInfo;
