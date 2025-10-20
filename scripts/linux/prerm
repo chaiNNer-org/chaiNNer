@@ -1,0 +1,48 @@
+#!/bin/bash
+# Pre-removal script for chaiNNer Debian package
+# This script runs before the package is removed
+
+set -e
+
+# Only run cleanup on actual removal, not on upgrade
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+    # Get the home directory of the user who invoked the uninstall
+    # Priority: use $HOME if set and running as non-root, otherwise use SUDO_USER's home
+    if [ "$(id -u)" -ne 0 ]; then
+        # Running as non-root, use current HOME
+        USER_HOME="$HOME"
+    elif [ -n "$SUDO_USER" ]; then
+        # Running as root with sudo, use SUDO_USER's home
+        USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    else
+        # Running as root without sudo, use root's home
+        USER_HOME="$HOME"
+    fi
+
+    # Define the directories to clean up
+    CONFIG_DIR="$USER_HOME/.config/chaiNNer"
+    CACHE_DIR="$USER_HOME/.cache/chainner_pip"
+
+    echo "chaiNNer: Cleaning up installation files..."
+
+    # Remove the python environment and other large directories from ~/.config/chaiNNer/
+    if [ -d "$CONFIG_DIR" ]; then
+        # Remove specific directories but preserve settings.json and logs/
+        for dir in "ffmpeg" "python" "settings" "settings_old" "backend-storage"; do
+            if [ -d "$CONFIG_DIR/$dir" ]; then
+                echo "chaiNNer: Removing $CONFIG_DIR/$dir"
+                rm -rf "$CONFIG_DIR/$dir" || true
+            fi
+        done
+    fi
+
+    # Remove the pip cache directory
+    if [ -d "$CACHE_DIR" ]; then
+        echo "chaiNNer: Removing pip cache at $CACHE_DIR"
+        rm -rf "$CACHE_DIR" || true
+    fi
+
+    echo "chaiNNer: Cleanup complete. Settings and logs have been preserved."
+fi
+
+exit 0
