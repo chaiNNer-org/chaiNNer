@@ -30,7 +30,7 @@ import { memo, useCallback, useState } from 'react';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
-import { isMac as isRunningOnMac } from '../appConstants';
+import { isMac } from '../appConstants';
 import { BackendContext } from '../contexts/BackendContext';
 import { useMutSetting } from '../hooks/useSettings';
 import { ipcRenderer } from '../safeIpc';
@@ -389,7 +389,7 @@ const AdvancedSettings = memo(() => {
                 value={hardwareAcceleration}
             />
             {/* TODO: Not working on macOS ATM. A new window must be created. */}
-            {!isRunningOnMac && (
+            {!isMac && (
                 <ToggleSetting
                     setValue={setAllowMultipleInstances}
                     setting={{

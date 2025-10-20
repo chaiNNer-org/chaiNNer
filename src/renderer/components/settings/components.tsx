@@ -124,19 +124,14 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     isDisabled={setting.disabled || !value}
                     visibility={value ? 'visible' : 'hidden'}
                     onClick={() => {
-                        Promise.resolve()
-                            .then(async () => {
-                                const files = await ipcRenderer.invoke('fs-readdir', cacheLocation);
-                                await Promise.all(
-                                    files.map((file) =>
-                                        ipcRenderer.invoke(
-                                            'fs-unlink',
-                                            path.join(cacheLocation, file)
-                                        )
-                                    )
-                                );
-                            })
-                            .catch(log.error);
+                        (async () => {
+                            const files = await ipcRenderer.invoke('fs-readdir', cacheLocation);
+                            await Promise.all(
+                                files.map((file) =>
+                                    ipcRenderer.invoke('fs-unlink', path.join(cacheLocation, file))
+                                )
+                            );
+                        })().catch(log.error);
                     }}
                 >
                     Clear Cache
@@ -149,18 +144,16 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     onChange={() => {
                         if (!value) {
                             // Make sure the cache directory exists
-                            Promise.resolve()
-                                .then(async () => {
-                                    try {
-                                        await ipcRenderer.invoke('fs-access', cacheLocation);
-                                    } catch (error) {
-                                        await ipcRenderer.invoke('fs-mkdir', cacheLocation, {
-                                            recursive: true,
-                                        });
-                                    }
-                                    setValue(cacheLocation);
-                                })
-                                .catch(log.error);
+                            (async () => {
+                                try {
+                                    await ipcRenderer.invoke('fs-access', cacheLocation);
+                                } catch (error) {
+                                    await ipcRenderer.invoke('fs-mkdir', cacheLocation, {
+                                        recursive: true,
+                                    });
+                                }
+                                setValue(cacheLocation);
+                            })().catch(log.error);
                         } else {
                             setValue('');
                         }

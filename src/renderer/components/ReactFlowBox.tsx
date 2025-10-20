@@ -33,7 +33,7 @@ import {
     stringifySourceHandle,
     stringifyTargetHandle,
 } from '../../common/util';
-import { isMac as isRunningOnMac } from '../appConstants';
+import { isMac } from '../appConstants';
 import { AlertBoxContext, AlertType } from '../contexts/AlertBoxContext';
 import { BackendContext } from '../contexts/BackendContext';
 import { ContextMenuContext } from '../contexts/ContextMenuContext';
@@ -435,9 +435,9 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
         [selectionMenu, setSelectedNodes]
     );
 
-    const multiSelectionKeyCode = useMemo(() => (isRunningOnMac ? ['Meta'] : ['Control']), []);
+    const multiSelectionKeyCode = useMemo(() => (isMac ? ['Meta'] : ['Control']), []);
     const deleteKeyCode = useMemo(
-        () => (isRunningOnMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
+        () => (isMac ? ['Backspace', 'Meta+Backspace'] : ['Backspace', 'Delete']),
         []
     );
 
@@ -525,10 +525,10 @@ export const ReactFlowBox = memo(({ wrapperRef, nodeTypes, edgeTypes }: ReactFlo
                     <ControlButton
                         disabled={nodes.length === 0}
                         title={`Export viewport as PNG file\n\nHold ${
-                            isRunningOnMac ? '⌥' : 'Ctrl'
+                            isMac ? '⌥' : 'Ctrl'
                         }+Click to export to clipboard`}
                         onClick={(e) => {
-                            if (isRunningOnMac ? e.altKey : e.ctrlKey) {
+                            if (isMac ? e.altKey : e.ctrlKey) {
                                 exportViewportScreenshotToClipboard();
                             } else {
                                 exportViewportScreenshot();
