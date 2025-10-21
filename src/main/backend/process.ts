@@ -102,22 +102,11 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             },
         });
 
-        const removedTrailingNewLine = (s: string) => s.replace(/\r?\n$/, '');
-        backend.stdout.on('data', (data) => {
-            const dataString = String(data);
-            // Remove unneeded timestamp
-            const fixedData = dataString.split('] ').slice(1).join('] ');
-            const message = removedTrailingNewLine(fixedData);
-            if (message) {
-                log.info(`Backend: ${message}`);
-            }
-        });
-        backend.stderr.on('data', (data) => {
-            const message = removedTrailingNewLine(String(data));
-            if (message) {
-                log.error(`Backend: ${message}`);
-            }
-        });
+        // Backend logs are now handled by the backend's own logging system
+        // and written to separate log files. We no longer capture stdout/stderr
+        // to prevent backend logs from appearing in frontend logs.
+        // The backend logging system writes to files in the same directory
+        // as the frontend logs but with separate files (host.log, worker.log).
 
         return backend;
     }

@@ -38,8 +38,12 @@ In production builds, logs are stored in the same location as the frontend logs:
 
 For portable installations, logs are stored in the `logs/` folder next to the executable.
 
-In development mode (when no logs directory is specified), logs fall back to:
-- **All platforms**: `/tmp/chaiNNer/logs/` (or OS temp directory)
+The backend receives the logs directory from the frontend via the `--logs-dir` command line argument. This ensures backend logs are stored in the same location as frontend logs for easy correlation.
+
+In development mode (when no `--logs-dir` is specified), logs fall back to the same location as frontend logs:
+- **Windows**: `C:\Users\<username>\AppData\Roaming\chaiNNer\logs\`
+- **macOS**: `~/Library/Application Support/chaiNNer/logs/`
+- **Linux**: `~/.config/chaiNNer/logs/`
 
 ## Usage
 

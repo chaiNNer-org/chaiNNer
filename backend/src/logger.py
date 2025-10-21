@@ -1,8 +1,9 @@
 """
 Centralized logging module for chaiNNer backend.
 
-This module provides a unified logging interface for both the host and worker processes,
-with proper file-based logging that persists independently of the frontend.
+This module provides a unified logging interface for both the host and worker
+processes, with proper file-based logging that persists independently of the
+frontend.
 """
 
 from __future__ import annotations
@@ -57,8 +58,10 @@ def setup_logger(
     Set up a logger for the specified process type.
 
     Args:
-        process_type: Either "host" or "worker" to identify which process is logging
-        log_dir: Directory where log files should be stored. If None, uses a default location.
+        process_type: Either "host" or "worker" to identify which process is
+            logging
+        log_dir: Directory where log files should be stored. If None, uses a
+            default location.
         log_level: The logging level (default: INFO)
 
     Returns:
@@ -66,10 +69,27 @@ def setup_logger(
     """
     # Determine log directory
     if log_dir is None:
-        # Use a default location in the system temp directory
+        # Use the same location as the frontend logs
         import tempfile
 
-        log_dir = Path(tempfile.gettempdir()) / "chaiNNer" / "logs"
+        # Use the same logic as frontend's getLogsFolder() function
+        if os.name == "nt":  # Windows
+            user_data = os.environ.get("APPDATA", os.path.expanduser("~"))
+            log_dir = Path(user_data) / "chaiNNer" / "logs"
+        elif os.name == "posix":  # macOS/Linux
+            if sys.platform == "darwin":  # macOS
+                log_dir = (
+                    Path.home()
+                    / "Library"
+                    / "Application Support"
+                    / "chaiNNer"
+                    / "logs"
+                )
+            else:  # Linux
+                log_dir = Path.home() / ".config" / "chaiNNer" / "logs"
+        else:
+            # Fallback to temp directory
+            log_dir = Path(tempfile.gettempdir()) / "chaiNNer" / "logs"
 
     # Create log directory if it doesn't exist
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -100,7 +120,7 @@ def setup_logger(
 
     # File format includes timestamp with milliseconds for correlation
     file_formatter = logging.Formatter(
-        fmt="%(asctime)s.%(msecs)03d [%(process)d] [%(levelname)s] %(message)s",
+        fmt=("%(asctime)s.%(msecs)03d [%(process)d] [%(levelname)s] " "%(message)s"),
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     file_handler.setFormatter(file_formatter)
@@ -121,7 +141,9 @@ def setup_logger(
     logger.addHandler(console_handler)
 
     logger.info(
-        "Logger initialized for %s process. Log file: %s", process_type, log_file
+        "Logger initialized for %s process. Log file: %s",
+        process_type,
+        log_file,
     )
 
     return logger
@@ -131,7 +153,8 @@ def get_logger(process_type: ProcessType = "worker") -> logging.Logger:
     """
     Get the logger for the specified process type.
 
-    If the logger hasn't been set up yet, this will set it up with default settings.
+    If the logger hasn't been set up yet, this will set it up with default
+    settings.
 
     Args:
         process_type: Either "host" or "worker"
@@ -152,7 +175,8 @@ def get_logger(process_type: ProcessType = "worker") -> logging.Logger:
 # Convenience function for modules that don't know their process type
 def get_logger_from_env() -> logging.Logger:
     """
-    Get the appropriate logger based on the CHAINNER_PROCESS_TYPE environment variable.
+    Get the appropriate logger based on the CHAINNER_PROCESS_TYPE environment
+    variable.
 
     Returns:
         Logger instance for the current process

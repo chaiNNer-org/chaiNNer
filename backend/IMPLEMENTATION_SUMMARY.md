@@ -24,7 +24,7 @@ Created a centralized logging system with the following features:
 
 3. **File-Based Logging**
    - Logs persist to disk independently of the frontend
-   - Default location: `/tmp/chaiNNer/logs/` (or OS temp directory)
+   - Location: Same as frontend logs (received via `--logs-dir` argument)
    - Can be customized via `log_dir` parameter
 
 4. **Log Rotation**
