@@ -114,6 +114,9 @@ const config = {
                 options: {
                     ...makerOptions,
                     section: 'graphics',
+                    scripts: {
+                        prerm: './scripts/linux/prerm',
+                    },
                 },
             },
         },
@@ -121,6 +124,9 @@ const config = {
             name: '@electron-forge/maker-rpm',
             config: {
                 options: { ...makerOptions, compressionLevel: 9 },
+                scripts: {
+                    preun: './scripts/linux/preun',
+                },
             },
         },
     ],
