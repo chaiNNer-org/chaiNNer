@@ -58,7 +58,8 @@
       "clear": "Clear",
       "copyFullDirectoryPath": "Copy Full Directory Path",
       "openInFileExplorer": "Open in File Explorer",
-      "selectDirectory": "Select a directory..."
+      "selectDirectory": "Select a directory...",
+      "clickToSelect": "Click to select..."
     },
     "extractValueIntoNode": "Extract value into node",
     "file": {
@@ -66,7 +67,8 @@
       "copyFileName": "Copy File Name",
       "copyFullFilePath": "Copy Full File Path",
       "openInFileExplorer": "Open in File Explorer",
-      "selectFile": "Select a file..."
+      "selectFile": "Select a file...",
+      "clickToSelectFile": "Click to select a file..."
     },
     "number": {
       "copyText": "Copy Number",
@@ -74,12 +76,14 @@
     },
     "text": {
       "copyText": "Copy Text",
-      "paste": "Paste"
+      "paste": "Paste",
+      "invalidCharacter": "Invalid character '{{character}}' (U+{{codePoint}})."
     }
   },
   "outputs": {
     "largeImage": {
-      "imageNotAvailable": "Image not available."
+      "imageNotAvailable": "Image not available.",
+      "imagePreviewFailed": "Image preview failed to load, probably unsupported file type."
     },
     "model": {
       "modelNotAvailable": "Model data not available."
@@ -143,7 +147,8 @@
         "label": "Startup Template",
         "description": "Set a chain template to use by default when chaiNNer starts up.",
         "placeholder": "Select a file...",
-        "clear": "Clear"
+        "clear": "Clear",
+        "pickFile": "Pick startup template file"
       },
       "selectChain": "Select Chain"
     },
@@ -157,7 +162,8 @@
         "label": "System Python location (optional)",
         "description": "If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one.",
         "placeholder": "Select a file...",
-        "clear": "Clear"
+        "clear": "Clear",
+        "pickFile": "Pick system python location"
       }
     },
     "advanced": {
@@ -196,5 +202,23 @@
     "unableToImport": "Unable to import node(s).",
     "clickToInstall": "Click to open the dependency manager to install {{packageName}}.",
     "criticalImportError": "A critical import error has occurred with a dependency in package: {{packageName}}."
+  },
+  "groups": {
+    "seed": {
+      "randomSeed": "Random seed",
+      "randomSeedAria": "Random Seed"
+    }
+  },
+  "node": {
+    "disable": {
+      "hint": "Hint: Use Ctrl+Click to cycle through options."
+    },
+    "note": {
+      "placeholder": "Note Text"
+    }
+  },
+  "logo": {
+    "background": "bg",
+    "front": "front"
   }
 }

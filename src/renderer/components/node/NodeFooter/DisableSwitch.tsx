@@ -171,7 +171,7 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
                                     fontSize="small"
                                     mt={3}
                                 >
-                                    Hint: Use Ctrl+Click to cycle through options.
+                                    {t('node.disable.hint', 'Hint: Use Ctrl+Click to cycle through options.')}
                                 </Text>
                             </>
                         }

@@ -16,7 +16,7 @@ export const ChaiNNerLogo = memo(({ size = 1024, percent = 100 }: chaiNNerLogoPr
         draggable={false}
     >
         <Image
-            alt="bg"
+            alt={t('logo.background', 'bg')}
             boxSize={size}
             draggable={false}
             loading="eager"
@@ -82,7 +82,7 @@ export const ChaiNNerLogo = memo(({ size = 1024, percent = 100 }: chaiNNerLogoPr
             </svg>
         </Center>
         <Image
-            alt="front"
+            alt={t('logo.front', 'front')}
             boxSize={size}
             draggable={false}
             loading="eager"

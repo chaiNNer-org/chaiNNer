@@ -209,7 +209,7 @@ export const LargeImageOutput = memo(
                                     w="full"
                                 >
                                     <Image
-                                        alt="Image preview failed to load, probably unsupported file type."
+                                        alt={t('outputs.largeImage.imagePreviewFailed', 'Image preview failed to load, probably unsupported file type.')}
                                         background={
                                             last.channels === 4
                                                 ? // https://stackoverflow.com/a/65129916/7595472

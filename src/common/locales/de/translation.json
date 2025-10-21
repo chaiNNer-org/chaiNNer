@@ -196,5 +196,167 @@
     "unableToImport": "Knoten können nicht importiert werden.",
     "clickToInstall": "Klicken Sie, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",
     "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}."
+  },
+  "groups": {
+    "seed": {
+      "randomSeed": "Zufälliger Seed",
+      "randomSeedAria": "Zufälliger Seed"
+    }
+  },
+  "inputs": {
+    "copyInputOverrideId": "Eingabe-Override-ID kopieren",
+    "directory": {
+      "clear": "Löschen",
+      "copyFullDirectoryPath": "Vollständigen Verzeichnispfad kopieren",
+      "openInFileExplorer": "Im Datei-Explorer öffnen",
+      "selectDirectory": "Verzeichnis auswählen...",
+      "clickToSelect": "Klicken zum Auswählen..."
+    },
+    "extractValueIntoNode": "Wert in Knoten extrahieren",
+    "file": {
+      "clear": "Löschen",
+      "copyFileName": "Dateinamen kopieren",
+      "copyFullFilePath": "Vollständigen Dateipfad kopieren",
+      "openInFileExplorer": "Im Datei-Explorer öffnen",
+      "selectFile": "Datei auswählen...",
+      "clickToSelectFile": "Klicken Sie, um eine Datei auszuwählen..."
+    },
+    "number": {
+      "copyText": "Nummer kopieren",
+      "paste": "Einfügen"
+    },
+    "text": {
+      "copyText": "Text kopieren",
+      "paste": "Einfügen",
+      "invalidCharacter": "Ungültiges Zeichen '{{character}}' (U+{{codePoint}})."
+    }
+  },
+  "outputs": {
+    "largeImage": {
+      "imageNotAvailable": "Bild nicht verfügbar.",
+      "imagePreviewFailed": "Bildvorschau konnte nicht geladen werden, wahrscheinlich nicht unterstützter Dateityp."
+    },
+    "model": {
+      "modelNotAvailable": "Modelldaten nicht verfügbar."
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "restartChaiNNer": "chaiNNer neu starten",
+    "tabs": {
+      "appearance": "Aussehen",
+      "environment": "Umgebung",
+      "python": "Python",
+      "advanced": "Erweitert"
+    },
+    "appearance": {
+      "colorTheme": {
+        "label": "Farbschema",
+        "description": "Wählen Sie das Theme für das Aussehen von chaiNNer.",
+        "options": {
+          "dark": "Dunkel",
+          "light": "Hell",
+          "system": "System",
+          "charcoal": "Holzkohle",
+          "coffee": "Kaffee",
+          "blueberry": "Blaubeere",
+          "dusk": "Dämmerung",
+          "oled": "OLED",
+          "cyberpunk": "Cyberpunk",
+          "mixer": "Mixer3D",
+          "notreal": "NotRealEngine",
+          "comfort": "ComfortUI"
+        }
+      },
+      "language": {
+        "label": "Sprache",
+        "description": "Wählen Sie die Sprache für die Benutzeroberfläche von chaiNNer."
+      },
+      "chainAnimation": {
+        "label": "Kettenanimation",
+        "description": "Aktivieren Sie Animationen, die den Verarbeitungsstatus der Kette anzeigen."
+      },
+      "minimap": {
+        "label": "Minimap",
+        "description": "Aktivieren Sie eine Minimap der aktuellen Kette in der unteren rechten Ecke des Knoteneditors."
+      },
+      "snapToGrid": {
+        "label": "Am Raster einrasten",
+        "description": "Knotenrastereinrastung aktivieren."
+      },
+      "snapToGridAmount": {
+        "label": "Rastereinrastungsmenge",
+        "description": "Die Menge zum Einrasten am Raster."
+      },
+      "viewportExportPadding": {
+        "label": "Viewport-PNG-Export-Padding",
+        "description": "Die Menge des Paddings für den Viewport-PNG-Export."
+      }
+    },
+    "environment": {
+      "startupTemplate": {
+        "label": "Startvorlage",
+        "description": "Legen Sie eine Kettenvorlage fest, die standardmäßig beim Start von chaiNNer verwendet werden soll.",
+        "placeholder": "Datei auswählen...",
+        "clear": "Löschen",
+        "pickFile": "Startvorlage-Datei auswählen"
+      },
+      "selectChain": "Kette auswählen"
+    },
+    "python": {
+      "general": "Allgemein",
+      "useSystemPython": {
+        "label": "System-Python verwenden (erfordert Neustart)",
+        "description": "System-Python für die Verarbeitung von chaiNNer anstelle des gebündelten Python verwenden (nicht empfohlen)"
+      },
+      "systemPythonLocation": {
+        "label": "System-Python-Speicherort (optional)",
+        "description": "Wenn gewünscht, verwenden Sie eine bestimmte Python-Binärdatei anstelle der Standarddatei, die von 'python3' oder 'python' aufgerufen wird. Dies ist nützlich, wenn Sie mehrere Python-Versionen installiert haben und eine bestimmte auswählen möchten.",
+        "placeholder": "Datei auswählen...",
+        "clear": "Löschen",
+        "pickFile": "System-Python-Speicherort auswählen"
+      }
+    },
+    "advanced": {
+      "checkForUpdates": {
+        "label": "Beim Start auf Updates prüfen",
+        "description": "Schaltet die Überprüfung auf Updates beim Start um."
+      },
+      "experimentalFeatures": {
+        "label": "Experimentelle Funktionen aktivieren",
+        "description": "Aktivieren Sie experimentelle Funktionen, um sie auszuprobieren, bevor sie fertiggestellt sind."
+      },
+      "hardwareAcceleration": {
+        "label": "Hardwarebeschleunigung aktivieren (erfordert Neustart)",
+        "description": "Aktivieren Sie GPU-Rendering für die GUI. Verwenden Sie dies mit Vorsicht, da es die GPU-Leistung für die Bildverarbeitung stark verringern kann."
+      },
+      "allowMultipleInstances": {
+        "label": "Mehrere gleichzeitige Instanzen zulassen",
+        "description": "Aktivieren Sie mehrere gleichzeitige Instanzen von chaiNNer. Dies wird nicht empfohlen, aber wenn Ihre Kette nicht genügend Systemressourcen verwendet, kann es hilfreich sein, Dinge gleichzeitig auszuführen."
+      }
+    }
+  },
+  "setup": {
+    "checkingPort": "Verfügbaren Port überprüfen...",
+    "checkingPython": "Systemumgebung auf gültiges Python überprüfen...",
+    "downloadingPython": "Integriertes Python herunterladen...",
+    "extractingPython": "Heruntergeladene Dateien extrahieren...",
+    "loading": "Laden...",
+    "startingBackend": "Backend-Prozess starten..."
+  },
+  "typeTags": {
+    "optional": "optional"
+  },
+  "node": {
+    "disable": {
+      "hint": "Hinweis: Verwenden Sie Strg+Klick, um durch die Optionen zu wechseln."
+    },
+    "note": {
+      "placeholder": "Notiztext"
+    }
+  },
+  "logo": {
+    "background": "bg",
+    "front": "front"
   }
 }

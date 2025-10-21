@@ -358,7 +358,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                 h="100%"
                                 lineHeight="3ch"
                                 maxLength={undefined}
-                                placeholder="Note Text"
+                                placeholder={t('node.note.placeholder', 'Note Text')}
                                 px={2}
                                 py={1}
                                 resize="none"

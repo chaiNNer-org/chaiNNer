@@ -271,7 +271,10 @@ const EnvironmentSettings = memo(() => {
 
                             <Input
                                 isReadOnly
-                                alt="Pick startup template file"
+                                alt={t(
+                                    'settings.environment.startupTemplate.pickFile',
+                                    'Pick startup template file'
+                                )}
                                 className="nodrag"
                                 cursor="pointer"
                                 draggable={false}
@@ -388,7 +391,10 @@ const PythonSettings = memo(() => {
 
                                             <Input
                                                 isReadOnly
-                                                alt="Pick system python location"
+                                                alt={t(
+                                                    'settings.python.systemPythonLocation.pickFile',
+                                                    'Pick system python location'
+                                                )}
                                                 className="nodrag"
                                                 cursor="pointer"
                                                 draggable={false}
