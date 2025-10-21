@@ -14,11 +14,20 @@ def test_logger_setup():
     with tempfile.TemporaryDirectory() as temp_dir:
         log_dir = Path(temp_dir)
 
+        # Clear any existing logger to ensure clean test
+        import logging as base_logging
+
+        test_logger_name = "chaiNNer.worker"
+        test_logger = base_logging.getLogger(test_logger_name)
+        test_logger.handlers.clear()
+        test_logger.setLevel(logging.NOTSET)
+
         # Set up a logger
         logger = setup_logger("worker", log_dir=log_dir, log_level=logging.DEBUG)
 
         # Verify logger is configured correctly
         assert logger.name == "chaiNNer.worker"
+        # Check that the logger level is set correctly (it should be DEBUG)
         assert logger.level == logging.DEBUG
         assert (
             len(logger.handlers) >= 2
@@ -33,11 +42,20 @@ def test_logger_setup():
         logger.debug("Debug message")
         logger.warning("Warning message")
 
+        # Flush handlers to ensure messages are written
+        for handler in logger.handlers:
+            handler.flush()
+
         # Verify messages were written to file
         content = log_file.read_text()
         assert "Test message" in content
         assert "Debug message" in content
         assert "Warning message" in content
+
+        # Clean up handlers to avoid issues with temporary directory cleanup
+        for handler in logger.handlers:
+            handler.close()
+        logger.handlers.clear()
 
 
 def test_get_logger():
@@ -108,3 +126,11 @@ def test_separate_process_types():
 
         assert "Worker message" in worker_content
         assert "Host message" not in worker_content
+
+        # Clean up handlers to avoid issues with temporary directory cleanup
+        for handler in host_logger.handlers:
+            handler.close()
+        for handler in worker_logger.handlers:
+            handler.close()
+        host_logger.handlers.clear()
+        worker_logger.handlers.clear()
