@@ -118,8 +118,8 @@
         }
       },
       "language": {
-        "label": "Sprache",
-        "description": "Wählen Sie die Sprache für die Benutzeroberfläche von chaiNNer. (Erfordert Neustart)"
+        "label": "Sprache (Erfordert Neustart)",
+        "description": "Wählen Sie die Sprache für die Benutzeroberfläche von chaiNNer."
       },
       "chainAnimation": {
         "label": "Kettenanimation",

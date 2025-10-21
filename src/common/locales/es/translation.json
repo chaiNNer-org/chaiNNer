@@ -118,8 +118,8 @@
         }
       },
       "language": {
-        "label": "Idioma",
-        "description": "Elige el idioma para la interfaz de chaiNNer. (Requiere reinicio)"
+        "label": "Idioma (Requiere reinicio)",
+        "description": "Elige el idioma para la interfaz de chaiNNer."
       },
       "chainAnimation": {
         "label": "Animación de cadena",
