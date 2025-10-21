@@ -51,12 +51,10 @@ def inpaint(
             )
 
             # Explicitly move tensors to CPU and delete to free VRAM
-            if d_img is not None:
-                d_img = d_img.detach().cpu()
-                del d_img
-            if d_mask is not None:
-                d_mask = d_mask.detach().cpu()
-                del d_mask
+            d_img = d_img.detach().cpu()
+            del d_img
+            d_mask = d_mask.detach().cpu()
+            del d_mask
 
             # Collect garbage to ensure VRAM is freed
             gc.collect()
