@@ -88,15 +88,13 @@ export const FavoritesAccordionItem = memo(
                                     ) : (
                                         <>
                                             {t(
-                                                'favorites.addFavoritesTooltipExpanded',
-                                                'Add Favorites by hovering over nodes and clicking the {{starIcon}} icon, or by right-clicking and selecting Add to Favorites.',
-                                                {
-                                                    starIcon: (
-                                                        <StarIcon
-                                                            style={{ verticalAlign: 'baseline' }}
-                                                        />
-                                                    ),
-                                                }
+                                                'favorites.addFavoritesTooltipExpanded.beforeIcon',
+                                                'Add Favorites by hovering over nodes and clicking the'
+                                            )}{' '}
+                                            <StarIcon style={{ verticalAlign: 'baseline' }} />{' '}
+                                            {t(
+                                                'favorites.addFavoritesTooltipExpanded.afterIcon',
+                                                'icon, or by right-clicking and selecting Add to Favorites.'
                                             )}
                                         </>
                                     )
