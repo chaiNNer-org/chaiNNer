@@ -50,11 +50,10 @@ def inpaint(
                 imtype=np.float32,
             )
 
-            # Explicitly move tensors to CPU and delete to free VRAM
+            # Explicitly move tensors to CPU to free VRAM
+            # Reassignment ensures GPU tensors are dereferenced
             d_img = d_img.detach().cpu()
-            del d_img
             d_mask = d_mask.detach().cpu()
-            del d_mask
 
             # Collect garbage to ensure VRAM is freed
             gc.collect()
