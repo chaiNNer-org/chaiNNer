@@ -102,11 +102,8 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             },
         });
 
-        // Backend logs are now handled by the backend's own logging system
-        // and written to separate log files. We no longer capture stdout/stderr
-        // to prevent backend logs from appearing in frontend logs.
-        // The backend logging system writes to files in the same directory
-        // as the frontend logs but with separate files (host.log, worker.log).
+        // Backend handles its own logging - we don't capture stdout/stderr
+        // Each process logs to its own files independently
 
         return backend;
     }

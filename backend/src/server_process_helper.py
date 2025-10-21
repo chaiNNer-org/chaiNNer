@@ -79,7 +79,7 @@ class _WorkerProcess:
             self._process.terminate()
             self._process.kill()
         except Exception:
-            logger.error("Failed to terminate worker process", exc_info=True)
+            logger.exception("Failed to terminate worker process")
         self._process = None
         atexit.unregister(self.close)
 
@@ -92,33 +92,14 @@ class _WorkerProcess:
             return
 
         stopped = False
-        for line in p.stdout:
+        for _ in p.stdout:
             stopped = self._stop_event.is_set()
             if stopped:
                 break
-
-            stripped_line = line.rstrip()
-            match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
-            if match_obj is not None:
-                log_level, message = match_obj.groups()
-                message = f"[Worker] {message}"
-                if log_level == "DEBUG":
-                    logger.debug(message)
-                elif log_level == "INFO":
-                    logger.info(message)
-                elif log_level == "WARNING":
-                    logger.warning(message)
-                elif log_level == "ERROR":
-                    logger.error(message)
-                elif log_level == "CRITICAL":
-                    logger.critical(message)
-                else:
-                    logger.info(message)
-            else:
-                logger.info(f"[Worker] {stripped_line}")
+            # Worker handles its own logging - we don't capture stdout
 
         cause = "stop event" if stopped else "stdout ending"
-        logger.info(f"Stopped reading worker stdout due to {cause}")
+        logger.debug("Stopped reading worker stdout due to %s", cause)
 
         stopped = self._stop_event.is_set()
         if not stopped:
@@ -128,7 +109,8 @@ class _WorkerProcess:
                 logger.info("Worker process ended normally")
             else:
                 logger.error(
-                    f"Worker process ended with non-zero return code {returncode}"
+                    "Worker process ended with non-zero return code %s",
+                    returncode,
                 )
 
     def _read_stderr(self):
@@ -137,16 +119,14 @@ class _WorkerProcess:
             return
 
         stopped = False
-        for line in p.stderr:
+        for _ in p.stderr:
             stopped = self._stop_event.is_set()
             if stopped:
                 break
-
-            stripped_line = line.rstrip()
-            logger.error(f"[Worker] {stripped_line}")
+            # Worker handles its own logging - we don't capture stderr
 
         cause = "stop event" if stopped else "stderr ending"
-        logger.info(f"Stopped reading worker stderr due to {cause}")
+        logger.debug("Stopped reading worker stderr due to %s", cause)
 
 
 class WorkerServer:
@@ -162,7 +142,7 @@ class WorkerServer:
         self._manually_close: set[aiohttp.ClientResponse] = set()
 
     async def start(self, extra_flags: Iterable[str] = []):
-        logger.info(f"Starting worker process on port {self._port}...")
+        logger.info("Starting worker process on port %s...", self._port)
         self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
@@ -215,9 +195,9 @@ class WorkerServer:
                             self._is_ready = True
                         return
                     except asyncio.TimeoutError:
-                        logger.warn("Server not ready yet due to timeout")
+                        logger.warning("Server not ready yet due to timeout")
                     except Exception as e:
-                        logger.warn("Server not ready yet", exc_info=e)
+                        logger.warning("Server not ready yet", exc_info=e)
 
                 await asyncio.sleep(0.1)
 
