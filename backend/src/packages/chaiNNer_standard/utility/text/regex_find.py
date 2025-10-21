@@ -80,5 +80,7 @@ def regex_find_node(
         replacements = match_to_replacements_dict(r, m, text)
         replacement = ReplacementString(output_pattern)
         result_text = replacement.replace(replacements)
+    else:
+        raise ValueError(f"Unknown OutputMode: {output}")
 
     return (result_text, True)
