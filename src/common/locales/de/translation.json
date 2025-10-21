@@ -319,5 +319,44 @@
   },
   "edge": {
     "removeEdge": "Kanten-Entfernen-Button"
+  },
+  "breakpoint": {
+    "removeBreakpoint": "Haltepunkt entfernen",
+    "removeEdge": "Kante entfernen"
+  },
+  "tooltips": {
+    "addNodesToCanvas": "Doppelklicken oder Ziehen und Ablegen, um Knoten zur Leinwand hinzuzufügen.",
+    "collapseExpandCategories": "Kategorien ein-/ausklappen"
+  },
+  "nodeMenu": {
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "resetNode": "Knoten zurücksetzen",
+    "resetInputs": "Eingaben zurücksetzen",
+    "resetConnections": "Verbindungen zurücksetzen",
+    "resetAll": "Alles zurücksetzen",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "skip": "Überspringen",
+    "unlock": "Entsperren",
+    "lock": "Sperren",
+    "refreshPreview": "Vorschau aktualisieren",
+    "delete": "Löschen",
+    "openDocumentation": "Dokumentation öffnen"
+  },
+  "nodesMenu": {
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "resetNodes": "Knoten zurücksetzen",
+    "resetInputs": "Eingaben zurücksetzen",
+    "resetConnections": "Verbindungen zurücksetzen",
+    "resetAll": "Alles zurücksetzen",
+    "enableAll": "Alle aktivieren",
+    "disableAll": "Alle deaktivieren",
+    "delete": "Löschen"
+  },
+  "edgeMenu": {
+    "addBreakpoint": "Haltepunkt hinzufügen",
+    "delete": "Löschen"
   }
 }

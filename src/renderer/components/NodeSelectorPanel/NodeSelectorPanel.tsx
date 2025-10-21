@@ -127,7 +127,7 @@ export const NodeSelector = memo(() => {
                                                 bg: 'var(--bg-600)',
                                                 opacity: 1,
                                             }}
-                                            aria-label="Collapse/Expand Categories"
+                                            aria-label={t('tooltips.collapseExpandCategories', 'Collapse/Expand Categories')}
                                             bg="var(--bg-700)"
                                             borderRadius="0px 0px 8px 8px"
                                             h="0.5rem"

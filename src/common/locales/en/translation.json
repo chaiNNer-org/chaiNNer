@@ -319,5 +319,44 @@
   },
   "edge": {
     "removeEdge": "Remove edge button"
+  },
+  "breakpoint": {
+    "removeBreakpoint": "Remove Breakpoint",
+    "removeEdge": "Remove Edge"
+  },
+  "tooltips": {
+    "addNodesToCanvas": "Either double-click or drag and drop to add nodes to the canvas.",
+    "collapseExpandCategories": "Collapse/Expand Categories"
+  },
+  "nodeMenu": {
+    "copy": "Copy",
+    "duplicate": "Duplicate",
+    "resetNode": "Reset Node",
+    "resetInputs": "Reset Inputs",
+    "resetConnections": "Reset Connections",
+    "resetAll": "Reset All",
+    "enable": "Enable",
+    "disable": "Disable",
+    "skip": "Skip",
+    "unlock": "Unlock",
+    "lock": "Lock",
+    "refreshPreview": "Refresh Preview",
+    "delete": "Delete",
+    "openDocumentation": "Open Documentation"
+  },
+  "nodesMenu": {
+    "copy": "Copy",
+    "duplicate": "Duplicate",
+    "resetNodes": "Reset Nodes",
+    "resetInputs": "Reset Inputs",
+    "resetConnections": "Reset Connections",
+    "resetAll": "Reset All",
+    "enableAll": "Enable All",
+    "disableAll": "Disable All",
+    "delete": "Delete"
+  },
+  "edgeMenu": {
+    "addBreakpoint": "Add Breakpoint",
+    "delete": "Delete"
   }
 }

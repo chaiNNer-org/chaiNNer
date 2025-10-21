@@ -319,5 +319,44 @@
   },
   "edge": {
     "removeEdge": "Botón de eliminar borde"
+  },
+  "breakpoint": {
+    "removeBreakpoint": "Eliminar Punto de Interrupción",
+    "removeEdge": "Eliminar Borde"
+  },
+  "tooltips": {
+    "addNodesToCanvas": "Haga doble clic o arrastre y suelte para agregar nodos al lienzo.",
+    "collapseExpandCategories": "Contraer/Expandir Categorías"
+  },
+  "nodeMenu": {
+    "copy": "Copiar",
+    "duplicate": "Duplicar",
+    "resetNode": "Restablecer Nodo",
+    "resetInputs": "Restablecer Entradas",
+    "resetConnections": "Restablecer Conexiones",
+    "resetAll": "Restablecer Todo",
+    "enable": "Habilitar",
+    "disable": "Deshabilitar",
+    "skip": "Omitir",
+    "unlock": "Desbloquear",
+    "lock": "Bloquear",
+    "refreshPreview": "Actualizar Vista Previa",
+    "delete": "Eliminar",
+    "openDocumentation": "Abrir Documentación"
+  },
+  "nodesMenu": {
+    "copy": "Copiar",
+    "duplicate": "Duplicar",
+    "resetNodes": "Restablecer Nodos",
+    "resetInputs": "Restablecer Entradas",
+    "resetConnections": "Restablecer Conexiones",
+    "resetAll": "Restablecer Todo",
+    "enableAll": "Habilitar Todos",
+    "disableAll": "Deshabilitar Todos",
+    "delete": "Eliminar"
+  },
+  "edgeMenu": {
+    "addBreakpoint": "Agregar Punto de Interrupción",
+    "delete": "Eliminar"
   }
 }

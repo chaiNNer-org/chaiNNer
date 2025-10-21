@@ -142,7 +142,7 @@ const NodeRepresentative = memo(
                     hasArrow
                     borderRadius={8}
                     isOpen={isOpen}
-                    label="Either double-click or drag and drop to add nodes to the canvas."
+                    label={t('tooltips.addNodesToCanvas', 'Either double-click or drag and drop to add nodes to the canvas.')}
                     placement="top"
                     px={2}
                     py={1}
