@@ -1,10 +1,7 @@
 import sys
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import add_package
+from logger import logger
 
 package = add_package(
     __file__,

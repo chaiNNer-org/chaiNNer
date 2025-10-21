@@ -5,7 +5,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Any, Awaitable, Callable, Iterable, TypeVar
 
-from logger import get_logger_from_env
+from logger import logger
 
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
@@ -27,8 +27,6 @@ from .node_data import (
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
-
-logger = get_logger_from_env()
 
 KB = 1024**1
 MB = 1024**2

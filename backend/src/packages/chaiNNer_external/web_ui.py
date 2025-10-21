@@ -8,9 +8,7 @@ from enum import Enum
 
 import requests
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 STABLE_DIFFUSION_TEXT2IMG_PATH = "/sdapi/v1/txt2img"
 STABLE_DIFFUSION_IMG2IMG_PATH = "/sdapi/v1/img2img"

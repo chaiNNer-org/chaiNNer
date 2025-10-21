@@ -3,12 +3,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import ModelDescriptor
 
 from api import Generator, IteratorOutputInfo, NodeContext
+from logger import logger
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput

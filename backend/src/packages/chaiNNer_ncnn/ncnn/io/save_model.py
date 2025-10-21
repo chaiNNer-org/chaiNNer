@@ -1,9 +1,6 @@
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
+from logger import logger
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import DirectoryInput, NcnnModelInput, RelativePathInput
 

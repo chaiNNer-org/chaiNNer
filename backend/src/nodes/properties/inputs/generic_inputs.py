@@ -7,14 +7,11 @@ from enum import Enum
 from typing import Any, Literal, TypedDict, TypeVar
 
 import numpy as np
-
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from typing_extensions import NotRequired
 
 import navi
 from api import BaseInput, InputConversion, group
+from logger import logger
 
 from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode

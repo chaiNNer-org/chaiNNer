@@ -9,11 +9,8 @@ import numpy as np
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import KeyInfo, Lazy
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
     BC7_FORMATS,

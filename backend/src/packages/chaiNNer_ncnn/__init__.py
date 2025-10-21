@@ -1,8 +1,5 @@
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import MB, Dependency, add_package
+from logger import logger
 from system import is_arm_mac, is_mac
 
 general = "NCNN uses .bin/.param models to upscale images."

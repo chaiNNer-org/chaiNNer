@@ -5,9 +5,7 @@ from typing import Callable, Union
 
 import numpy as np
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 from ...utils.utils import Region, Size, get_h_w_c
 from .exact_split import exact_split

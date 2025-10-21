@@ -12,9 +12,7 @@ except ImportError:
     from ncnn import ncnn  # type: ignore
 
     use_gpu = False
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 from ...utils.utils import get_h_w_c
 from ..image_utils import to_uint8

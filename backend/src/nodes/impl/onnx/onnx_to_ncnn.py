@@ -9,9 +9,7 @@ from google.protobuf.internal.containers import (
 )
 from onnx.onnx_pb import AttributeProto, GraphProto, ModelProto, NodeProto, TensorProto
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 from ..ncnn.model import (
     DTYPE_FP16,

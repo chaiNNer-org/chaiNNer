@@ -3,11 +3,8 @@ from __future__ import annotations
 import gc
 from typing import Generic, Iterable, TypeVar
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import NodeId
+from logger import logger
 
 from .chain import Chain, Edge, FunctionNode, GeneratorNode
 

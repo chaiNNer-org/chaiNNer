@@ -5,12 +5,9 @@ from pathlib import Path
 
 import torch
 from safetensors.torch import save_file
-
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import ModelDescriptor
 
+from logger import logger
 from nodes.properties.inputs import (
     DirectoryInput,
     EnumInput,

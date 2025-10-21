@@ -149,19 +149,16 @@ def setup_logger(
     return logger
 
 
-def get_logger(process_type: ProcessType = "worker") -> logging.Logger:
-    """
-    Get the logger for the specified process type.
+# Create a single logger instance that auto-detects the process type
+def _get_process_type() -> ProcessType:
+    """Get the process type from environment variable."""
+    process_type_str = os.environ.get("CHAINNER_PROCESS_TYPE", "worker")
+    return "host" if process_type_str == "host" else "worker"
 
-    If the logger hasn't been set up yet, this will set it up with default
-    settings.
 
-    Args:
-        process_type: Either "host" or "worker"
-
-    Returns:
-        The logger instance for this process type
-    """
+def _get_logger() -> logging.Logger:
+    """Get or create the logger for the current process type."""
+    process_type = _get_process_type()
     logger_name = f"chaiNNer.{process_type}"
     logger = logging.getLogger(logger_name)
 
@@ -172,17 +169,5 @@ def get_logger(process_type: ProcessType = "worker") -> logging.Logger:
     return logger
 
 
-# Convenience function for modules that don't know their process type
-def get_logger_from_env() -> logging.Logger:
-    """
-    Get the appropriate logger based on the CHAINNER_PROCESS_TYPE environment
-    variable.
-
-    Returns:
-        Logger instance for the current process
-    """
-    process_type_str = os.environ.get("CHAINNER_PROCESS_TYPE", "worker")
-    process_type: ProcessType = "worker"
-    if process_type_str == "host":
-        process_type = "host"
-    return get_logger(process_type)
+# Export the logger instance
+logger = _get_logger()

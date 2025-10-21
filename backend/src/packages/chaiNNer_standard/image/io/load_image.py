@@ -10,10 +10,7 @@ import numpy as np
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
+from logger import logger
 from nodes.impl.dds.texconv import dds_to_png_texconv
 from nodes.impl.image_formats import (
     get_available_image_formats,

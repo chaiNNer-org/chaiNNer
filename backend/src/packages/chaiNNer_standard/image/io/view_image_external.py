@@ -9,10 +9,7 @@ from tempfile import mkdtemp
 import cv2
 import numpy as np
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
+from logger import logger
 from nodes.impl.image_utils import to_uint8
 from nodes.properties.inputs import ImageInput
 

@@ -8,10 +8,7 @@ from subprocess import check_call
 
 import requests
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
+from logger import logger
 from system import is_arm_mac, is_linux, is_mac, is_windows
 
 

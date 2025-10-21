@@ -3,9 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, TypedDict, Union
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 SettingsJson = Dict[str, object]
 JsonExecutionOptions = Dict[str, SettingsJson]

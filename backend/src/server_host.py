@@ -32,12 +32,10 @@ from gpu import nvidia
 
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
-from logger import get_logger, setup_logger
+from logger import logger, setup_logger
 from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
-
-logger = get_logger("host")
 
 
 class AppContext:

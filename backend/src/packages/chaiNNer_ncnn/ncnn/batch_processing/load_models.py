@@ -3,11 +3,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import Generator, IteratorOutputInfo
+from logger import logger
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import BoolInput, DirectoryInput
 from nodes.properties.outputs import (

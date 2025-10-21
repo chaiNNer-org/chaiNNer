@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
 from spandrel import ImageModelDescriptor
 from spandrel.architectures.DAT import DAT
 from spandrel.architectures.HAT import HAT
@@ -14,6 +11,7 @@ from spandrel.architectures.SwinIR import SwinIR
 from spandrel_extra_arches.architectures.SRFormer import SRFormer
 
 from api import NodeContext
+from logger import logger
 from nodes.impl.ncnn.model import NcnnModelWrapper
 from nodes.properties.inputs import OnnxFpDropdown, SrModelInput
 from nodes.properties.outputs import NcnnModelOutput, TextOutput

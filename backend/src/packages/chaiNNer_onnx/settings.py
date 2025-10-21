@@ -6,12 +6,9 @@ from typing import List, cast
 
 import onnxruntime as ort
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import CacheSetting, DropdownSetting, NodeContext, ToggleSetting
 from gpu import nvidia
+from logger import logger
 from system import is_arm_mac
 
 from . import package

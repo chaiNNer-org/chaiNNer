@@ -31,7 +31,7 @@ from events import EventConsumer, EventQueue, ExecutionErrorData
 
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
-from logger import get_logger, setup_logger
+from logger import logger, setup_logger
 from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
@@ -41,8 +41,6 @@ from response import (
     success_response,
 )
 from server_config import ServerConfig
-
-logger = get_logger("worker")
 
 
 class AppContext:

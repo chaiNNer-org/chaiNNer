@@ -6,9 +6,7 @@ from pathlib import Path
 import ffmpeg
 import numpy as np
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 from .ffmpeg import FFMpegEnv
 

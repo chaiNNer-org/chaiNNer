@@ -11,9 +11,7 @@ from tempfile import mkdtemp
 
 import numpy as np
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
+from logger import logger
 
 from ...utils.utils import split_file_path
 from ..image_utils import cv_save_image

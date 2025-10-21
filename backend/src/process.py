@@ -11,10 +11,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 import navi
 from api import (
     BaseInput,
@@ -38,6 +34,7 @@ from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_str
 from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict, NodeBroadcastData
+from logger import logger
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
 

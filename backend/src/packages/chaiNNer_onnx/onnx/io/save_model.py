@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
+from logger import logger
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput, OnnxModelInput, RelativePathInput
 

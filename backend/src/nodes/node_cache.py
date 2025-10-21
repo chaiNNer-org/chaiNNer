@@ -10,11 +10,8 @@ from typing import Iterable, NewType
 
 import numpy as np
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
 from api import RunFn
+from logger import logger
 
 CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", 1024**3))  # default 1 GiB
 CACHE_REGISTRY: list[NodeOutputCache] = []

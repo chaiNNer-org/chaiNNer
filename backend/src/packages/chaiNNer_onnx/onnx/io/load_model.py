@@ -5,10 +5,7 @@ from pathlib import Path
 
 import onnx
 
-from logger import get_logger_from_env
-
-logger = get_logger_from_env()
-
+from logger import logger
 from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import OnnxFileInput
