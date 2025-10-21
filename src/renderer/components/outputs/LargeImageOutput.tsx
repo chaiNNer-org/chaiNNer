@@ -185,7 +185,7 @@ export const LargeImageOutput = memo(
                                     fontSize="sm"
                                     fontWeight={500}
                                 >
-                                    Outdated
+                                    {t('node.outdated')}
                                 </Text>
                             </HStack>
                         </Box>

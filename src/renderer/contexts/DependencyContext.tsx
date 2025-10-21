@@ -230,8 +230,8 @@ const PackageView = memo(
                                     >
                                         {p.name} ({p.dependencies.length}{' '}
                                         {p.dependencies.length === 1
-                                            ? t('dependencyManager.package', 'package')
-                                            : t('dependencyManager.packages', 'packages')}
+                                            ? t('dependencyManager.package.singular', 'package')
+                                            : t('dependencyManager.package.plural', 'packages')}
                                         )
                                     </Text>
                                     <Tooltip
@@ -650,11 +650,12 @@ const PythonSection = memo(
                         flex="1"
                         textAlign="left"
                     >
-                        {t('dependencyManager.python', 'Python')} ({pythonInfo.version}) [
+                        {t('dependencyManager.python', 'Python')} ({pythonInfo.version}){' '}
+                        {t('dependencyManager.brackets.open', '[')}
                         {useSystemPython
                             ? t('dependencyManager.system', 'System')
                             : t('dependencyManager.integrated', 'Integrated')}
-                        ]
+                        {t('dependencyManager.brackets.close', ']')}
                     </Text>
 
                     <Tooltip

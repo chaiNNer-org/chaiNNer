@@ -96,7 +96,7 @@ export const NodeSelector = memo(() => {
                                     _hover={{}}
                                     cursor="default"
                                 >
-                                    Nodes
+                                    {t('nodeSelector.nodes')}
                                 </Tab>
                             )}
                         </TabList>

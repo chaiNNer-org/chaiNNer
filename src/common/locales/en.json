@@ -1,355 +1,398 @@
 {
-  "alert": {
-    "button": {
-      "ok": "OK",
-      "cancel": "Cancel",
-      "openLogsFolder": "Open Logs Folder",
-      "exitApplication": "Exit Application",
-      "copyToClipboard": "Copy to Clipboard"
-    },
-    "stackTrace": "Stack Trace",
-    "title": {
-      "systemInformation": "System information"
-    }
-  },
-  "common": {
-    "cancel": "Cancel",
-    "close": "Close",
-    "open": "Open",
-    "settings": "Settings"
-  },
-  "error": {
-    "error": "Error",
-    "message": {
-      "criticalBackend": "A critical error occurred while processing the node data returned by the backend."
-    },
-    "title": {
-      "unableToProcessNodes": "Unable to process backend nodes."
-    }
-  },
-  "header": {
-    "alpha": "Alpha",
-    "pause": "Pause",
-    "pauseButton": "Pause button",
-    "resume": "Resume",
-    "run": "Run",
-    "runButton": "Run button",
-    "stop": "Stop",
-    "stopButton": "Stop button",
-    "updateAvailable": "Update available ({{version}})",
-    "updateAvailableAria": "Update available",
-    "updateChangelog": "Update Changelog",
-    "updateAvailableTitle": "Update Available ({{version}})",
-    "updateAvailableMessage": "There is an update available for version {{version}}. Would you like to view the changelog?",
-    "viewReleaseOnGitHub": "View release on GitHub",
-    "downloadFromWebsite": "Download from chaiNNer.app",
-    "ignoreUpdate": "Ignore Update",
-    "viewUpdate": "View Update"
-  },
-  "inputs": {
-    "copyInputOverrideId": "Copy Input Override Id",
-    "directory": {
-      "clear": "Clear",
-      "copyFullDirectoryPath": "Copy Full Directory Path",
-      "openInFileExplorer": "Open in File Explorer",
-      "selectDirectory": "Select a directory...",
-      "clickToSelect": "Click to select..."
-    },
-    "extractValueIntoNode": "Extract value into node",
-    "file": {
-      "clear": "Clear",
-      "copyFileName": "Copy File Name",
-      "copyFullFilePath": "Copy Full File Path",
-      "openInFileExplorer": "Open in File Explorer",
-      "selectFile": "Select a file...",
-      "clickToSelectFile": "Click to select a file..."
-    },
-    "number": {
-      "copyText": "Copy Number",
-      "paste": "Paste"
-    },
-    "text": {
-      "copyText": "Copy Text",
-      "paste": "Paste",
-      "invalidCharacter": "Invalid character '{{character}}' (U+{{codePoint}})."
-    },
-    "addInput": "Add Input"
-  },
-  "outputs": {
-    "largeImage": {
-      "imageNotAvailable": "Image not available.",
-      "imagePreviewFailed": "Image preview failed to load, probably unsupported file type."
-    },
-    "model": {
-      "modelNotAvailable": "Model data not available."
-    }
-  },
-  "settings": {
-    "title": "Settings",
-    "restartChaiNNer": "Restart chaiNNer",
-    "tabs": {
-      "appearance": "Appearance",
-      "environment": "Environment",
-      "python": "Python",
-      "advanced": "Advanced"
-    },
-    "appearance": {
-      "colorTheme": {
-        "label": "Color Theme",
-        "description": "Choose the Theme for chaiNNer's appearance.",
-        "options": {
-          "dark": "Dark",
-          "light": "Light",
-          "system": "System",
-          "charcoal": "Charcoal",
-          "coffee": "Coffee",
-          "blueberry": "Blueberry",
-          "dusk": "Dusk",
-          "oled": "OLED",
-          "cyberpunk": "Cyberpunk",
-          "mixer": "Mixer3D",
-          "notreal": "NotRealEngine",
-          "comfort": "ComfortUI"
+    "alert": {
+        "button": {
+            "ok": "OK",
+            "cancel": "Cancel",
+            "openLogsFolder": "Open Logs Folder",
+            "exitApplication": "Exit Application",
+            "copyToClipboard": "Copy to Clipboard"
+        },
+        "stackTrace": "Stack Trace",
+        "title": {
+            "systemInformation": "System information"
         }
-      },
-      "language": {
-        "label": "Language (Requires restart)",
-        "description": "Choose the language for chaiNNer's interface."
-      },
-      "chainAnimation": {
-        "label": "Chain animation",
-        "description": "Enable animations that show the processing state of the chain."
-      },
-      "minimap": {
-        "label": "Minimap",
-        "description": "Enable a minimap of the current chain in the bottom right corner of the node editor."
-      },
-      "snapToGrid": {
-        "label": "Snap to grid",
-        "description": "Enable node grid snapping."
-      },
-      "snapToGridAmount": {
-        "label": "Snap to grid amount",
-        "description": "The amount to snap the grid to."
-      },
-      "viewportExportPadding": {
-        "label": "Viewport PNG export padding",
-        "description": "The amount of padding for the viewport PNG export."
-      }
     },
-    "environment": {
-      "startupTemplate": {
-        "label": "Startup Template",
-        "description": "Set a chain template to use by default when chaiNNer starts up.",
-        "placeholder": "Select a file...",
-        "clear": "Clear",
-        "pickFile": "Pick startup template file"
-      },
-      "selectChain": "Select Chain"
+    "common": {
+        "cancel": "Cancel",
+        "close": "Close",
+        "open": "Open",
+        "settings": "Settings"
     },
-    "python": {
-      "general": "General",
-      "useSystemPython": {
-        "label": "Use system Python (requires restart)",
-        "description": "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
-      },
-      "systemPythonLocation": {
-        "label": "System Python location (optional)",
-        "description": "If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one.",
-        "placeholder": "Select a file...",
-        "clear": "Clear",
-        "pickFile": "Pick system python location"
-      }
+    "error": {
+        "error": "Error",
+        "message": {
+            "criticalBackend": "A critical error occurred while processing the node data returned by the backend."
+        },
+        "title": {
+            "unableToProcessNodes": "Unable to process backend nodes."
+        }
     },
-    "advanced": {
-      "checkForUpdates": {
-        "label": "Check for Update on Start-up",
-        "description": "Toggles checking for updates on start-up."
-      },
-      "experimentalFeatures": {
-        "label": "Enable experimental features",
-        "description": "Enable experimental features to try them out before they are finished."
-      },
-      "hardwareAcceleration": {
-        "label": "Enable Hardware Acceleration (requires restart)",
-        "description": "Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
-      },
-      "allowMultipleInstances": {
-        "label": "Allow multiple concurrent instances",
-        "description": "Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
-      }
-    }
-  },
-  "setup": {
-    "checkingPort": "Checking for available port...",
-    "checkingPython": "Checking system environment for valid Python...",
-    "downloadingPython": "Downloading Integrated Python...",
-    "extractingPython": "Extracting downloaded files...",
-    "loading": "Loading...",
-    "startingBackend": "Starting up backend process..."
-  },
-  "typeTags": {
-    "optional": "optional"
-  },
-  "groups": {
-    "seed": {
-      "randomSeed": "Random seed",
-      "randomSeedAria": "Random Seed"
-    }
-  },
-  "logo": {
-    "background": "bg",
-    "front": "front"
-  },
-  "timer": {
-    "executionTook": "Execution took approximately {{duration}}."
-  },
-  "linkedInputs": {
-    "currentlyLinked": "The values of {{inputs}} are currently linked to the same value. Click here to undo this link.",
-    "clickToLink": "Click here to link {{inputs}} to the same value."
-  },
-  "languages": {
-    "english": "English",
-    "spanish": "Español",
-    "german": "Deutsch"
-  },
-  "search": {
-    "placeholder": "Search...",
-    "missingNodes": "Missing nodes? Click to open the dependency manager!",
-    "noCompatibleNodes": "No compatible nodes found."
-  },
-  "favorites": {
-    "title": "Favorites",
-    "noFavorites": "No Favorites.",
-    "addFavoritesTooltip": "Add Favorites by right-clicking nodes and selecting Add to Favorites.",
-    "addFavoritesTooltipExpanded": {
-      "beforeIcon": "Add Favorites by hovering over nodes and clicking the",
-      "afterIcon": "icon, or by right-clicking and selecting Add to Favorites."
+    "header": {
+        "alpha": "Alpha",
+        "pause": "Pause",
+        "pauseButton": "Pause button",
+        "resume": "Resume",
+        "run": "Run",
+        "runButton": "Run button",
+        "stop": "Stop",
+        "stopButton": "Stop button",
+        "updateAvailable": "Update available ({{version}})",
+        "updateAvailableAria": "Update available",
+        "updateChangelog": "Update Changelog",
+        "updateAvailableTitle": "Update Available ({{version}})",
+        "updateAvailableMessage": "There is an update available for version {{version}}. Would you like to view the changelog?",
+        "viewReleaseOnGitHub": "View release on GitHub",
+        "downloadFromWebsite": "Download from chaiNNer.app",
+        "ignoreUpdate": "Ignore Update",
+        "viewUpdate": "View Update"
     },
-    "addToFavorites": "Add to Favorites",
-    "removeFromFavorites": "Remove from Favorites"
-  },
-  "documentation": {
-    "title": "Node Documentation",
-    "openDocumentation": "Open Documentation"
-  },
-  "dependencyManager": {
-    "title": "Dependency Manager",
-    "manageDependencies": "Manage Dependencies",
-    "updatesAvailable": "Updates Available",
-    "updatesAvailableDescription": "There are {{count}} packages with available dependency updates.",
-    "openDependencyManager": "Open Dependency Manager",
-    "packages": "Packages",
-    "features": "Features",
-    "refresh": "Refresh",
-    "install": "Install",
-    "update": "Update",
-    "uninstall": "Uninstall",
-    "close": "Close",
-    "missing": "Missing",
-    "outdated": "Outdated",
-    "unavailable": "Unavailable",
-    "enabled": "Enabled",
-    "disabled": "Disabled",
-    "python": "Python",
-    "system": "System",
-    "integrated": "Integrated",
-    "advanced": "Advanced",
-    "installationMode": "Installation mode",
-    "normal": "Normal",
-    "manualCopy": "Manual/Copy",
-    "consoleOutput": "Console output:",
-    "commandCopied": "Command copied to clipboard",
-    "commandCopiedDescription": "Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.",
-    "uninstallTitle": "Uninstall",
-    "uninstallMessage": "Are you sure you want to uninstall {{name}}?",
-    "unsavedChanges": "Unsaved Changes",
-    "unsavedChangesMessage": "You might lose your unsaved changes by uninstalling {{name}}.\n\nAre you sure you want to uninstall {{name}}?",
-    "cancel": "Cancel",
-    "uninstall": "Uninstall",
-    "installing": "Installing {{name}}...",
-    "uninstalling": "Uninstalling {{name}}...",
-    "copyPythonPath": "Copy Python path to clipboard",
-    "pythonPath": "Python path is:",
-    "installAllPackages": "{{operations}} All Packages ({{size}})",
-    "package": "package",
-    "packages": "packages"
-  },
-  "note": {
-    "editMode": "Edit Mode",
-    "editContent": "Edit Content",
-    "markdownMode": "Markdown Mode",
-    "viewMarkdown": "View Markdown"
-  },
-  "node": {
-    "disable": {
-      "hint": "Hint: Use Ctrl+Click to cycle through options."
+    "inputs": {
+        "copyInputOverrideId": "Copy Input Override Id",
+        "directory": {
+            "clear": "Clear",
+            "copyFullDirectoryPath": "Copy Full Directory Path",
+            "openInFileExplorer": "Open in File Explorer",
+            "selectDirectory": "Select a directory...",
+            "clickToSelect": "Click to select..."
+        },
+        "extractValueIntoNode": "Extract value into node",
+        "file": {
+            "clear": "Clear",
+            "copyFileName": "Copy File Name",
+            "copyFullFilePath": "Copy Full File Path",
+            "openInFileExplorer": "Open in File Explorer",
+            "selectFile": "Select a file...",
+            "clickToSelectFile": "Click to select a file..."
+        },
+        "number": {
+            "copyText": "Copy Number",
+            "paste": "Paste"
+        },
+        "text": {
+            "copyText": "Copy Text",
+            "paste": "Paste",
+            "invalidCharacter": "Invalid character '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Add Input",
+        "colorCompare": {
+            "old": "old",
+            "new": "new"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Image not available.",
+            "imagePreviewFailed": "Image preview failed to load, probably unsupported file type."
+        },
+        "model": {
+            "modelNotAvailable": "Model data not available."
+        }
+    },
+    "settings": {
+        "title": "Settings",
+        "restartChaiNNer": "Restart chaiNNer",
+        "tabs": {
+            "appearance": "Appearance",
+            "environment": "Environment",
+            "python": "Python",
+            "advanced": "Advanced"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Color Theme",
+                "description": "Choose the Theme for chaiNNer's appearance.",
+                "options": {
+                    "dark": "Dark",
+                    "light": "Light",
+                    "system": "System",
+                    "charcoal": "Charcoal",
+                    "coffee": "Coffee",
+                    "blueberry": "Blueberry",
+                    "dusk": "Dusk",
+                    "oled": "OLED",
+                    "cyberpunk": "Cyberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Language (Requires restart)",
+                "description": "Choose the language for chaiNNer's interface."
+            },
+            "chainAnimation": {
+                "label": "Chain animation",
+                "description": "Enable animations that show the processing state of the chain."
+            },
+            "minimap": {
+                "label": "Minimap",
+                "description": "Enable a minimap of the current chain in the bottom right corner of the node editor."
+            },
+            "snapToGrid": {
+                "label": "Snap to grid",
+                "description": "Enable node grid snapping."
+            },
+            "snapToGridAmount": {
+                "label": "Snap to grid amount",
+                "description": "The amount to snap the grid to."
+            },
+            "viewportExportPadding": {
+                "label": "Viewport PNG export padding",
+                "description": "The amount of padding for the viewport PNG export."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Startup Template",
+                "description": "Set a chain template to use by default when chaiNNer starts up.",
+                "placeholder": "Select a file...",
+                "clear": "Clear",
+                "pickFile": "Pick startup template file"
+            },
+            "selectChain": "Select Chain"
+        },
+        "python": {
+            "general": "General",
+            "useSystemPython": {
+                "label": "Use system Python (requires restart)",
+                "description": "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
+            },
+            "systemPythonLocation": {
+                "label": "System Python location (optional)",
+                "description": "If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one.",
+                "placeholder": "Select a file...",
+                "clear": "Clear",
+                "pickFile": "Pick system python location"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Check for Update on Start-up",
+                "description": "Toggles checking for updates on start-up."
+            },
+            "experimentalFeatures": {
+                "label": "Enable experimental features",
+                "description": "Enable experimental features to try them out before they are finished."
+            },
+            "hardwareAcceleration": {
+                "label": "Enable Hardware Acceleration (requires restart)",
+                "description": "Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
+            },
+            "allowMultipleInstances": {
+                "label": "Allow multiple concurrent instances",
+                "description": "Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
+            }
+        },
+        "noOptionsFound": "No options found.",
+        "clearCache": "Clear Cache"
+    },
+    "setup": {
+        "checkingPort": "Checking for available port...",
+        "checkingPython": "Checking system environment for valid Python...",
+        "downloadingPython": "Downloading Integrated Python...",
+        "extractingPython": "Extracting downloaded files...",
+        "loading": "Loading...",
+        "startingBackend": "Starting up backend process..."
+    },
+    "typeTags": {
+        "optional": "optional"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Random seed",
+            "randomSeedAria": "Random Seed"
+        }
+    },
+    "logo": {
+        "background": "bg",
+        "front": "front"
+    },
+    "timer": {
+        "executionTook": "Execution took approximately {{duration}}."
+    },
+    "linkedInputs": {
+        "currentlyLinked": "The values of {{inputs}} are currently linked to the same value. Click here to undo this link.",
+        "clickToLink": "Click here to link {{inputs}} to the same value."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch"
+    },
+    "search": {
+        "placeholder": "Search...",
+        "missingNodes": "Missing nodes? Click to open the dependency manager!",
+        "noCompatibleNodes": "No compatible nodes found."
+    },
+    "favorites": {
+        "title": "Favorites",
+        "noFavorites": "No Favorites.",
+        "addFavoritesTooltip": "Add Favorites by right-clicking nodes and selecting Add to Favorites.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Add Favorites by hovering over nodes and clicking the",
+            "afterIcon": "icon, or by right-clicking and selecting Add to Favorites."
+        },
+        "addToFavorites": "Add to Favorites",
+        "removeFromFavorites": "Remove from Favorites"
+    },
+    "documentation": {
+        "title": "Node Documentation",
+        "openDocumentation": "Open Documentation"
+    },
+    "dependencyManager": {
+        "title": "Dependency Manager",
+        "manageDependencies": "Manage Dependencies",
+        "updatesAvailable": "Updates Available",
+        "updatesAvailableDescription": "There are {{count}} packages with available dependency updates.",
+        "openDependencyManager": "Open Dependency Manager",
+        "packages": "Packages",
+        "features": "Features",
+        "refresh": "Refresh",
+        "install": "Install",
+        "update": "Update",
+        "uninstall": "Uninstall",
+        "close": "Close",
+        "missing": "Missing",
+        "outdated": "Outdated",
+        "unavailable": "Unavailable",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "python": "Python",
+        "system": "System",
+        "integrated": "Integrated",
+        "advanced": "Advanced",
+        "installationMode": "Installation mode",
+        "normal": "Normal",
+        "manualCopy": "Manual/Copy",
+        "consoleOutput": "Console output:",
+        "commandCopied": "Command copied to clipboard",
+        "commandCopiedDescription": "Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.",
+        "uninstallTitle": "Uninstall",
+        "uninstallMessage": "Are you sure you want to uninstall {{name}}?",
+        "unsavedChanges": "Unsaved Changes",
+        "unsavedChangesMessage": "You might lose your unsaved changes by uninstalling {{name}}.\n\nAre you sure you want to uninstall {{name}}?",
+        "cancel": "Cancel",
+        "installing": "Installing {{name}}...",
+        "uninstalling": "Uninstalling {{name}}...",
+        "copyPythonPath": "Copy Python path to clipboard",
+        "pythonPath": "Python path is:",
+        "installAllPackages": "{{operations}} All Packages ({{size}})",
+        "package": {
+            "singular": "package",
+            "plural": "packages"
+        },
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
     },
     "note": {
-      "placeholder": "Note Text"
+        "editMode": "Edit Mode",
+        "editContent": "Edit Content",
+        "markdownMode": "Markdown Mode",
+        "viewMarkdown": "View Markdown"
     },
-    "implementationError": "Implementation Error",
-    "implementationErrorMessage": "Unable to determine key info for node {{nodeName}} ({{schemaId}}).",
-    "enable": "Enable",
-    "disable": "Disable",
-    "skip": "Skip"
-  },
-  "color": {
-    "resetToOld": "Reset to old color",
-    "acceptNew": "Accept new color"
-  },
-  "support": {
-    "koFiTooltip": "Support chaiNNer on Ko-fi",
-    "koFiAria": "Support chaiNNer",
-    "koFiButton": "Support chaiNNer"
-  },
-  "edge": {
-    "removeEdge": "Remove edge button"
-  },
-  "breakpoint": {
-    "removeBreakpoint": "Remove Breakpoint",
-    "removeEdge": "Remove Edge"
-  },
-  "tooltips": {
-    "addNodesToCanvas": "Either double-click or drag and drop to add nodes to the canvas.",
-    "collapseExpandCategories": "Collapse/Expand Categories"
-  },
-  "nodeMenu": {
-    "copy": "Copy",
-    "duplicate": "Duplicate",
-    "resetNode": "Reset Node",
-    "resetInputs": "Reset Inputs",
-    "resetConnections": "Reset Connections",
-    "resetAll": "Reset All",
-    "enable": "Enable",
-    "disable": "Disable",
-    "skip": "Skip",
-    "unlock": "Unlock",
-    "lock": "Lock",
-    "refreshPreview": "Refresh Preview",
-    "delete": "Delete",
-    "openDocumentation": "Open Documentation"
-  },
-  "nodesMenu": {
-    "copy": "Copy",
-    "duplicate": "Duplicate",
-    "resetNodes": "Reset Nodes",
-    "resetInputs": "Reset Inputs",
-    "resetConnections": "Reset Connections",
-    "resetAll": "Reset All",
-    "enableAll": "Enable All",
-    "disableAll": "Disable All",
-    "delete": "Delete"
-  },
-  "edgeMenu": {
-    "addBreakpoint": "Add Breakpoint",
-    "delete": "Delete"
-  },
-  "nodeSelector": {
-    "favorites": "Favorites",
-    "missingDependencies": "Missing dependencies.",
-    "unableToImport": "Unable to import node(s).",
-    "clickToInstall": "Click to open the dependency manager to install {{packageName}}.",
-    "criticalImportError": "A critical import error has occurred with a dependency in package: {{packageName}}."
-  }
+    "node": {
+        "disableHint": "Hint: Use Ctrl+Click to cycle through options.",
+        "note": {
+            "placeholder": "Note Text"
+        },
+        "implementationError": "Implementation Error",
+        "implementationErrorMessage": "Unable to determine key info for node {{nodeName}} ({{schemaId}}).",
+        "enable": "Enable",
+        "disable": "Disable",
+        "skip": "Skip",
+        "eta": "ETA:",
+        "outdated": "Outdated"
+    },
+    "color": {
+        "resetToOld": "Reset to old color",
+        "acceptNew": "Accept new color"
+    },
+    "support": {
+        "koFiTooltip": "Support chaiNNer on Ko-fi",
+        "koFiAria": "Support chaiNNer",
+        "koFiButton": "Support chaiNNer"
+    },
+    "edge": {
+        "removeEdge": "Remove edge button"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Remove Breakpoint",
+        "removeEdge": "Remove Edge"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Either double-click or drag and drop to add nodes to the canvas.",
+        "collapseExpandCategories": "Collapse/Expand Categories"
+    },
+    "nodeMenu": {
+        "copy": "Copy",
+        "duplicate": "Duplicate",
+        "resetNode": "Reset Node",
+        "resetInputs": "Reset Inputs",
+        "resetConnections": "Reset Connections",
+        "resetAll": "Reset All",
+        "enable": "Enable",
+        "disable": "Disable",
+        "skip": "Skip",
+        "unlock": "Unlock",
+        "lock": "Lock",
+        "refreshPreview": "Refresh Preview",
+        "delete": "Delete",
+        "openDocumentation": "Open Documentation"
+    },
+    "nodesMenu": {
+        "copy": "Copy",
+        "duplicate": "Duplicate",
+        "resetNodes": "Reset Nodes",
+        "resetInputs": "Reset Inputs",
+        "resetConnections": "Reset Connections",
+        "resetAll": "Reset All",
+        "enableAll": "Enable All",
+        "disableAll": "Disable All",
+        "delete": "Delete"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Add Breakpoint",
+        "delete": "Delete"
+    },
+    "nodeSelector": {
+        "favorites": "Favorites",
+        "missingDependencies": "Missing dependencies.",
+        "unableToImport": "Unable to import node(s).",
+        "clickToInstall": "Click to open the dependency manager to install {{packageName}}.",
+        "criticalImportError": "A critical import error has occurred with a dependency in package: {{packageName}}.",
+        "nodes": "Nodes"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "is",
+            "isNot": "is not",
+            "oneOf": "one of",
+            "ofType": "of type",
+            "allOf": "All of",
+            "atLeastOneOf": "At least one of",
+            "followingConditions": "the following conditions must be met:",
+            "condition": "Condition:"
+        },
+        "nodeDocs": {
+            "optional": "optional",
+            "sequenced": "(Sequenced)",
+            "supportedFileTypes": "Supported file types:",
+            "primaryInputDescription": "This input is the primary input for its supported file types. This means that you can drag and drop supported files into chaiNNer, and it will create a node with this input filled in automatically.",
+            "options": "Options:",
+            "type": "Type:",
+            "inputs": "Inputs",
+            "noInputs": "This node has no inputs.",
+            "outputs": "Outputs",
+            "noOutputs": "This node has no outputs.",
+            "seeAlso": "See also"
+        },
+        "nodesList": {
+            "noNodesFound": "No nodes found"
+        }
+    }
 }

@@ -38,7 +38,7 @@ export const ColorCompare = memo(
                         w="full"
                         onClick={onOldClick}
                     >
-                        old
+                        {t('inputs.colorCompare.old')}
                     </Button>
                 </Tooltip>
                 <Tooltip
@@ -58,7 +58,7 @@ export const ColorCompare = memo(
                         w="full"
                         onClick={onNewClick}
                     >
-                        new
+                        {t('inputs.colorCompare.new')}
                     </Button>
                 </Tooltip>
             </ButtonGroup>

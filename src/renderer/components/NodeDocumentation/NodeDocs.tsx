@@ -15,6 +15,7 @@ import {
     useMediaQuery,
 } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useContext } from 'use-context-selector';
 import { Condition, Input, NodeSchema, Output, TextInput } from '../../../common/common-types';
 import { isTautology } from '../../../common/nodes/condition';
@@ -102,6 +103,7 @@ interface OutputItemProps extends InputOutputItemProps {
 
 const InputOutputItem = memo(
     ({ type, kind, item, condition, schema }: InputItemProps | OutputItemProps) => {
+        const { t } = useTranslation();
         const isOptional = 'optional' in item && item.optional;
         if (isOptional) {
             // eslint-disable-next-line no-param-reassign
@@ -143,7 +145,7 @@ const InputOutputItem = memo(
                                 mt="-0.2rem"
                                 verticalAlign="middle"
                             >
-                                optional
+                                {t('nodeDocumentation.nodeDocs.optional')}
                             </TypeTag>
                         )}
                         {item.hasHandle &&
@@ -156,7 +158,7 @@ const InputOutputItem = memo(
                                     w="0.5rem"
                                 />
                             ))}
-                        {isIterated && <Text>(Sequenced)</Text>}
+                        {isIterated && <Text>{t('nodeDocumentation.nodeDocs.sequenced')}</Text>}
                     </HStack>
                     <VStack
                         alignItems="start"
@@ -174,7 +176,7 @@ const InputOutputItem = memo(
                                 fontSize="md"
                                 userSelect="text"
                             >
-                                Supported file types:
+                                {t('nodeDocumentation.nodeDocs.supportedFileTypes')}
                                 {supportedFileTypes.map((fileType) => (
                                     <TypeTag
                                         fontSize="small"
@@ -194,9 +196,7 @@ const InputOutputItem = memo(
                                 fontSize="md"
                                 userSelect="text"
                             >
-                                This input is the primary input for its supported file types. This
-                                means that you can drag and drop supported files into chaiNNer, and
-                                it will create a node with this input filled in automatically.
+                                {t('nodeDocumentation.nodeDocs.primaryInputDescription')}
                             </Text>
                         )}
 
@@ -226,7 +226,7 @@ const InputOutputItem = memo(
                                     as="i"
                                     pr={1}
                                 >
-                                    Options:
+                                    {t('nodeDocumentation.nodeDocs.options')}
                                 </Text>
                                 <DropDownOptions options={item.options} />
                             </Text>
@@ -238,7 +238,7 @@ const InputOutputItem = memo(
                                     as="i"
                                     pr={1}
                                 >
-                                    Type:
+                                    {t('nodeDocumentation.nodeDocs.type')}
                                 </Text>
                                 <TypeView type={withoutError(type)} />
                             </Box>
@@ -256,6 +256,7 @@ interface NodeInfoProps {
     functionDefinition?: FunctionDefinition;
 }
 const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeInfoProps) => {
+    const { t } = useTranslation();
     const { schemata } = useContext(BackendContext);
 
     const inputs = schema.inputs.filter((i) => !isAutoInput(i));
@@ -298,7 +299,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                     size="sm"
                     userSelect="text"
                 >
-                    Inputs
+                    {t('nodeDocumentation.nodeDocs.inputs')}
                 </Heading>
                 {inputs.length > 0 ? (
                     <UnorderedList
@@ -326,7 +327,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         })}
                     </UnorderedList>
                 ) : (
-                    <Text>This node has no inputs.</Text>
+                    <Text>{t('nodeDocumentation.nodeDocs.noInputs')}</Text>
                 )}
             </Box>
             <Box position="relative">
@@ -335,7 +336,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                     size="sm"
                     userSelect="text"
                 >
-                    Outputs
+                    {t('nodeDocumentation.nodeDocs.outputs')}
                 </Heading>
                 {outputs.length > 0 ? (
                     <UnorderedList
@@ -361,7 +362,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         })}
                     </UnorderedList>
                 ) : (
-                    <Text>This node has no outputs.</Text>
+                    <Text>{t('nodeDocumentation.nodeDocs.noOutputs')}</Text>
                 )}
             </Box>
             {seeAlso.length > 0 && (
@@ -371,7 +372,7 @@ const SingleNodeInfo = memo(({ schema, accentColor, functionDefinition }: NodeIn
                         size="sm"
                         userSelect="text"
                     >
-                        See also
+                        {t('nodeDocumentation.nodeDocs.seeAlso')}
                     </Heading>
                     <UnorderedList
                         alignItems="left"

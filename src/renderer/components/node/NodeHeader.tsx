@@ -31,6 +31,7 @@ interface IteratorProcessProps {
 }
 
 const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessProps) => {
+    const { t } = useTranslation();
     const { paused } = useContext(ExecutionStatusContext);
 
     const { progress, eta, index, total } = nodeProgress;
@@ -45,7 +46,7 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
     } else {
         etaText = (
             <>
-                ETA:{' '}
+                {t('node.eta')}{' '}
                 <ReactTimeAgo
                     future
                     date={etaDate}

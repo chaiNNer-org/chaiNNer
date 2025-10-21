@@ -83,10 +83,12 @@ export const AppInfo = memo(() => {
                 <Heading
                     display={{ base: 'none', lg: 'inherit' }}
                     size="md"
+                    // eslint-disable-next-line i18next/no-literal-string
                 >
                     chaiNNer
                 </Heading>
                 <Tag display={{ base: 'none', lg: 'inherit' }}>{t('header.alpha', 'Alpha')}</Tag>
+                {/* eslint-disable-next-line i18next/no-literal-string */}
                 <Tag>v{appVersion}</Tag>
                 {updateVersion && (
                     <Tooltip
