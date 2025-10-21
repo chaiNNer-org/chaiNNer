@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 
 import onnx
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -42,7 +43,7 @@ def load_model_node(path: Path) -> tuple[OnnxModel, Path, str]:
 
     assert os.path.isfile(path), f"Path {path} is not a file"
 
-    logger.debug(f"Reading onnx model from path: {path}")
+    logger.debug("Reading onnx model from path: %s", path)
     model = onnx.load_model(str(path))
 
     dirname, basename, _ = split_file_path(path)

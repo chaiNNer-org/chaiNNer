@@ -57,7 +57,9 @@ def __removed_dead_nodes(chain: Chain, mutation: _Mutation):
         if is_dead:
             chain.remove_node(node.id)
             mutation.signal()
-            logger.debug(f"Chain optimization: Removed {node.schema_id} node {node.id}")
+            logger.debug(
+                "Chain optimization: Removed %s node %s", node.schema_id, node.id
+            )
 
 
 def __removed_pass_through(chain: Chain, mutation: _Mutation):

@@ -121,7 +121,7 @@ class OutputCache(Generic[T]):
             value = counted.value
             counted.hits_to_live -= 0
             if counted.hits_to_live <= 0:
-                logger.debug(f"Hits to live reached 0 for {node_id}")
+                logger.debug("Hits to live reached 0 for %s", node_id)
                 del self.__counted[node_id]
                 gc.collect()
             return value

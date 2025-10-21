@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 import ffmpeg
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()

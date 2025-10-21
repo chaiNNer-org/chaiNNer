@@ -29,14 +29,13 @@ from dependencies.store import (
 )
 from events import EventQueue
 from gpu import nvidia
-from logger import setup_logger
-from response import error_response, success_response
-from server_config import ServerConfig
-from server_process_helper import WorkerServer
 
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
-from logger import get_logger
+from logger import get_logger, setup_logger
+from response import error_response, success_response
+from server_config import ServerConfig
+from server_process_helper import WorkerServer
 
 logger = get_logger("host")
 
@@ -240,7 +239,7 @@ def create_update_progress(ctx: AppContext) -> UpdateProgressFn:
         progress: float,
         status_progress: float | None = None,
     ):
-        logger.info(f"Progress: {message} {progress} {status_progress}")
+        logger.info("Progress: %s %s %s", message, progress, status_progress)
         return ctx.setup_queue.put_and_wait(
             {
                 "event": "package-install-status",
@@ -293,7 +292,7 @@ async def uninstall_dependencies_request(request: Request):
 
         return json({"status": "ok"})
     except Exception as ex:
-        logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
+        logger.error("Error uninstalling dependencies: %s", ex, exc_info=True)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
@@ -333,7 +332,7 @@ async def install_dependencies_request(request: Request):
                 await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
-        logger.error(f"Error installing dependencies: {ex}", exc_info=True)
+        logger.error("Error installing dependencies: %s", ex, exc_info=True)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
@@ -412,7 +411,7 @@ async def import_packages(
 
     to_install: list[api.Dependency] = []
     for package in packages:
-        logger.info(f"Checking dependencies for {package.name}...")
+        logger.info("Checking dependencies for %s...", package.name)
 
         if config.install_builtin_packages:
             to_install.extend(package.dependencies)
@@ -443,7 +442,7 @@ async def import_packages(
         else:
             logger.info("No dependencies to install. Skipping worker restart.")
     except Exception as ex:
-        logger.error(f"Error installing dependencies: {ex}", exc_info=True)
+        logger.error("Error installing dependencies: %s", ex, exc_info=True)
         if config.close_after_start:
             raise ValueError("Error installing dependencies") from ex
 
@@ -509,7 +508,7 @@ async def close_server(sanic_app: Sanic):
         if setup_task is not None:
             await setup_task
     except Exception as ex:
-        logger.error(f"Error waiting for server to start: {ex}")
+        logger.error("Error waiting for server to start: %s", ex)
 
     worker = AppContext.get(sanic_app).get_worker_unmanaged()
     await worker.stop()

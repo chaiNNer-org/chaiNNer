@@ -8,6 +8,7 @@ from tempfile import mkdtemp
 
 import cv2
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -33,7 +34,7 @@ from .. import io_group
 )
 def view_image_external_node(img: np.ndarray) -> None:
     tempdir = mkdtemp(prefix="chaiNNer-")
-    logger.debug(f"Writing image to temp path: {tempdir}")
+    logger.debug("Writing image to temp path: %s", tempdir)
     im_name = f"{time.time()}.png"
     temp_save_dir = os.path.join(tempdir, im_name)
     status = cv2.imwrite(

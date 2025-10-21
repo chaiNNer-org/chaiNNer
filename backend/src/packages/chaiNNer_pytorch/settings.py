@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import torch
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()

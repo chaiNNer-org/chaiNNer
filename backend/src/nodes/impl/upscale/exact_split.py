@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()

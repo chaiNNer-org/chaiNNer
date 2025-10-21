@@ -310,7 +310,7 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
                 data[node_output.id] = node_output.get_broadcast_data(value)
                 types[node_output.id] = node_output.get_broadcast_type(value)
         except Exception as e:
-            logger.error(f"Error broadcasting output: {e}")
+            logger.error("Error broadcasting output: %s", e)
     return data, types
 
 
@@ -325,7 +325,7 @@ def compute_sequence_broadcast(
             for output_id, type in iter_output.get_broadcast_item_types(g).items():
                 item_types[output_id] = type
         except Exception as e:
-            logger.error(f"Error broadcasting output: {e}")
+            logger.error("Error broadcasting output: %s", e)
     return sequence_types, item_types
 
 
@@ -616,8 +616,8 @@ class Executor:
         not the actual iteration or collection.
         """
 
-        logger.debug(f"node: {node}")
-        logger.debug(f"Running node {node.id}")
+        logger.debug("node: %s", node)
+        logger.debug("Running node %s", node.id)
 
         inputs = await self.__gather_inputs(node)
         context = self.__get_node_context(node)
@@ -643,7 +643,7 @@ class Executor:
             try:
                 fn()
             except Exception as e:
-                logger.error(f"Error running cleanup function: {e}")
+                logger.error("Error running cleanup function: %s", e)
             finally:
                 context.node_cleanup_fns.remove(fn)
 
@@ -955,7 +955,7 @@ class Executor:
                 try:
                     fn()
                 except Exception as e:
-                    logger.error(f"Error running cleanup function: {e}")
+                    logger.error("Error running cleanup function: %s", e)
 
         # await all broadcasts
         tasks = self.__broadcast_tasks
@@ -964,23 +964,23 @@ class Executor:
             await task
 
     async def run(self):
-        logger.debug(f"Running executor {self.id}")
+        logger.debug("Running executor %s", self.id)
         try:
             await self.__process_nodes()
         finally:
             gc.collect()
 
     def resume(self):
-        logger.debug(f"Resuming executor {self.id}")
+        logger.debug("Resuming executor %s", self.id)
         self.progress.resume()
 
     def pause(self):
-        logger.debug(f"Pausing executor {self.id}")
+        logger.debug("Pausing executor %s", self.id)
         self.progress.pause()
         gc.collect()
 
     def kill(self):
-        logger.debug(f"Killing executor {self.id}")
+        logger.debug("Killing executor %s", self.id)
         self.progress.abort()
 
     # events

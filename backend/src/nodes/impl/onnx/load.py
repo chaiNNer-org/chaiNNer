@@ -3,16 +3,13 @@ from __future__ import annotations
 import onnx
 import onnx.inliner
 import re2
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
 
 from .model import OnnxGeneric, OnnxInfo, OnnxModel, OnnxRemBg, SizeReq
-from .utils import (
-    ModelShapeInference,
-    get_opset,
-    get_tensor_fp_datatype,
-)
+from .utils import ModelShapeInference, get_opset, get_tensor_fp_datatype
 
 re2_options = re2.Options()
 re2_options.dot_nl = True
@@ -41,7 +38,7 @@ def _detect_size_req(infer: ModelShapeInference):
             if out_h is not None and out_w is not None:
                 return SizeReq(multiple_of=size), shape
         except Exception:
-            logger.error(f"Failed to infer shape for size {size}", exc_info=True)
+            logger.error("Failed to infer shape for size %s", size, exc_info=True)
 
     return SizeReq(), None
 

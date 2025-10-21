@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -67,7 +68,7 @@ def _read_cv(path: Path) -> np.ndarray | None:
     try:
         img = cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_UNCHANGED)
     except Exception as cv_err:
-        logger.warning(f"Error loading image, trying with imdecode: {cv_err}")
+        logger.warning("Error loading image, trying with imdecode: %s", cv_err)
 
     if img is None:
         try:
@@ -171,7 +172,7 @@ valid_formats = get_available_image_formats()
     side_effects=True,
 )
 def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
-    logger.debug(f"Reading image from path: {path}")
+    logger.debug("Reading image from path: %s", path)
 
     dirname, basename, _ = split_file_path(path)
 
@@ -182,7 +183,7 @@ def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
             img = decoder(Path(path))
         except Exception as e:
             error = e
-            logger.warning(f"Decoder {name} failed")
+            logger.warning("Decoder %s failed", name)
 
         if img is not None:
             break

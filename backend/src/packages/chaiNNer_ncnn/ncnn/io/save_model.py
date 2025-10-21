@@ -27,7 +27,7 @@ def save_model_node(model: NcnnModelWrapper, directory: Path, name: str) -> None
     full_bin_path = (directory / f"{name}.bin").resolve()
     full_param_path = (directory / f"{name}.param").resolve()
 
-    logger.debug(f"Writing NCNN model to paths: {full_bin_path} {full_param_path}")
+    logger.debug("Writing NCNN model to paths: %s %s", full_bin_path, full_param_path)
 
     full_bin_path.parent.mkdir(parents=True, exist_ok=True)
     model.model.write_bin(full_bin_path)

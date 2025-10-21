@@ -4,6 +4,7 @@ import math
 from typing import Callable, Union
 
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -123,7 +124,7 @@ def _max_split(
         # the image was too large
         max_tile_size = split_tile_size(max_tile_size)
 
-        logger.warn(
+        logger.warning(
             f"Unable to upscale the whole image at once. Reduced tile size to {max_tile_size}."
         )
 

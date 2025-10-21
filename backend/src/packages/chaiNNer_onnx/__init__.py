@@ -86,4 +86,4 @@ onnx_category = package.add_category(
 )
 
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

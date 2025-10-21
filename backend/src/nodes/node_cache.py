@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Iterable, NewType
 
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()

@@ -3,13 +3,9 @@ from __future__ import annotations
 import importlib
 import os
 from dataclasses import asdict, dataclass, field
-from typing import (
-    Any,
-    Awaitable,
-    Callable,
-    Iterable,
-    TypeVar,
-)
+from typing import Any, Awaitable, Callable, Iterable, TypeVar
+
+from logger import get_logger_from_env
 
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
@@ -31,8 +27,6 @@ from .node_data import (
 from .output import BaseOutput
 from .settings import Setting
 from .types import FeatureId, InputId, NodeId, NodeKind, OutputId, RunFn
-
-from logger import get_logger_from_env
 
 logger = get_logger_from_env()
 
@@ -91,7 +85,7 @@ class NodeGroup:
     nodes: list[NodeData] = field(default_factory=list)
 
     def add_node(self, node: NodeData):
-        logger.debug(f"Added {node.schema_id}")
+        logger.debug("Added %s", node.schema_id)
         self.nodes.append(node)
 
     def to_dict(self):

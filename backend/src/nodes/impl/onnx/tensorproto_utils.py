@@ -3,6 +3,7 @@ from sys import float_info
 import numpy as np
 from onnx import numpy_helper as onph
 from onnx.onnx_pb import AttributeProto, NodeProto, TensorProto
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -97,7 +98,7 @@ def get_node_attr_from_input_ai(tp: TensorProto) -> np.ndarray:
             shape_data.dtype,
         )
     else:
-        logger.error(f"Unknown data type {tp.data_type}")
+        logger.error("Unknown data type %s", tp.data_type)
 
     return np.empty(0, np.int32)
 
@@ -107,7 +108,7 @@ def get_node_attr_from_input_af(tp: TensorProto) -> np.ndarray:
         shape_data = onph.to_array(tp)
         return np.array(list(shape_data), shape_data.dtype)
     else:
-        logger.error(f"Unknown data type {tp.data_type}")
+        logger.error("Unknown data type %s", tp.data_type)
 
     return np.empty(0, np.float32)
 

@@ -49,4 +49,4 @@ ncnn_category = package.add_category(
     install_hint=inst_hint,
 )
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

@@ -7,6 +7,7 @@ import onnx
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from onnx.onnx_pb import TensorProto
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()

@@ -54,7 +54,7 @@ def load_models_node(
     directory: Path,
     fail_fast: bool,
 ) -> tuple[Generator[tuple[OnnxModel, str, str, int]], Path]:
-    logger.debug(f"Iterating over models in directory: {directory}")
+    logger.debug("Iterating over models in directory: %s", directory)
 
     def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(path)

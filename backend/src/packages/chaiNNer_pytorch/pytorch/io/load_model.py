@@ -77,7 +77,7 @@ def load_model_node(
     pytorch_device = exec_options.device
 
     try:
-        logger.debug(f"Reading state dict from path: {path}")
+        logger.debug("Reading state dict from path: %s", path)
 
         model_descriptor = ModelLoader(pytorch_device).load_from_file(path)
 

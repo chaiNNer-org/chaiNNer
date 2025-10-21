@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Generic, Iterable, TypeVar
 
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -114,7 +115,9 @@ def convert(
     if path is None:
         raise ValueError(f"Conversion {input_.name} -> {output.name} is not possible.")
 
-    logger.debug(f"Converting color using the path {' -> '.join(x.name for x in path)}")
+    logger.debug(
+        "Converting color using the path %s", " -> ".join(x.name for x in path)
+    )
 
     for i in range(1, len(path)):
         curr_in = path[i - 1]

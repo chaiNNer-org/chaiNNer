@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 import requests
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -144,7 +145,7 @@ async def get_verified_api() -> Api | None:
     # find the first working api
     for api, result in zip(apis, results):
         if not isinstance(result, Exception):
-            logger.info(f"Found stable diffusion API at {api.base_url}")
+            logger.info("Found stable diffusion API at %s", api.base_url)
             _CURRENT_API = api
             return api
 

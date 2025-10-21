@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import onnxruntime as ort
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -140,7 +141,7 @@ def upscale_image_node(
         exact_size = req_width or req_height, req_height
 
     h, w, c = get_h_w_c(img)
-    logger.debug(f"Image is {h}x{w}x{c}")
+    logger.debug("Image is %dx%dx%d", h, w, c)
 
     use_size_req = (
         exact_size is None

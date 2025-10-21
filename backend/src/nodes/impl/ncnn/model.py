@@ -7,6 +7,7 @@ from json import load as jload
 from pathlib import Path
 
 import numpy as np
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -204,7 +205,9 @@ class NcnnParamCollection:
             try:
                 param = param_dict[idstr]
             except KeyError:
-                logger.error(f"Op {self.op} does not have param {pid}, please report")
+                logger.error(
+                    "Op %s does not have param %s, please report", self.op, pid
+                )
                 raise
 
             default_value = param["defaultValue"]
@@ -231,7 +234,7 @@ class NcnnParamCollection:
         try:
             param = param_dict[idstr]
         except KeyError:
-            logger.error(f"Op {self.op} does not have param {idstr}, please report")
+            logger.error("Op %s does not have param %s, please report", self.op, idstr)
             raise
         name = param["paramPhase"]
         def_val = param["defaultValue"]

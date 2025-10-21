@@ -5,6 +5,7 @@ from pathlib import Path
 
 import torch
 from safetensors.torch import save_file
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -54,7 +55,7 @@ def save_model_node(
     model: ModelDescriptor, directory: Path, name: str, weight_format: WeightFormat
 ) -> None:
     full_path = (directory / f"{name}.{weight_format.value}").resolve()
-    logger.debug(f"Writing model to path: {full_path}")
+    logger.debug("Writing model to path: %s", full_path)
     full_path.parent.mkdir(parents=True, exist_ok=True)
     if weight_format == WeightFormat.PTH:
         torch.save(model.model.state_dict(), full_path)

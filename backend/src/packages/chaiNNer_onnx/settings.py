@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import List, cast
 
 import onnxruntime as ort
+
 from logger import get_logger_from_env
 
 logger = get_logger_from_env()
@@ -97,7 +98,7 @@ def get_settings(context: NodeContext) -> OnnxSettings:
     settings = context.settings
 
     tensorrt_cache_path = settings.get_cache_location("onnx_tensorrt_cache")
-    logger.info(f"TensorRT cache location: {tensorrt_cache_path}")
+    logger.info("TensorRT cache location: %s", tensorrt_cache_path)
     if tensorrt_cache_path and not os.path.exists(tensorrt_cache_path):
         os.makedirs(tensorrt_cache_path)
 
