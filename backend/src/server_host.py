@@ -292,7 +292,7 @@ async def uninstall_dependencies_request(request: Request):
 
         return json({"status": "ok"})
     except Exception as ex:
-        logger.error("Error uninstalling dependencies: %s", ex, exc_info=True)
+        logger.exception("Error uninstalling dependencies: %s", ex)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
@@ -332,7 +332,7 @@ async def install_dependencies_request(request: Request):
                 await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
-        logger.error("Error installing dependencies: %s", ex, exc_info=True)
+        logger.exception("Error installing dependencies: %s", ex)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
@@ -442,7 +442,7 @@ async def import_packages(
         else:
             logger.info("No dependencies to install. Skipping worker restart.")
     except Exception as ex:
-        logger.error("Error installing dependencies: %s", ex, exc_info=True)
+        logger.exception("Error installing dependencies: %s", ex)
         if config.close_after_start:
             raise ValueError("Error installing dependencies") from ex
 

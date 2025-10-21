@@ -372,7 +372,7 @@ async def run_individual(request: Request):
 
         return json({"success": True, "data": None})
     except Exception as exception:
-        logger.error(exception, exc_info=True)
+        logger.exception(exception)
         return json({"success": False, "error": str(exception)})
 
 
@@ -386,7 +386,7 @@ async def clear_cache_individual(request: Request):
             del ctx.cache[full_data["id"]]
         return json({"success": True, "data": None})
     except Exception as exception:
-        logger.error(exception, exc_info=True)
+        logger.exception(exception)
         return json({"success": False, "error": str(exception)})
 
 
@@ -578,7 +578,7 @@ async def import_packages(
         for e in load_errors:
             if not isinstance(e.error, ModuleNotFoundError):
                 logger.warning(
-                    f"Failed to load {e.module} ({e.file}):", exc_info=e.error
+                    "Failed to load %s (%s):", e.module, e.file, exc_info=e.error
                 )
             else:
                 import_errors.append(e)

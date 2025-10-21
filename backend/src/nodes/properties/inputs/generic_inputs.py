@@ -105,7 +105,9 @@ class DropDownInput(BaseInput[T]):
 
         if self.default not in self.accepted_values:
             logger.error(
-                f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
+                "Invalid default value %s in %s dropdown. Using first value instead.",
+                self.default,
+                label,
             )
             self.default = options[0]["value"]
 

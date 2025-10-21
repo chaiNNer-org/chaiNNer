@@ -417,7 +417,7 @@ class NcnnModel:
                     weight_b = weights_b[weight_name]
                 except KeyError:
                     logger.error(
-                        f"Weights in node {a.name} and {b.name} do not correspond"
+                        "Weights in node %s and %s do not correspond", a.name, b.name
                     )
                     raise
 

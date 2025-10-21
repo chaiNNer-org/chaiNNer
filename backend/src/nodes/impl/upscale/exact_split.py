@@ -106,7 +106,11 @@ def _exact_split_into_regions(
     y_segments = _exact_split_into_segments(h, exact_h, overlap)
 
     logger.info(
-        f"Image is split into {len(x_segments)}x{len(y_segments)} tiles each exactly {exact_w}x{exact_h}px."
+        "Image is split into %dx%d tiles each exactly %dx%dpx.",
+        len(x_segments),
+        len(y_segments),
+        exact_w,
+        exact_h,
     )
 
     result: list[list[tuple[Region, Padding]]] = []

@@ -65,24 +65,26 @@ def collect_input_information(
                 try:
                     value = node_input.enforce_(value)  # noqa
                 except Exception:
-                    logger.error(
-                        f"Error enforcing input {node_input.label} (id {node_input.id})",
-                        exc_info=True,
+                    logger.exception(
+                        "Error enforcing input %s (id %s)",
+                        node_input.label,
+                        node_input.id,
                     )
                     # We'll just try using the un-enforced value. Maybe it'll work.
 
             try:
                 input_dict[node_input.id] = node_input.get_error_value(value)
             except Exception:
-                logger.error(
-                    f"Error getting error value for input {node_input.label} (id {node_input.id})",
-                    exc_info=True,
+                logger.exception(
+                    "Error getting error value for input %s (id %s)",
+                    node_input.label,
+                    node_input.id,
                 )
 
         return input_dict
     except Exception:
         # this method must not throw
-        logger.error("Error collecting input information.", exc_info=True)
+        logger.exception("Error collecting input information.")
         return {}
 
 

@@ -99,7 +99,7 @@ def split_file_path(path: Path | str) -> tuple[Path, str, str]:
 
 def walk_error_handler(exception_instance: Exception):
     logger.warning(
-        f"Exception occurred during walk: {exception_instance} Continuing..."
+        "Exception occurred during walk: %s Continuing...", exception_instance
     )
 
 

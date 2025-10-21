@@ -67,7 +67,12 @@ def _exact_split(
 ) -> np.ndarray:
     h, w, c = get_h_w_c(img)
     logger.debug(
-        f"Exact size split image ({w}x{h}px @ {c}) with exact tile size {starting_tile_size[0]}x{starting_tile_size[1]}px."
+        "Exact size split image (%dx%dpx @ %d) with exact tile size %dx%dpx.",
+        w,
+        h,
+        c,
+        starting_tile_size[0],
+        starting_tile_size[1],
     )
 
     def no_split_upscale(i: np.ndarray, r: Region) -> np.ndarray:
@@ -112,7 +117,11 @@ def _max_split(
 
     max_tile_size = starting_tile_size
     logger.debug(
-        f"Auto split image ({w}x{h}px @ {c}) with initial tile size {max_tile_size}."
+        "Auto split image (%dx%dpx @ %d) with initial tile size %s.",
+        w,
+        h,
+        c,
+        max_tile_size,
     )
 
     if w <= max_tile_size[0] and h <= max_tile_size[1]:
@@ -125,7 +134,8 @@ def _max_split(
         max_tile_size = split_tile_size(max_tile_size)
 
         logger.warning(
-            f"Unable to upscale the whole image at once. Reduced tile size to {max_tile_size}."
+            "Unable to upscale the whole image at once. Reduced tile size to %s.",
+            max_tile_size,
         )
 
     # The upscale method is allowed to request splits at any time.
@@ -155,7 +165,11 @@ def _max_split(
         tile_size_y = math.ceil(h / tile_count_y)
 
         logger.debug(
-            f"Currently {tile_count_x}x{tile_count_y} tiles each {tile_size_x}x{tile_size_y}px."
+            "Currently %dx%d tiles each %dx%dpx.",
+            tile_count_x,
+            tile_count_y,
+            tile_size_x,
+            tile_size_y,
         )
 
         prev_row_result: TileBlender | None = None
@@ -184,7 +198,9 @@ def _max_split(
                     start_y = (y * tile_size_x) // new_tile_size_y
 
                     logger.debug(
-                        f"Split occurred. New tile size is {max_tile_size}. Starting at row {start_y}."
+                        "Split occurred. New tile size is %s. Starting at row %d.",
+                        max_tile_size,
+                        start_y,
                     )
 
                     # reset result

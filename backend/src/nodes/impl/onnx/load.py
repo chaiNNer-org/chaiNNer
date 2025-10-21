@@ -38,7 +38,7 @@ def _detect_size_req(infer: ModelShapeInference):
             if out_h is not None and out_w is not None:
                 return SizeReq(multiple_of=size), shape
         except Exception:
-            logger.error("Failed to infer shape for size %s", size, exc_info=True)
+            logger.exception("Failed to infer shape for size %s", size)
 
     return SizeReq(), None
 

@@ -104,7 +104,7 @@ def _try_nvml_init():
             logger.info("No Nvidia GPU found, or invalid driver installed.")
         else:
             logger.info(
-                f"Unknown error occurred when trying to initialize Nvidia GPU: {e}"
+                "Unknown error occurred when trying to initialize Nvidia GPU: %s", e
             )
         return False
 
