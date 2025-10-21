@@ -58,157 +58,6 @@
       "clear": "Limpiar",
       "copyFullDirectoryPath": "Copiar Ruta Completa del Directorio",
       "openInFileExplorer": "Abrir en Explorador de Archivos",
-      "selectDirectory": "Seleccionar un directorio..."
-    },
-    "extractValueIntoNode": "Extraer valor al nodo",
-    "file": {
-      "clear": "Limpiar",
-      "copyFileName": "Copiar Nombre de Archivo",
-      "copyFullFilePath": "Copiar Ruta Completa del Archivo",
-      "openInFileExplorer": "Abrir en Explorador de Archivos",
-      "selectFile": "Seleccionar un archivo..."
-    },
-    "number": {
-      "copyText": "Copiar Número",
-      "paste": "Pegar"
-    },
-    "text": {
-      "copyText": "Copiar Texto",
-      "paste": "Pegar"
-    }
-  },
-  "outputs": {
-    "largeImage": {
-      "imageNotAvailable": "Imagen no disponible."
-    },
-    "model": {
-      "modelNotAvailable": "Datos del modelo no disponibles."
-    }
-  },
-  "settings": {
-    "title": "Configuración",
-    "restartChaiNNer": "Reiniciar chaiNNer",
-    "tabs": {
-      "appearance": "Apariencia",
-      "environment": "Entorno",
-      "python": "Python",
-      "advanced": "Avanzado"
-    },
-    "appearance": {
-      "colorTheme": {
-        "label": "Tema de Color",
-        "description": "Elige el tema para la apariencia de chaiNNer.",
-        "options": {
-          "dark": "Oscuro",
-          "light": "Claro",
-          "system": "Sistema",
-          "charcoal": "Carbón",
-          "coffee": "Café",
-          "blueberry": "Arándano",
-          "dusk": "Crepúsculo",
-          "oled": "OLED",
-          "cyberpunk": "Cyberpunk",
-          "mixer": "Mixer3D",
-          "notreal": "NotRealEngine",
-          "comfort": "ComfortUI"
-        }
-      },
-      "language": {
-        "label": "Idioma",
-        "description": "Elige el idioma para la interfaz de chaiNNer."
-      },
-      "chainAnimation": {
-        "label": "Animación de cadena",
-        "description": "Habilitar animaciones que muestran el estado de procesamiento de la cadena."
-      },
-      "minimap": {
-        "label": "Minimapa",
-        "description": "Habilitar un minimapa de la cadena actual en la esquina inferior derecha del editor de nodos."
-      },
-      "snapToGrid": {
-        "label": "Ajustar a la cuadrícula",
-        "description": "Habilitar ajuste de nodos a la cuadrícula."
-      },
-      "snapToGridAmount": {
-        "label": "Cantidad de ajuste a la cuadrícula",
-        "description": "La cantidad para ajustar a la cuadrícula."
-      },
-      "viewportExportPadding": {
-        "label": "Relleno de exportación PNG de ventana",
-        "description": "La cantidad de relleno para la exportación PNG de la ventana."
-      }
-    },
-    "environment": {
-      "startupTemplate": {
-        "label": "Plantilla de Inicio",
-        "description": "Establecer una plantilla de cadena para usar por defecto cuando chaiNNer se inicia.",
-        "placeholder": "Seleccionar un archivo...",
-        "clear": "Limpiar"
-      },
-      "selectChain": "Seleccionar Cadena"
-    },
-    "python": {
-      "general": "General",
-      "useSystemPython": {
-        "label": "Usar Python del sistema (requiere reinicio)",
-        "description": "Usar Python del sistema para el procesamiento de chaiNNer en lugar del Python incluido (no recomendado)"
-      },
-      "systemPythonLocation": {
-        "label": "Ubicación de Python del sistema (opcional)",
-        "description": "Si se desea, usar un binario de python específico en lugar del predeterminado invocado por 'python3' o 'python'. Esto es útil si tienes múltiples versiones de python instaladas y quieres elegir una específica.",
-        "placeholder": "Seleccionar un archivo...",
-        "clear": "Limpiar"
-      }
-    },
-    "advanced": {
-      "checkForUpdates": {
-        "label": "Buscar actualizaciones al iniciar",
-        "description": "Activa la búsqueda de actualizaciones al iniciar."
-      },
-      "experimentalFeatures": {
-        "label": "Habilitar características experimentales",
-        "description": "Habilita características experimentales para probarlas antes de que estén terminadas."
-      },
-      "hardwareAcceleration": {
-        "label": "Habilitar aceleración de hardware (requiere reinicio)",
-        "description": "Habilita el renderizado GPU para la interfaz gráfica. Úselo con precaución, ya que puede disminuir severamente el rendimiento de la GPU para el procesamiento de imágenes."
-      },
-      "allowMultipleInstances": {
-        "label": "Permitir múltiples instancias simultáneas",
-        "description": "Habilita múltiples instancias concurrentes de chaiNNer. Esto no se recomienda, pero si su cadena no está usando suficientes recursos del sistema, puede resultarle útil para ejecutar cosas simultáneamente."
-      }
-    }
-  },
-  "setup": {
-    "checkingPort": "Verificando puerto disponible...",
-    "checkingPython": "Verificando entorno del sistema para Python válido...",
-    "downloadingPython": "Descargando Python Integrado...",
-    "extractingPython": "Extrayendo archivos descargados...",
-    "loading": "Cargando...",
-    "startingBackend": "Iniciando proceso del backend..."
-  },
-  "typeTags": {
-    "optional": "opcional"
-  },
-  "nodeSelector": {
-    "favorites": "Favoritos",
-    "missingDependencies": "Dependencias faltantes.",
-    "unableToImport": "No se pueden importar nodo(s).",
-    "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",
-    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}."
-  },
-  "groups": {
-    "seed": {
-      "randomSeed": "Semilla aleatoria",
-      "randomSeedAria": "Semilla Aleatoria"
-    }
-  },
-  "inputs": {
-    "copyInputOverrideId": "Copiar ID de Sobrescritura de Entrada",
-    "directory": {
-      "clear": "Limpiar",
-      "copyFullDirectoryPath": "Copiar Ruta Completa del Directorio",
-      "openInFileExplorer": "Abrir en Explorador de Archivos",
       "selectDirectory": "Seleccionar un directorio...",
       "clickToSelect": "Haz clic para seleccionar..."
     },
@@ -270,7 +119,7 @@
       },
       "language": {
         "label": "Idioma",
-        "description": "Elige el idioma para la interfaz de chaiNNer."
+        "description": "Elige el idioma para la interfaz de chaiNNer. (Requiere reinicio)"
       },
       "chainAnimation": {
         "label": "Animación de cadena",
@@ -346,6 +195,19 @@
   },
   "typeTags": {
     "optional": "opcional"
+  },
+  "nodeSelector": {
+    "favorites": "Favoritos",
+    "missingDependencies": "Dependencias faltantes.",
+    "unableToImport": "No se pueden importar nodo(s).",
+    "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",
+    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}."
+  },
+  "groups": {
+    "seed": {
+      "randomSeed": "Semilla aleatoria",
+      "randomSeedAria": "Semilla Aleatoria"
+    }
   },
   "node": {
     "disable": {
