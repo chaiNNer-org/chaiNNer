@@ -244,7 +244,10 @@
     "title": "Favorites",
     "noFavorites": "No Favorites.",
     "addFavoritesTooltip": "Add Favorites by right-clicking nodes and selecting Add to Favorites.",
-    "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the {{starIcon}} icon, or by right-clicking and selecting Add to Favorites.",
+    "addFavoritesTooltipExpanded": {
+      "beforeIcon": "Add Favorites by hovering over nodes and clicking the",
+      "afterIcon": "icon, or by right-clicking and selecting Add to Favorites."
+    },
     "addToFavorites": "Add to Favorites",
     "removeFromFavorites": "Remove from Favorites"
   },
@@ -358,5 +361,8 @@
   "edgeMenu": {
     "addBreakpoint": "Add Breakpoint",
     "delete": "Delete"
+  },
+  "nodeSelector": {
+    "clickToInstall": "<em>Click</em> to open the dependency manager to install {{packageName}}."
   }
 }

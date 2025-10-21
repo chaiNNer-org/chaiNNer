@@ -244,7 +244,10 @@
     "title": "Favoritos",
     "noFavorites": "Sin Favoritos.",
     "addFavoritesTooltip": "Agregar Favoritos haciendo clic derecho en nodos y seleccionando 'Agregar a Favoritos'.",
-    "addFavoritesTooltipExpanded": "Agregar Favoritos pasando el mouse sobre nodos y haciendo clic en el icono {{starIcon}}, o haciendo clic derecho y seleccionando 'Agregar a Favoritos'.",
+    "addFavoritesTooltipExpanded": {
+      "beforeIcon": "Agregar Favoritos pasando el mouse sobre nodos y haciendo clic en el icono",
+      "afterIcon": ", o haciendo clic derecho y seleccionando 'Agregar a Favoritos'."
+    },
     "addToFavorites": "Agregar a Favoritos",
     "removeFromFavorites": "Quitar de Favoritos"
   },
@@ -358,5 +361,8 @@
   "edgeMenu": {
     "addBreakpoint": "Agregar Punto de Interrupción",
     "delete": "Eliminar"
+  },
+  "nodeSelector": {
+    "clickToInstall": "<em>Haz clic</em> para abrir el administrador de dependencias e instalar {{packageName}}."
   }
 }

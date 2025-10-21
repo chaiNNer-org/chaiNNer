@@ -244,7 +244,10 @@
     "title": "Favoriten",
     "noFavorites": "Keine Favoriten.",
     "addFavoritesTooltip": "Favoriten hinzufügen, indem Sie mit der rechten Maustaste auf Knoten klicken und 'Zu Favoriten hinzufügen' auswählen.",
-    "addFavoritesTooltipExpanded": "Favoriten hinzufügen, indem Sie über Knoten fahren und auf das {{starIcon}}-Symbol klicken, oder mit der rechten Maustaste klicken und 'Zu Favoriten hinzufügen' auswählen.",
+    "addFavoritesTooltipExpanded": {
+      "beforeIcon": "Favoriten hinzufügen, indem Sie über Knoten fahren und auf das",
+      "afterIcon": "-Symbol klicken, oder mit der rechten Maustaste klicken und 'Zu Favoriten hinzufügen' auswählen."
+    },
     "addToFavorites": "Zu Favoriten hinzufügen",
     "removeFromFavorites": "Aus Favoriten entfernen"
   },
@@ -358,5 +361,8 @@
   "edgeMenu": {
     "addBreakpoint": "Haltepunkt hinzufügen",
     "delete": "Löschen"
+  },
+  "nodeSelector": {
+    "clickToInstall": "<em>Klicken</em> Sie hier, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren."
   }
 }
