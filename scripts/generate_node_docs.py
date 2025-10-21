@@ -76,10 +76,6 @@ def generate_node_markdown(node: dict[str, Any]) -> str:
     lines.append(f"### {node['name']}")
     lines.append("")
     
-    # Schema ID
-    lines.append(f"**Schema ID:** `{node['schemaId']}`")
-    lines.append("")
-    
     # Description
     description = node.get("description", "")
     if isinstance(description, list):
@@ -88,11 +84,6 @@ def generate_node_markdown(node: dict[str, Any]) -> str:
             lines.append("")
     elif description:
         lines.append(description)
-        lines.append("")
-    
-    # Icon
-    if node.get("icon"):
-        lines.append(f"**Icon:** {node['icon']}")
         lines.append("")
     
     # Inputs
