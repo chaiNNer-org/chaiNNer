@@ -25,7 +25,7 @@
     "lint:py": "ruff format backend --check && ruff check backend",
     "type-check:js": "tsc --noEmit",
     "type-check:py": "pyright backend/",
-    "type-check:runtime": "cross-env TYPE_CHECK_LEVEL=error python ./backend/src/run.py --close-after-start --install-builtin-packages",
+    "type-check:runtime": "cross-env TYPE_CHECK_LEVEL=error python ./backend/src/server.py --close-after-start --install-builtin-packages",
     "type-check": "npm run type-check:js && npm run type-check:py && npm run type-check:runtime",
     "lint:fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && stylelint src/**/*.scss --fix && ruff check backend --fix && ruff format backend",
     "test:js": "vitest",
