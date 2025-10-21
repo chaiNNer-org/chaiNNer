@@ -229,14 +229,14 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                 <Tooltip
                                     hasArrow
                                     borderRadius={8}
-                                    label="Edit Mode"
+                                    label={t('note.editMode', 'Edit Mode')}
                                     mt={1}
                                     openDelay={500}
                                     px={2}
                                     py={1}
                                 >
                                     <IconButton
-                                        aria-label="Edit Content"
+                                        aria-label={t('note.editContent', 'Edit Content')}
                                         h={6}
                                         icon={
                                             <Icon
@@ -257,14 +257,14 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                 <Tooltip
                                     hasArrow
                                     borderRadius={8}
-                                    label="Markdown Mode"
+                                    label={t('note.markdownMode', 'Markdown Mode')}
                                     mt={1}
                                     openDelay={500}
                                     px={2}
                                     py={1}
                                 >
                                     <IconButton
-                                        aria-label="View Markdown"
+                                        aria-label={t('note.viewMarkdown', 'View Markdown')}
                                         h={6}
                                         icon={
                                             <Icon

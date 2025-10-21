@@ -237,7 +237,8 @@
   },
   "search": {
     "placeholder": "Buscar...",
-    "missingNodes": "¿Nodos faltantes? ¡Haz clic para abrir el administrador de dependencias!"
+    "missingNodes": "¿Nodos faltantes? ¡Haz clic para abrir el administrador de dependencias!",
+    "noCompatibleNodes": "No se encontraron nodos compatibles."
   },
   "favorites": {
     "title": "Favoritos",
@@ -292,5 +293,31 @@
     "installAllPackages": "{{operations}} Todos los Paquetes ({{size}})",
     "package": "paquete",
     "packages": "paquetes"
+  },
+  "note": {
+    "editMode": "Modo de Edición",
+    "editContent": "Editar Contenido",
+    "markdownMode": "Modo Markdown",
+    "viewMarkdown": "Ver Markdown"
+  },
+  "node": {
+    "enable": "Habilitar",
+    "disable": "Deshabilitar",
+    "skip": "Omitir"
+  },
+  "color": {
+    "resetToOld": "Restablecer al color anterior",
+    "acceptNew": "Aceptar nuevo color"
+  },
+  "inputs": {
+    "addInput": "Agregar Entrada"
+  },
+  "support": {
+    "koFiTooltip": "Apoya chaiNNer en Ko-fi",
+    "koFiAria": "Apoyar chaiNNer",
+    "koFiButton": "Apoyar chaiNNer"
+  },
+  "edge": {
+    "removeEdge": "Botón de eliminar borde"
   }
 }

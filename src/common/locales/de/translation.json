@@ -237,7 +237,8 @@
   },
   "search": {
     "placeholder": "Suchen...",
-    "missingNodes": "Fehlende Knoten? Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen!"
+    "missingNodes": "Fehlende Knoten? Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen!",
+    "noCompatibleNodes": "Keine kompatiblen Knoten gefunden."
   },
   "favorites": {
     "title": "Favoriten",
@@ -292,5 +293,31 @@
     "installAllPackages": "{{operations}} Alle Pakete ({{size}})",
     "package": "Paket",
     "packages": "Pakete"
+  },
+  "note": {
+    "editMode": "Bearbeitungsmodus",
+    "editContent": "Inhalt bearbeiten",
+    "markdownMode": "Markdown-Modus",
+    "viewMarkdown": "Markdown anzeigen"
+  },
+  "node": {
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "skip": "Überspringen"
+  },
+  "color": {
+    "resetToOld": "Auf alte Farbe zurücksetzen",
+    "acceptNew": "Neue Farbe akzeptieren"
+  },
+  "inputs": {
+    "addInput": "Eingabe hinzufügen"
+  },
+  "support": {
+    "koFiTooltip": "chaiNNer auf Ko-fi unterstützen",
+    "koFiAria": "chaiNNer unterstützen",
+    "koFiButton": "chaiNNer unterstützen"
+  },
+  "edge": {
+    "removeEdge": "Kanten-Entfernen-Button"
   }
 }

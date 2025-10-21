@@ -257,7 +257,7 @@ const NodeRepresentative = memo(
                                                 color: isFavorite ? 'yellow.500' : bgColor,
                                                 transition: '0.15s ease-in-out',
                                             }}
-                                            aria-label="Favorites"
+                                            aria-label={t('favorites.title', 'Favorites')}
                                             color={isFavorite ? 'gray.500' : bgColor}
                                             mr={2}
                                             opacity={isFavorite ? '100%' : '0%'}

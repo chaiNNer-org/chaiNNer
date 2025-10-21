@@ -54,6 +54,7 @@ interface SchemaItemProps {
 }
 const SchemaItem = memo(
     ({ name, icon, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
+        const { t } = useTranslation();
         const bgColor = useThemeColor('--bg-700');
         const menuBgColor = useThemeColor('--bg-800');
 
@@ -97,7 +98,7 @@ const SchemaItem = memo(
                 </Text>
                 {isFavorite && (
                     <StarIcon
-                        aria-label="Favorites"
+                        aria-label={t('favorites.title', 'Favorites')}
                         boxSize={2.5}
                         color="gray.500"
                         overflow="hidden"
@@ -150,7 +151,8 @@ const groupSchemata = (
     categories: CategoryMap,
     favorites: ReadonlySet<SchemaId>,
     suggested: ReadonlySet<SchemaId>,
-    specialSuggestions: readonly SuggestionGroupItem[]
+    specialSuggestions: readonly SuggestionGroupItem[],
+    t: (key: string, fallback: string) => string
 ): readonly SchemaGroup[] => {
     const toItem = (schema: NodeSchema): SchemaGroupItem => {
         return {
@@ -176,7 +178,7 @@ const groupSchemata = (
 
     const favs: FavoritesSchemaGroup = {
         type: 'favorites',
-        name: 'Favorites',
+        name: t('favorites.title', 'Favorites'),
         items: cats.flatMap((c) => c.items).filter((n) => favorites.has(n.schema.schemaId)),
     };
 
@@ -276,7 +278,8 @@ const createMatcher = (
     categories: CategoryMap,
     favorites: ReadonlySet<SchemaId>,
     suggestions: ReadonlySet<SchemaId>,
-    featureStates: ReadonlyMap<FeatureId, FeatureState>
+    featureStates: ReadonlyMap<FeatureId, FeatureState>,
+    t: (key: string, fallback: string) => string
 ) => {
     return cacheLast((searchQuery: string) => {
         const specialSuggestions = [...getSpecialSuggestions(schemata, searchQuery)];
@@ -286,7 +289,8 @@ const createMatcher = (
             categories,
             favorites,
             suggestions,
-            specialSuggestions
+            specialSuggestions,
+            t
         );
         const flatGroups: readonly GroupItem[] = groups.flatMap((group) => group.items);
 
@@ -327,8 +331,8 @@ export const Menu = memo(
         const [selectedIndex, setSelectedIndex] = useState(0);
 
         const matcher = useMemo(
-            () => createMatcher(schemata, categories, favorites, suggestions, featureStates),
-            [schemata, categories, favorites, suggestions, featureStates]
+            () => createMatcher(schemata, categories, favorites, suggestions, featureStates, t),
+            [schemata, categories, favorites, suggestions, featureStates, t]
         );
 
         const changeSearchQuery = useCallback(
@@ -501,7 +505,7 @@ export const Menu = memo(
                             opacity="50%"
                             w="full"
                         >
-                            No compatible nodes found.
+                            {t('search.noCompatibleNodes', 'No compatible nodes found.')}
                         </Center>
                     )}
                 </Box>

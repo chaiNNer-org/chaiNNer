@@ -14,6 +14,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { memo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IoMdFastforward } from 'react-icons/io';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { UseDisabled } from '../../../hooks/useDisabled';
@@ -60,6 +61,7 @@ interface DisableSwitchProps {
 }
 
 export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps) => {
+    const { t } = useTranslation();
     // eslint-disable-next-line no-nested-ternary
     const mode = disable.isDirectlyDisabled
         ? DisableMode.Disabled
@@ -216,20 +218,20 @@ export const DisableSwitch = memo(({ disable, passthrough }: DisableSwitchProps)
                             <MenuOption
                                 icon={MdPlayArrow}
                                 isDisabled={mode === DisableMode.Enabled}
-                                label="Enable"
+                                label={t('node.enable', 'Enable')}
                                 onClick={() => setMode(DisableMode.Enabled)}
                             />
                             <MenuOption
                                 icon={MdPlayDisabled}
                                 isDisabled={mode === DisableMode.Disabled}
-                                label="Disable"
+                                label={t('node.disable', 'Disable')}
                                 onClick={() => setMode(DisableMode.Disabled)}
                             />
                             {availableModes.includes(DisableMode.Skipped) && (
                                 <MenuOption
                                     icon={IoMdFastforward}
                                     isDisabled={mode === DisableMode.Skipped}
-                                    label="Skip"
+                                    label={t('node.skip', 'Skip')}
                                     onClick={() => setMode(DisableMode.Skipped)}
                                 />
                             )}

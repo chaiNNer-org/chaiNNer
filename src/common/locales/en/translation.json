@@ -237,7 +237,8 @@
   },
   "search": {
     "placeholder": "Search...",
-    "missingNodes": "Missing nodes? Click to open the dependency manager!"
+    "missingNodes": "Missing nodes? Click to open the dependency manager!",
+    "noCompatibleNodes": "No compatible nodes found."
   },
   "favorites": {
     "title": "Favorites",
@@ -292,5 +293,31 @@
     "installAllPackages": "{{operations}} All Packages ({{size}})",
     "package": "package",
     "packages": "packages"
+  },
+  "note": {
+    "editMode": "Edit Mode",
+    "editContent": "Edit Content",
+    "markdownMode": "Markdown Mode",
+    "viewMarkdown": "View Markdown"
+  },
+  "node": {
+    "enable": "Enable",
+    "disable": "Disable",
+    "skip": "Skip"
+  },
+  "color": {
+    "resetToOld": "Reset to old color",
+    "acceptNew": "Accept new color"
+  },
+  "inputs": {
+    "addInput": "Add Input"
+  },
+  "support": {
+    "koFiTooltip": "Support chaiNNer on Ko-fi",
+    "koFiAria": "Support chaiNNer",
+    "koFiButton": "Support chaiNNer"
+  },
+  "edge": {
+    "removeEdge": "Remove edge button"
   }
 }

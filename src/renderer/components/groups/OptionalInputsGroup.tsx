@@ -1,5 +1,6 @@
 import { Box, Button, Center, Icon } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IoAddOutline } from 'react-icons/io5';
 import { getUniqueKey } from '../../../common/group-inputs';
 import { findLastIndex, getInputValue } from '../../../common/util';
@@ -8,6 +9,7 @@ import { someInput } from './util';
 
 export const OptionalInputsGroup = memo(
     ({ inputs, nodeState, ItemRenderer }: GroupProps<'optional-list'>) => {
+        const { t } = useTranslation();
         const { inputData, connectedInputs } = nodeState;
 
         // number of edges that need to be uncovered due to either having a value or an edge
@@ -51,7 +53,7 @@ export const OptionalInputsGroup = memo(
                                 _hover={{
                                     background: 'var(--bg-600)',
                                 }}
-                                aria-label="Add Input"
+                                aria-label={t('inputs.addInput', 'Add Input')}
                                 bg="var(--bg-700)"
                                 className="nodrag"
                                 height="auto"
