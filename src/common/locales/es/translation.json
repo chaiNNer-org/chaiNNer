@@ -157,15 +157,15 @@
       },
       "experimentalFeatures": {
         "label": "Habilitar características experimentales",
-        "description": "Habilita características experimentales que pueden ser inestables."
+        "description": "Habilita características experimentales para probarlas antes de que estén terminadas."
       },
       "hardwareAcceleration": {
         "label": "Habilitar aceleración de hardware (requiere reinicio)",
-        "description": "Habilita la aceleración de hardware para la aplicación."
+        "description": "Habilita el renderizado GPU para la interfaz gráfica. Úselo con precaución, ya que puede disminuir severamente el rendimiento de la GPU para el procesamiento de imágenes."
       },
       "allowMultipleInstances": {
         "label": "Permitir múltiples instancias simultáneas",
-        "description": "Permite que múltiples instancias de chaiNNer se ejecuten al mismo tiempo."
+        "description": "Habilita múltiples instancias concurrentes de chaiNNer. Esto no se recomienda, pero si su cadena no está usando suficientes recursos del sistema, puede resultarle útil para ejecutar cosas simultáneamente."
       }
     }
   },

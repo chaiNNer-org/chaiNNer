@@ -157,15 +157,15 @@
       },
       "experimentalFeatures": {
         "label": "Enable experimental features",
-        "description": "Enables experimental features that may be unstable."
+        "description": "Enable experimental features to try them out before they are finished."
       },
       "hardwareAcceleration": {
         "label": "Enable Hardware Acceleration (requires restart)",
-        "description": "Enables hardware acceleration for the application."
+        "description": "Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing."
       },
       "allowMultipleInstances": {
         "label": "Allow multiple concurrent instances",
-        "description": "Allows multiple instances of chaiNNer to run at the same time."
+        "description": "Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
       }
     }
   },

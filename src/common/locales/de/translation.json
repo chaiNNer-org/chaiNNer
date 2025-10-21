@@ -157,15 +157,15 @@
       },
       "experimentalFeatures": {
         "label": "Experimentelle Funktionen aktivieren",
-        "description": "Aktiviert experimentelle Funktionen, die möglicherweise instabil sind."
+        "description": "Aktivieren Sie experimentelle Funktionen, um sie auszuprobieren, bevor sie fertiggestellt sind."
       },
       "hardwareAcceleration": {
         "label": "Hardwarebeschleunigung aktivieren (erfordert Neustart)",
-        "description": "Aktiviert die Hardwarebeschleunigung für die Anwendung."
+        "description": "Aktivieren Sie GPU-Rendering für die GUI. Verwenden Sie dies mit Vorsicht, da es die GPU-Leistung für die Bildverarbeitung stark verringern kann."
       },
       "allowMultipleInstances": {
         "label": "Mehrere gleichzeitige Instanzen zulassen",
-        "description": "Ermöglicht das gleichzeitige Ausführen mehrerer Instanzen von chaiNNer."
+        "description": "Aktivieren Sie mehrere gleichzeitige Instanzen von chaiNNer. Dies wird nicht empfohlen, aber wenn Ihre Kette nicht genügend Systemressourcen verwendet, kann es hilfreich sein, Dinge gleichzeitig auszuführen."
       }
     }
   },

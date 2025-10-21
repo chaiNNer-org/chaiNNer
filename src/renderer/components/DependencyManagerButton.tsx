@@ -127,7 +127,10 @@ export const DependencyManagerButton = memo(() => {
                             ref={initialFocusRef}
                             onClick={openDependencyManager}
                         >
-                            {t('dependencyManager.openDependencyManager', 'Open Dependency Manager')}
+                            {t(
+                                'dependencyManager.openDependencyManager',
+                                'Open Dependency Manager'
+                            )}
                         </Button>
                     </ButtonGroup>
                 </PopoverFooter>

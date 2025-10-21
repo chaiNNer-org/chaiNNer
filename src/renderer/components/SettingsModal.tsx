@@ -86,7 +86,10 @@ const AppearanceSettings = memo(() => {
                             value: 'coffee-dark',
                         },
                         {
-                            label: t('settings.appearance.colorTheme.options.blueberry', 'Blueberry'),
+                            label: t(
+                                'settings.appearance.colorTheme.options.blueberry',
+                                'Blueberry'
+                            ),
                             value: 'blueberry-dark',
                         },
                         {
@@ -98,7 +101,10 @@ const AppearanceSettings = memo(() => {
                             value: 'oled-dark',
                         },
                         {
-                            label: t('settings.appearance.colorTheme.options.cyberpunk', 'Cyberpunk'),
+                            label: t(
+                                'settings.appearance.colorTheme.options.cyberpunk',
+                                'Cyberpunk'
+                            ),
                             value: 'cyberpunk-dark',
                         },
                         {
@@ -106,7 +112,10 @@ const AppearanceSettings = memo(() => {
                             value: 'mixer-dark',
                         },
                         {
-                            label: t('settings.appearance.colorTheme.options.notreal', 'NotRealEngine'),
+                            label: t(
+                                'settings.appearance.colorTheme.options.notreal',
+                                'NotRealEngine'
+                            ),
                             value: 'notreal-dark',
                         },
                         {
@@ -468,7 +477,10 @@ const AdvancedSettings = memo(() => {
             <ToggleSetting
                 setValue={setCheckForUpdatesOnStartup}
                 setting={{
-                    label: t('settings.advanced.checkForUpdates.label', 'Check for Update on Start-up'),
+                    label: t(
+                        'settings.advanced.checkForUpdates.label',
+                        'Check for Update on Start-up'
+                    ),
                     description: t(
                         'settings.advanced.checkForUpdates.description',
                         'Toggles checking for updates on start-up.'
