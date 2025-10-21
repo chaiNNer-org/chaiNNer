@@ -1,0 +1,183 @@
+{
+  "alert": {
+    "button": {
+      "ok": "Aceptar",
+      "cancel": "Cancelar",
+      "openLogsFolder": "Abrir Carpeta de Registros",
+      "exitApplication": "Salir de la Aplicación",
+      "copyToClipboard": "Copiar al Portapapeles"
+    },
+    "stackTrace": "Seguimiento de Pila",
+    "title": {
+      "systemInformation": "Información del sistema"
+    }
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "open": "Abrir",
+    "settings": "Configuración"
+  },
+  "dependencyManager": {
+    "manageDependencies": "Administrar Dependencias",
+    "openDependencyManager": "Abrir Administrador de Dependencias",
+    "updatesAvailable": "Actualizaciones Disponibles",
+    "updatesAvailableDescription": "Hay {{count}} paquetes con actualizaciones de dependencias disponibles."
+  },
+  "error": {
+    "error": "Error",
+    "message": {
+      "criticalBackend": "Ocurrió un error crítico al procesar los datos del nodo devueltos por el backend."
+    },
+    "title": {
+      "unableToProcessNodes": "No se pueden procesar los nodos del backend."
+    }
+  },
+  "header": {
+    "pause": "Pausar",
+    "pauseButton": "Botón de pausa",
+    "resume": "Reanudar",
+    "run": "Ejecutar",
+    "runButton": "Botón de ejecución",
+    "stop": "Detener",
+    "stopButton": "Botón de detener"
+  },
+  "inputs": {
+    "copyInputOverrideId": "Copiar ID de Sobrescritura de Entrada",
+    "directory": {
+      "clear": "Limpiar",
+      "copyFullDirectoryPath": "Copiar Ruta Completa del Directorio",
+      "openInFileExplorer": "Abrir en Explorador de Archivos",
+      "selectDirectory": "Seleccionar un directorio..."
+    },
+    "extractValueIntoNode": "Extraer valor al nodo",
+    "file": {
+      "clear": "Limpiar",
+      "copyFileName": "Copiar Nombre de Archivo",
+      "copyFullFilePath": "Copiar Ruta Completa del Archivo",
+      "openInFileExplorer": "Abrir en Explorador de Archivos",
+      "selectFile": "Seleccionar un archivo..."
+    },
+    "number": {
+      "copyText": "Copiar Número",
+      "paste": "Pegar"
+    },
+    "text": {
+      "copyText": "Copiar Texto",
+      "paste": "Pegar"
+    }
+  },
+  "outputs": {
+    "largeImage": {
+      "imageNotAvailable": "Imagen no disponible."
+    },
+    "model": {
+      "modelNotAvailable": "Datos del modelo no disponibles."
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "restartChaiNNer": "Reiniciar chaiNNer",
+    "tabs": {
+      "appearance": "Apariencia",
+      "environment": "Entorno",
+      "python": "Python",
+      "advanced": "Avanzado"
+    },
+    "appearance": {
+      "colorTheme": {
+        "label": "Tema de Color",
+        "description": "Elige el tema para la apariencia de chaiNNer.",
+        "options": {
+          "dark": "Oscuro",
+          "light": "Claro",
+          "system": "Sistema",
+          "charcoal": "Carbón",
+          "coffee": "Café",
+          "blueberry": "Arándano",
+          "dusk": "Crepúsculo",
+          "oled": "OLED",
+          "cyberpunk": "Cyberpunk",
+          "mixer": "Mixer3D",
+          "notreal": "NotRealEngine",
+          "comfort": "ComfortUI"
+        }
+      },
+      "language": {
+        "label": "Idioma",
+        "description": "Elige el idioma para la interfaz de chaiNNer."
+      },
+      "chainAnimation": {
+        "label": "Animación de cadena",
+        "description": "Habilitar animaciones que muestran el estado de procesamiento de la cadena."
+      },
+      "minimap": {
+        "label": "Minimapa",
+        "description": "Habilitar un minimapa de la cadena actual en la esquina inferior derecha del editor de nodos."
+      },
+      "snapToGrid": {
+        "label": "Ajustar a la cuadrícula",
+        "description": "Habilitar ajuste de nodos a la cuadrícula."
+      },
+      "snapToGridAmount": {
+        "label": "Cantidad de ajuste a la cuadrícula",
+        "description": "La cantidad para ajustar a la cuadrícula."
+      },
+      "viewportExportPadding": {
+        "label": "Relleno de exportación PNG de ventana",
+        "description": "La cantidad de relleno para la exportación PNG de la ventana."
+      }
+    },
+    "environment": {
+      "startupTemplate": {
+        "label": "Plantilla de Inicio",
+        "description": "Establecer una plantilla de cadena para usar por defecto cuando chaiNNer se inicia.",
+        "placeholder": "Seleccionar un archivo...",
+        "clear": "Limpiar"
+      },
+      "selectChain": "Seleccionar Cadena"
+    },
+    "python": {
+      "general": "General",
+      "useSystemPython": {
+        "label": "Usar Python del sistema (requiere reinicio)",
+        "description": "Usar Python del sistema para el procesamiento de chaiNNer en lugar del Python incluido (no recomendado)"
+      },
+      "systemPythonLocation": {
+        "label": "Ubicación de Python del sistema (opcional)",
+        "description": "Si se desea, usar un binario de python específico en lugar del predeterminado invocado por 'python3' o 'python'. Esto es útil si tienes múltiples versiones de python instaladas y quieres elegir una específica.",
+        "placeholder": "Seleccionar un archivo...",
+        "clear": "Limpiar"
+      }
+    },
+    "advanced": {
+      "checkForUpdates": {
+        "label": "Buscar actualizaciones al iniciar",
+        "description": "Activa la búsqueda de actualizaciones al iniciar."
+      },
+      "experimentalFeatures": {
+        "label": "Habilitar características experimentales",
+        "description": "Habilita características experimentales que pueden ser inestables."
+      },
+      "hardwareAcceleration": {
+        "label": "Habilitar aceleración de hardware (requiere reinicio)",
+        "description": "Habilita la aceleración de hardware para la aplicación."
+      },
+      "allowMultipleInstances": {
+        "label": "Permitir múltiples instancias simultáneas",
+        "description": "Permite que múltiples instancias de chaiNNer se ejecuten al mismo tiempo."
+      }
+    }
+  },
+  "setup": {
+    "checkingPort": "Verificando puerto disponible...",
+    "checkingPython": "Verificando entorno del sistema para Python válido...",
+    "downloadingPython": "Descargando Python Integrado...",
+    "extractingPython": "Extrayendo archivos descargados...",
+    "loading": "Cargando...",
+    "startingBackend": "Iniciando proceso del backend..."
+  },
+  "typeTags": {
+    "optional": "opcional"
+  }
+}

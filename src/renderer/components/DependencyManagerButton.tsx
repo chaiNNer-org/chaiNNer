@@ -120,14 +120,14 @@ export const DependencyManagerButton = memo(() => {
                             variant="outline"
                             onClick={onClose}
                         >
-                            Cancel
+                            {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
                             colorScheme="blue"
                             ref={initialFocusRef}
                             onClick={openDependencyManager}
                         >
-                            Open Dependency Manager
+                            {t('dependencyManager.openDependencyManager', 'Open Dependency Manager')}
                         </Button>
                     </ButtonGroup>
                 </PopoverFooter>

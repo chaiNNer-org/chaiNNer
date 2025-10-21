@@ -1,11 +1,26 @@
 {
   "alert": {
+    "button": {
+      "ok": "OK",
+      "cancel": "Cancel",
+      "openLogsFolder": "Open Logs Folder",
+      "exitApplication": "Exit Application",
+      "copyToClipboard": "Copy to Clipboard"
+    },
+    "stackTrace": "Stack Trace",
     "title": {
       "systemInformation": "System information"
     }
   },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "open": "Open",
+    "settings": "Settings"
+  },
   "dependencyManager": {
     "manageDependencies": "Manage Dependencies",
+    "openDependencyManager": "Open Dependency Manager",
     "updatesAvailable": "Updates Available",
     "updatesAvailableDescription": "There are {{count}} packages with available dependency updates."
   },
@@ -58,6 +73,100 @@
     },
     "model": {
       "modelNotAvailable": "Model data not available."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "restartChaiNNer": "Restart chaiNNer",
+    "tabs": {
+      "appearance": "Appearance",
+      "environment": "Environment",
+      "python": "Python",
+      "advanced": "Advanced"
+    },
+    "appearance": {
+      "colorTheme": {
+        "label": "Color Theme",
+        "description": "Choose the Theme for chaiNNer's appearance.",
+        "options": {
+          "dark": "Dark",
+          "light": "Light",
+          "system": "System",
+          "charcoal": "Charcoal",
+          "coffee": "Coffee",
+          "blueberry": "Blueberry",
+          "dusk": "Dusk",
+          "oled": "OLED",
+          "cyberpunk": "Cyberpunk",
+          "mixer": "Mixer3D",
+          "notreal": "NotRealEngine",
+          "comfort": "ComfortUI"
+        }
+      },
+      "language": {
+        "label": "Language",
+        "description": "Choose the language for chaiNNer's interface."
+      },
+      "chainAnimation": {
+        "label": "Chain animation",
+        "description": "Enable animations that show the processing state of the chain."
+      },
+      "minimap": {
+        "label": "Minimap",
+        "description": "Enable a minimap of the current chain in the bottom right corner of the node editor."
+      },
+      "snapToGrid": {
+        "label": "Snap to grid",
+        "description": "Enable node grid snapping."
+      },
+      "snapToGridAmount": {
+        "label": "Snap to grid amount",
+        "description": "The amount to snap the grid to."
+      },
+      "viewportExportPadding": {
+        "label": "Viewport PNG export padding",
+        "description": "The amount of padding for the viewport PNG export."
+      }
+    },
+    "environment": {
+      "startupTemplate": {
+        "label": "Startup Template",
+        "description": "Set a chain template to use by default when chaiNNer starts up.",
+        "placeholder": "Select a file...",
+        "clear": "Clear"
+      },
+      "selectChain": "Select Chain"
+    },
+    "python": {
+      "general": "General",
+      "useSystemPython": {
+        "label": "Use system Python (requires restart)",
+        "description": "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
+      },
+      "systemPythonLocation": {
+        "label": "System Python location (optional)",
+        "description": "If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one.",
+        "placeholder": "Select a file...",
+        "clear": "Clear"
+      }
+    },
+    "advanced": {
+      "checkForUpdates": {
+        "label": "Check for Update on Start-up",
+        "description": "Toggles checking for updates on start-up."
+      },
+      "experimentalFeatures": {
+        "label": "Enable experimental features",
+        "description": "Enables experimental features that may be unstable."
+      },
+      "hardwareAcceleration": {
+        "label": "Enable Hardware Acceleration (requires restart)",
+        "description": "Enables hardware acceleration for the application."
+      },
+      "allowMultipleInstances": {
+        "label": "Allow multiple concurrent instances",
+        "description": "Allows multiple instances of chaiNNer to run at the same time."
+      }
     }
   },
   "setup": {

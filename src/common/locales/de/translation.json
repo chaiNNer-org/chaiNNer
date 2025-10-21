@@ -1,0 +1,183 @@
+{
+  "alert": {
+    "button": {
+      "ok": "OK",
+      "cancel": "Abbrechen",
+      "openLogsFolder": "Protokollordner öffnen",
+      "exitApplication": "Anwendung beenden",
+      "copyToClipboard": "In Zwischenablage kopieren"
+    },
+    "stackTrace": "Stack-Trace",
+    "title": {
+      "systemInformation": "Systeminformationen"
+    }
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "open": "Öffnen",
+    "settings": "Einstellungen"
+  },
+  "dependencyManager": {
+    "manageDependencies": "Abhängigkeiten verwalten",
+    "openDependencyManager": "Abhängigkeitsmanager öffnen",
+    "updatesAvailable": "Updates verfügbar",
+    "updatesAvailableDescription": "Es gibt {{count}} Pakete mit verfügbaren Abhängigkeitsupdates."
+  },
+  "error": {
+    "error": "Fehler",
+    "message": {
+      "criticalBackend": "Ein kritischer Fehler ist beim Verarbeiten der vom Backend zurückgegebenen Knotendaten aufgetreten."
+    },
+    "title": {
+      "unableToProcessNodes": "Backend-Knoten können nicht verarbeitet werden."
+    }
+  },
+  "header": {
+    "pause": "Pause",
+    "pauseButton": "Pause-Schaltfläche",
+    "resume": "Fortsetzen",
+    "run": "Ausführen",
+    "runButton": "Ausführen-Schaltfläche",
+    "stop": "Stopp",
+    "stopButton": "Stopp-Schaltfläche"
+  },
+  "inputs": {
+    "copyInputOverrideId": "Eingabe-Override-ID kopieren",
+    "directory": {
+      "clear": "Löschen",
+      "copyFullDirectoryPath": "Vollständigen Verzeichnispfad kopieren",
+      "openInFileExplorer": "Im Datei-Explorer öffnen",
+      "selectDirectory": "Verzeichnis auswählen..."
+    },
+    "extractValueIntoNode": "Wert in Knoten extrahieren",
+    "file": {
+      "clear": "Löschen",
+      "copyFileName": "Dateinamen kopieren",
+      "copyFullFilePath": "Vollständigen Dateipfad kopieren",
+      "openInFileExplorer": "Im Datei-Explorer öffnen",
+      "selectFile": "Datei auswählen..."
+    },
+    "number": {
+      "copyText": "Nummer kopieren",
+      "paste": "Einfügen"
+    },
+    "text": {
+      "copyText": "Text kopieren",
+      "paste": "Einfügen"
+    }
+  },
+  "outputs": {
+    "largeImage": {
+      "imageNotAvailable": "Bild nicht verfügbar."
+    },
+    "model": {
+      "modelNotAvailable": "Modelldaten nicht verfügbar."
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "restartChaiNNer": "chaiNNer neu starten",
+    "tabs": {
+      "appearance": "Aussehen",
+      "environment": "Umgebung",
+      "python": "Python",
+      "advanced": "Erweitert"
+    },
+    "appearance": {
+      "colorTheme": {
+        "label": "Farbschema",
+        "description": "Wählen Sie das Theme für das Aussehen von chaiNNer.",
+        "options": {
+          "dark": "Dunkel",
+          "light": "Hell",
+          "system": "System",
+          "charcoal": "Holzkohle",
+          "coffee": "Kaffee",
+          "blueberry": "Blaubeere",
+          "dusk": "Dämmerung",
+          "oled": "OLED",
+          "cyberpunk": "Cyberpunk",
+          "mixer": "Mixer3D",
+          "notreal": "NotRealEngine",
+          "comfort": "ComfortUI"
+        }
+      },
+      "language": {
+        "label": "Sprache",
+        "description": "Wählen Sie die Sprache für die Benutzeroberfläche von chaiNNer."
+      },
+      "chainAnimation": {
+        "label": "Kettenanimation",
+        "description": "Aktivieren Sie Animationen, die den Verarbeitungsstatus der Kette anzeigen."
+      },
+      "minimap": {
+        "label": "Minimap",
+        "description": "Aktivieren Sie eine Minimap der aktuellen Kette in der unteren rechten Ecke des Knoteneditors."
+      },
+      "snapToGrid": {
+        "label": "Am Raster einrasten",
+        "description": "Knotenrastereinrastung aktivieren."
+      },
+      "snapToGridAmount": {
+        "label": "Rastereinrastungsmenge",
+        "description": "Die Menge zum Einrasten am Raster."
+      },
+      "viewportExportPadding": {
+        "label": "Viewport-PNG-Export-Padding",
+        "description": "Die Menge des Paddings für den Viewport-PNG-Export."
+      }
+    },
+    "environment": {
+      "startupTemplate": {
+        "label": "Startvorlage",
+        "description": "Legen Sie eine Kettenvorlage fest, die standardmäßig beim Start von chaiNNer verwendet werden soll.",
+        "placeholder": "Datei auswählen...",
+        "clear": "Löschen"
+      },
+      "selectChain": "Kette auswählen"
+    },
+    "python": {
+      "general": "Allgemein",
+      "useSystemPython": {
+        "label": "System-Python verwenden (erfordert Neustart)",
+        "description": "System-Python für die Verarbeitung von chaiNNer anstelle des gebündelten Python verwenden (nicht empfohlen)"
+      },
+      "systemPythonLocation": {
+        "label": "System-Python-Speicherort (optional)",
+        "description": "Wenn gewünscht, verwenden Sie eine bestimmte Python-Binärdatei anstelle der Standarddatei, die von 'python3' oder 'python' aufgerufen wird. Dies ist nützlich, wenn Sie mehrere Python-Versionen installiert haben und eine bestimmte auswählen möchten.",
+        "placeholder": "Datei auswählen...",
+        "clear": "Löschen"
+      }
+    },
+    "advanced": {
+      "checkForUpdates": {
+        "label": "Beim Start auf Updates prüfen",
+        "description": "Schaltet die Überprüfung auf Updates beim Start um."
+      },
+      "experimentalFeatures": {
+        "label": "Experimentelle Funktionen aktivieren",
+        "description": "Aktiviert experimentelle Funktionen, die möglicherweise instabil sind."
+      },
+      "hardwareAcceleration": {
+        "label": "Hardwarebeschleunigung aktivieren (erfordert Neustart)",
+        "description": "Aktiviert die Hardwarebeschleunigung für die Anwendung."
+      },
+      "allowMultipleInstances": {
+        "label": "Mehrere gleichzeitige Instanzen zulassen",
+        "description": "Ermöglicht das gleichzeitige Ausführen mehrerer Instanzen von chaiNNer."
+      }
+    }
+  },
+  "setup": {
+    "checkingPort": "Verfügbaren Port überprüfen...",
+    "checkingPython": "Systemumgebung auf gültiges Python überprüfen...",
+    "downloadingPython": "Integriertes Python herunterladen...",
+    "extractingPython": "Heruntergeladene Dateien extrahieren...",
+    "loading": "Laden...",
+    "startingBackend": "Backend-Prozess starten..."
+  },
+  "typeTags": {
+    "optional": "optional"
+  }
+}

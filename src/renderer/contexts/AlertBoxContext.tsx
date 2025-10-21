@@ -18,6 +18,7 @@ import {
 } from '@chakra-ui/react';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { log } from '../../common/log';
 import { assertNever, noop } from '../../common/util';
@@ -130,7 +131,8 @@ const getButtons = (
     { type, buttons, defaultId = 0, cancelId }: InternalMessage,
     onClose: (button: number) => void,
     cancelRef: React.Ref<HTMLButtonElement>,
-    focusId: string
+    focusId: string,
+    t: (key: string, defaultValue: string) => string
 ): JSX.Element => {
     const buttonElements: JSX.Element[] = [];
 
@@ -167,7 +169,7 @@ const getButtons = (
                         ref={cancelRef}
                         onClick={() => onClose(0)}
                     >
-                        OK
+                        {t('alert.button.ok', 'OK')}
                     </Button>
                 );
                 break;
@@ -187,7 +189,7 @@ const getButtons = (
                                 });
                         }}
                     >
-                        Open Logs Folder
+                        {t('alert.button.openLogsFolder', 'Open Logs Folder')}
                     </Button>
                 );
                 buttonElements.push(
@@ -204,7 +206,7 @@ const getButtons = (
                             });
                         }}
                     >
-                        Exit Application
+                        {t('alert.button.exitApplication', 'Exit Application')}
                     </Button>
                 );
                 break;
@@ -241,9 +243,10 @@ const AlertBoxDialog = memo(
         progressTotal,
         progressCurrent,
     }: AlertBoxDialogProps) => {
+        const { t } = useTranslation();
         const buttons = useMemo(() => {
-            return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef, ALERT_FOCUS_ID);
-        }, [current, onClose, cancelRef]);
+            return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef, ALERT_FOCUS_ID, t);
+        }, [current, onClose, cancelRef, t]);
 
         useEffect(() => {
             const timerId = setTimeout(() => {
@@ -290,7 +293,9 @@ const AlertBoxDialog = memo(
                         {displayTrace && (
                             <Box mt={4}>
                                 <details>
-                                    <summary style={{ cursor: 'pointer' }}>Stack Trace</summary>
+                                    <summary style={{ cursor: 'pointer' }}>
+                                        {t('alert.stackTrace', 'Stack Trace')}
+                                    </summary>
                                     <Code
                                         display="block"
                                         overflow="auto"
