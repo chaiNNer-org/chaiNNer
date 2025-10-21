@@ -138,15 +138,13 @@ export const PackageHintText = memo(
                         )}
                 </Text>
                 <Text display={hint ? 'inherit' : 'none'}>
-                    <em>
-                        {t(
-                            'nodeSelector.clickToInstall',
-                            'Click to open the dependency manager to install {{packageName}}.',
-                            {
-                                packageName,
-                            }
-                        )}
-                    </em>
+                    {t(
+                        'nodeSelector.clickToInstall',
+                        'Click to open the dependency manager to install {{packageName}}.',
+                        {
+                            packageName,
+                        }
+                    )}
                 </Text>
             </>
         );
