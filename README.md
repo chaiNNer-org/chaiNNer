@@ -139,4 +139,5 @@ For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/cha
 
 For in-depth documentation covering various aspects of ChaiNNer, including CLI usage, data representation, and a contributor's guide, kindly refer to our [ChaiNNer Wiki](https://github.com/chaiNNer-org/chaiNNer/wiki).
 
+A complete reference of all available nodes can be found in the [Nodes Reference](https://github.com/chaiNNer-org/chaiNNer/wiki/08--Nodes-Reference) section of the wiki. This documentation is automatically generated from the latest release and includes detailed information about all available filters, functions, and their parameters.
 
