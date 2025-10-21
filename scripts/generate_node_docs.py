@@ -98,8 +98,7 @@ def generate_node_markdown(node: dict[str, Any], node_lookup: dict[str, dict[str
         lines.append("")
         for input_item in node["inputs"]:
             input_name = input_item.get("label", "")
-            input_type = format_type(input_item.get("type", ""))
-            lines.append(f"- **{input_name}** ({input_type})")
+            lines.append(f"- **{input_name}**")
             if input_item.get("description"):
                 lines.append(f"  - {input_item['description']}")
         lines.append("")
@@ -110,8 +109,7 @@ def generate_node_markdown(node: dict[str, Any], node_lookup: dict[str, dict[str
         lines.append("")
         for output_item in node["outputs"]:
             output_name = output_item.get("label", "")
-            output_type = format_type(output_item.get("type", ""))
-            lines.append(f"- **{output_name}** ({output_type})")
+            lines.append(f"- **{output_name}**")
         lines.append("")
     
     # See Also - with links if node_lookup is provided
