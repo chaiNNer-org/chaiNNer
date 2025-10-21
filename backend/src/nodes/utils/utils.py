@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Tuple
 
 import numpy as np
-
 from logger import logger
 
 Size = Tuple[int, int]

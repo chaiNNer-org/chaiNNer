@@ -4,7 +4,8 @@ import logging
 import tempfile
 from pathlib import Path
 
-from logger import get_logger, setup_logger
+from logger import logger as logger_import
+from logger import setup_logger
 
 
 def test_logger_setup():
@@ -42,7 +43,7 @@ def test_logger_setup():
 def test_get_logger():
     """Test that get_logger returns a working logger."""
     # Get logger without explicit setup
-    logger = get_logger("worker")
+    logger = logger_import
 
     assert logger.name == "chaiNNer.worker"
     assert isinstance(logger, logging.Logger)
