@@ -129,6 +129,12 @@ async def nodes_available():
 access_logger.addFilter(SSEFilter())
 
 
+@app.route("/health")
+async def health(_request: Request):
+    """Simple health check endpoint that doesn't require full setup"""
+    return json({"status": "ok"})
+
+
 @app.route("/nodes")
 async def nodes(_request: Request):
     """Gets a list of all nodes as well as the node information"""
