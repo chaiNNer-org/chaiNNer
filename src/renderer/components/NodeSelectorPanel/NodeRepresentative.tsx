@@ -12,6 +12,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -79,6 +80,7 @@ const NodeRepresentative = memo(
         toggleFavorite,
         openNodeDocumentation,
     }: NodeRepresentativeProps) => {
+        const { t } = useTranslation();
         const { featureStates, categories } = useContext(BackendContext);
 
         const { isOpen, onOpen, onClose } = useDisclosure();
@@ -101,7 +103,7 @@ const NodeRepresentative = memo(
                         toggleFavorite(node.schemaId);
                     }}
                 >
-                    {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                    {isFavorite ? t('favorites.removeFromFavorites', 'Remove from Favorites') : t('favorites.addToFavorites', 'Add to Favorites')}
                 </MenuItem>
                 <MenuItem
                     icon={<BsFillJournalBookmarkFill />}
@@ -109,7 +111,7 @@ const NodeRepresentative = memo(
                         openNodeDocumentation(node.schemaId);
                     }}
                 >
-                    Open Documentation
+                    {t('documentation.openDocumentation', 'Open Documentation')}
                 </MenuItem>
             </MenuList>
         ));

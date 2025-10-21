@@ -33,7 +33,7 @@ export const FavoritesAccordionItem = memo(
                     borderRadius={8}
                     fontSize="1.05rem"
                     isDisabled={!collapsed}
-                    label={<b>{t('nodeSelector.favorites', 'Favorites')}</b>}
+                    label={<b>{t('favorites.title', 'Favorites')}</b>}
                     openDelay={500}
                     px={2}
                     py={1}
@@ -54,7 +54,7 @@ export const FavoritesAccordionItem = memo(
                                     textOverflow="clip"
                                     whiteSpace="nowrap"
                                 >
-                                    {t('nodeSelector.favorites', 'Favorites')}
+                                    {t('favorites.title', 'Favorites')}
                                 </Heading>
                             )}
                         </HStack>
@@ -76,19 +76,28 @@ export const FavoritesAccordionItem = memo(
                                 noWrap
                                 collapsed={collapsed}
                                 height="1.5rem"
-                                text="No Favorites."
+                                text={t('favorites.noFavorites', 'No Favorites.')}
                                 toolTip={
                                     collapsed ? (
                                         <>
-                                            Add Favorites by right-clicking nodes and selecting{' '}
-                                            <em>Add to Favorites</em>.
+                                            {t(
+                                                'favorites.addFavoritesTooltip',
+                                                'Add Favorites by right-clicking nodes and selecting Add to Favorites.'
+                                            )}
                                         </>
                                     ) : (
                                         <>
-                                            Add Favorites by hovering over nodes and clicking the{' '}
-                                            <StarIcon style={{ verticalAlign: 'baseline' }} /> icon,
-                                            or by right-clicking and selecting{' '}
-                                            <em>Add to Favorites</em>.
+                                            {t(
+                                                'favorites.addFavoritesTooltipExpanded',
+                                                'Add Favorites by hovering over nodes and clicking the {{starIcon}} icon, or by right-clicking and selecting Add to Favorites.',
+                                                {
+                                                    starIcon: (
+                                                        <StarIcon
+                                                            style={{ verticalAlign: 'baseline' }}
+                                                        />
+                                                    ),
+                                                }
+                                            )}
                                         </>
                                     )
                                 }
