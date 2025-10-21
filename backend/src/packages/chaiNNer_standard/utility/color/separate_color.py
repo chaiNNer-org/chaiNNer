@@ -75,11 +75,12 @@ match Input1 {
 def separate_color_node(
     color: Color,
     mode: SeparateColorMode,
-) -> (
-    tuple[int, int, int, int]
-    | tuple[float, float, float, float]
-    | tuple[Color, Color, Color, Color]
-):
+) -> tuple[
+    int | float | Color,
+    int | float | Color,
+    int | float | Color,
+    int | float | Color,
+]:
     length = len(color.value)
     if length == 1:
         r = color.value[0]
@@ -100,7 +101,12 @@ def separate_color_node(
         raise AssertionError("Invalid number of color channels")
 
     if mode == SeparateColorMode.UINT8:
-        return _to_num(r, 255), _to_num(g, 255), _to_num(b, 255), _to_num(a, 255)
+        return (
+            _to_num(r, 255),
+            _to_num(g, 255),
+            _to_num(b, 255),
+            _to_num(a, 255),
+        )
     elif mode == SeparateColorMode.PERCENT:
         return (
             _to_num(r, 1000) / 10,
