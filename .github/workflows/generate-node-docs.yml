@@ -1,0 +1,61 @@
+name: Generate Node Documentation
+
+# Trigger this action after a release is published
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  USER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  USER_NAME: github-actions[bot]
+  USER_EMAIL: github-actions[bot]@users.noreply.github.com
+  OWNER: ${{ github.event.repository.owner.login }}
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  generate-and-publish:
+    name: Generate and publish node documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install backend server dependencies
+        run: |
+          cd backend/src
+          python dependencies/install_server_deps.py
+
+      - name: Generate node documentation
+        run: |
+          python scripts/generate_node_docs.py
+
+      - name: Pull wiki content
+        run: |
+          mkdir tmp_wiki
+          cd tmp_wiki
+          git init
+          git config user.name "$USER_NAME"
+          git config user.email "$USER_EMAIL"
+          git remote add origin https://x-access-token:${USER_TOKEN}@github.com/${OWNER}/${REPOSITORY_NAME}.wiki.git
+          git fetch origin
+          git checkout master || git checkout -b master
+          git pull origin master || echo "Wiki is empty, will create initial commit"
+
+      - name: Update wiki with generated docs
+        run: |
+          # Copy all documentation files
+          rsync -av --delete docs/ tmp_wiki/ --exclude .git
+          cd tmp_wiki
+          git add .
+          git diff --staged --quiet || git commit -m "Update node documentation (automated from release ${{ github.ref_name }})"
+          git push origin master

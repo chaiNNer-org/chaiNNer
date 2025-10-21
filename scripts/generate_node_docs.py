@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""
+Script to generate markdown documentation for all chaiNNer nodes.
+
+This script starts the backend server temporarily, fetches node data from the /nodes endpoint,
+and generates markdown documentation organized by category and node group.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+from typing import Any
+import urllib.request
+import urllib.error
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+logger = logging.getLogger(__name__)
+
+
+def wait_for_server(url: str, timeout: int = 120) -> bool:
+    """Wait for the server to be ready."""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            response = urllib.request.urlopen(f"{url}/health", timeout=5)
+            if response.status == 200:
+                logger.info("Server is ready")
+                return True
+        except (urllib.error.URLError, urllib.error.HTTPError, ConnectionRefusedError):
+            pass
+        time.sleep(2)
+    return False
+
+
+def fetch_nodes_data(url: str) -> dict[str, Any]:
+    """Fetch node data from the backend server."""
+    try:
+        logger.info(f"Fetching nodes from {url}/nodes...")
+        response = urllib.request.urlopen(f"{url}/nodes", timeout=60)
+        data = json.loads(response.read().decode('utf-8'))
+        return data
+    except Exception as e:
+        logger.error(f"Failed to fetch nodes data: {e}")
+        raise
+
+
+def format_type(type_expr: str | dict | list) -> str:
+    """Format a type expression for display."""
+    if isinstance(type_expr, str):
+        return type_expr
+    if isinstance(type_expr, dict):
+        return json.dumps(type_expr)
+    if isinstance(type_expr, list):
+        return " | ".join(format_type(t) for t in type_expr)
+    return str(type_expr)
+
+
+def generate_node_markdown(node: dict[str, Any]) -> str:
+    """Generate markdown documentation for a single node."""
+    lines = []
+    
+    # Node header
+    lines.append(f"### {node['name']}")
+    lines.append("")
+    
+    # Schema ID
+    lines.append(f"**Schema ID:** `{node['schemaId']}`")
+    lines.append("")
+    
+    # Description
+    description = node.get("description", "")
+    if isinstance(description, list):
+        for desc in description:
+            lines.append(desc)
+            lines.append("")
+    elif description:
+        lines.append(description)
+        lines.append("")
+    
+    # Icon
+    if node.get("icon"):
+        lines.append(f"**Icon:** {node['icon']}")
+        lines.append("")
+    
+    # Inputs
+    if node.get("inputs"):
+        lines.append("**Inputs:**")
+        lines.append("")
+        for input_item in node["inputs"]:
+            input_name = input_item.get("label", "")
+            input_type = format_type(input_item.get("type", ""))
+            lines.append(f"- **{input_name}** ({input_type})")
+            if input_item.get("description"):
+                lines.append(f"  - {input_item['description']}")
+        lines.append("")
+    
+    # Outputs
+    if node.get("outputs"):
+        lines.append("**Outputs:**")
+        lines.append("")
+        for output_item in node["outputs"]:
+            output_name = output_item.get("label", "")
+            output_type = format_type(output_item.get("type", ""))
+            lines.append(f"- **{output_name}** ({output_type})")
+        lines.append("")
+    
+    # See Also
+    if node.get("seeAlso"):
+        lines.append("**See Also:**")
+        lines.append("")
+        for see_also_item in node["seeAlso"]:
+            lines.append(f"- {see_also_item}")
+        lines.append("")
+    
+    # Deprecated warning
+    if node.get("deprecated"):
+        lines.append("⚠️ **This node is deprecated.**")
+        lines.append("")
+    
+    lines.append("---")
+    lines.append("")
+    
+    return "\n".join(lines)
+
+
+def generate_documentation(nodes_data: dict[str, Any], output_dir: Path) -> None:
+    """Generate markdown documentation files from nodes data."""
+    
+    nodes = nodes_data.get("nodes", [])
+    categories_data = nodes_data.get("categories", [])
+    
+    # Create a mapping of category IDs to category info
+    categories = {cat["id"]: cat for cat in categories_data}
+    
+    # Group nodes by category and node group
+    nodes_by_category: dict[str, dict[str, list[dict]]] = {}
+    
+    for node in nodes:
+        category_id = node.get("category", "")
+        node_group = node.get("nodeGroup", "")
+        
+        if category_id not in nodes_by_category:
+            nodes_by_category[category_id] = {}
+        
+        if node_group not in nodes_by_category[category_id]:
+            nodes_by_category[category_id][node_group] = []
+        
+        nodes_by_category[category_id][node_group].append(node)
+    
+    # Generate main index file
+    index_lines = ["# chaiNNer Nodes Documentation", ""]
+    index_lines.append("This documentation lists all nodes available in chaiNNer, organized by category.")
+    index_lines.append("")
+    index_lines.append("## Categories")
+    index_lines.append("")
+    
+    # Generate documentation for each category
+    for category_id, node_groups in sorted(nodes_by_category.items()):
+        category = categories.get(category_id, {})
+        category_name = category.get("name", category_id)
+        category_description = category.get("description", "")
+        
+        # Add to index
+        index_lines.append(f"- [{category_name}](./nodes/{category_id}.md)")
+        
+        # Create category file
+        category_lines = [f"# {category_name}", ""]
+        
+        if category_description:
+            category_lines.append(category_description)
+            category_lines.append("")
+        
+        # Add node groups
+        for node_group, group_nodes in sorted(node_groups.items()):
+            category_lines.append(f"## {node_group}")
+            category_lines.append("")
+            
+            # Sort nodes by name within each group
+            sorted_nodes = sorted(group_nodes, key=lambda n: n.get("name", ""))
+            
+            for node in sorted_nodes:
+                category_lines.append(generate_node_markdown(node))
+        
+        # Write category file
+        category_file = output_dir / "nodes" / f"{category_id}.md"
+        category_file.parent.mkdir(parents=True, exist_ok=True)
+        category_file.write_text("\n".join(category_lines), encoding="utf-8")
+        logger.info(f"Generated documentation for category: {category_name}")
+    
+    # Write index file
+    index_file = output_dir / "08--Nodes-Reference.md"
+    index_file.write_text("\n".join(index_lines), encoding="utf-8")
+    logger.info(f"Generated index file: {index_file}")
+
+
+def main():
+    """Main entry point."""
+    # Determine paths
+    script_dir = Path(__file__).parent
+    repo_root = script_dir.parent
+    backend_dir = repo_root / "backend" / "src"
+    docs_dir = repo_root / "docs"
+    
+    # Start the backend server
+    logger.info("Starting backend server...")
+    server_port = 8765
+    server_url = f"http://127.0.0.1:{server_port}"
+    
+    # Start server in background without close-after-start so we can fetch data
+    server_process = subprocess.Popen(
+        [sys.executable, str(backend_dir / "run.py"), str(server_port)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=backend_dir,
+    )
+    
+    try:
+        # Wait for server to be ready
+        if not wait_for_server(server_url):
+            logger.error("Server failed to start within timeout")
+            return 1
+        
+        # Fetch nodes data
+        nodes_data = fetch_nodes_data(server_url)
+        logger.info(f"Fetched {len(nodes_data.get('nodes', []))} nodes from {len(nodes_data.get('categories', []))} categories")
+        
+        # Generate documentation
+        logger.info("Generating documentation...")
+        generate_documentation(nodes_data, docs_dir)
+        logger.info("Documentation generation complete!")
+        
+        return 0
+    
+    except Exception as e:
+        logger.error(f"Error generating documentation: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+    
+    finally:
+        # Stop the server
+        logger.info("Stopping server...")
+        server_process.terminate()
+        try:
+            server_process.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            logger.warning("Server didn't stop gracefully, killing...")
+            server_process.kill()
+            server_process.wait()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
