@@ -73,7 +73,14 @@
       "paste": "Pegar",
       "invalidCharacter": "Carácter inválido '{{character}}' (U+{{codePoint}})."
     },
-    "addInput": "Agregar Entrada"
+    "addInput": "Agregar Entrada",
+    "colorCompare": {
+      "old": "antiguo",
+      "new": "nuevo"
+    },
+    "rgbHex": {
+      "hex": "Hex"
+    }
   },
   "outputs": {
     "largeImage": {
@@ -178,7 +185,9 @@
         "label": "Permitir múltiples instancias simultáneas",
         "description": "Habilita múltiples instancias concurrentes de chaiNNer. Esto no se recomienda, pero si su cadena no está usando suficientes recursos del sistema, puede resultarle útil para ejecutar cosas simultáneamente."
       }
-    }
+    },
+    "noOptionsFound": "No se encontraron opciones.",
+    "clearCache": "Limpiar caché"
   },
   "setup": {
     "checkingPort": "Verificando puerto disponible...",
@@ -198,9 +207,7 @@
     }
   },
   "node": {
-    "disable": {
-      "hint": "Pista: Usa Ctrl+Clic para alternar entre las opciones."
-    },
+    "disableHint": "Pista: Usa Ctrl+Clic para alternar entre las opciones.",
     "note": {
       "placeholder": "Texto de Nota"
     },
@@ -208,7 +215,9 @@
     "implementationErrorMessage": "No se pueden determinar las claves de información para el nodo {{nodeName}} ({{schemaId}}).",
     "enable": "Habilitar",
     "disable": "Deshabilitar",
-    "skip": "Omitir"
+    "skip": "Omitir",
+    "eta": "ETA:",
+    "outdated": "Desactualizado"
   },
   "logo": {
     "background": "bg",
@@ -285,8 +294,14 @@
     "copyPythonPath": "Copiar ruta de Python al portapapeles",
     "pythonPath": "La ruta de Python es:",
     "installAllPackages": "{{operations}} Todos los Paquetes ({{size}})",
-    "package": "paquete",
-    "packages": "paquetes"
+    "package": {
+      "singular": "paquete",
+      "plural": "paquetes"
+    },
+    "brackets": {
+      "open": "[",
+      "close": "]"
+    }
   },
   "note": {
     "editMode": "Modo de Edición",
@@ -303,11 +318,6 @@
     "resetToOld": "Restablecer al color anterior",
     "acceptNew": "Aceptar nuevo color"
   },
-  "support": {
-    "koFiTooltip": "Apoya chaiNNer en Ko-fi",
-    "koFiAria": "Apoyar chaiNNer",
-    "koFiButton": "Apoyar chaiNNer"
-  },
   "edge": {
     "removeEdge": "Botón de eliminar borde"
   },
@@ -318,6 +328,11 @@
   "tooltips": {
     "addNodesToCanvas": "Haga doble clic o arrastre y suelte para agregar nodos al lienzo.",
     "collapseExpandCategories": "Contraer/Expandir Categorías"
+  },
+  "support": {
+    "koFiTooltip": "Apoya chaiNNer en Ko-fi",
+    "koFiAria": "Apoyar chaiNNer",
+    "koFiButton": "Apoyar chaiNNer"
   },
   "nodeMenu": {
     "copy": "Copiar",
@@ -355,6 +370,35 @@
     "missingDependencies": "Dependencias faltantes.",
     "unableToImport": "No se pueden importar nodo(s).",
     "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",
-    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}."
+    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}.",
+    "nodes": "Nodos"
+  },
+  "nodeDocumentation": {
+    "conditionExplanation": {
+      "is": "es",
+      "isNot": "no es",
+      "oneOf": "uno de",
+      "ofType": "de tipo",
+      "allOf": "Todos de",
+      "atLeastOneOf": "Al menos uno de",
+      "followingConditions": "se deben cumplir las siguientes condiciones:",
+      "condition": "Condición:"
+    },
+    "nodeDocs": {
+      "optional": "opcional",
+      "sequenced": "(Secuenciado)",
+      "supportedFileTypes": "Tipos de archivo soportados:",
+      "primaryInputDescription": "Esta entrada es la entrada principal para sus tipos de archivo soportados. Esto significa que puedes arrastrar y soltar archivos soportados en chaiNNer, y creará automáticamente un nodo con esta entrada llenada.",
+      "options": "Opciones:",
+      "type": "Tipo:",
+      "inputs": "Entradas",
+      "noInputs": "Este nodo no tiene entradas.",
+      "outputs": "Salidas",
+      "noOutputs": "Este nodo no tiene salidas.",
+      "seeAlso": "Ver también"
+    },
+    "nodesList": {
+      "noNodesFound": "No se encontraron nodos"
+    }
   }
 }

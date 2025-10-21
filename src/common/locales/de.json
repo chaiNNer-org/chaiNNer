@@ -73,7 +73,14 @@
       "paste": "Einfügen",
       "invalidCharacter": "Ungültiges Zeichen '{{character}}' (U+{{codePoint}})."
     },
-    "addInput": "Eingabe hinzufügen"
+    "addInput": "Eingabe hinzufügen",
+    "colorCompare": {
+      "old": "alt",
+      "new": "neu"
+    },
+    "rgbHex": {
+      "hex": "Hex"
+    }
   },
   "outputs": {
     "largeImage": {
@@ -178,7 +185,9 @@
         "label": "Mehrere gleichzeitige Instanzen zulassen",
         "description": "Aktivieren Sie mehrere gleichzeitige Instanzen von chaiNNer. Dies wird nicht empfohlen, aber wenn Ihre Kette nicht genügend Systemressourcen verwendet, kann es hilfreich sein, Dinge gleichzeitig auszuführen."
       }
-    }
+    },
+    "noOptionsFound": "Keine Optionen gefunden.",
+    "clearCache": "Cache löschen"
   },
   "setup": {
     "checkingPort": "Verfügbaren Port überprüfen...",
@@ -198,9 +207,7 @@
     }
   },
   "node": {
-    "disable": {
-      "hint": "Hinweis: Verwenden Sie Strg+Klick, um durch die Optionen zu wechseln."
-    },
+    "disableHint": "Hinweis: Verwenden Sie Strg+Klick, um durch die Optionen zu wechseln.",
     "note": {
       "placeholder": "Notiztext"
     },
@@ -208,7 +215,9 @@
     "implementationErrorMessage": "Kann keine Schlüsselinformationen für Knoten {{nodeName}} ({{schemaId}}) bestimmen.",
     "enable": "Aktivieren",
     "disable": "Deaktivieren",
-    "skip": "Überspringen"
+    "skip": "Überspringen",
+    "eta": "ETA:",
+    "outdated": "Veraltet"
   },
   "logo": {
     "background": "bg",
@@ -284,7 +293,14 @@
     "copyPythonPath": "Python-Pfad in die Zwischenablage kopieren",
     "pythonPath": "Python-Pfad ist:",
     "installAllPackages": "{{operations}} Alle Pakete ({{size}})",
-    "package": "Paket"
+    "package": {
+      "singular": "Paket",
+      "plural": "Pakete"
+    },
+    "brackets": {
+      "open": "[",
+      "close": "]"
+    }
   },
   "note": {
     "editMode": "Bearbeitungsmodus",
@@ -296,11 +312,6 @@
     "resetToOld": "Auf alte Farbe zurücksetzen",
     "acceptNew": "Neue Farbe akzeptieren"
   },
-  "support": {
-    "koFiTooltip": "chaiNNer auf Ko-fi unterstützen",
-    "koFiAria": "chaiNNer unterstützen",
-    "koFiButton": "chaiNNer unterstützen"
-  },
   "edge": {
     "removeEdge": "Kanten-Entfernen-Button"
   },
@@ -311,6 +322,11 @@
   "tooltips": {
     "addNodesToCanvas": "Doppelklicken oder Ziehen und Ablegen, um Knoten zur Leinwand hinzuzufügen.",
     "collapseExpandCategories": "Kategorien ein-/ausklappen"
+  },
+  "support": {
+    "koFiTooltip": "chaiNNer auf Ko-fi unterstützen",
+    "koFiAria": "chaiNNer unterstützen",
+    "koFiButton": "chaiNNer unterstützen"
   },
   "nodeMenu": {
     "copy": "Kopieren",
@@ -348,6 +364,35 @@
     "missingDependencies": "Fehlende Abhängigkeiten.",
     "unableToImport": "Knoten können nicht importiert werden.",
     "clickToInstall": "Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",
-    "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}."
+    "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}.",
+    "nodes": "Knoten"
+  },
+  "nodeDocumentation": {
+    "conditionExplanation": {
+      "is": "ist",
+      "isNot": "ist nicht",
+      "oneOf": "einer von",
+      "ofType": "vom Typ",
+      "allOf": "Alle von",
+      "atLeastOneOf": "Mindestens einer von",
+      "followingConditions": "die folgenden Bedingungen müssen erfüllt sein:",
+      "condition": "Bedingung:"
+    },
+    "nodeDocs": {
+      "optional": "optional",
+      "sequenced": "(Sequenziert)",
+      "supportedFileTypes": "Unterstützte Dateitypen:",
+      "primaryInputDescription": "Diese Eingabe ist die primäre Eingabe für ihre unterstützten Dateitypen. Das bedeutet, dass Sie unterstützte Dateien in chaiNNer ziehen und ablegen können, und es wird automatisch einen Knoten mit dieser ausgefüllten Eingabe erstellen.",
+      "options": "Optionen:",
+      "type": "Typ:",
+      "inputs": "Eingaben",
+      "noInputs": "Dieser Knoten hat keine Eingaben.",
+      "outputs": "Ausgaben",
+      "noOutputs": "Dieser Knoten hat keine Ausgaben.",
+      "seeAlso": "Siehe auch"
+    },
+    "nodesList": {
+      "noNodesFound": "Keine Knoten gefunden"
+    }
   }
 }
