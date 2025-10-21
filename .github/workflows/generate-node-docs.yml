@@ -25,19 +25,47 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install backend server dependencies
-        run: |
-          cd backend/src
-          python dependencies/install_server_deps.py
+      - name: Install Node dependencies
+        run: npm ci
 
-      - name: Generate node documentation
+      - name: Start backend and generate node documentation
         run: |
-          python scripts/generate_node_docs.py
+          # Start backend in background
+          python ./backend/src/run.py 8765 --install-builtin-packages > /tmp/backend.log 2>&1 &
+          BACKEND_PID=$!
+          
+          # Wait for backend to be ready (up to 3 minutes)
+          echo "Waiting for backend to start..."
+          for i in {1..90}; do
+            if curl -s http://127.0.0.1:8765/health > /dev/null 2>&1; then
+              echo "Backend is ready!"
+              break
+            fi
+            if [ $i -eq 90 ]; then
+              echo "Backend failed to start within 3 minutes"
+              cat /tmp/backend.log
+              kill $BACKEND_PID || true
+              exit 1
+            fi
+            sleep 2
+          done
+          
+          # Generate documentation
+          python scripts/generate_node_docs.py --url http://127.0.0.1:8765
+          
+          # Stop backend
+          kill $BACKEND_PID || true
 
       - name: Pull wiki content
         run: |
