@@ -120,13 +120,17 @@ const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
             sendAlert({
                 type: AlertType.ERROR,
                 title: t('node.implementationError', 'Implementation Error'),
-                message: t('node.implementationErrorMessage', 'Unable to determine key info for node {{nodeName}} ({{schemaId}}).', {
-                    nodeName: schema.name,
-                    schemaId: schema.schemaId
-                }) + `\n\n${String(error)}`,
+                message: `${t(
+                    'node.implementationErrorMessage',
+                    'Unable to determine key info for node {{nodeName}} ({{schemaId}}).',
+                    {
+                        nodeName: schema.name,
+                        schemaId: schema.schemaId,
+                    }
+                )}\n\n${String(error)}`,
             });
         }
-    }, [schema, error, sendAlert]);
+    }, [schema, error, sendAlert, t]);
 
     // eslint-disable-next-line react/jsx-no-useless-fragment
     if (!info) return <></>;

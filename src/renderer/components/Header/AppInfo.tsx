@@ -86,9 +86,7 @@ export const AppInfo = memo(() => {
                 >
                     chaiNNer
                 </Heading>
-                <Tag display={{ base: 'none', lg: 'inherit' }}>
-                    {t('header.alpha', 'Alpha')}
-                </Tag>
+                <Tag display={{ base: 'none', lg: 'inherit' }}>{t('header.alpha', 'Alpha')}</Tag>
                 <Tag>v{appVersion}</Tag>
                 {updateVersion && (
                     <Tooltip

@@ -127,7 +127,10 @@ export const NodeSelector = memo(() => {
                                                 bg: 'var(--bg-600)',
                                                 opacity: 1,
                                             }}
-                                            aria-label={t('tooltips.collapseExpandCategories', 'Collapse/Expand Categories')}
+                                            aria-label={t(
+                                                'tooltips.collapseExpandCategories',
+                                                'Collapse/Expand Categories'
+                                            )}
                                             bg="var(--bg-700)"
                                             borderRadius="0px 0px 8px 8px"
                                             h="0.5rem"
@@ -199,10 +202,16 @@ export const NodeSelector = memo(() => {
                                             <Box p={4}>
                                                 <TextBox
                                                     collapsed={collapsed}
-                                                    text={t('search.missingNodes', 'Missing nodes? Click to open the dependency manager!')}
+                                                    text={t(
+                                                        'search.missingNodes',
+                                                        'Missing nodes? Click to open the dependency manager!'
+                                                    )}
                                                     toolTip={
                                                         collapsed
-                                                            ? t('search.missingNodes', 'Missing nodes? Click to open the dependency manager!')
+                                                            ? t(
+                                                                  'search.missingNodes',
+                                                                  'Missing nodes? Click to open the dependency manager!'
+                                                              )
                                                             : ''
                                                     }
                                                     onClick={openDependencyManager}

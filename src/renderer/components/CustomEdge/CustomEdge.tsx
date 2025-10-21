@@ -74,7 +74,7 @@ export const CustomEdge = memo(
         data = {},
         style,
     }: EdgeProps<EdgeData>) => {
-        const { t } = useTranslation();
+        const { t: translate } = useTranslation();
         const sourceX = _sourceX - 1; // - 8 <- To align it with the node
         const targetX = _targetX + 1; // + 8
 
@@ -307,7 +307,7 @@ export const CustomEdge = memo(
                     >
                         <IconButton
                             isRound
-                            aria-label={t('edge.removeEdge', 'Remove edge button')}
+                            aria-label={translate('edge.removeEdge', 'Remove edge button')}
                             borderColor="var(--node-border-color)"
                             borderRadius={100}
                             borderWidth={2}

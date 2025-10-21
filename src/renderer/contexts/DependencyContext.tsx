@@ -228,7 +228,11 @@ const PackageView = memo(
                                         textAlign="left"
                                         w="full"
                                     >
-                                        {p.name} ({p.dependencies.length} {p.dependencies.length === 1 ? t('dependencyManager.package', 'package') : t('dependencyManager.packages', 'packages')})
+                                        {p.name} ({p.dependencies.length}{' '}
+                                        {p.dependencies.length === 1
+                                            ? t('dependencyManager.package', 'package')
+                                            : t('dependencyManager.packages', 'packages')}
+                                        )
                                     </Text>
                                     <Tooltip
                                         closeOnClick
@@ -260,7 +264,8 @@ const PackageView = memo(
                                             size="sm"
                                             onClick={onUpdate}
                                         >
-                                            {t('dependencyManager.update', 'Update')} ({formatSizeEstimate(packageInfo.outdated)})
+                                            {t('dependencyManager.update', 'Update')} (
+                                            {formatSizeEstimate(packageInfo.outdated)})
                                         </Button>
                                     )}
 
@@ -403,10 +408,16 @@ const PackagesSection = memo(
                                 installPackages(...allOperationPackages);
                             }}
                         >
-                            {t('dependencyManager.installAllPackages', '{{operations}} All Packages ({{size}})', {
-                                operations: operationsForAll,
-                                size: formatSizeEstimate(allOperationPackages.flatMap((p) => p.dependencies))
-                            })}
+                            {t(
+                                'dependencyManager.installAllPackages',
+                                '{{operations}} All Packages ({{size}})',
+                                {
+                                    operations: operationsForAll,
+                                    size: formatSizeEstimate(
+                                        allOperationPackages.flatMap((p) => p.dependencies)
+                                    ),
+                                }
+                            )}
                         </Button>
                     )}
                 </Flex>
@@ -639,7 +650,11 @@ const PythonSection = memo(
                         flex="1"
                         textAlign="left"
                     >
-                        {t('dependencyManager.python', 'Python')} ({pythonInfo.version}) [{useSystemPython ? t('dependencyManager.system', 'System') : t('dependencyManager.integrated', 'Integrated')}]
+                        {t('dependencyManager.python', 'Python')} ({pythonInfo.version}) [
+                        {useSystemPython
+                            ? t('dependencyManager.system', 'System')
+                            : t('dependencyManager.integrated', 'Integrated')}
+                        ]
                     </Text>
 
                     <Tooltip
@@ -655,7 +670,10 @@ const PythonSection = memo(
                         placement="top"
                     >
                         <IconButton
-                            aria-label={t('dependencyManager.copyPythonPath', 'Copy Python path to clipboard')}
+                            aria-label={t(
+                                'dependencyManager.copyPythonPath',
+                                'Copy Python path to clipboard'
+                            )}
                             icon={<CopyIcon />}
                             size="sm"
                             variant="ghost"
@@ -689,7 +707,9 @@ const PythonSection = memo(
                             my={2}
                         >
                             <Center>
-                                <Text whiteSpace="nowrap">{t('dependencyManager.installationMode', 'Installation mode')}</Text>
+                                <Text whiteSpace="nowrap">
+                                    {t('dependencyManager.installationMode', 'Installation mode')}
+                                </Text>
                             </Center>
                             <Tooltip
                                 hasArrow
@@ -718,8 +738,12 @@ const PythonSection = memo(
                                         setInstallMode(mode);
                                     }}
                                 >
-                                    <option value={InstallMode.NORMAL}>{t('dependencyManager.normal', 'Normal')}</option>
-                                    <option value={InstallMode.COPY}>{t('dependencyManager.manualCopy', 'Manual/Copy')}</option>
+                                    <option value={InstallMode.NORMAL}>
+                                        {t('dependencyManager.normal', 'Normal')}
+                                    </option>
+                                    <option value={InstallMode.COPY}>
+                                        {t('dependencyManager.manualCopy', 'Manual/Copy')}
+                                    </option>
                                 </Select>
                             </Box>
                         </Flex>
@@ -801,7 +825,9 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const [modifyingPackages, setModifyingPackages] = useState<readonly PackageId[]>(EMPTY_ARRAY);
 
-    const [consoleOutput, setConsoleOutput] = useState(t('dependencyManager.consoleOutput', 'Console output:') + '\n\n');
+    const [consoleOutput, setConsoleOutput] = useState(
+        `${t('dependencyManager.consoleOutput', 'Console output:')}\n\n`
+    );
     const [isRunningShell, setIsRunningShell] = useState(false);
     const logOutput = useCallback(
         (message: string) => {
@@ -867,7 +893,10 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
                 sendToast({
                     status: 'success',
                     title: t('dependencyManager.commandCopied', 'Command copied to clipboard'),
-                    description: t('dependencyManager.commandCopiedDescription', 'Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.'),
+                    description: t(
+                        'dependencyManager.commandCopiedDescription',
+                        'Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.'
+                    ),
                     duration: 5_000,
                     id: 'copy-to-clipboard-toast',
                 });
@@ -901,8 +930,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         const button = await showAlert({
             type: AlertType.WARN,
             title: t('dependencyManager.uninstallTitle', 'Uninstall'),
-            message: t('dependencyManager.uninstallMessage', 'Are you sure you want to uninstall {{name}}?', { name }),
-            buttons: [t('dependencyManager.cancel', 'Cancel'), t('dependencyManager.uninstall', 'Uninstall')],
+            message: t(
+                'dependencyManager.uninstallMessage',
+                'Are you sure you want to uninstall {{name}}?',
+                { name }
+            ),
+            buttons: [
+                t('dependencyManager.cancel', 'Cancel'),
+                t('dependencyManager.uninstall', 'Uninstall'),
+            ],
             defaultId: 0,
         });
         if (button === 0) return;
@@ -911,8 +947,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             const saveButton = await showAlert({
                 type: AlertType.WARN,
                 title: t('dependencyManager.unsavedChanges', 'Unsaved Changes'),
-                message: t('dependencyManager.unsavedChangesMessage', 'You might lose your unsaved changes by uninstalling {{name}}.\n\nAre you sure you want to uninstall {{name}}?', { name }),
-                buttons: [t('dependencyManager.cancel', 'Cancel'), t('dependencyManager.uninstall', 'Uninstall')],
+                message: t(
+                    'dependencyManager.unsavedChangesMessage',
+                    'You might lose your unsaved changes by uninstalling {{name}}.\n\nAre you sure you want to uninstall {{name}}?',
+                    { name }
+                ),
+                buttons: [
+                    t('dependencyManager.cancel', 'Cancel'),
+                    t('dependencyManager.uninstall', 'Uninstall'),
+                ],
                 defaultId: 0,
             });
             if (saveButton === 0) return;

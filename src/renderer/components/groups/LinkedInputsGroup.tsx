@@ -46,12 +46,22 @@ export const LinkedInputsGroup = memo(
         const allConnected = inputs.every((input) => nodeState.connectedInputs.has(input.id));
 
         const label = linked
-            ? t('linkedInputs.currentlyLinked', 'The values of {{inputs}} are currently linked to the same value. Click here to undo this link.', {
-                inputs: joinEnglish(inputs.map((input) => input.label), 'and')
-            })
+            ? t(
+                  'linkedInputs.currentlyLinked',
+                  'The values of {{inputs}} are currently linked to the same value. Click here to undo this link.',
+                  {
+                      inputs: joinEnglish(
+                          inputs.map((input) => input.label),
+                          'and'
+                      ),
+                  }
+              )
             : t('linkedInputs.clickToLink', 'Click here to link {{inputs}} to the same value.', {
-                inputs: joinEnglish(inputs.map((input) => input.label), 'and')
-            });
+                  inputs: joinEnglish(
+                      inputs.map((input) => input.label),
+                      'and'
+                  ),
+              });
 
         const linkButtonWidth = 1.4;
         const linkButtonHeight = 1.6;

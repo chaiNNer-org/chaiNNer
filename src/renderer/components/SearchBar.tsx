@@ -31,18 +31,18 @@ export const SearchBar = memo(({ value, onChange, onClose, onClick }: SearchBarP
                 onChange={onChange}
                 onClick={onClick}
             />
-        <InputRightElement
-            _hover={{ color: 'var(--fg-000)' }}
-            style={{
-                color: 'var(--fg-300)',
-                cursor: 'pointer',
-                display: value ? undefined : 'none',
-                fontSize: '66%',
-            }}
-            onClick={onClose}
-        >
-            <CloseIcon />
-        </InputRightElement>
-    </InputGroup>
+            <InputRightElement
+                _hover={{ color: 'var(--fg-000)' }}
+                style={{
+                    color: 'var(--fg-300)',
+                    cursor: 'pointer',
+                    display: value ? undefined : 'none',
+                    fontSize: '66%',
+                }}
+                onClick={onClose}
+            >
+                <CloseIcon />
+            </InputRightElement>
+        </InputGroup>
     );
 });

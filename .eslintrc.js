@@ -169,5 +169,5 @@ module.exports = {
         },
     ],
 
-    ignorePatterns: ['**/antlr4/*.js'],
+    ignorePatterns: ['**/antlr4/*.js', '/venv/**/*', '/node_modules/**', '/dist/**', '/out/**/*'],
 };

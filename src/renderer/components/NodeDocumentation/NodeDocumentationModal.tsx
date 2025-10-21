@@ -85,7 +85,9 @@ const NodeDocumentationModal = memo(() => {
             combineWith: 'AND',
         });
 
-        const terms = new Set(searchResults.flatMap((r) => r.terms).map((t) => t.toLowerCase()));
+        const terms = new Set(
+            searchResults.flatMap((r) => r.terms).map((term) => term.toLowerCase())
+        );
 
         const scores = new Map<SchemaId, number>();
         for (const result of searchResults) {
@@ -141,7 +143,9 @@ const NodeDocumentationModal = memo(() => {
                                 m="auto"
                             />
                         </Box>
-                        <Box whiteSpace="nowrap">{t('documentation.title', 'Node Documentation')}</Box>
+                        <Box whiteSpace="nowrap">
+                            {t('documentation.title', 'Node Documentation')}
+                        </Box>
                     </HStack>
                 </ModalHeader>
                 <ModalCloseButton />

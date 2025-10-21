@@ -103,7 +103,9 @@ const NodeRepresentative = memo(
                         toggleFavorite(node.schemaId);
                     }}
                 >
-                    {isFavorite ? t('favorites.removeFromFavorites', 'Remove from Favorites') : t('favorites.addToFavorites', 'Add to Favorites')}
+                    {isFavorite
+                        ? t('favorites.removeFromFavorites', 'Remove from Favorites')
+                        : t('favorites.addToFavorites', 'Add to Favorites')}
                 </MenuItem>
                 <MenuItem
                     icon={<BsFillJournalBookmarkFill />}
@@ -142,7 +144,10 @@ const NodeRepresentative = memo(
                     hasArrow
                     borderRadius={8}
                     isOpen={isOpen}
-                    label={t('tooltips.addNodesToCanvas', 'Either double-click or drag and drop to add nodes to the canvas.')}
+                    label={t(
+                        'tooltips.addNodesToCanvas',
+                        'Either double-click or drag and drop to add nodes to the canvas.'
+                    )}
                     placement="top"
                     px={2}
                     py={1}
@@ -280,17 +285,18 @@ const NodeRepresentative = memo(
                 </Tooltip>
             );
         }, [
-            collapsed,
-            isDisabled,
-            isOpen,
             node,
-            onClose,
-            onContextMenu,
-            onCreateNode,
-            unavailableReason,
-            toggleFavorite,
-            isFavorite,
             accentColor,
+            isOpen,
+            t,
+            onClose,
+            isDisabled,
+            onContextMenu,
+            collapsed,
+            unavailableReason,
+            isFavorite,
+            onCreateNode,
+            toggleFavorite,
         ]);
     }
 );

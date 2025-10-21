@@ -129,14 +129,24 @@ export const PackageHintText = memo(
             <>
                 <Text>
                     {hint ||
-                        t('nodeSelector.criticalImportError', 'A critical import error has occurred with a dependency in package: {{packageName}}.', {
-                            packageName,
-                        })}
+                        t(
+                            'nodeSelector.criticalImportError',
+                            'A critical import error has occurred with a dependency in package: {{packageName}}.',
+                            {
+                                packageName,
+                            }
+                        )}
                 </Text>
                 <Text display={hint ? 'inherit' : 'none'}>
-                    <em>{t('nodeSelector.clickToInstall', 'Click to open the dependency manager to install {{packageName}}.', {
-                        packageName,
-                    })}</em>
+                    <em>
+                        {t(
+                            'nodeSelector.clickToInstall',
+                            'Click to open the dependency manager to install {{packageName}}.',
+                            {
+                                packageName,
+                            }
+                        )}
+                    </em>
                 </Text>
             </>
         );
