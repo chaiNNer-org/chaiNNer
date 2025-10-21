@@ -9,6 +9,8 @@ module.exports = {
         'eslint-plugin-react-memo',
         'unused-imports',
         'react-refresh',
+        'i18next',
+        'i18n-validator',
     ],
     globals: {
         MAIN_WINDOW_VITE_DEV_SERVER_URL: true,
@@ -73,6 +75,14 @@ module.exports = {
             typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
         },
         'import/ignore': [/\.(?:css|scss|sass)$/i],
+        i18next: {
+            locales: ['en', 'es', 'de'],
+            defaultLocale: 'en',
+        },
+        'i18n-validator': {
+            locales: ['en', 'es', 'de'],
+            defaultLocale: 'en',
+        },
     },
 
     overrides: [
@@ -97,6 +107,8 @@ module.exports = {
                 'unused-imports',
                 'regexp',
                 'react-refresh',
+                'i18next',
+                'i18n-validator',
             ],
             parserOptions: {
                 project: './tsconfig.json',
@@ -144,6 +156,15 @@ module.exports = {
                 'unused-imports/no-unused-imports': 'error',
                 'regexp/prefer-d': ['warn', { insideCharacterClass: 'ignore' }],
                 'react-refresh/only-export-components': 'warn',
+                // i18n rules
+                'i18next/no-literal-string': 'warn',
+                'i18n-validator/json-key-exists': [
+                    'error',
+                    {
+                        locales: ['en', 'es', 'de'],
+                        jsonBaseURIs: [{ baseURI: './src/common/locales/' }],
+                    },
+                ],
             },
         },
         {

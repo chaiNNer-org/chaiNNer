@@ -1,7 +1,7 @@
 import { InitOptions } from 'i18next';
-import de from './locales/de/translation.json';
-import en from './locales/en/translation.json';
-import es from './locales/es/translation.json';
+import de from './locales/de.json';
+import en from './locales/en.json';
+import es from './locales/es.json';
 
 const resources = {
     en: { translation: en },
