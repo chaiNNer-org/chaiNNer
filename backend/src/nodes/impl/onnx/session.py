@@ -36,12 +36,20 @@ def create_inference_session(
             "device_id": gpu_index,
         },
     )
+    dml: ProviderDesc = (
+        "DmlExecutionProvider",
+        {
+            "device_id": gpu_index,
+        },
+    )
     cpu: ProviderDesc = "CPUExecutionProvider"
 
     if execution_provider == "TensorrtExecutionProvider":
         providers = [tensorrt, cuda, cpu]
     elif execution_provider == "CUDAExecutionProvider":
         providers = [cuda, cpu]
+    elif execution_provider == "DmlExecutionProvider":
+        providers = [dml, cpu]
     else:
         providers = [execution_provider, cpu]
 
