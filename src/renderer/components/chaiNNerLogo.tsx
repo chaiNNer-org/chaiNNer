@@ -1,5 +1,6 @@
 import { Box, Center, Image } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import bg from '../../public/splash_imgs/background.png';
 import front from '../../public/splash_imgs/front.png';
 
@@ -9,7 +10,10 @@ interface chaiNNerLogoProps {
     percent?: number;
 }
 
-export const ChaiNNerLogo = memo(({ size = 1024, percent = 100 }: chaiNNerLogoProps) => (
+export const ChaiNNerLogo = memo(({ size = 1024, percent = 100 }: chaiNNerLogoProps) => {
+    const { t } = useTranslation();
+
+    return (
     <Box
         boxSize={size}
         display="block"
@@ -91,4 +95,5 @@ export const ChaiNNerLogo = memo(({ size = 1024, percent = 100 }: chaiNNerLogoPr
             top={-size * 3}
         />
     </Box>
-));
+    );
+});
