@@ -18,12 +18,6 @@
     "open": "Abrir",
     "settings": "Configuración"
   },
-  "dependencyManager": {
-    "manageDependencies": "Administrar Dependencias",
-    "openDependencyManager": "Abrir Administrador de Dependencias",
-    "updatesAvailable": "Actualizaciones Disponibles",
-    "updatesAvailableDescription": "Hay {{count}} paquetes con actualizaciones de dependencias disponibles."
-  },
   "error": {
     "error": "Error",
     "message": {
@@ -196,13 +190,6 @@
   "typeTags": {
     "optional": "opcional"
   },
-  "nodeSelector": {
-    "favorites": "Favoritos",
-    "missingDependencies": "Dependencias faltantes.",
-    "unableToImport": "No se pueden importar nodo(s).",
-    "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",
-    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}."
-  },
   "groups": {
     "seed": {
       "randomSeed": "Semilla aleatoria",
@@ -363,6 +350,10 @@
     "delete": "Eliminar"
   },
   "nodeSelector": {
-    "clickToInstall": "<em>Haz clic</em> para abrir el administrador de dependencias e instalar {{packageName}}."
+    "favorites": "Favoritos",
+    "missingDependencies": "Dependencias faltantes.",
+    "unableToImport": "No se pueden importar nodo(s).",
+    "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",
+    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}."
   }
 }

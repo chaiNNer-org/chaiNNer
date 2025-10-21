@@ -18,12 +18,6 @@
     "open": "Öffnen",
     "settings": "Einstellungen"
   },
-  "dependencyManager": {
-    "manageDependencies": "Abhängigkeiten verwalten",
-    "openDependencyManager": "Abhängigkeitsmanager öffnen",
-    "updatesAvailable": "Updates verfügbar",
-    "updatesAvailableDescription": "Es gibt {{count}} Pakete mit verfügbaren Abhängigkeitsupdates."
-  },
   "error": {
     "error": "Fehler",
     "message": {
@@ -196,13 +190,6 @@
   "typeTags": {
     "optional": "optional"
   },
-  "nodeSelector": {
-    "favorites": "Favoriten",
-    "missingDependencies": "Fehlende Abhängigkeiten.",
-    "unableToImport": "Knoten können nicht importiert werden.",
-    "clickToInstall": "Klicken Sie, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",
-    "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}."
-  },
   "groups": {
     "seed": {
       "randomSeed": "Zufälliger Seed",
@@ -363,6 +350,10 @@
     "delete": "Löschen"
   },
   "nodeSelector": {
-    "clickToInstall": "<em>Klicken</em> Sie hier, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren."
+    "favorites": "Favoriten",
+    "missingDependencies": "Fehlende Abhängigkeiten.",
+    "unableToImport": "Knoten können nicht importiert werden.",
+    "clickToInstall": "Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",
+    "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}."
   }
 }

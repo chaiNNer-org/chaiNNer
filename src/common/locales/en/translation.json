@@ -18,12 +18,6 @@
     "open": "Open",
     "settings": "Settings"
   },
-  "dependencyManager": {
-    "manageDependencies": "Manage Dependencies",
-    "openDependencyManager": "Open Dependency Manager",
-    "updatesAvailable": "Updates Available",
-    "updatesAvailableDescription": "There are {{count}} packages with available dependency updates."
-  },
   "error": {
     "error": "Error",
     "message": {
@@ -78,7 +72,8 @@
       "copyText": "Copy Text",
       "paste": "Paste",
       "invalidCharacter": "Invalid character '{{character}}' (U+{{codePoint}})."
-    }
+    },
+    "addInput": "Add Input"
   },
   "outputs": {
     "largeImage": {
@@ -196,28 +191,11 @@
   "typeTags": {
     "optional": "optional"
   },
-  "nodeSelector": {
-    "favorites": "Favorites",
-    "missingDependencies": "Missing dependencies.",
-    "unableToImport": "Unable to import node(s).",
-    "clickToInstall": "Click to open the dependency manager to install {{packageName}}.",
-    "criticalImportError": "A critical import error has occurred with a dependency in package: {{packageName}}."
-  },
   "groups": {
     "seed": {
       "randomSeed": "Random seed",
       "randomSeedAria": "Random Seed"
     }
-  },
-  "node": {
-    "disable": {
-      "hint": "Hint: Use Ctrl+Click to cycle through options."
-    },
-    "note": {
-      "placeholder": "Note Text"
-    },
-    "implementationError": "Implementation Error",
-    "implementationErrorMessage": "Unable to determine key info for node {{nodeName}} ({{schemaId}})."
   },
   "logo": {
     "background": "bg",
@@ -304,6 +282,14 @@
     "viewMarkdown": "View Markdown"
   },
   "node": {
+    "disable": {
+      "hint": "Hint: Use Ctrl+Click to cycle through options."
+    },
+    "note": {
+      "placeholder": "Note Text"
+    },
+    "implementationError": "Implementation Error",
+    "implementationErrorMessage": "Unable to determine key info for node {{nodeName}} ({{schemaId}}).",
     "enable": "Enable",
     "disable": "Disable",
     "skip": "Skip"
@@ -311,9 +297,6 @@
   "color": {
     "resetToOld": "Reset to old color",
     "acceptNew": "Accept new color"
-  },
-  "inputs": {
-    "addInput": "Add Input"
   },
   "support": {
     "koFiTooltip": "Support chaiNNer on Ko-fi",
@@ -363,6 +346,10 @@
     "delete": "Delete"
   },
   "nodeSelector": {
-    "clickToInstall": "<em>Click</em> to open the dependency manager to install {{packageName}}."
+    "favorites": "Favorites",
+    "missingDependencies": "Missing dependencies.",
+    "unableToImport": "Unable to import node(s).",
+    "clickToInstall": "Click to open the dependency manager to install {{packageName}}.",
+    "criticalImportError": "A critical import error has occurred with a dependency in package: {{packageName}}."
   }
 }
