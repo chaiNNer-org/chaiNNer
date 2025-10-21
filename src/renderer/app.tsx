@@ -61,9 +61,9 @@ export const App = memo(() => {
         []
     );
 
-    // Apply language setting
+    // Apply language setting immediately when settings load
     useEffect(() => {
-        if (settings?.language) {
+        if (settings?.language && i18n.language !== settings.language) {
             i18n.changeLanguage(settings.language).catch(() => {
                 // Fallback to English if language fails to load
                 i18n.changeLanguage('en').catch(() => {
@@ -71,7 +71,7 @@ export const App = memo(() => {
                 });
             });
         }
-    }, [settings?.language]);
+    }, [settings]);
 
     return (
         <ChakraProvider theme={darktheme}>

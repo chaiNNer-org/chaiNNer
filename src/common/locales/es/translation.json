@@ -34,13 +34,23 @@
     }
   },
   "header": {
+    "alpha": "Alfa",
     "pause": "Pausar",
     "pauseButton": "Botón de pausa",
     "resume": "Reanudar",
     "run": "Ejecutar",
     "runButton": "Botón de ejecución",
     "stop": "Detener",
-    "stopButton": "Botón de detener"
+    "stopButton": "Botón de detener",
+    "updateAvailable": "Actualización disponible ({{version}})",
+    "updateAvailableAria": "Actualización disponible",
+    "updateChangelog": "Registro de Cambios de la Actualización",
+    "updateAvailableTitle": "Actualización Disponible ({{version}})",
+    "updateAvailableMessage": "Hay una actualización disponible para la versión {{version}}. ¿Te gustaría ver el registro de cambios?",
+    "viewReleaseOnGitHub": "Ver lanzamiento en GitHub",
+    "downloadFromWebsite": "Descargar desde chaiNNer.app",
+    "ignoreUpdate": "Ignorar Actualización",
+    "viewUpdate": "Ver Actualización"
   },
   "inputs": {
     "copyInputOverrideId": "Copiar ID de Sobrescritura de Entrada",
@@ -179,5 +189,12 @@
   },
   "typeTags": {
     "optional": "opcional"
+  },
+  "nodeSelector": {
+    "favorites": "Favoritos",
+    "missingDependencies": "Dependencias faltantes.",
+    "unableToImport": "No se pueden importar nodo(s).",
+    "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",
+    "criticalImportError": "Ha ocurrido un error crítico de importación con una dependencia en el paquete: {{packageName}}."
   }
 }

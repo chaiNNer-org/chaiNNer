@@ -34,13 +34,23 @@
     }
   },
   "header": {
+    "alpha": "Alpha",
     "pause": "Pause",
     "pauseButton": "Pause-Schaltfläche",
     "resume": "Fortsetzen",
     "run": "Ausführen",
     "runButton": "Ausführen-Schaltfläche",
     "stop": "Stopp",
-    "stopButton": "Stopp-Schaltfläche"
+    "stopButton": "Stopp-Schaltfläche",
+    "updateAvailable": "Update verfügbar ({{version}})",
+    "updateAvailableAria": "Update verfügbar",
+    "updateChangelog": "Update-Änderungsprotokoll",
+    "updateAvailableTitle": "Update verfügbar ({{version}})",
+    "updateAvailableMessage": "Es ist ein Update für Version {{version}} verfügbar. Möchten Sie das Änderungsprotokoll anzeigen?",
+    "viewReleaseOnGitHub": "Release auf GitHub anzeigen",
+    "downloadFromWebsite": "Von chaiNNer.app herunterladen",
+    "ignoreUpdate": "Update ignorieren",
+    "viewUpdate": "Update anzeigen"
   },
   "inputs": {
     "copyInputOverrideId": "Eingabe-Override-ID kopieren",
@@ -179,5 +189,12 @@
   },
   "typeTags": {
     "optional": "optional"
+  },
+  "nodeSelector": {
+    "favorites": "Favoriten",
+    "missingDependencies": "Fehlende Abhängigkeiten.",
+    "unableToImport": "Knoten können nicht importiert werden.",
+    "clickToInstall": "Klicken Sie, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",
+    "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}."
   }
 }
