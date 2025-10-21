@@ -72,7 +72,8 @@
       "copyText": "Copiar Texto",
       "paste": "Pegar",
       "invalidCharacter": "Carácter inválido '{{character}}' (U+{{codePoint}})."
-    }
+    },
+    "addInput": "Agregar Entrada"
   },
   "outputs": {
     "largeImage": {
@@ -204,7 +205,10 @@
       "placeholder": "Texto de Nota"
     },
     "implementationError": "Error de Implementación",
-    "implementationErrorMessage": "No se pueden determinar las claves de información para el nodo {{nodeName}} ({{schemaId}})."
+    "implementationErrorMessage": "No se pueden determinar las claves de información para el nodo {{nodeName}} ({{schemaId}}).",
+    "enable": "Habilitar",
+    "disable": "Deshabilitar",
+    "skip": "Omitir"
   },
   "logo": {
     "background": "bg",
@@ -298,9 +302,6 @@
   "color": {
     "resetToOld": "Restablecer al color anterior",
     "acceptNew": "Aceptar nuevo color"
-  },
-  "inputs": {
-    "addInput": "Agregar Entrada"
   },
   "support": {
     "koFiTooltip": "Apoya chaiNNer en Ko-fi",

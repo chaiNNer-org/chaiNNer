@@ -72,7 +72,8 @@
       "copyText": "Text kopieren",
       "paste": "Einfügen",
       "invalidCharacter": "Ungültiges Zeichen '{{character}}' (U+{{codePoint}})."
-    }
+    },
+    "addInput": "Eingabe hinzufügen"
   },
   "outputs": {
     "largeImage": {
@@ -204,7 +205,10 @@
       "placeholder": "Notiztext"
     },
     "implementationError": "Implementierungsfehler",
-    "implementationErrorMessage": "Kann keine Schlüsselinformationen für Knoten {{nodeName}} ({{schemaId}}) bestimmen."
+    "implementationErrorMessage": "Kann keine Schlüsselinformationen für Knoten {{nodeName}} ({{schemaId}}) bestimmen.",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "skip": "Überspringen"
   },
   "logo": {
     "background": "bg",
@@ -275,14 +279,12 @@
     "unsavedChanges": "Ungespeicherte Änderungen",
     "unsavedChangesMessage": "Sie könnten Ihre ungespeicherten Änderungen durch die Deinstallation von {{name}} verlieren.\n\nSind Sie sicher, dass Sie {{name}} deinstallieren möchten?",
     "cancel": "Abbrechen",
-    "uninstall": "Deinstallieren",
     "installing": "Installiere {{name}}...",
     "uninstalling": "Deinstalliere {{name}}...",
     "copyPythonPath": "Python-Pfad in die Zwischenablage kopieren",
     "pythonPath": "Python-Pfad ist:",
     "installAllPackages": "{{operations}} Alle Pakete ({{size}})",
-    "package": "Paket",
-    "packages": "Pakete"
+    "package": "Paket"
   },
   "note": {
     "editMode": "Bearbeitungsmodus",
@@ -290,17 +292,9 @@
     "markdownMode": "Markdown-Modus",
     "viewMarkdown": "Markdown anzeigen"
   },
-  "node": {
-    "enable": "Aktivieren",
-    "disable": "Deaktivieren",
-    "skip": "Überspringen"
-  },
   "color": {
     "resetToOld": "Auf alte Farbe zurücksetzen",
     "acceptNew": "Neue Farbe akzeptieren"
-  },
-  "inputs": {
-    "addInput": "Eingabe hinzufügen"
   },
   "support": {
     "koFiTooltip": "chaiNNer auf Ko-fi unterstützen",
