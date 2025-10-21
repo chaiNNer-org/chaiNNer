@@ -68,7 +68,13 @@ def format_type(type_expr: str | dict | list) -> str:
     return str(type_expr)
 
 
-def generate_node_markdown(node: dict[str, Any]) -> str:
+def node_name_to_anchor(name: str) -> str:
+    """Convert a node name to a markdown anchor link."""
+    # Convert to lowercase and replace spaces with hyphens
+    return name.lower().replace(" ", "-").replace("/", "-").replace("(", "").replace(")", "")
+
+
+def generate_node_markdown(node: dict[str, Any], node_lookup: dict[str, dict[str, Any]] | None = None) -> str:
     """Generate markdown documentation for a single node."""
     lines = []
     
@@ -108,12 +114,23 @@ def generate_node_markdown(node: dict[str, Any]) -> str:
             lines.append(f"- **{output_name}** ({output_type})")
         lines.append("")
     
-    # See Also
+    # See Also - with links if node_lookup is provided
     if node.get("seeAlso"):
         lines.append("**See Also:**")
         lines.append("")
-        for see_also_item in node["seeAlso"]:
-            lines.append(f"- {see_also_item}")
+        for see_also_schema_id in node["seeAlso"]:
+            if node_lookup and see_also_schema_id in node_lookup:
+                # We have information about the referenced node - create a link
+                ref_node = node_lookup[see_also_schema_id]
+                ref_name = ref_node.get("name", see_also_schema_id)
+                ref_category = ref_node.get("category", "")
+                ref_anchor = node_name_to_anchor(ref_name)
+                # Create link to the category file with anchor to the node
+                link = f"[{ref_name}]({ref_category}.md#{ref_anchor})"
+                lines.append(f"- {link}")
+            else:
+                # Fallback: just show the schema ID if we can't find the node
+                lines.append(f"- {see_also_schema_id}")
         lines.append("")
     
     # Deprecated warning
@@ -135,6 +152,16 @@ def generate_documentation(nodes_data: dict[str, Any], output_dir: Path) -> None
     
     # Create a mapping of category IDs to category info
     categories = {cat["id"]: cat for cat in categories_data}
+    
+    # Create a lookup map from schema ID to node info (for generating links)
+    node_lookup: dict[str, dict[str, Any]] = {}
+    for node in nodes:
+        schema_id = node.get("schemaId", "")
+        if schema_id:
+            node_lookup[schema_id] = {
+                "name": node.get("name", ""),
+                "category": node.get("category", ""),
+            }
     
     # Group nodes by category and node group
     nodes_by_category: dict[str, dict[str, list[dict]]] = {}
@@ -183,7 +210,7 @@ def generate_documentation(nodes_data: dict[str, Any], output_dir: Path) -> None
             sorted_nodes = sorted(group_nodes, key=lambda n: n.get("name", ""))
             
             for node in sorted_nodes:
-                category_lines.append(generate_node_markdown(node))
+                category_lines.append(generate_node_markdown(node, node_lookup))
         
         # Write category file
         category_file = output_dir / "nodes" / f"{category_id}.md"
