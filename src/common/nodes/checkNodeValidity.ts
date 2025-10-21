@@ -28,9 +28,10 @@ export const checkNodeValidity = ({
     chainLineage,
     nodeId,
 }: CheckNodeValidityOptions): Validity => {
+    const groupStacks = getGroupStacks(schema);
     const isOptional = (input: Input): boolean => {
         // Check if input is inside a conditional group with a false condition
-        const conditions = getGroupStacks(schema).inputConditions.get(input.id) ?? [];
+        const conditions = groupStacks.inputConditions.get(input.id) ?? [];
         if (conditions.length > 0) {
             // If any condition is false, the input is conditionally hidden and therefore optional
             const allConditionsTrue = conditions.every((c) =>
