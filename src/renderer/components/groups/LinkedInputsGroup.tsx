@@ -1,5 +1,6 @@
 import { Box, HStack, IconButton, Tooltip } from '@chakra-ui/react';
 import { memo, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IoMdLink } from 'react-icons/io';
 import { IoUnlink } from 'react-icons/io5';
 import { InputId, InputValue } from '../../../common/common-types';
@@ -10,6 +11,7 @@ import { GroupProps } from './props';
 
 export const LinkedInputsGroup = memo(
     ({ inputs, nodeState, ItemRenderer }: GroupProps<'linked-inputs'>) => {
+        const { t } = useTranslation();
         const { inputData, setInputValue, isLocked } = nodeState;
 
         const [linked, setLinked] = useState<boolean>(() => {
@@ -44,14 +46,12 @@ export const LinkedInputsGroup = memo(
         const allConnected = inputs.every((input) => nodeState.connectedInputs.has(input.id));
 
         const label = linked
-            ? `The values of ${joinEnglish(
-                  inputs.map((input) => input.label),
-                  'and'
-              )} are currently linked to the same value. Click here to undo this link.`
-            : `Click here to link ${joinEnglish(
-                  inputs.map((input) => input.label),
-                  'and'
-              )} to the same value.`;
+            ? t('linkedInputs.currentlyLinked', 'The values of {{inputs}} are currently linked to the same value. Click here to undo this link.', {
+                inputs: joinEnglish(inputs.map((input) => input.label), 'and')
+            })
+            : t('linkedInputs.clickToLink', 'Click here to link {{inputs}} to the same value.', {
+                inputs: joinEnglish(inputs.map((input) => input.label), 'and')
+            });
 
         const linkButtonWidth = 1.4;
         const linkButtonHeight = 1.6;

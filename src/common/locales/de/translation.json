@@ -215,10 +215,28 @@
     },
     "note": {
       "placeholder": "Notiztext"
-    }
+    },
+    "implementationError": "Implementierungsfehler",
+    "implementationErrorMessage": "Kann keine Schlüsselinformationen für Knoten {{nodeName}} ({{schemaId}}) bestimmen."
   },
   "logo": {
     "background": "bg",
     "front": "front"
+  },
+  "timer": {
+    "executionTook": "Die Ausführung dauerte ungefähr {{duration}}."
+  },
+  "linkedInputs": {
+    "currentlyLinked": "Die Werte von {{inputs}} sind derzeit mit demselben Wert verknüpft. Klicken Sie hier, um diese Verknüpfung rückgängig zu machen.",
+    "clickToLink": "Klicken Sie hier, um {{inputs}} mit demselben Wert zu verknüpfen."
+  },
+  "languages": {
+    "english": "English",
+    "spanish": "Español",
+    "german": "Deutsch"
+  },
+  "search": {
+    "placeholder": "Suchen...",
+    "missingNodes": "Fehlende Knoten? Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen!"
   }
 }

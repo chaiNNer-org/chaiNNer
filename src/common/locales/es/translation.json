@@ -215,10 +215,28 @@
     },
     "note": {
       "placeholder": "Texto de Nota"
-    }
+    },
+    "implementationError": "Error de Implementación",
+    "implementationErrorMessage": "No se pueden determinar las claves de información para el nodo {{nodeName}} ({{schemaId}})."
   },
   "logo": {
     "background": "bg",
     "front": "front"
+  },
+  "timer": {
+    "executionTook": "La ejecución tomó aproximadamente {{duration}}."
+  },
+  "linkedInputs": {
+    "currentlyLinked": "Los valores de {{inputs}} están actualmente vinculados al mismo valor. Haz clic aquí para deshacer este enlace.",
+    "clickToLink": "Haz clic aquí para vincular {{inputs}} al mismo valor."
+  },
+  "languages": {
+    "english": "English",
+    "spanish": "Español",
+    "german": "Deutsch"
+  },
+  "search": {
+    "placeholder": "Buscar...",
+    "missingNodes": "¿Nodos faltantes? ¡Haz clic para abrir el administrador de dependencias!"
   }
 }

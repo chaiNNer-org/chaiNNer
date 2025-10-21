@@ -215,10 +215,28 @@
     },
     "note": {
       "placeholder": "Note Text"
-    }
+    },
+    "implementationError": "Implementation Error",
+    "implementationErrorMessage": "Unable to determine key info for node {{nodeName}} ({{schemaId}})."
   },
   "logo": {
     "background": "bg",
     "front": "front"
+  },
+  "timer": {
+    "executionTook": "Execution took approximately {{duration}}."
+  },
+  "linkedInputs": {
+    "currentlyLinked": "The values of {{inputs}} are currently linked to the same value. Click here to undo this link.",
+    "clickToLink": "Click here to link {{inputs}} to the same value."
+  },
+  "languages": {
+    "english": "English",
+    "spanish": "Español",
+    "german": "Deutsch"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "missingNodes": "Missing nodes? Click to open the dependency manager!"
   }
 }

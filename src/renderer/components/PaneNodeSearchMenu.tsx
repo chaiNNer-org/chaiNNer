@@ -12,6 +12,7 @@ import {
     Text,
 } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { VscLightbulbAutofix } from 'react-icons/vsc';
 import { CategoryMap } from '../../common/CategoryMap';
 import {
@@ -321,6 +322,7 @@ interface MenuProps {
 
 export const Menu = memo(
     ({ onSelect, schemata, favorites, categories, suggestions, featureStates }: MenuProps) => {
+        const { t } = useTranslation();
         const [searchQuery, setSearchQuery] = useState('');
         const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -407,7 +409,7 @@ export const Menu = memo(
                     <Input
                         autoFocus
                         borderRadius="md"
-                        placeholder="Search..."
+                        placeholder={t('search.placeholder', 'Search...')}
                         spellCheck={false}
                         type="text"
                         value={searchQuery}

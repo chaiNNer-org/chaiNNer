@@ -1,5 +1,6 @@
 import { HStack, Icon, Text, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BiStopwatch } from 'react-icons/bi';
 import { fixRoundingError, joinEnglish } from '../../../../common/util';
 
@@ -45,6 +46,7 @@ interface TimerProps {
 }
 
 export const Timer = memo(({ time }: TimerProps) => {
+    const { t } = useTranslation();
     const displayTime = Number(Number(time.toFixed(4)).toExponential(3));
 
     const duration = splitDuration(displayTime);
@@ -62,7 +64,9 @@ export const Timer = memo(({ time }: TimerProps) => {
             borderRadius={8}
             closeOnClick={false}
             gutter={24}
-            label={`Execution took approximately ${joinEnglish(longParts)}.`}
+            label={t('timer.executionTook', 'Execution took approximately {{duration}}.', {
+                duration: joinEnglish(longParts)
+            })}
             openDelay={150}
             px={2}
             textAlign="center"

@@ -137,9 +137,9 @@ const AppearanceSettings = memo(() => {
                         "Choose the language for chaiNNer's interface."
                     ),
                     options: [
-                        { label: 'English', value: 'en' },
-                        { label: 'Español', value: 'es' },
-                        { label: 'Deutsch', value: 'de' },
+                        { label: t('languages.english', 'English'), value: 'en' },
+                        { label: t('languages.spanish', 'Español'), value: 'es' },
+                        { label: t('languages.german', 'Deutsch'), value: 'de' },
                     ],
                     small: true,
                 }}

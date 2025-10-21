@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
 import { memo, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsCaretDownFill, BsCaretLeftFill, BsCaretRightFill, BsCaretUpFill } from 'react-icons/bs';
 import { useContext } from 'use-context-selector';
 import { groupBy } from '../../../common/util';
@@ -29,6 +30,7 @@ import { PackageHint, RegularAccordionItem, Subcategories } from './RegularAccor
 import { TextBox } from './TextBox';
 
 export const NodeSelector = memo(() => {
+    const { t } = useTranslation();
     const { schemata, categories, categoriesMissingNodes } = useContext(BackendContext);
     const { openDependencyManager } = useContext(DependencyContext);
 
@@ -197,10 +199,10 @@ export const NodeSelector = memo(() => {
                                             <Box p={4}>
                                                 <TextBox
                                                     collapsed={collapsed}
-                                                    text="Missing nodes? Click to open the dependency manager!"
+                                                    text={t('search.missingNodes', 'Missing nodes? Click to open the dependency manager!')}
                                                     toolTip={
                                                         collapsed
-                                                            ? 'Missing nodes? Click to open the dependency manager!'
+                                                            ? t('search.missingNodes', 'Missing nodes? Click to open the dependency manager!')
                                                             : ''
                                                     }
                                                     onClick={openDependencyManager}
