@@ -8,7 +8,6 @@ import { SaveData, SaveFile } from './SaveFile';
 import type { Version } from '../common/common-types';
 
 const AUTOSAVE_FILENAME = 'autosave.chn';
-const AUTOSAVE_INTERVAL_MS = 3 * 60 * 1000; // 3 minutes default
 
 /**
  * Gets the path to the autosave file.
@@ -76,81 +75,7 @@ export const writeAutosaveFile = async (saveData: SaveData, version: Version): P
     }
 };
 
-/**
- * Manages periodic autosaving and cleanup.
- */
-export class AutosaveManager {
-    private intervalId?: NodeJS.Timeout;
-
-    private saveCallback?: () => Promise<void>;
-
-    /**
-     * Starts periodic autosaving.
-     * @param callback Function to call to perform the autosave
-     * @param intervalMs Interval in milliseconds (default: 3 minutes)
-     */
-    start(callback: () => Promise<void>, intervalMs: number = AUTOSAVE_INTERVAL_MS): void {
-        if (this.intervalId) {
-            this.stop();
-        }
-
-        this.saveCallback = callback;
-        this.intervalId = setInterval(() => {
-            callback().catch((error) => {
-                log.error('Autosave callback failed', error);
-            });
-        }, intervalMs);
-
-        log.info(`Autosave started with interval: ${intervalMs}ms`);
-    }
-
-    /**
-     * Stops periodic autosaving.
-     */
-    stop(): void {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = undefined;
-            this.saveCallback = undefined;
-            log.info('Autosave stopped');
-        }
-    }
-
-    /**
-     * Triggers an immediate autosave (e.g., on window blur).
-     */
-    async triggerImmediate(): Promise<void> {
-        if (this.saveCallback) {
-            try {
-                await this.saveCallback();
-            } catch (error) {
-                log.error('Immediate autosave failed', error);
-            }
-        }
-    }
-
-    /**
-     * Cleans up autosave file on normal exit.
-     */
-    async cleanup(): Promise<void> {
-        this.stop();
-        await deleteAutosaveFile();
-    }
-}
-
-// Register cleanup on app quit
-let autosaveManager: AutosaveManager | undefined;
-
-export const getAutosaveManager = (): AutosaveManager => {
-    if (!autosaveManager) {
-        autosaveManager = new AutosaveManager();
-
-        // Clean up autosave file on normal exit
-        app.on('before-quit', () => {
-            autosaveManager
-                ?.cleanup()
-                .catch((error) => log.error('Failed to cleanup autosave', error));
-        });
-    }
-    return autosaveManager;
-};
+// Clean up autosave file on normal exit
+app.on('before-quit', () => {
+    deleteAutosaveFile().catch((error) => log.error('Failed to cleanup autosave on quit', error));
+});
