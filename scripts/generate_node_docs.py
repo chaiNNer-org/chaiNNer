@@ -92,26 +92,6 @@ def generate_node_markdown(node: dict[str, Any], node_lookup: dict[str, dict[str
         lines.append(description)
         lines.append("")
     
-    # Inputs
-    if node.get("inputs"):
-        lines.append("**Inputs:**")
-        lines.append("")
-        for input_item in node["inputs"]:
-            input_name = input_item.get("label", "")
-            lines.append(f"- **{input_name}**")
-            if input_item.get("description"):
-                lines.append(f"  - {input_item['description']}")
-        lines.append("")
-    
-    # Outputs
-    if node.get("outputs"):
-        lines.append("**Outputs:**")
-        lines.append("")
-        for output_item in node["outputs"]:
-            output_name = output_item.get("label", "")
-            lines.append(f"- **{output_name}**")
-        lines.append("")
-    
     # See Also - with links if node_lookup is provided
     if node.get("seeAlso"):
         lines.append("**See Also:**")
