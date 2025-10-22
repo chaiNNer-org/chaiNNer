@@ -556,7 +556,7 @@ async def sse(request: Request):
     while True:
         message = await ctx.queue.get()
         await response.send(
-            f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+            f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
         )
 
 
@@ -574,13 +574,22 @@ async def import_packages(
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:
         import_errors: list[api.LoadErrorInfo] = []
+        initialization_errors: list[api.LoadErrorInfo] = []
         for e in load_errors:
-            if not isinstance(e.error, ModuleNotFoundError):
+            if isinstance(e.error, ModuleNotFoundError):
+                # Package/module not found - expected when optional dependencies aren't installed
+                import_errors.append(e)
+            elif isinstance(e.error, (ImportError, OSError)):
+                # Import-time initialization failure (DLL loading, memory issues, etc.)
+                initialization_errors.append(e)
+                logger.error(
+                    f"Failed to initialize {e.module} ({e.file}):", exc_info=e.error
+                )
+            else:
+                # Other unexpected errors
                 logger.warning(
                     f"Failed to load {e.module} ({e.file}):", exc_info=e.error
                 )
-            else:
-                import_errors.append(e)
 
         if len(import_errors) > 0:
             logger.warning(f"Failed to import {len(import_errors)} modules:")
@@ -602,6 +611,13 @@ async def import_packages(
                         modules = modules[:2] + [f"and {count - 2} more ..."]
                     l = "\n".join("  ->  " + m for m in modules)
                     logger.warning(f"{error}  ->  {count} modules ...\n{l}")
+
+        if len(initialization_errors) > 0:
+            logger.error(
+                f"Failed to initialize {len(initialization_errors)} module(s) due to "
+                f"initialization errors. This may be caused by insufficient memory, "
+                f"corrupted installations, or missing system dependencies."
+            )
 
         if config.error_on_failed_node:
             raise ValueError("Error importing nodes")
