@@ -131,7 +131,7 @@ const AppearanceSettings = memo(() => {
             <DropdownSetting
                 setValue={(value) => setLanguage(value)}
                 setting={{
-                    label: t('settings.appearance.language.label', 'Language (Requires restart)'),
+                    label: t('settings.appearance.language.label', 'Language (requires restart)'),
                     description: t(
                         'settings.appearance.language.description',
                         "Choose the language for chaiNNer's interface."
