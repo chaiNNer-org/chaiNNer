@@ -368,7 +368,7 @@ const PackagesSection = memo(
             ...(canUpdate ? ['Update'] : []),
             ...(canInstall ? ['Install'] : []),
         ].join('/');
-        const showAll = canUpdate + canInstall > 1;
+        const showAll = false; // canUpdate + canInstall > 1;
         const allOperationPackages = packages.filter((_, i) => {
             const info = infos[i];
             return info.canInstall || info.canUpdate;
@@ -388,6 +388,7 @@ const PackagesSection = memo(
                             Packages
                         </Text>
                     </HStack>
+                    {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
                     {showAll && (
                         <Button
                             colorScheme="blue"
