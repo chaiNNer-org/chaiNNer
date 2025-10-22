@@ -88,12 +88,20 @@ const getInstallCommand = (packages: readonly Package[], pythonInfo: PythonInfo)
     const findLinks = packages.flatMap((pkg) =>
         getFindLinks(pkg.dependencies).flatMap((l) => ['--extra-index-url', l])
     );
-    const args = [pythonInfo.python, '-m', 'pip', 'install', '--upgrade', ...deps, ...findLinks];
+    const args = [
+        pythonInfo.python,
+        '-m',
+        'chainner_pip',
+        'install',
+        '--upgrade',
+        ...deps,
+        ...findLinks,
+    ];
     return args.join(' ');
 };
 const getUninstallCommand = (packages: readonly Package[], pythonInfo: PythonInfo): string => {
     const deps = packages.flatMap((pkg) => pkg.dependencies.map((p) => p.pypiName));
-    const args = [pythonInfo.python, '-m', 'pip', 'uninstall', ...deps];
+    const args = [pythonInfo.python, '-m', 'chainner_pip', 'uninstall', ...deps];
     return args.join(' ');
 };
 
