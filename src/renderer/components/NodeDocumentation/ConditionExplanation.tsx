@@ -27,9 +27,12 @@ const getInputLabel = (schema: NodeSchema, inputId: InputId): string => {
 interface RenderOptions {
     readonly schema: NodeSchema;
 }
-const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): JSX.Element => {
+const renderPrimitive = (
+    condition: PossiblePrimitive,
+    options: RenderOptions,
+    t: (key: string, defaultValue?: string) => string
+): JSX.Element => {
     const { schema } = options;
-    const { t } = useTranslation();
 
     let negated = false;
     if (condition.kind === 'not') {
@@ -117,9 +120,9 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
 const renderCondition = (
     condition: Condition,
     prefix: JSX.Element | undefined,
-    options: RenderOptions
+    options: RenderOptions,
+    t: (key: string, defaultValue?: string) => string
 ): JSX.Element => {
-    const { t } = useTranslation();
     // Since we want to construct a natural language sentence, we can't just recursively render
     // the condition. Instead, we need to do some analysis of the condition to determine how to
     // render it. We also can't support all possible conditions, but that's okay. Most conditions
@@ -132,7 +135,7 @@ const renderCondition = (
                 userSelect="text"
             >
                 {prefix}
-                {renderPrimitive(condition, options)}.
+                {renderPrimitive(condition, options, t)}.
             </Text>
         );
     }
@@ -163,7 +166,7 @@ const renderCondition = (
                             key={i}
                             userSelect="text"
                         >
-                            {renderCondition(inner, undefined, options)}
+                            {renderCondition(inner, undefined, options, t)}
                         </ListItem>
                     );
                 })}
@@ -187,6 +190,7 @@ export const ConditionExplanation = memo(({ condition, schema }: CEProps) => {
         >
             {t('nodeDocumentation.conditionExplanation.condition')}
         </Text>,
-        { schema }
+        { schema },
+        t
     );
 });
