@@ -20,6 +20,12 @@ import { CriticalError } from '../../common/ui/error';
 import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
 import { assertNever } from '../../common/util';
 import { OpenArguments, parseArgs } from '../arguments';
+import {
+    deleteAutosaveFile,
+    hasAutosaveFile,
+    readAutosaveFile,
+    writeAutosaveFile,
+} from '../autosave';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
 import { isArmMac, isMac } from '../env';
@@ -155,6 +161,21 @@ const registerEventHandlerPreSetup = (
             throw error;
         }
     });
+
+    ipcMain.handle('file-autosave', async (event, saveData) => {
+        try {
+            await writeAutosaveFile(saveData, version);
+        } catch (error) {
+            log.error(error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('file-has-autosave', () => hasAutosaveFile());
+
+    ipcMain.handle('file-load-autosave', async () => readAutosaveFile());
+
+    ipcMain.handle('file-delete-autosave', async () => deleteAutosaveFile());
 
     ipcMain.handle('quit-application', () => {
         app.exit();
