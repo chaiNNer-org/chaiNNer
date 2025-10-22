@@ -224,7 +224,13 @@
     "front": "front"
   },
   "timer": {
-    "executionTook": "Die Ausführung dauerte ungefähr {{duration}}."
+    "executionTook": "Die Ausführung dauerte ungefähr {{duration}}.",
+    "hour_one": "Stunde",
+    "hour_other": "Stunden",
+    "minute_one": "Minute",
+    "minute_other": "Minuten",
+    "second_one": "Sekunde",
+    "second_other": "Sekunden"
   },
   "linkedInputs": {
     "currentlyLinked": "Die Werte von {{inputs}} sind derzeit mit demselben Wert verknüpft. Klicken Sie hier, um diese Verknüpfung rückgängig zu machen.",
@@ -259,7 +265,8 @@
     "title": "Abhängigkeitsmanager",
     "manageDependencies": "Abhängigkeiten verwalten",
     "updatesAvailable": "Updates verfügbar",
-    "updatesAvailableDescription": "Es gibt {{count}} Pakete mit verfügbaren Abhängigkeitsupdates.",
+    "updatesAvailableDescription_one": "Es gibt {{count}} Paket mit verfügbaren Abhängigkeitsupdates.",
+    "updatesAvailableDescription_other": "Es gibt {{count}} Pakete mit verfügbaren Abhängigkeitsupdates.",
     "openDependencyManager": "Abhängigkeitsmanager öffnen",
     "packages": "Pakete",
     "features": "Funktionen",
@@ -293,10 +300,8 @@
     "copyPythonPath": "Python-Pfad in die Zwischenablage kopieren",
     "pythonPath": "Python-Pfad ist:",
     "installAllPackages": "{{operations}} Alle Pakete ({{size}})",
-    "package": {
-      "singular": "Paket",
-      "plural": "Pakete"
-    },
+    "package_one": "Paket",
+    "package_other": "Pakete",
     "brackets": {
       "open": "[",
       "close": "]"
@@ -389,7 +394,9 @@
       "noInputs": "Dieser Knoten hat keine Eingaben.",
       "outputs": "Ausgaben",
       "noOutputs": "Dieser Knoten hat keine Ausgaben.",
-      "seeAlso": "Siehe auch"
+      "seeAlso": "Siehe auch",
+      "character_one": "Zeichen",
+      "character_other": "Zeichen"
     },
     "nodesList": {
       "noNodesFound": "Keine Knoten gefunden"

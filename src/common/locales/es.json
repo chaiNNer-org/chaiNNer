@@ -224,7 +224,13 @@
     "front": "front"
   },
   "timer": {
-    "executionTook": "La ejecución tomó aproximadamente {{duration}}."
+    "executionTook": "La ejecución tomó aproximadamente {{duration}}.",
+    "hour_one": "hora",
+    "hour_other": "horas",
+    "minute_one": "minuto",
+    "minute_other": "minutos",
+    "second_one": "segundo",
+    "second_other": "segundos"
   },
   "linkedInputs": {
     "currentlyLinked": "Los valores de {{inputs}} están actualmente vinculados al mismo valor. Haz clic aquí para deshacer este enlace.",
@@ -259,7 +265,8 @@
     "title": "Administrador de Dependencias",
     "manageDependencies": "Gestionar Dependencias",
     "updatesAvailable": "Actualizaciones Disponibles",
-    "updatesAvailableDescription": "Hay {{count}} paquetes con actualizaciones de dependencias disponibles.",
+    "updatesAvailableDescription_one": "Hay {{count}} paquete con actualizaciones de dependencias disponibles.",
+    "updatesAvailableDescription_other": "Hay {{count}} paquetes con actualizaciones de dependencias disponibles.",
     "openDependencyManager": "Abrir Administrador de Dependencias",
     "packages": "Paquetes",
     "features": "Características",
@@ -288,16 +295,13 @@
     "unsavedChanges": "Cambios no guardados",
     "unsavedChangesMessage": "Podrías perder tus cambios no guardados al desinstalar {{name}}.\n\n¿Estás seguro de que quieres desinstalar {{name}}?",
     "cancel": "Cancelar",
-    "uninstall": "Desinstalar",
     "installing": "Instalando {{name}}...",
     "uninstalling": "Desinstalando {{name}}...",
     "copyPythonPath": "Copiar ruta de Python al portapapeles",
     "pythonPath": "La ruta de Python es:",
     "installAllPackages": "{{operations}} Todos los Paquetes ({{size}})",
-    "package": {
-      "singular": "paquete",
-      "plural": "paquetes"
-    },
+    "package_one": "paquete",
+    "package_other": "paquetes",
     "brackets": {
       "open": "[",
       "close": "]"
@@ -308,11 +312,6 @@
     "editContent": "Editar Contenido",
     "markdownMode": "Modo Markdown",
     "viewMarkdown": "Ver Markdown"
-  },
-  "node": {
-    "enable": "Habilitar",
-    "disable": "Deshabilitar",
-    "skip": "Omitir"
   },
   "color": {
     "resetToOld": "Restablecer al color anterior",
@@ -395,7 +394,9 @@
       "noInputs": "Este nodo no tiene entradas.",
       "outputs": "Salidas",
       "noOutputs": "Este nodo no tiene salidas.",
-      "seeAlso": "Ver también"
+      "seeAlso": "Ver también",
+      "character_one": "carácter",
+      "character_other": "caracteres"
     },
     "nodesList": {
       "noNodesFound": "No se encontraron nodos"

@@ -211,7 +211,13 @@
         "front": "front"
     },
     "timer": {
-        "executionTook": "Execution took approximately {{duration}}."
+        "executionTook": "Execution took approximately {{duration}}.",
+        "hour_one": "hour",
+        "hour_other": "hours",
+        "minute_one": "minute",
+        "minute_other": "minutes",
+        "second_one": "second",
+        "second_other": "seconds"
     },
     "linkedInputs": {
         "currentlyLinked": "The values of {{inputs}} are currently linked to the same value. Click here to undo this link.",
@@ -246,7 +252,8 @@
         "title": "Dependency Manager",
         "manageDependencies": "Manage Dependencies",
         "updatesAvailable": "Updates Available",
-        "updatesAvailableDescription": "There are {{count}} packages with available dependency updates.",
+        "updatesAvailableDescription_one": "There is {{count}} package with available dependency updates.",
+        "updatesAvailableDescription_other": "There are {{count}} packages with available dependency updates.",
         "openDependencyManager": "Open Dependency Manager",
         "packages": "Packages",
         "features": "Features",
@@ -280,10 +287,8 @@
         "copyPythonPath": "Copy Python path to clipboard",
         "pythonPath": "Python path is:",
         "installAllPackages": "{{operations}} All Packages ({{size}})",
-        "package": {
-            "singular": "package",
-            "plural": "packages"
-        },
+        "package_one": "package",
+        "package_other": "packages",
         "brackets": {
             "open": "[",
             "close": "]"
@@ -389,7 +394,9 @@
             "noInputs": "This node has no inputs.",
             "outputs": "Outputs",
             "noOutputs": "This node has no outputs.",
-            "seeAlso": "See also"
+            "seeAlso": "See also",
+            "character_one": "character",
+            "character_other": "characters"
         },
         "nodesList": {
             "noNodesFound": "No nodes found"

@@ -229,9 +229,9 @@ const PackageView = memo(
                                         w="full"
                                     >
                                         {p.name} ({p.dependencies.length}{' '}
-                                        {p.dependencies.length === 1
-                                            ? t('dependencyManager.package.singular', 'package')
-                                            : t('dependencyManager.package.plural', 'packages')}
+                                        {t('dependencyManager.package', {
+                                            count: p.dependencies.length,
+                                        })}
                                         )
                                     </Text>
                                     <Tooltip

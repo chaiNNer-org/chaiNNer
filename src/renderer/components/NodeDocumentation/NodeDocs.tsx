@@ -61,8 +61,12 @@ const TypeView = memo(({ type }: TypeViewProps) => {
     );
 });
 
-const getTextLength = (input: TextInput): string => {
-    const chars = (count: number): string => `${count} ${count === 1 ? 'character' : 'characters'}`;
+const getTextLength = (
+    input: TextInput,
+    t: (key: string, options?: Record<string, unknown>) => string
+): string => {
+    const chars = (count: number): string =>
+        `${count} ${t('nodeDocumentation.nodeDocs.character', { count })}`;
 
     const minLength = input.minLength ?? 0;
     const { maxLength } = input;
@@ -213,7 +217,7 @@ const InputOutputItem = memo(
                                     fontSize="md"
                                     userSelect="text"
                                 >
-                                    {getTextLength(item)}
+                                    {getTextLength(item, t)}
                                 </Text>
                             )}
 

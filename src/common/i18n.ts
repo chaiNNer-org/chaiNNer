@@ -19,4 +19,8 @@ export const DEFAULT_OPTIONS: InitOptions = {
     },
 
     returnNull: false,
+
+    // Enable pluralization
+    pluralSeparator: '_',
+    contextSeparator: '_',
 };

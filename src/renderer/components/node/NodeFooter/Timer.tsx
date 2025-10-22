@@ -39,8 +39,6 @@ const shortFormat = ({ hours, minutes, seconds }: Duration): string => {
     return `${shortestVariant}s`;
 };
 
-const plural = (word: string, count: number): string => (count === 1 ? word : `${word}s`);
-
 interface TimerProps {
     time: number;
 }
@@ -53,10 +51,10 @@ export const Timer = memo(({ time }: TimerProps) => {
     const { hours, minutes, seconds } = duration;
 
     const longParts: string[] = [];
-    if (hours > 0) longParts.push(`${hours} ${plural('hour', hours)}`);
-    if (minutes > 0) longParts.push(`${minutes} ${plural('minute', minutes)}`);
+    if (hours > 0) longParts.push(`${hours} ${t('timer.hour', { count: hours })}`);
+    if (minutes > 0) longParts.push(`${minutes} ${t('timer.minute', { count: minutes })}`);
     if (hours === 0 && (longParts.length === 0 || seconds > 0))
-        longParts.push(`${seconds} ${plural('second', seconds)}`);
+        longParts.push(`${seconds} ${t('timer.second', { count: seconds })}`);
 
     return (
         <Tooltip
