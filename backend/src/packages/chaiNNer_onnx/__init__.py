@@ -33,6 +33,7 @@ def get_onnx_runtime():
             pypi_name="onnxruntime-directml",
             version="1.17.1",
             size_estimate=15 * MB,
+            import_name="onnxruntime",
         )
     else:
         return Dependency(

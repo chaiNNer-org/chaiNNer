@@ -21,6 +21,7 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { log } from '../../common/log';
 import { assertNever, noop } from '../../common/util';
+import { appDataPath } from '../appConstants';
 import { useMemoObject } from '../hooks/useMemo';
 import { ipcRenderer } from '../safeIpc';
 import { ContextMenuContext } from './ContextMenuContext';
@@ -180,16 +181,9 @@ const getButtons = (
                         ref={cancelRef}
                         onClick={() => {
                             ipcRenderer
-                                .invoke('get-appdata')
-                                .then((appDataPath) => {
-                                    ipcRenderer
-                                        .invoke('shell-openPath', path.join(appDataPath, 'logs'))
-                                        .catch(() => {
-                                            log.error('Failed to open logs folder');
-                                        });
-                                })
+                                .invoke('shell-openPath', path.join(appDataPath, 'logs'))
                                 .catch(() => {
-                                    log.error('Failed to get appdata path');
+                                    log.error('Failed to open logs folder');
                                 });
                         }}
                     >

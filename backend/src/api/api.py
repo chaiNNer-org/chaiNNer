@@ -453,6 +453,9 @@ class PackageRegistry:
                         load_error.append(LoadErrorInfo(module, file_path, e))
 
         if len(failed_checks) > 0:
+            logger.error(
+                f"Type errors found: {len(failed_checks)} node(s) failed type checking"
+            )
             raise RuntimeError(f"Checks failed in {len(failed_checks)} node(s)")
 
         self._refresh_nodes()

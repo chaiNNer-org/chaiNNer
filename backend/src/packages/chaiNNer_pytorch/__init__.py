@@ -41,29 +41,33 @@ def get_pytorch():
             ),
         ]
     else:
+        # Determine CUDA version based on GPU architecture
+        # Pascal (GTX 1000 series) and older need CUDA 12.6, newer cards use CUDA 12.8
+        if nvidia.is_available and nvidia.any_needs_legacy_cuda:
+            cuda_version = "cu126"
+            cuda_url = "https://download.pytorch.org/whl/cu126"
+        elif nvidia.is_available:
+            cuda_version = "cu128"
+            cuda_url = "https://download.pytorch.org/whl/cu128"
+        else:
+            cuda_version = None
+            cuda_url = "https://download.pytorch.org/whl/cpu"
+
         return [
             Dependency(
                 display_name="PyTorch",
                 pypi_name="torch",
-                version="2.7.0+cu128" if nvidia.is_available else "2.7.0",
+                version=f"2.7.0+{cuda_version}" if cuda_version else "2.7.0",
                 size_estimate=2 * GB if nvidia.is_available else 140 * MB,
-                extra_index_url=(
-                    "https://download.pytorch.org/whl/cu128"
-                    if nvidia.is_available
-                    else "https://download.pytorch.org/whl/cpu"
-                ),
+                extra_index_url=cuda_url,
                 auto_update=False,
             ),
             Dependency(
                 display_name="TorchVision",
                 pypi_name="torchvision",
-                version="0.22.0+cu128" if nvidia.is_available else "0.22.0",
+                version=f"0.22.0+{cuda_version}" if cuda_version else "0.22.0",
                 size_estimate=2 * MB if nvidia.is_available else 800 * KB,
-                extra_index_url=(
-                    "https://download.pytorch.org/whl/cu128"
-                    if nvidia.is_available
-                    else "https://download.pytorch.org/whl/cpu"
-                ),
+                extra_index_url=cuda_url,
                 auto_update=False,
             ),
         ]

@@ -101,6 +101,12 @@ class SSEFilter(logging.Filter):
 access_logger.addFilter(SSEFilter())
 
 
+@app.route("/health")
+async def health(_request: Request):
+    """Simple health check endpoint that doesn't require full setup"""
+    return json({"status": "ok"})
+
+
 @app.route("/nodes")
 async def nodes(request: Request):
     worker = await AppContext.get(request.app).get_worker()
