@@ -1,6 +1,22 @@
 from dataclasses import dataclass
 
-import torch
+try:
+    import torch
+except (ImportError, OSError) as e:
+    # Re-raise with more context about DLL loading failures or other initialization issues
+    error_msg = str(e)
+    if (
+        "DLL" in error_msg
+        or "paging file" in error_msg.lower()
+        or isinstance(e, OSError)
+    ):
+        raise ImportError(
+            f"PyTorch failed to initialize. This may be due to insufficient memory, "
+            f"corrupted installation, or missing system dependencies. "
+            f"Original error: {error_msg}"
+        ) from e
+    raise
+
 from sanic.log import logger
 
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting

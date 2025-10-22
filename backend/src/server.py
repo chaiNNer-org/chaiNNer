@@ -556,7 +556,7 @@ async def sse(request: Request):
     while True:
         message = await ctx.queue.get()
         await response.send(
-            f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+            f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
         )
 
 
@@ -574,13 +574,22 @@ async def import_packages(
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:
         import_errors: list[api.LoadErrorInfo] = []
+        initialization_errors: list[api.LoadErrorInfo] = []
         for e in load_errors:
-            if not isinstance(e.error, ModuleNotFoundError):
+            if isinstance(e.error, ModuleNotFoundError):
+                # Package/module not found - expected when optional dependencies aren't installed
+                import_errors.append(e)
+            elif isinstance(e.error, (ImportError, OSError)):
+                # Import-time initialization failure (DLL loading, memory issues, etc.)
+                initialization_errors.append(e)
+                logger.error(
+                    f"Failed to initialize {e.module} ({e.file}):", exc_info=e.error
+                )
+            else:
+                # Other unexpected errors
                 logger.warning(
                     f"Failed to load {e.module} ({e.file}):", exc_info=e.error
                 )
-            else:
-                import_errors.append(e)
 
         if len(import_errors) > 0:
             logger.warning(f"Failed to import {len(import_errors)} modules:")
@@ -602,6 +611,40 @@ async def import_packages(
                         modules = modules[:2] + [f"and {count - 2} more ..."]
                     l = "\n".join("  ->  " + m for m in modules)
                     logger.warning(f"{error}  ->  {count} modules ...\n{l}")
+
+        if len(initialization_errors) > 0:
+            logger.error(
+                f"Failed to initialize {len(initialization_errors)} module(s) due to "
+                f"initialization errors. This may be caused by insufficient memory, "
+                f"corrupted installations, or missing system dependencies."
+            )
+
+            # Store initialization errors in the respective packages
+            for error_info in initialization_errors:
+                # Determine which package this module belongs to
+                module_path = error_info.module
+                package_name = None
+                if "chaiNNer_pytorch" in module_path:
+                    package_name = "chaiNNer_pytorch"
+                elif "chaiNNer_onnx" in module_path:
+                    package_name = "chaiNNer_onnx"
+                elif "chaiNNer_ncnn" in module_path:
+                    package_name = "chaiNNer_ncnn"
+                elif "chaiNNer_external" in module_path:
+                    package_name = "chaiNNer_external"
+                elif "chaiNNer_standard" in module_path:
+                    package_name = "chaiNNer_standard"
+
+                if package_name:
+                    package = api.registry.packages.get(package_name)
+                    if package:
+                        # Store the error message in the package
+                        error_message = str(error_info.error)
+                        if package.initialization_error is None:
+                            package.initialization_error = error_message
+                        else:
+                            # Append multiple errors
+                            package.initialization_error += f"\n\n{error_message}"
 
         if config.error_on_failed_node:
             raise ValueError("Error importing nodes")
