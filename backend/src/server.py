@@ -619,6 +619,33 @@ async def import_packages(
                 f"corrupted installations, or missing system dependencies."
             )
 
+            # Store initialization errors in the respective packages
+            for error_info in initialization_errors:
+                # Determine which package this module belongs to
+                module_path = error_info.module
+                package_name = None
+                if "chaiNNer_pytorch" in module_path:
+                    package_name = "chaiNNer_pytorch"
+                elif "chaiNNer_onnx" in module_path:
+                    package_name = "chaiNNer_onnx"
+                elif "chaiNNer_ncnn" in module_path:
+                    package_name = "chaiNNer_ncnn"
+                elif "chaiNNer_external" in module_path:
+                    package_name = "chaiNNer_external"
+                elif "chaiNNer_standard" in module_path:
+                    package_name = "chaiNNer_standard"
+
+                if package_name:
+                    package = api.registry.packages.get(package_name)
+                    if package:
+                        # Store the error message in the package
+                        error_message = str(error_info.error)
+                        if package.initialization_error is None:
+                            package.initialization_error = error_message
+                        else:
+                            # Append multiple errors
+                            package.initialization_error += f"\n\n{error_message}"
+
         if config.error_on_failed_node:
             raise ValueError("Error importing nodes")
 

@@ -333,6 +333,7 @@ class Package:
     categories: list[Category] = field(default_factory=list)
     features: list[Feature] = field(default_factory=list)
     settings: list[Setting] = field(default_factory=list)
+    initialization_error: str | None = None
 
     def add_category(
         self,
@@ -374,7 +375,7 @@ class Package:
         return feature
 
     def to_dict(self):
-        return {
+        result = {
             "id": self.id,
             "name": self.name,
             "description": self.description,
@@ -384,6 +385,9 @@ class Package:
             "features": [f.to_dict() for f in self.features],
             "settings": [asdict(x) for x in self.settings],
         }
+        if self.initialization_error is not None:
+            result["initializationError"] = self.initialization_error
+        return result
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Package:

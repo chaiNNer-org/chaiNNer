@@ -426,6 +426,7 @@ export interface Package {
     readonly dependencies: readonly PyPiPackage[];
     readonly features: readonly Feature[];
     readonly settings: readonly Setting[];
+    readonly initializationError?: string;
 }
 
 export interface FeatureState {

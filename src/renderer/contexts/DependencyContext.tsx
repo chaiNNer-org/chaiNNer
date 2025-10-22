@@ -212,6 +212,35 @@ const PackageView = memo(
                         spacing={0}
                         w="full"
                     >
+                        {p.initializationError && (
+                            <Box
+                                bg="red.500"
+                                borderRadius="md"
+                                color="white"
+                                mb={2}
+                                p={3}
+                                w="full"
+                            >
+                                <VStack
+                                    align="start"
+                                    spacing={2}
+                                >
+                                    <HStack>
+                                        <Icon
+                                            as={BsQuestionCircle}
+                                            boxSize={5}
+                                        />
+                                        <Text fontWeight="bold">Initialization Error</Text>
+                                    </HStack>
+                                    <Text
+                                        fontSize="sm"
+                                        whiteSpace="pre-wrap"
+                                    >
+                                        {p.initializationError}
+                                    </Text>
+                                </VStack>
+                            </Box>
+                        )}
                         <HStack w="full">
                             <AccordionButton cursor="pointer">
                                 <HStack
@@ -821,6 +850,25 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             }
         }
     });
+
+    // Show alert when packages have initialization errors
+    useEffect(() => {
+        const packagesWithErrors = packages.filter((pkg) => pkg.initializationError);
+        if (packagesWithErrors.length > 0) {
+            const errorMessages = packagesWithErrors
+                .map((pkg) => `**${pkg.name}**: ${pkg.initializationError}`)
+                .join('\n\n');
+
+            showAlert({
+                type: AlertType.ERROR,
+                title: 'Package Initialization Error',
+                message:
+                    'One or more packages failed to initialize. This may be caused by insufficient memory, corrupted installations, or missing system dependencies.\n\n' +
+                    errorMessages +
+                    '\n\nPlease check the dependency manager for more details.',
+            }).catch(log.error);
+        }
+    }, [packages, showAlert]);
 
     // eslint-disable-next-line @typescript-eslint/no-shadow
     const changePackages = (packages: Package[], supplier: () => Promise<void>) => {
