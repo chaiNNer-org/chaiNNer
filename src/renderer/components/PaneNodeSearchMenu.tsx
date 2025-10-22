@@ -99,7 +99,7 @@ const SchemaItem = memo(
                 </Text>
                 {isFavorite && (
                     <StarIcon
-                        aria-label={i18n.t('favorites.title', 'Favorites')}
+                        aria-label={t('favorites.title', 'Favorites')}
                         boxSize={2.5}
                         color="gray.500"
                         overflow="hidden"
@@ -411,7 +411,7 @@ export const Menu = memo(
                     <Input
                         autoFocus
                         borderRadius="md"
-                        placeholder={i18n.t('search.placeholder', 'Search...')}
+                        placeholder={t('search.placeholder', 'Search...')}
                         spellCheck={false}
                         type="text"
                         value={searchQuery}

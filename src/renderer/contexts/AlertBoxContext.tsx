@@ -294,7 +294,7 @@ const AlertBoxDialog = memo(
                             <Box mt={4}>
                                 <details>
                                     <summary style={{ cursor: 'pointer' }}>
-                                        {i18n.t('alert.stackTrace', 'Stack Trace')}
+                                        {t('alert.stackTrace', 'Stack Trace')}
                                     </summary>
                                     <Code
                                         display="block"
