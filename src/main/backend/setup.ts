@@ -128,9 +128,9 @@ const getIntegratedPythonInfo = async (
             type: 'warning',
             title: 'Unable to install integrated Python',
             message:
-                'ChaiNNer needs and active internet connection and access to the network to install its integrated Python environment. Please ensure an active internet connection and try again.' +
-                '\n\nAlternatively, chaiNNer can use your system Python environment instead if you have Python 3.8+ installed. (Note that chaiNNer will install packages into your system Python environment if you choose this option.)' +
-                '\n\nChaiNNer requires a valid Python environment to run. Please choose one of the following options:',
+                'chaiNNer needs a stable internet connection to install its integrated Python environment. Please make sure you have a stable internet connection and try again.' +
+                "\n\nAlternatively, if you have Python 3.8 or later installed, chaiNNer can use your system's Python environment instead. (If you choose this option, chaiNNer will install packages into your system Python environment.)" +
+                '\n\nchaiNNer requires a valid Python environment to run. Please choose one of the following options:',
             options: [
                 {
                     title: 'Retry to install integrated Python',
@@ -172,8 +172,8 @@ const getIntegratedPythonInfo = async (
         throw new CriticalError({
             title: 'Unable to install integrated Python',
             message:
-                `Chainner was unable to install its integrated Python environment.` +
-                ` Please ensure that your computer is connected to the internet and that chainner has access to the network.`,
+                `chaiNNer was unable to install its integrated Python environment.` +
+                ` Please ensure that your computer is connected to the internet and that chaiNNer has access to the network.`,
         });
     }
 };

@@ -47,7 +47,13 @@ jobs:
               with:
                   path: ~/.cache/chainner_pip
                   key: chainner-pip-cache-3.9
-            - run: python ./backend/src/run.py --close-after-start --install-builtin-packages
+            - name: Run type check
+              run: |
+                  python ./backend/src/run.py --close-after-start --install-builtin-packages 2>&1 | tee type-check-output.log
+                  if grep -q "Type errors found:" type-check-output.log; then
+                      echo "Type errors found in the output"
+                      exit 1
+                  fi
               env:
                   TYPE_CHECK_LEVEL: 'error'
 
