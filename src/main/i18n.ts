@@ -12,4 +12,4 @@ try {
     log.warn('Failed to load settings for i18n, using default language');
 }
 
-i18n.init({ ...DEFAULT_OPTIONS, lng: language, saveMissing: true }).catch(log.error);
+i18n.init({ ...DEFAULT_OPTIONS, lng: language }).catch(log.error);
