@@ -30,6 +30,8 @@ from dependencies.store import (
 from events import EventQueue
 from gpu import nvidia
 
+# Logger will be initialized when AppContext is created
+# For now, use a fallback logger
 from logger import logger, setup_logger
 from response import error_response, success_response
 from server_config import ServerConfig
@@ -40,16 +42,10 @@ class AppContext:
     def __init__(self):
         self.config: Final[ServerConfig] = ServerConfig.parse_argv()
 
-        # Configure logger with logs directory from config if provided
-        if self.config.logs_dir:
-            log_dir = Path(self.config.logs_dir)
-            # Reconfigure the existing logger with the specified directory
-            # Remove existing handlers
-            for handler in logger.handlers[:]:
-                logger.removeHandler(handler)
-                handler.close()
-            # Set up logger again with the correct directory
-            setup_logger("host", log_dir=log_dir)
+        # Re-initialize logger with logs directory from config
+        global logger
+        log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
+        logger = setup_logger("host", log_dir=log_dir)
 
         # flags to pass along to the worker
         worker_flags: list[str] = []
