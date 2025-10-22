@@ -315,7 +315,8 @@ export const GlobalProvider = memo(
             const newEffectivelyDisabled = getEffectivelyDisabledNodes(
                 getNodes(),
                 getEdges(),
-                schemata
+                schemata,
+                typeState
             )
                 .map((n) => n.id)
                 .sort();
@@ -327,7 +328,7 @@ export const GlobalProvider = memo(
                 }
                 return new Set(newEffectivelyDisabled);
             });
-        }, [edgeChanges, nodeChanges, getNodes, getEdges, schemata]);
+        }, [edgeChanges, nodeChanges, getNodes, getEdges, schemata, typeState]);
 
         const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();

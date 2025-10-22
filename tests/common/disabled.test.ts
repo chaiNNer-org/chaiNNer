@@ -60,6 +60,7 @@ const createEdge = (
     source: sourceId,
     target: targetId,
     targetHandle,
+    sourceHandle: '0',
 });
 
 test('getEffectivelyDisabledNodes - basic disabled propagation', () => {
