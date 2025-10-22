@@ -1,5 +1,6 @@
 import { evaluate } from '@chainner/navi';
 import { Code, ListItem, Text, UnorderedList } from '@chakra-ui/react';
+import i18n from 'i18next';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Condition, InputId, NodeSchema, OfKind } from '../../../common/common-types';
@@ -27,11 +28,7 @@ const getInputLabel = (schema: NodeSchema, inputId: InputId): string => {
 interface RenderOptions {
     readonly schema: NodeSchema;
 }
-const renderPrimitive = (
-    condition: PossiblePrimitive,
-    options: RenderOptions,
-    t: (key: string, defaultValue?: string) => string
-): JSX.Element => {
+const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): JSX.Element => {
     const { schema } = options;
 
     let negated = false;
@@ -67,11 +64,11 @@ const renderPrimitive = (
                         {getInputLabel(schema, condition.enum)}
                     </Text>{' '}
                     {negated
-                        ? t('nodeDocumentation.conditionExplanation.isNot')
-                        : t('nodeDocumentation.conditionExplanation.is')}
+                        ? i18n.t('nodeDocumentation.conditionExplanation.isNot')
+                        : i18n.t('nodeDocumentation.conditionExplanation.is')}
                     {valueOptions.length === 1
                         ? ''
-                        : ` ${t('nodeDocumentation.conditionExplanation.oneOf')} `}
+                        : ` ${i18n.t('nodeDocumentation.conditionExplanation.oneOf')} `}
                     <DropDownOptions options={valueOptions} />
                 </>
             );
@@ -102,7 +99,7 @@ const renderPrimitive = (
 
             return (
                 <>
-                    {prefix} {t('nodeDocumentation.conditionExplanation.ofType')}{' '}
+                    {prefix} {i18n.t('nodeDocumentation.conditionExplanation.ofType')}{' '}
                     <Code
                         display="inline"
                         userSelect="text"
@@ -120,8 +117,7 @@ const renderPrimitive = (
 const renderCondition = (
     condition: Condition,
     prefix: JSX.Element | undefined,
-    options: RenderOptions,
-    t: (key: string, defaultValue?: string) => string
+    options: RenderOptions
 ): JSX.Element => {
     // Since we want to construct a natural language sentence, we can't just recursively render
     // the condition. Instead, we need to do some analysis of the condition to determine how to
@@ -135,7 +131,7 @@ const renderCondition = (
                 userSelect="text"
             >
                 {prefix}
-                {renderPrimitive(condition, options, t)}.
+                {renderPrimitive(condition, options)}.
             </Text>
         );
     }
@@ -148,9 +144,9 @@ const renderCondition = (
             >
                 {prefix}
                 {condition.kind === 'and'
-                    ? t('nodeDocumentation.conditionExplanation.allOf')
-                    : t('nodeDocumentation.conditionExplanation.atLeastOneOf')}{' '}
-                {t('nodeDocumentation.conditionExplanation.followingConditions')}
+                    ? i18n.t('nodeDocumentation.conditionExplanation.allOf')
+                    : i18n.t('nodeDocumentation.conditionExplanation.atLeastOneOf')}{' '}
+                {i18n.t('nodeDocumentation.conditionExplanation.followingConditions')}
             </Text>
             <UnorderedList
                 alignItems="left"
@@ -166,7 +162,7 @@ const renderCondition = (
                             key={i}
                             userSelect="text"
                         >
-                            {renderCondition(inner, undefined, options, t)}
+                            {renderCondition(inner, undefined, options)}
                         </ListItem>
                     );
                 })}
@@ -190,7 +186,6 @@ export const ConditionExplanation = memo(({ condition, schema }: CEProps) => {
         >
             {t('nodeDocumentation.conditionExplanation.condition')}
         </Text>,
-        { schema },
-        t
+        { schema }
     );
 });

@@ -14,6 +14,7 @@ import {
     VStack,
     useMediaQuery,
 } from '@chakra-ui/react';
+import i18n from 'i18next';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContext } from 'use-context-selector';
@@ -61,12 +62,9 @@ const TypeView = memo(({ type }: TypeViewProps) => {
     );
 });
 
-const getTextLength = (
-    input: TextInput,
-    t: (key: string, options?: Record<string, unknown>) => string
-): string => {
+const getTextLength = (input: TextInput): string => {
     const chars = (count: number): string =>
-        `${count} ${t('nodeDocumentation.nodeDocs.character', { count })}`;
+        `${count} ${i18n.t('nodeDocumentation.nodeDocs.character', { count })}`;
 
     const minLength = input.minLength ?? 0;
     const { maxLength } = input;
@@ -217,7 +215,7 @@ const InputOutputItem = memo(
                                     fontSize="md"
                                     userSelect="text"
                                 >
-                                    {getTextLength(item, t)}
+                                    {getTextLength(item)}
                                 </Text>
                             )}
 

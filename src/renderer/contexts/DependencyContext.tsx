@@ -32,6 +32,7 @@ import {
     VStack,
     useDisclosure,
 } from '@chakra-ui/react';
+import i18n from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsQuestionCircle } from 'react-icons/bs';
@@ -893,8 +894,8 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             .then(() => {
                 sendToast({
                     status: 'success',
-                    title: t('dependencyManager.commandCopied', 'Command copied to clipboard'),
-                    description: t(
+                    title: i18n.t('dependencyManager.commandCopied', 'Command copied to clipboard'),
+                    description: i18n.t(
                         'dependencyManager.commandCopiedDescription',
                         'Open up an external terminal, paste the command, and run it. When it is done running, manually restart chaiNNer.'
                     ),
@@ -915,7 +916,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
         const name = joinEnglish(packages.map((pkg) => pkg.name));
 
-        logOutput(t('dependencyManager.installing', 'Installing {{name}}...', { name }));
+        logOutput(i18n.t('dependencyManager.installing', 'Installing {{name}}...', { name }));
         changePackages(packages, () => backend.installPackages(packages.map((pkg) => pkg.id)));
     };
 
@@ -930,15 +931,15 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
         const button = await showAlert({
             type: AlertType.WARN,
-            title: t('dependencyManager.uninstallTitle', 'Uninstall'),
-            message: t(
+            title: i18n.t('dependencyManager.uninstallTitle', 'Uninstall'),
+            message: i18n.t(
                 'dependencyManager.uninstallMessage',
                 'Are you sure you want to uninstall {{name}}?',
                 { name }
             ),
             buttons: [
-                t('dependencyManager.cancel', 'Cancel'),
-                t('dependencyManager.uninstall', 'Uninstall'),
+                i18n.t('dependencyManager.cancel', 'Cancel'),
+                i18n.t('dependencyManager.uninstall', 'Uninstall'),
             ],
             defaultId: 0,
         });
@@ -947,22 +948,22 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         if (hasRelevantUnsavedChangesRef.current) {
             const saveButton = await showAlert({
                 type: AlertType.WARN,
-                title: t('dependencyManager.unsavedChanges', 'Unsaved Changes'),
-                message: t(
+                title: i18n.t('dependencyManager.unsavedChanges', 'Unsaved Changes'),
+                message: i18n.t(
                     'dependencyManager.unsavedChangesMessage',
                     'You might lose your unsaved changes by uninstalling {{name}}.\n\nAre you sure you want to uninstall {{name}}?',
                     { name }
                 ),
                 buttons: [
-                    t('dependencyManager.cancel', 'Cancel'),
-                    t('dependencyManager.uninstall', 'Uninstall'),
+                    i18n.t('dependencyManager.cancel', 'Cancel'),
+                    i18n.t('dependencyManager.uninstall', 'Uninstall'),
                 ],
                 defaultId: 0,
             });
             if (saveButton === 0) return;
         }
 
-        logOutput(t('dependencyManager.uninstalling', 'Uninstalling {{name}}...', { name }));
+        logOutput(i18n.t('dependencyManager.uninstalling', 'Uninstalling {{name}}...', { name }));
         changePackages(packages, () => backend.uninstallPackages(packages.map((pkg) => pkg.id)));
     };
 

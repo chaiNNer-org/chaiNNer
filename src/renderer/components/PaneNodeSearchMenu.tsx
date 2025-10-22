@@ -11,6 +11,7 @@ import {
     MenuList,
     Text,
 } from '@chakra-ui/react';
+import i18n from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { VscLightbulbAutofix } from 'react-icons/vsc';
@@ -98,7 +99,7 @@ const SchemaItem = memo(
                 </Text>
                 {isFavorite && (
                     <StarIcon
-                        aria-label={t('favorites.title', 'Favorites')}
+                        aria-label={i18n.t('favorites.title', 'Favorites')}
                         boxSize={2.5}
                         color="gray.500"
                         overflow="hidden"
@@ -151,8 +152,7 @@ const groupSchemata = (
     categories: CategoryMap,
     favorites: ReadonlySet<SchemaId>,
     suggested: ReadonlySet<SchemaId>,
-    specialSuggestions: readonly SuggestionGroupItem[],
-    t: (key: string, fallback: string) => string
+    specialSuggestions: readonly SuggestionGroupItem[]
 ): readonly SchemaGroup[] => {
     const toItem = (schema: NodeSchema): SchemaGroupItem => {
         return {
@@ -178,7 +178,7 @@ const groupSchemata = (
 
     const favs: FavoritesSchemaGroup = {
         type: 'favorites',
-        name: t('favorites.title', 'Favorites'),
+        name: i18n.t('favorites.title', 'Favorites'),
         items: cats.flatMap((c) => c.items).filter((n) => favorites.has(n.schema.schemaId)),
     };
 
@@ -278,8 +278,7 @@ const createMatcher = (
     categories: CategoryMap,
     favorites: ReadonlySet<SchemaId>,
     suggestions: ReadonlySet<SchemaId>,
-    featureStates: ReadonlyMap<FeatureId, FeatureState>,
-    t: (key: string, fallback: string) => string
+    featureStates: ReadonlyMap<FeatureId, FeatureState>
 ) => {
     return cacheLast((searchQuery: string) => {
         const specialSuggestions = [...getSpecialSuggestions(schemata, searchQuery)];
@@ -289,8 +288,7 @@ const createMatcher = (
             categories,
             favorites,
             suggestions,
-            specialSuggestions,
-            t
+            specialSuggestions
         );
         const flatGroups: readonly GroupItem[] = groups.flatMap((group) => group.items);
 
@@ -331,8 +329,8 @@ export const Menu = memo(
         const [selectedIndex, setSelectedIndex] = useState(0);
 
         const matcher = useMemo(
-            () => createMatcher(schemata, categories, favorites, suggestions, featureStates, t),
-            [schemata, categories, favorites, suggestions, featureStates, t]
+            () => createMatcher(schemata, categories, favorites, suggestions, featureStates),
+            [schemata, categories, favorites, suggestions, featureStates]
         );
 
         const changeSearchQuery = useCallback(
@@ -413,7 +411,7 @@ export const Menu = memo(
                     <Input
                         autoFocus
                         borderRadius="md"
-                        placeholder={t('search.placeholder', 'Search...')}
+                        placeholder={i18n.t('search.placeholder', 'Search...')}
                         spellCheck={false}
                         type="text"
                         value={searchQuery}
@@ -505,7 +503,7 @@ export const Menu = memo(
                             opacity="50%"
                             w="full"
                         >
-                            {t('search.noCompatibleNodes', 'No compatible nodes found.')}
+                            {i18n.t('search.noCompatibleNodes', 'No compatible nodes found.')}
                         </Center>
                     )}
                 </Box>
