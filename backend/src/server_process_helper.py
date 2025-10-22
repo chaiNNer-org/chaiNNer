@@ -89,13 +89,19 @@ class _WorkerProcess:
         if p is None or p.stdout is None:
             return
 
-        stopped = False
-        for _ in p.stdout:
-            stopped = self._stop_event.is_set()
-            if stopped:
-                break
-            # Worker handles its own logging - we don't capture stdout
+        # Drain stdout efficiently without line-by-line iteration
+        # Worker handles its own logging - we don't capture stdout
+        try:
+            while not self._stop_event.is_set():
+                # Read in larger chunks to avoid overhead
+                chunk = p.stdout.read(8192)
+                if not chunk:
+                    # Stream ended
+                    break
+        except Exception:
+            pass  # Ignore errors when draining stdout
 
+        stopped = self._stop_event.is_set()
         cause = "stop event" if stopped else "stdout ending"
         logger.debug("Stopped reading worker stdout due to %s", cause)
 
