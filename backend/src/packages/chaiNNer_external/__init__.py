@@ -1,8 +1,7 @@
 import sys
 
-from sanic.log import logger
-
 from api import add_package
+from logger import logger
 
 package = add_package(
     __file__,
@@ -37,4 +36,4 @@ web_ui_feature_descriptor = package.add_feature(
     description=_FEATURE_DESCRIPTION,
 )
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

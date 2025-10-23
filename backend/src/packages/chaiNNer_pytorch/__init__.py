@@ -1,9 +1,8 @@
 import os
 
-from sanic.log import logger
-
 from api import GB, KB, MB, Dependency, add_package
 from gpu import nvidia
+from logger import logger
 from system import is_arm_mac
 
 general = "PyTorch uses .pth models to upscale images."
@@ -124,4 +123,4 @@ pytorch_category = package.add_category(
     install_hint=inst_hint,
 )
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

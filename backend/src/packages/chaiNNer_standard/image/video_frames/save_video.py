@@ -9,9 +9,9 @@ from typing import Any, Literal
 
 import ffmpeg
 import numpy as np
-from sanic.log import logger
 
 from api import Collector, IteratorInputInfo, KeyInfo, NodeContext
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8

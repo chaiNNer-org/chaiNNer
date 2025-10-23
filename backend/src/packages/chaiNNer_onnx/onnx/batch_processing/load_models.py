@@ -3,9 +3,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from sanic.log import logger
-
 from api import Generator, IteratorOutputInfo
+from logger import logger
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import BoolInput, DirectoryInput
 from nodes.properties.outputs import (
@@ -52,7 +51,7 @@ def load_models_node(
     directory: Path,
     fail_fast: bool,
 ) -> tuple[Generator[tuple[OnnxModel, str, str, int]], Path]:
-    logger.debug(f"Iterating over models in directory: {directory}")
+    logger.debug("Iterating over models in directory: %s", directory)
 
     def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(path)

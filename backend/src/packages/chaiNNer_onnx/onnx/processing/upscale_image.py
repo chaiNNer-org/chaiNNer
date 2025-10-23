@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import onnxruntime as ort
-from sanic.log import logger
 
 from api import NodeContext
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
 from nodes.impl.onnx.model import OnnxGeneric, SizeReq
@@ -138,7 +138,7 @@ def upscale_image_node(
         exact_size = req_width or req_height, req_height
 
     h, w, c = get_h_w_c(img)
-    logger.debug(f"Image is {h}x{w}x{c}")
+    logger.debug("Image is %dx%dx%d", h, w, c)
 
     use_size_req = (
         exact_size is None

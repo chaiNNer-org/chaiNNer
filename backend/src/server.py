@@ -15,24 +15,23 @@ from pathlib import Path
 from typing import Final, TypedDict
 
 from sanic import Sanic
-from sanic.log import access_logger, logger
+from sanic.log import access_logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
 
 import api
-from api import (
-    ExecutionOptions,
-    Group,
-    JsonExecutionOptions,
-    NodeId,
-)
+from api import ExecutionOptions, Group, JsonExecutionOptions, NodeId
 from chain.cache import OutputCache
 from chain.chain import Chain, FunctionNode, GeneratorNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
 from events import EventConsumer, EventQueue, ExecutionErrorData
+
+# Logger will be initialized when AppContext is created
+# For now, use a fallback logger
+from logger import logger, setup_logger
 from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
@@ -47,6 +46,12 @@ from server_config import ServerConfig
 class AppContext:
     def __init__(self):
         self.config: Final[ServerConfig] = ServerConfig.parse_argv()
+
+        # Re-initialize logger with logs directory from config
+        global logger
+        log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
+        logger = setup_logger("worker", log_dir=log_dir)
+
         self.executor: Executor | None = None
         self.individual_executors: dict[ExecutionId, Executor] = {}
         self.cache: dict[NodeId, NodeOutput] = {}
@@ -59,7 +64,7 @@ class AppContext:
     @cached_property
     def storage_dir(self) -> Path:
         if self.config.storage_dir is not None:
-            logger.info(f"Using given storage directory: {self.config.storage_dir}")
+            logger.info("Using given storage directory: %s", self.config.storage_dir)
             return Path(self.config.storage_dir)
 
         default_sub_dir = "chaiNNer/backend-storage"
@@ -70,7 +75,7 @@ class AppContext:
             from appdirs import user_data_dir
 
             app_data_dir = Path(user_data_dir(roaming=True)) / default_sub_dir
-            logger.info(f"Using app data as storage directory: {app_data_dir}")
+            logger.info("Using app data as storage directory: %s", app_data_dir)
             return app_data_dir
         except:  # noqa: E722
             # ignore errors
@@ -78,7 +83,7 @@ class AppContext:
 
         # last resort: use the system's temporary directory
         temp = Path(tempfile.gettempdir()) / default_sub_dir
-        logger.info(f"No storage directory given. Using temporary directory: {temp}")
+        logger.info("No storage directory given. Using temporary directory: %s", temp)
         return Path(temp)
 
     @staticmethod
@@ -371,7 +376,7 @@ async def run_individual(request: Request):
 
         return json({"success": True, "data": None})
     except Exception as exception:
-        logger.error(exception, exc_info=True)
+        logger.exception(exception)
         return json({"success": False, "error": str(exception)})
 
 
@@ -385,7 +390,7 @@ async def clear_cache_individual(request: Request):
             del ctx.cache[full_data["id"]]
         return json({"success": True, "data": None})
     except Exception as exception:
-        logger.error(exception, exc_info=True)
+        logger.exception(exception)
         return json({"success": False, "error": str(exception)})
 
 
@@ -577,13 +582,13 @@ async def import_packages(
         for e in load_errors:
             if not isinstance(e.error, ModuleNotFoundError):
                 logger.warning(
-                    f"Failed to load {e.module} ({e.file}):", exc_info=e.error
+                    "Failed to load %s (%s):", e.module, e.file, exc_info=e.error
                 )
             else:
                 import_errors.append(e)
 
         if len(import_errors) > 0:
-            logger.warning(f"Failed to import {len(import_errors)} modules:")
+            logger.warning("Failed to import %d modules:", len(import_errors))
 
             by_error: dict[str, list[api.LoadErrorInfo]] = {}
             for e in import_errors:
@@ -595,13 +600,13 @@ async def import_packages(
             for error in sorted(by_error.keys()):
                 modules = [e.module for e in by_error[error]]
                 if len(modules) == 1:
-                    logger.warning(f"{error}  ->  {modules[0]}")
+                    logger.warning("%s  ->  %s", error, modules[0])
                 else:
                     count = len(modules)
                     if count > 3:
                         modules = modules[:2] + [f"and {count - 2} more ..."]
                     l = "\n".join("  ->  " + m for m in modules)
-                    logger.warning(f"{error}  ->  {count} modules ...\n{l}")
+                    logger.warning("%s  ->  %d modules ...\n%s", error, count, l)
 
         if config.error_on_failed_node:
             raise ValueError("Error importing nodes")
@@ -621,7 +626,7 @@ async def close_server(sanic_app: Sanic):
     try:
         await nodes_available()
     except Exception as ex:
-        logger.error(f"Error waiting for server to start: {ex}")
+        logger.error("Error waiting for server to start: %s", ex)
         exit_code = 1
 
     # now we can close the server

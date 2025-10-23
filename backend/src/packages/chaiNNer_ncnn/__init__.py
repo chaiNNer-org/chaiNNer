@@ -1,6 +1,5 @@
-from sanic.log import logger
-
 from api import MB, Dependency, add_package
+from logger import logger
 from system import is_arm_mac, is_mac
 
 general = "NCNN uses .bin/.param models to upscale images."
@@ -47,4 +46,4 @@ ncnn_category = package.add_category(
     install_hint=inst_hint,
 )
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

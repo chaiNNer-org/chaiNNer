@@ -5,10 +5,10 @@ import weakref
 import numpy as np
 import psutil
 import torch
-from sanic.log import logger
 from spandrel import ImageModelDescriptor, ModelTiling
 
 from api import KeyInfo, NodeContext, Progress
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.pytorch.auto_split import pytorch_auto_split
 from nodes.impl.pytorch.utils import safe_cuda_cache_empty

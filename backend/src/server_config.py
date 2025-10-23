@@ -39,6 +39,13 @@ class ServerConfig:
     Usage: `--storage-dir /foo/bar`
     """
 
+    logs_dir: str | None
+    """
+    Directory to store log files in.
+
+    Usage: `--logs-dir /foo/bar`
+    """
+
     trace: bool
     """
     Whether to enable tracing using VizTracer.
@@ -77,6 +84,11 @@ class ServerConfig:
             help="Directory to store for nodes to store files in.",
         )
         parser.add_argument(
+            "--logs-dir",
+            type=str,
+            help="Directory to store log files in.",
+        )
+        parser.add_argument(
             "--trace",
             action="store_true",
             help="Enable tracing using VizTracer.",
@@ -90,5 +102,6 @@ class ServerConfig:
             install_builtin_packages=parsed.install_builtin_packages,
             error_on_failed_node=parsed.error_on_failed_node,
             storage_dir=parsed.storage_dir or None,
+            logs_dir=parsed.logs_dir or None,
             trace=parsed.trace,
         )
