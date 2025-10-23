@@ -45,13 +45,19 @@ def inpaint(
 
             result = model(d_img, d_mask)
             result = tensor2np(
-                result.detach().cpu().detach(),
+                result.detach().cpu(),
                 change_range=False,
                 imtype=np.float32,
             )
 
-            del d_img
-            del d_mask
+            # Explicitly move tensors to CPU to free VRAM
+            # Reassignment ensures GPU tensors are dereferenced
+            d_img = d_img.detach().cpu()
+            d_mask = d_mask.detach().cpu()
+
+            # Collect garbage to ensure VRAM is freed
+            gc.collect()
+            safe_cuda_cache_empty()
 
             return result
         except RuntimeError:
