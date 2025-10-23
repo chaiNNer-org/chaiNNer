@@ -161,4 +161,3 @@ def test_input_map_empty_chain():
     chain = Chain()
     input_map = InputMap.from_chain(chain)
     assert input_map is not None
-

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from api import NodeId
+from events import ExecutionErrorSource
 from response import (
     already_running_response,
     error_response,
@@ -48,7 +49,7 @@ def test_error_response_with_exception_object():
 
 def test_error_response_with_source():
     """Test error response with custom source."""
-    source = {
+    source: ExecutionErrorSource = {
         "nodeId": NodeId("node1"),
         "schemaId": "test:schema",
         "inputs": {},
