@@ -221,9 +221,9 @@ def as_target_channels(
         return img
 
     if not narrowing:
-        assert (
-            c < target_c
-        ), f"Narrowing is false, image channels ({c}) must be less than target channels ({target_c})"
+        assert c < target_c, (
+            f"Narrowing is false, image channels ({c}) must be less than target channels ({target_c})"
+        )
 
     if c == 1:
         if target_c == 3:
@@ -274,9 +274,9 @@ def create_border(
         cv_border_type = cv2.BORDER_CONSTANT
         value = (1.0,) * c
     elif border_type == BorderType.CUSTOM_COLOR:
-        assert (
-            color is not None
-        ), "Creating a border with a custom color requires supplying a custom color."
+        assert color is not None, (
+            "Creating a border with a custom color requires supplying a custom color."
+        )
 
         # widen image or color to make them compatible
         if color.channels > c:

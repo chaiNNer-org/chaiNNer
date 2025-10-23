@@ -561,7 +561,7 @@ async def sse(request: Request):
     while True:
         message = await ctx.queue.get()
         await response.send(
-            f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+            f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
         )
 
 

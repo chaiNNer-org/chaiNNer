@@ -35,9 +35,9 @@ def perform_interp(
         weight_array_a = onph.to_array(weight_a)
         weight_array_b = onph.to_array(weight_b)
 
-        assert (
-            weight_array_a.shape == weight_array_b.shape
-        ), "Weights must have same size and shape"
+        assert weight_array_a.shape == weight_array_b.shape, (
+            "Weights must have same size and shape"
+        )
 
         weight_array_interp = (
             weight_array_a * amount_a + weight_array_b * amount_b
@@ -107,9 +107,9 @@ def interpolate_models_node(
     model_proto_b = safely_optimize_onnx_model(model_proto_b)
     model_b_weights = model_proto_b.graph.initializer
 
-    assert len(model_a_weights) == len(
-        model_b_weights
-    ), "Models must have same number of weights"
+    assert len(model_a_weights) == len(model_b_weights), (
+        "Models must have same number of weights"
+    )
 
     logger.debug("Interpolating models...")
     interp_weights_list = perform_interp(model_a_weights, model_b_weights, amount)

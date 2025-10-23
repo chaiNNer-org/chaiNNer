@@ -33,9 +33,9 @@ from .. import miscellaneous_group
 def image_metrics_node(
     orig_img: np.ndarray, comp_img: np.ndarray
 ) -> tuple[float, float, float]:
-    assert (
-        orig_img.shape == comp_img.shape
-    ), "Images must have same dimensions and color depth"
+    assert orig_img.shape == comp_img.shape, (
+        "Images must have same dimensions and color depth"
+    )
 
     # If an image is not grayscale, convert to YCrCb and compute metrics
     # on luma channel only

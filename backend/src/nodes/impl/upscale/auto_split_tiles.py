@@ -24,8 +24,8 @@ def estimate_tile_size(
     # the largest power-of-2 tile_size such that tile_size**2 < tile_pixels
     tile_size = 2 ** (int(tile_pixels**0.5).bit_length() - 1)
 
-    required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
-    budget_mem = f"{budget/GB_AMT:.2f}"
+    required_mem = f"{mem_required_estimation / GB_AMT:.2f}"
+    budget_mem = f"{budget / GB_AMT:.2f}"
     logger.debug(
         "Estimating memory required: %s GB, %s GB free. Estimated tile size: %s",
         required_mem,
