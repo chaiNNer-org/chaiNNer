@@ -12,7 +12,7 @@ from .. import transparency_group
 
 @transparency_group.register(
     schema_id="chainner:image:split_transparency",
-    name="Split Transparency",
+    name="Split RGB/A",
     description="Split image channels into RGB and Alpha (transparency) channels.",
     icon="MdCallSplit",
     inputs=[ImageInput(channels=[1, 3, 4])],

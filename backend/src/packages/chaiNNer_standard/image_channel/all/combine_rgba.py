@@ -11,9 +11,9 @@ from .. import all_group
 
 @all_group.register(
     schema_id="chainner:image:combine_rgba",
-    name="Combine RGBA",
+    name="Combine R/G/B/A",
     description=(
-        "Merges the given channels together and returns an RGBA image."
+        "Combines the given channels together and returns an RGBA image."
         " All channel images must be a single channel image."
     ),
     icon="MdCallMerge",
