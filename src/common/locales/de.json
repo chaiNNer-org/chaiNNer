@@ -244,7 +244,15 @@
     "italian": "Italiano",
     "portuguese": "Português",
     "japanese": "日本語",
-    "chinese": "中文"
+    "chinese": "中文",
+    "russian": "Русский",
+    "korean": "한국어",
+    "dutch": "Nederlands",
+    "polish": "Polski",
+    "turkish": "Türkçe",
+    "arabic": "العربية",
+    "hindi": "हिन्दी",
+    "brazilianPortuguese": "Português (Brasil)"
   },
   "search": {
     "placeholder": "Suchen...",

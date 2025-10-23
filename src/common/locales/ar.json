@@ -1,0 +1,421 @@
+{
+    "alert": {
+        "button": {
+            "ok": "موافق",
+            "cancel": "إلغاء",
+            "openLogsFolder": "فتح مجلد السجلات",
+            "exitApplication": "إغلاق التطبيق",
+            "copyToClipboard": "نسخ إلى الحافظة"
+        },
+        "stackTrace": "تتبع المكدس",
+        "title": {
+            "systemInformation": "معلومات النظام"
+        }
+    },
+    "common": {
+        "cancel": "إلغاء",
+        "close": "إغلاق",
+        "open": "فتح",
+        "settings": "الإعدادات"
+    },
+    "error": {
+        "error": "خطأ",
+        "message": {
+            "criticalBackend": "حدث خطأ حرج أثناء معالجة بيانات العقدة المرتجعة من الخادم الخلفي."
+        },
+        "title": {
+            "unableToProcessNodes": "لا يمكن معالجة عقد الخادم الخلفي."
+        }
+    },
+    "header": {
+        "alpha": "ألفا",
+        "pause": "إيقاف مؤقت",
+        "pauseButton": "زر الإيقاف المؤقت",
+        "resume": "متابعة",
+        "run": "تشغيل",
+        "runButton": "زر التشغيل",
+        "stop": "إيقاف",
+        "stopButton": "زر الإيقاف",
+        "updateAvailable": "تحديث متاح ({{version}})",
+        "updateAvailableAria": "تحديث متاح",
+        "updateChangelog": "سجل تغييرات التحديث",
+        "updateAvailableTitle": "تحديث متاح ({{version}})",
+        "updateAvailableMessage": "يوجد تحديث متاح للإصدار {{version}}. هل تريد عرض سجل التغييرات؟",
+        "viewReleaseOnGitHub": "عرض الإصدار على GitHub",
+        "downloadFromWebsite": "تحميل من chaiNNer.app",
+        "ignoreUpdate": "تجاهل التحديث",
+        "viewUpdate": "عرض التحديث"
+    },
+    "inputs": {
+        "copyInputOverrideId": "نسخ معرف تجاوز الإدخال",
+        "inputOverrideId": "معرف تجاوز الإدخال",
+        "inputOverrideIdCopied": "تم نسخ معرف تجاوز الإدخال إلى الحافظة",
+        "inputOverrideIdTooltip": "معرف فريد لهذا الإدخال. يُستخدم لتجاوز الإدخال في السلسلة.",
+        "directory": {
+            "clear": "مسح",
+            "copyFullDirectoryPath": "نسخ مسار المجلد الكامل",
+            "openInFileExplorer": "فتح في مستكشف الملفات",
+            "selectDirectory": "اختر مجلداً...",
+            "clickToSelect": "انقر للاختيار..."
+        },
+        "extractValueIntoNode": "استخراج القيمة إلى العقدة",
+        "file": {
+            "clear": "مسح",
+            "copyFileName": "نسخ اسم الملف",
+            "copyFullFilePath": "نسخ مسار الملف الكامل",
+            "openInFileExplorer": "فتح في مستكشف الملفات",
+            "selectFile": "اختر ملفاً...",
+            "clickToSelectFile": "انقر لاختيار ملف..."
+        },
+        "number": {
+            "copyText": "نسخ الرقم",
+            "paste": "لصق"
+        },
+        "text": {
+            "copyText": "نسخ النص",
+            "paste": "لصق",
+            "invalidCharacter": "حرف غير صالح '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "إضافة إدخال",
+        "colorCompare": {
+            "old": "قديم",
+            "new": "جديد"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "الصورة غير متاحة.",
+            "imagePreviewFailed": "فشل في تحميل معاينة الصورة، ربما نوع ملف غير مدعوم."
+        },
+        "model": {
+            "modelNotAvailable": "بيانات النموذج غير متاحة."
+        }
+    },
+    "settings": {
+        "title": "الإعدادات",
+        "restartChaiNNer": "إعادة تشغيل chaiNNer",
+        "tabs": {
+            "appearance": "المظهر",
+            "environment": "البيئة",
+            "python": "Python",
+            "advanced": "متقدم"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "مظهر الألوان",
+                "description": "اختر المظهر لألوان chaiNNer.",
+                "options": {
+                    "dark": "داكن",
+                    "light": "فاتح",
+                    "system": "النظام",
+                    "charcoal": "فحمي",
+                    "coffee": "قهوة",
+                    "blueberry": "توت أزرق",
+                    "dusk": "غسق",
+                    "oled": "OLED",
+                    "cyberpunk": "سايبربانك",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "اللغة (يتطلب إعادة تشغيل)",
+                "description": "اختر لغة واجهة chaiNNer."
+            },
+            "chainAnimation": {
+                "label": "رسوم متحركة للسلسلة",
+                "description": "تفعيل الرسوم المتحركة التي تُظهر حالة معالجة السلسلة."
+            },
+            "minimap": {
+                "label": "الخريطة المصغرة",
+                "description": "تفعيل خريطة مصغرة للسلسلة الحالية في الزاوية اليمنى السفلى من محرر العقد."
+            },
+            "snapToGrid": {
+                "label": "الالتصاق بالشبكة",
+                "description": "تفعيل الالتصاق بالشبكة للعقد."
+            },
+            "snapToGridAmount": {
+                "label": "كمية الالتصاق بالشبكة",
+                "description": "الكمية للالتصاق بالشبكة."
+            },
+            "viewportExportPadding": {
+                "label": "حشو تصدير PNG لمنطقة العرض",
+                "description": "كمية الحشو لتصدير PNG لمنطقة العرض."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "قالب البداية",
+                "description": "تعيين قالب سلسلة للاستخدام الافتراضي عند بدء تشغيل chaiNNer.",
+                "placeholder": "اختر ملفاً...",
+                "clear": "مسح",
+                "pickFile": "اختر ملف قالب البداية"
+            },
+            "selectChain": "اختر السلسلة"
+        },
+        "python": {
+            "general": "عام",
+            "useSystemPython": {
+                "label": "استخدام Python النظام (يتطلب إعادة تشغيل)",
+                "description": "استخدام Python النظام لمعالجة chaiNNer بدلاً من Python المدمج (غير موصى به)"
+            },
+            "systemPythonLocation": {
+                "label": "موقع Python النظام (اختياري)",
+                "description": "إذا أردت، استخدم ملف python محدد بدلاً من الافتراضي المستدعى بواسطة 'python3' أو 'python'. هذا مفيد إذا كان لديك عدة إصدارات python مثبتة وتريد اختيار محدد.",
+                "placeholder": "اختر ملفاً...",
+                "clear": "مسح",
+                "pickFile": "اختر موقع python النظام"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "فحص التحديثات عند البدء",
+                "description": "تبديل فحص التحديثات عند البدء."
+            },
+            "experimentalFeatures": {
+                "label": "تفعيل الميزات التجريبية",
+                "description": "تفعيل الميزات التجريبية لتجربتها قبل اكتمالها."
+            },
+            "hardwareAcceleration": {
+                "label": "تفعيل التسريع المادي (يتطلب إعادة تشغيل)",
+                "description": "تفعيل عرض GPU للواجهة. استخدم بحذر، فقد يقلل بشدة من أداء GPU لمعالجة الصور."
+            },
+            "allowMultipleInstances": {
+                "label": "السماح بعدة مثيلات متزامنة",
+                "description": "تفعيل عدة مثيلات متزامنة من chaiNNer. هذا غير موصى به، ولكن إذا كانت سلسلتك لا تستخدم موارد النظام بما فيه الكفاية، قد تجد هذا مفيداً لتشغيل الأشياء بشكل متزامن."
+            }
+        },
+        "noOptionsFound": "لم يتم العثور على خيارات.",
+        "clearCache": "مسح التخزين المؤقت"
+    },
+    "setup": {
+        "checkingPort": "فحص المنفذ المتاح...",
+        "checkingPython": "فحص بيئة النظام لـ Python صالح...",
+        "downloadingPython": "تحميل Python المدمج...",
+        "extractingPython": "استخراج الملفات المحملة...",
+        "loading": "تحميل...",
+        "startingBackend": "بدء تشغيل عملية الخادم الخلفي..."
+    },
+    "typeTags": {
+        "optional": "اختياري"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "بذرة عشوائية",
+            "randomSeedAria": "البذرة العشوائية"
+        }
+    },
+    "logo": {
+        "background": "الخلفية",
+        "front": "المقدمة"
+    },
+    "timer": {
+        "executionTook": "استغرق التنفيذ حوالي {{duration}}.",
+        "hour_one": "ساعة",
+        "hour_other": "ساعات",
+        "minute_one": "دقيقة",
+        "minute_other": "دقائق",
+        "second_one": "ثانية",
+        "second_other": "ثوان"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "قيم {{inputs}} مرتبطة حالياً بنفس القيمة. انقر هنا لإلغاء هذا الارتباط.",
+        "clickToLink": "انقر هنا لربط {{inputs}} بنفس القيمة."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "بحث...",
+        "missingNodes": "عقد مفقودة؟ انقر لفتح مدير التبعيات!",
+        "noCompatibleNodes": "لم يتم العثور على عقد متوافقة."
+    },
+    "favorites": {
+        "title": "المفضلة",
+        "noFavorites": "لا توجد مفضلة.",
+        "addFavoritesTooltip": "أضف إلى المفضلة بالنقر بزر الماوس الأيمن على العقد واختيار 'إضافة إلى المفضلة'.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "أضف إلى المفضلة بالتمرير فوق العقد والنقر على",
+            "afterIcon": "الأيقونة، أو بالنقر بزر الماوس الأيمن واختيار 'إضافة إلى المفضلة'."
+        },
+        "addToFavorites": "إضافة إلى المفضلة",
+        "removeFromFavorites": "إزالة من المفضلة"
+    },
+    "documentation": {
+        "title": "وثائق العقدة",
+        "openDocumentation": "فتح الوثائق"
+    },
+    "dependencyManager": {
+        "title": "مدير التبعيات",
+        "manageDependencies": "إدارة التبعيات",
+        "updatesAvailable": "تحديثات متاحة",
+        "updatesAvailableDescription_one": "يوجد {{count}} حزمة مع تحديثات تبعية متاحة.",
+        "updatesAvailableDescription_other": "يوجد {{count}} حزم مع تحديثات تبعية متاحة.",
+        "openDependencyManager": "فتح مدير التبعيات",
+        "packages": "الحزم",
+        "features": "الميزات",
+        "refresh": "تحديث",
+        "install": "تثبيت",
+        "update": "تحديث",
+        "uninstall": "إلغاء التثبيت",
+        "close": "إغلاق",
+        "missing": "مفقود",
+        "outdated": "قديم",
+        "unavailable": "غير متاح",
+        "enabled": "مفعل",
+        "disabled": "معطل",
+        "python": "Python",
+        "system": "النظام",
+        "integrated": "مدمج",
+        "advanced": "متقدم",
+        "installationMode": "وضع التثبيت",
+        "normal": "عادي",
+        "manualCopy": "يدوي/نسخ",
+        "consoleOutput": "إخراج وحدة التحكم:",
+        "commandCopied": "تم نسخ الأمر إلى الحافظة",
+        "commandCopiedDescription": "افتح طرفية خارجية، الصق الأمر وشغله. عند انتهاء التشغيل، أعد تشغيل chaiNNer يدوياً.",
+        "uninstallTitle": "إلغاء التثبيت",
+        "uninstallMessage": "هل أنت متأكد من أنك تريد إلغاء تثبيت {{name}}؟",
+        "unsavedChanges": "تغييرات غير محفوظة",
+        "unsavedChangesMessage": "قد تفقد تغييراتك غير المحفوظة بإلغاء تثبيت {{name}}.\n\nهل أنت متأكد من أنك تريد إلغاء تثبيت {{name}}؟",
+        "cancel": "إلغاء",
+        "installing": "تثبيت {{name}}...",
+        "uninstalling": "إلغاء تثبيت {{name}}...",
+        "copyPythonPath": "نسخ مسار Python إلى الحافظة",
+        "pythonPath": "مسار Python هو:",
+        "installAllPackages": "{{operations}} جميع الحزم ({{size}})",
+        "package_one": "حزمة",
+        "package_other": "حزم",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "وضع التحرير",
+        "editContent": "تحرير المحتوى",
+        "markdownMode": "وضع Markdown",
+        "viewMarkdown": "عرض Markdown"
+    },
+    "node": {
+        "disableHint": "تلميح: استخدم Ctrl+Click للتنقل بين الخيارات.",
+        "note": {
+            "placeholder": "نص الملاحظة"
+        },
+        "implementationError": "خطأ في التنفيذ",
+        "implementationErrorMessage": "لا يمكن تحديد معلومات المفتاح للعقدة {{nodeName}} ({{schemaId}}).",
+        "enable": "تفعيل",
+        "disable": "تعطيل",
+        "skip": "تخطي",
+        "eta": "الوقت المتوقع:",
+        "outdated": "قديم"
+    },
+    "color": {
+        "resetToOld": "إعادة تعيين إلى اللون القديم",
+        "acceptNew": "قبول اللون الجديد"
+    },
+    "support": {
+        "koFiTooltip": "ادعم chaiNNer على Ko-fi",
+        "koFiAria": "ادعم chaiNNer",
+        "koFiButton": "ادعم chaiNNer"
+    },
+    "edge": {
+        "removeEdge": "زر إزالة الحافة"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "إزالة نقطة التوقف",
+        "removeEdge": "إزالة الحافة"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "انقر نقراً مزدوجاً أو اسحب وأفلت لإضافة عقد إلى اللوحة.",
+        "collapseExpandCategories": "طي/توسيع الفئات"
+    },
+    "nodeMenu": {
+        "copy": "نسخ",
+        "duplicate": "تكرار",
+        "resetNode": "إعادة تعيين العقدة",
+        "resetInputs": "إعادة تعيين المدخلات",
+        "resetConnections": "إعادة تعيين الاتصالات",
+        "resetAll": "إعادة تعيين الكل",
+        "enable": "تفعيل",
+        "disable": "تعطيل",
+        "skip": "تخطي",
+        "unlock": "إلغاء القفل",
+        "lock": "قفل",
+        "refreshPreview": "تحديث المعاينة",
+        "delete": "حذف",
+        "openDocumentation": "فتح الوثائق"
+    },
+    "nodesMenu": {
+        "copy": "نسخ",
+        "duplicate": "تكرار",
+        "resetNodes": "إعادة تعيين العقد",
+        "resetInputs": "إعادة تعيين المدخلات",
+        "resetConnections": "إعادة تعيين الاتصالات",
+        "resetAll": "إعادة تعيين الكل",
+        "enableAll": "تفعيل الكل",
+        "disableAll": "تعطيل الكل",
+        "delete": "حذف"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "إضافة نقطة توقف",
+        "delete": "حذف"
+    },
+    "nodeSelector": {
+        "favorites": "المفضلة",
+        "missingDependencies": "تبعيات مفقودة.",
+        "unableToImport": "لا يمكن استيراد العقدة(العقد).",
+        "clickToInstall": "انقر لفتح مدير التبعيات لتثبيت {{packageName}}.",
+        "criticalImportError": "حدث خطأ حرج في الاستيراد مع تبعية في الحزمة: {{packageName}}.",
+        "nodes": "العقد"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "هو",
+            "isNot": "ليس",
+            "oneOf": "واحد من",
+            "ofType": "من النوع",
+            "allOf": "الكل",
+            "atLeastOneOf": "واحد على الأقل من",
+            "followingConditions": "يجب استيفاء الشروط التالية:",
+            "condition": "الشرط:"
+        },
+        "nodeDocs": {
+            "optional": "اختياري",
+            "sequenced": "(مُتسلسل)",
+            "supportedFileTypes": "أنواع الملفات المدعومة:",
+            "primaryInputDescription": "هذا المدخل هو المدخل الأساسي لأنواع الملفات المدعومة. هذا يعني أنه يمكنك سحب وإفلات الملفات المدعومة إلى chaiNNer، وسيقوم بإنشاء عقدة مع هذا المدخل مملوءاً تلقائياً.",
+            "options": "الخيارات:",
+            "type": "النوع:",
+            "inputs": "المدخلات",
+            "noInputs": "هذه العقدة ليس لها مدخلات.",
+            "outputs": "المخرجات",
+            "noOutputs": "هذه العقدة ليس لها مخرجات.",
+            "seeAlso": "انظر أيضاً",
+            "character_one": "حرف",
+            "character_other": "أحرف"
+        },
+        "nodesList": {
+            "noNodesFound": "لم يتم العثور على عقد"
+        }
+    }
+}

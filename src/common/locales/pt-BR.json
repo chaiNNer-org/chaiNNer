@@ -7,7 +7,7 @@
             "exitApplication": "Sair da Aplicação",
             "copyToClipboard": "Copiar para Área de Transferência"
         },
-        "stackTrace": "Rastreamento da Pilha",
+        "stackTrace": "Rastreamento de Pilha",
         "title": {
             "systemInformation": "Informações do sistema"
         }
@@ -28,14 +28,14 @@
         }
     },
     "header": {
-        "alpha": "Alpha",
+        "alpha": "Alfa",
         "pause": "Pausar",
-        "pauseButton": "Botão de pausa",
+        "pauseButton": "Botão pausar",
         "resume": "Retomar",
         "run": "Executar",
-        "runButton": "Botão de execução",
+        "runButton": "Botão executar",
         "stop": "Parar",
-        "stopButton": "Botão de parar",
+        "stopButton": "Botão parar",
         "updateAvailable": "Atualização disponível ({{version}})",
         "updateAvailableAria": "Atualização disponível",
         "updateChangelog": "Log de alterações da atualização",
@@ -48,6 +48,9 @@
     },
     "inputs": {
         "copyInputOverrideId": "Copiar ID de Substituição de Entrada",
+        "inputOverrideId": "ID de Substituição de Entrada",
+        "inputOverrideIdCopied": "ID de substituição de entrada copiado para a área de transferência",
+        "inputOverrideIdTooltip": "Identificador único para esta entrada. Usado para substituir entrada na cadeia.",
         "directory": {
             "clear": "Limpar",
             "copyFullDirectoryPath": "Copiar Caminho Completo do Diretório",
@@ -85,7 +88,7 @@
     "outputs": {
         "largeImage": {
             "imageNotAvailable": "Imagem não disponível.",
-            "imagePreviewFailed": "A visualização da imagem falhou ao carregar, provavelmente tipo de arquivo não suportado."
+            "imagePreviewFailed": "Falha ao carregar a pré-visualização da imagem, provavelmente tipo de arquivo não suportado."
         },
         "model": {
             "modelNotAvailable": "Dados do modelo não disponíveis."
@@ -102,7 +105,7 @@
         },
         "appearance": {
             "colorTheme": {
-                "label": "Tema de Cor",
+                "label": "Tema de Cores",
                 "description": "Escolha o tema para a aparência do chaiNNer.",
                 "options": {
                     "dark": "Escuro",
@@ -125,15 +128,15 @@
             },
             "chainAnimation": {
                 "label": "Animação da cadeia",
-                "description": "Ativar animações que mostram o estado de processamento da cadeia."
+                "description": "Habilitar animações que mostram o estado de processamento da cadeia."
             },
             "minimap": {
                 "label": "Minimapa",
-                "description": "Ativar um minimapa da cadeia atual no canto inferior direito do editor de nós."
+                "description": "Habilitar um minimapa da cadeia atual no canto inferior direito do editor de nós."
             },
             "snapToGrid": {
                 "label": "Alinhar à grade",
-                "description": "Ativar alinhamento dos nós à grade."
+                "description": "Habilitar alinhamento de nós à grade."
             },
             "snapToGridAmount": {
                 "label": "Quantidade de alinhamento à grade",
@@ -158,36 +161,36 @@
             "general": "Geral",
             "useSystemPython": {
                 "label": "Usar Python do sistema (requer reinicialização)",
-                "description": "Usar Python do sistema para processamento do chaiNNer em vez do Python incluído (não recomendado)"
+                "description": "Usar Python do sistema para processamento do chaiNNer em vez do Python integrado (não recomendado)"
             },
             "systemPythonLocation": {
                 "label": "Localização do Python do sistema (opcional)",
-                "description": "Se desejado, usar um binário Python específico em vez do padrão invocado por 'python3' ou 'python'. Isso é útil se você tem múltiplas versões de Python instaladas e quer escolher uma específica.",
+                "description": "Se desejado, use um binário python específico em vez do padrão invocado por 'python3' ou 'python'. Isso é útil se você tem várias versões python instaladas e quer escolher uma específica.",
                 "placeholder": "Selecionar um arquivo...",
                 "clear": "Limpar",
-                "pickFile": "Escolher localização do Python do sistema"
+                "pickFile": "Escolher localização do python do sistema"
             }
         },
         "advanced": {
             "checkForUpdates": {
-                "label": "Verificar atualizações na inicialização",
-                "description": "Ativa a verificação de atualizações na inicialização."
+                "label": "Verificar Atualizações na Inicialização",
+                "description": "Alterna a verificação de atualizações na inicialização."
             },
             "experimentalFeatures": {
-                "label": "Ativar recursos experimentais",
-                "description": "Ativar recursos experimentais para experimentá-los antes que estejam finalizados."
+                "label": "Habilitar recursos experimentais",
+                "description": "Habilitar recursos experimentais para experimentá-los antes de serem finalizados."
             },
             "hardwareAcceleration": {
-                "label": "Ativar aceleração de hardware (requer reinicialização)",
-                "description": "Ativar renderização GPU para a GUI. Use com cautela, pois pode diminuir severamente o desempenho da GPU para processamento de imagens."
+                "label": "Habilitar Aceleração de Hardware (requer reinicialização)",
+                "description": "Habilitar renderização GPU para a GUI. Use com cuidado, pois pode diminuir severamente o desempenho da GPU para processamento de imagens."
             },
             "allowMultipleInstances": {
                 "label": "Permitir múltiplas instâncias simultâneas",
-                "description": "Ativar múltiplas instâncias simultâneas do chaiNNer. Isso não é recomendado, mas se sua cadeia não está usando recursos suficientes do sistema, você pode achar útil executar coisas simultaneamente."
+                "description": "Habilitar múltiplas instâncias simultâneas do chaiNNer. Isso não é recomendado, mas se sua cadeia não está usando recursos suficientes do seu sistema, você pode achar isso útil para executar coisas simultaneamente."
             }
         },
         "noOptionsFound": "Nenhuma opção encontrada.",
-        "clearCache": "Limpar cache"
+        "clearCache": "Limpar Cache"
     },
     "setup": {
         "checkingPort": "Verificando porta disponível...",
@@ -205,19 +208,6 @@
             "randomSeed": "Semente aleatória",
             "randomSeedAria": "Semente Aleatória"
         }
-    },
-    "node": {
-        "disableHint": "Dica: Use Ctrl+Clique para percorrer as opções.",
-        "note": {
-            "placeholder": "Texto da Nota"
-        },
-        "implementationError": "Erro de Implementação",
-        "implementationErrorMessage": "Não é possível determinar informações-chave para o nó {{nodeName}} ({{schemaId}}).",
-        "enable": "Ativar",
-        "disable": "Desativar",
-        "skip": "Pular",
-        "eta": "ETA:",
-        "outdated": "Desatualizado"
     },
     "logo": {
         "background": "fundo",
@@ -262,24 +252,24 @@
     "favorites": {
         "title": "Favoritos",
         "noFavorites": "Nenhum Favorito.",
-        "addFavoritesTooltip": "Adicionar Favoritos clicando com o botão direito nos nós e selecionando Adicionar aos Favoritos.",
+        "addFavoritesTooltip": "Adicione Favoritos clicando com o botão direito nos nós e selecionando Adicionar aos Favoritos.",
         "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Adicionar Favoritos passando o mouse sobre os nós e clicando no ícone",
-            "afterIcon": ", ou clicando com o botão direito e selecionando Adicionar aos Favoritos."
+            "beforeIcon": "Adicione Favoritos passando o mouse sobre os nós e clicando no",
+            "afterIcon": "ícone, ou clicando com o botão direito e selecionando Adicionar aos Favoritos."
         },
         "addToFavorites": "Adicionar aos Favoritos",
         "removeFromFavorites": "Remover dos Favoritos"
     },
     "documentation": {
-        "title": "Documentação dos Nós",
+        "title": "Documentação do Nó",
         "openDocumentation": "Abrir Documentação"
     },
     "dependencyManager": {
         "title": "Gerenciador de Dependências",
         "manageDependencies": "Gerenciar Dependências",
         "updatesAvailable": "Atualizações Disponíveis",
-        "updatesAvailableDescription_one": "Há {{count}} pacote com atualizações de dependências disponíveis.",
-        "updatesAvailableDescription_other": "Há {{count}} pacotes com atualizações de dependências disponíveis.",
+        "updatesAvailableDescription_one": "Há {{count}} pacote com atualizações de dependência disponíveis.",
+        "updatesAvailableDescription_other": "Há {{count}} pacotes com atualizações de dependência disponíveis.",
         "openDependencyManager": "Abrir Gerenciador de Dependências",
         "packages": "Pacotes",
         "features": "Recursos",
@@ -291,26 +281,26 @@
         "missing": "Ausente",
         "outdated": "Desatualizado",
         "unavailable": "Indisponível",
-        "enabled": "Ativado",
-        "disabled": "Desativado",
+        "enabled": "Habilitado",
+        "disabled": "Desabilitado",
         "python": "Python",
         "system": "Sistema",
         "integrated": "Integrado",
         "advanced": "Avançado",
         "installationMode": "Modo de instalação",
         "normal": "Normal",
-        "manualCopy": "Manual/Copiar",
+        "manualCopy": "Manual/Cópia",
         "consoleOutput": "Saída do console:",
-        "commandCopied": "Comando copiado para área de transferência",
-        "commandCopiedDescription": "Abra um terminal externo, cole o comando e execute-o. Quando terminar, reinicie o chaiNNer manualmente.",
+        "commandCopied": "Comando copiado para a área de transferência",
+        "commandCopiedDescription": "Abra um terminal externo, cole o comando e execute-o. Quando terminar de executar, reinicie o chaiNNer manualmente.",
         "uninstallTitle": "Desinstalar",
         "uninstallMessage": "Tem certeza de que deseja desinstalar {{name}}?",
-        "unsavedChanges": "Alterações não salvas",
+        "unsavedChanges": "Alterações Não Salvas",
         "unsavedChangesMessage": "Você pode perder suas alterações não salvas desinstalando {{name}}.\n\nTem certeza de que deseja desinstalar {{name}}?",
         "cancel": "Cancelar",
         "installing": "Instalando {{name}}...",
         "uninstalling": "Desinstalando {{name}}...",
-        "copyPythonPath": "Copiar caminho Python para área de transferência",
+        "copyPythonPath": "Copiar caminho Python para a área de transferência",
         "pythonPath": "O caminho Python é:",
         "installAllPackages": "{{operations}} Todos os Pacotes ({{size}})",
         "package_one": "pacote",
@@ -326,25 +316,38 @@
         "markdownMode": "Modo Markdown",
         "viewMarkdown": "Ver Markdown"
     },
+    "node": {
+        "disableHint": "Dica: Use Ctrl+Clique para alternar entre opções.",
+        "note": {
+            "placeholder": "Texto da Nota"
+        },
+        "implementationError": "Erro de Implementação",
+        "implementationErrorMessage": "Não é possível determinar informações-chave para o nó {{nodeName}} ({{schemaId}}).",
+        "enable": "Habilitar",
+        "disable": "Desabilitar",
+        "skip": "Pular",
+        "eta": "ETA:",
+        "outdated": "Desatualizado"
+    },
     "color": {
         "resetToOld": "Redefinir para cor antiga",
         "acceptNew": "Aceitar nova cor"
     },
+    "support": {
+        "koFiTooltip": "Apoie o chaiNNer no Ko-fi",
+        "koFiAria": "Apoie o chaiNNer",
+        "koFiButton": "Apoie o chaiNNer"
+    },
     "edge": {
-        "removeEdge": "Botão remover borda"
+        "removeEdge": "Botão remover aresta"
     },
     "breakpoint": {
         "removeBreakpoint": "Remover Ponto de Interrupção",
-        "removeEdge": "Remover Borda"
+        "removeEdge": "Remover Aresta"
     },
     "tooltips": {
-        "addNodesToCanvas": "Clique duplo ou arraste e solte para adicionar nós à tela.",
+        "addNodesToCanvas": "Clique duas vezes ou arraste e solte para adicionar nós à tela.",
         "collapseExpandCategories": "Recolher/Expandir Categorias"
-    },
-    "support": {
-        "koFiTooltip": "Apoiar chaiNNer no Ko-fi",
-        "koFiAria": "Apoiar chaiNNer",
-        "koFiButton": "Apoiar chaiNNer"
     },
     "nodeMenu": {
         "copy": "Copiar",
@@ -353,12 +356,12 @@
         "resetInputs": "Redefinir Entradas",
         "resetConnections": "Redefinir Conexões",
         "resetAll": "Redefinir Tudo",
-        "enable": "Ativar",
-        "disable": "Desativar",
+        "enable": "Habilitar",
+        "disable": "Desabilitar",
         "skip": "Pular",
         "unlock": "Desbloquear",
         "lock": "Bloquear",
-        "refreshPreview": "Atualizar Visualização",
+        "refreshPreview": "Atualizar Pré-visualização",
         "delete": "Excluir",
         "openDocumentation": "Abrir Documentação"
     },
@@ -369,8 +372,8 @@
         "resetInputs": "Redefinir Entradas",
         "resetConnections": "Redefinir Conexões",
         "resetAll": "Redefinir Tudo",
-        "enableAll": "Ativar Todos",
-        "disableAll": "Desativar Todos",
+        "enableAll": "Habilitar Todos",
+        "disableAll": "Desabilitar Todos",
         "delete": "Excluir"
     },
     "edgeMenu": {
@@ -381,7 +384,7 @@
         "favorites": "Favoritos",
         "missingDependencies": "Dependências ausentes.",
         "unableToImport": "Não é possível importar nó(s).",
-        "clickToInstall": "Clique para abrir o gerenciador de dependências e instalar {{packageName}}.",
+        "clickToInstall": "Clique para abrir o gerenciador de dependências para instalar {{packageName}}.",
         "criticalImportError": "Ocorreu um erro crítico de importação com uma dependência no pacote: {{packageName}}.",
         "nodes": "Nós"
     },
@@ -391,7 +394,7 @@
             "isNot": "não é",
             "oneOf": "um de",
             "ofType": "do tipo",
-            "allOf": "Todos de",
+            "allOf": "Todos",
             "atLeastOneOf": "Pelo menos um de",
             "followingConditions": "as seguintes condições devem ser atendidas:",
             "condition": "Condição:"
@@ -400,7 +403,7 @@
             "optional": "opcional",
             "sequenced": "(Sequenciado)",
             "supportedFileTypes": "Tipos de arquivo suportados:",
-            "primaryInputDescription": "Esta entrada é a entrada principal para seus tipos de arquivo suportados. Isso significa que você pode arrastar e soltar arquivos suportados no chaiNNer, e ele criará automaticamente um nó com esta entrada preenchida.",
+            "primaryInputDescription": "Esta entrada é a entrada primária para seus tipos de arquivo suportados. Isso significa que você pode arrastar e soltar arquivos suportados no chaiNNer, e ele criará um nó com esta entrada preenchida automaticamente.",
             "options": "Opções:",
             "type": "Tipo:",
             "inputs": "Entradas",

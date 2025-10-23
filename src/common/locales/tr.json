@@ -1,0 +1,421 @@
+{
+    "alert": {
+        "button": {
+            "ok": "Tamam",
+            "cancel": "İptal",
+            "openLogsFolder": "Log Klasörünü Aç",
+            "exitApplication": "Uygulamadan Çık",
+            "copyToClipboard": "Panoya Kopyala"
+        },
+        "stackTrace": "Yığın İzleme",
+        "title": {
+            "systemInformation": "Sistem bilgisi"
+        }
+    },
+    "common": {
+        "cancel": "İptal",
+        "close": "Kapat",
+        "open": "Aç",
+        "settings": "Ayarlar"
+    },
+    "error": {
+        "error": "Hata",
+        "message": {
+            "criticalBackend": "Backend tarafından döndürülen düğüm verilerini işlerken kritik bir hata oluştu."
+        },
+        "title": {
+            "unableToProcessNodes": "Backend düğümleri işlenemiyor."
+        }
+    },
+    "header": {
+        "alpha": "Alfa",
+        "pause": "Duraklat",
+        "pauseButton": "Duraklat düğmesi",
+        "resume": "Devam Et",
+        "run": "Çalıştır",
+        "runButton": "Çalıştır düğmesi",
+        "stop": "Durdur",
+        "stopButton": "Durdur düğmesi",
+        "updateAvailable": "Güncelleme mevcut ({{version}})",
+        "updateAvailableAria": "Güncelleme mevcut",
+        "updateChangelog": "Güncelleme Değişiklik Günlüğü",
+        "updateAvailableTitle": "Güncelleme Mevcut ({{version}})",
+        "updateAvailableMessage": "{{version}} sürümü için güncelleme mevcut. Değişiklik günlüğünü görüntülemek ister misiniz?",
+        "viewReleaseOnGitHub": "GitHub'da sürümü görüntüle",
+        "downloadFromWebsite": "chaiNNer.app'ten indir",
+        "ignoreUpdate": "Güncellemeyi Yoksay",
+        "viewUpdate": "Güncellemeyi Görüntüle"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Giriş Geçersiz Kılma ID'sini Kopyala",
+        "inputOverrideId": "Giriş Geçersiz Kılma ID'si",
+        "inputOverrideIdCopied": "Giriş geçersiz kılma ID'si panoya kopyalandı",
+        "inputOverrideIdTooltip": "Bu giriş için benzersiz tanımlayıcı. Zincirde girişi geçersiz kılmak için kullanılır.",
+        "directory": {
+            "clear": "Temizle",
+            "copyFullDirectoryPath": "Tam Dizin Yolunu Kopyala",
+            "openInFileExplorer": "Dosya Gezgini'nde Aç",
+            "selectDirectory": "Bir dizin seç...",
+            "clickToSelect": "Seçmek için tıkla..."
+        },
+        "extractValueIntoNode": "Değeri düğüme çıkar",
+        "file": {
+            "clear": "Temizle",
+            "copyFileName": "Dosya Adını Kopyala",
+            "copyFullFilePath": "Tam Dosya Yolunu Kopyala",
+            "openInFileExplorer": "Dosya Gezgini'nde Aç",
+            "selectFile": "Bir dosya seç...",
+            "clickToSelectFile": "Dosya seçmek için tıkla..."
+        },
+        "number": {
+            "copyText": "Sayıyı Kopyala",
+            "paste": "Yapıştır"
+        },
+        "text": {
+            "copyText": "Metni Kopyala",
+            "paste": "Yapıştır",
+            "invalidCharacter": "Geçersiz karakter '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Giriş Ekle",
+        "colorCompare": {
+            "old": "eski",
+            "new": "yeni"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Görüntü mevcut değil.",
+            "imagePreviewFailed": "Görüntü önizlemesi yüklenemedi, muhtemelen desteklenmeyen dosya türü."
+        },
+        "model": {
+            "modelNotAvailable": "Model verisi mevcut değil."
+        }
+    },
+    "settings": {
+        "title": "Ayarlar",
+        "restartChaiNNer": "chaiNNer'ı yeniden başlat",
+        "tabs": {
+            "appearance": "Görünüm",
+            "environment": "Ortam",
+            "python": "Python",
+            "advanced": "Gelişmiş"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Renk Teması",
+                "description": "chaiNNer'ın görünümü için tema seçin.",
+                "options": {
+                    "dark": "Koyu",
+                    "light": "Açık",
+                    "system": "Sistem",
+                    "charcoal": "Kömür",
+                    "coffee": "Kahve",
+                    "blueberry": "Yaban Mersini",
+                    "dusk": "Alacakaranlık",
+                    "oled": "OLED",
+                    "cyberpunk": "Siberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Dil (yeniden başlatma gerekir)",
+                "description": "chaiNNer arayüzü için dili seçin."
+            },
+            "chainAnimation": {
+                "label": "Zincir animasyonu",
+                "description": "Zincirin işleme durumunu gösteren animasyonları etkinleştirin."
+            },
+            "minimap": {
+                "label": "Minimap",
+                "description": "Düğüm düzenleyicisinin sağ alt köşesinde mevcut zincirin minimap'ini etkinleştirin."
+            },
+            "snapToGrid": {
+                "label": "Izgaraya hizala",
+                "description": "Düğüm ızgara hizalamasını etkinleştirin."
+            },
+            "snapToGridAmount": {
+                "label": "Izgara hizalama miktarı",
+                "description": "Izgaraya hizalanacak miktar."
+            },
+            "viewportExportPadding": {
+                "label": "Görünüm alanı PNG dışa aktarma dolgusu",
+                "description": "Görünüm alanı PNG dışa aktarma için dolgu miktarı."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Başlangıç Şablonu",
+                "description": "chaiNNer başlatıldığında varsayılan olarak kullanılacak zincir şablonunu ayarlayın.",
+                "placeholder": "Bir dosya seç...",
+                "clear": "Temizle",
+                "pickFile": "Başlangıç şablonu dosyasını seç"
+            },
+            "selectChain": "Zincir Seç"
+        },
+        "python": {
+            "general": "Genel",
+            "useSystemPython": {
+                "label": "Sistem Python kullan (yeniden başlatma gerekir)",
+                "description": "chaiNNer'ın işlemesi için paketlenmiş Python yerine sistem Python'u kullanın (önerilmez)"
+            },
+            "systemPythonLocation": {
+                "label": "Sistem Python konumu (isteğe bağlı)",
+                "description": "İstenirse, 'python3' veya 'python' tarafından çağrılan varsayılan yerine belirli bir python ikili dosyası kullanın. Birden fazla python sürümü yüklüyse ve belirli birini seçmek istiyorsanız yararlıdır.",
+                "placeholder": "Bir dosya seç...",
+                "clear": "Temizle",
+                "pickFile": "Sistem python konumunu seç"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Başlangıçta Güncelleme Kontrol Et",
+                "description": "Başlangıçta güncelleme kontrolünü açar/kapatır."
+            },
+            "experimentalFeatures": {
+                "label": "Deneysel özellikleri etkinleştir",
+                "description": "Tamamlanmadan önce deneysel özellikleri denemek için etkinleştirin."
+            },
+            "hardwareAcceleration": {
+                "label": "Donanım Hızlandırmayı Etkinleştir (yeniden başlatma gerekir)",
+                "description": "GUI için GPU renderlamayı etkinleştirin. Görüntü işleme için GPU performansını ciddi şekilde azaltabileceği için dikkatli kullanın."
+            },
+            "allowMultipleInstances": {
+                "label": "Birden fazla eşzamanlı örnek izin ver",
+                "description": "chaiNNer'ın birden fazla eşzamanlı örneğini etkinleştirin. Önerilmez, ancak zinciriniz sistem kaynaklarınızı yeterince kullanmıyorsa, şeyleri eşzamanlı olarak çalıştırmak için bunu yararlı bulabilirsiniz."
+            }
+        },
+        "noOptionsFound": "Seçenek bulunamadı.",
+        "clearCache": "Önbelleği Temizle"
+    },
+    "setup": {
+        "checkingPort": "Kullanılabilir port kontrol ediliyor...",
+        "checkingPython": "Geçerli Python için sistem ortamı kontrol ediliyor...",
+        "downloadingPython": "Entegre Python indiriliyor...",
+        "extractingPython": "İndirilen dosyalar çıkarılıyor...",
+        "loading": "Yükleniyor...",
+        "startingBackend": "Backend süreci başlatılıyor..."
+    },
+    "typeTags": {
+        "optional": "isteğe bağlı"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Rastgele tohum",
+            "randomSeedAria": "Rastgele Tohum"
+        }
+    },
+    "logo": {
+        "background": "arka plan",
+        "front": "ön"
+    },
+    "timer": {
+        "executionTook": "Yürütme yaklaşık {{duration}} sürdü.",
+        "hour_one": "saat",
+        "hour_other": "saat",
+        "minute_one": "dakika",
+        "minute_other": "dakika",
+        "second_one": "saniye",
+        "second_other": "saniye"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "{{inputs}} değerleri şu anda aynı değere bağlı. Bu bağlantıyı geri almak için buraya tıklayın.",
+        "clickToLink": "{{inputs}}'i aynı değere bağlamak için buraya tıklayın."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "Ara...",
+        "missingNodes": "Eksik düğümler? Bağımlılık yöneticisini açmak için tıklayın!",
+        "noCompatibleNodes": "Uyumlu düğüm bulunamadı."
+    },
+    "favorites": {
+        "title": "Favoriler",
+        "noFavorites": "Favori yok.",
+        "addFavoritesTooltip": "Düğümlere sağ tıklayıp 'Favorilere Ekle'yi seçerek favori ekleyin.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Düğümlerin üzerine gelip",
+            "afterIcon": "simgesine tıklayarak veya sağ tıklayıp 'Favorilere Ekle'yi seçerek favori ekleyin."
+        },
+        "addToFavorites": "Favorilere Ekle",
+        "removeFromFavorites": "Favorilerden Kaldır"
+    },
+    "documentation": {
+        "title": "Düğüm Dokümantasyonu",
+        "openDocumentation": "Dokümantasyonu Aç"
+    },
+    "dependencyManager": {
+        "title": "Bağımlılık Yöneticisi",
+        "manageDependencies": "Bağımlılıkları Yönet",
+        "updatesAvailable": "Güncellemeler Mevcut",
+        "updatesAvailableDescription_one": "Kullanılabilir bağımlılık güncellemeleri olan {{count}} paket var.",
+        "updatesAvailableDescription_other": "Kullanılabilir bağımlılık güncellemeleri olan {{count}} paket var.",
+        "openDependencyManager": "Bağımlılık Yöneticisini Aç",
+        "packages": "Paketler",
+        "features": "Özellikler",
+        "refresh": "Yenile",
+        "install": "Yükle",
+        "update": "Güncelle",
+        "uninstall": "Kaldır",
+        "close": "Kapat",
+        "missing": "Eksik",
+        "outdated": "Güncel değil",
+        "unavailable": "Mevcut değil",
+        "enabled": "Etkin",
+        "disabled": "Devre dışı",
+        "python": "Python",
+        "system": "Sistem",
+        "integrated": "Entegre",
+        "advanced": "Gelişmiş",
+        "installationMode": "Kurulum modu",
+        "normal": "Normal",
+        "manualCopy": "Manuel/Kopyala",
+        "consoleOutput": "Konsol çıktısı:",
+        "commandCopied": "Komut panoya kopyalandı",
+        "commandCopiedDescription": "Harici bir terminal açın, komutu yapıştırın ve çalıştırın. Çalışmayı bitirdiğinde chaiNNer'ı manuel olarak yeniden başlatın.",
+        "uninstallTitle": "Kaldır",
+        "uninstallMessage": "{{name}} kaldırmak istediğinizden emin misiniz?",
+        "unsavedChanges": "Kaydedilmemiş Değişiklikler",
+        "unsavedChangesMessage": "{{name}} kaldırarak kaydedilmemiş değişikliklerinizi kaybedebilirsiniz.\n\n{{name}} kaldırmak istediğinizden emin misiniz?",
+        "cancel": "İptal",
+        "installing": "{{name}} yükleniyor...",
+        "uninstalling": "{{name}} kaldırılıyor...",
+        "copyPythonPath": "Python yolunu panoya kopyala",
+        "pythonPath": "Python yolu:",
+        "installAllPackages": "Tüm Paketleri {{operations}} ({{size}})",
+        "package_one": "paket",
+        "package_other": "paket",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Düzenleme Modu",
+        "editContent": "İçeriği Düzenle",
+        "markdownMode": "Markdown Modu",
+        "viewMarkdown": "Markdown'ı Görüntüle"
+    },
+    "node": {
+        "disableHint": "İpucu: Seçenekler arasında geçiş yapmak için Ctrl+Tık kullanın.",
+        "note": {
+            "placeholder": "Not Metni"
+        },
+        "implementationError": "Uygulama Hatası",
+        "implementationErrorMessage": "{{nodeName}} ({{schemaId}}) düğümü için anahtar bilgiler belirlenemiyor.",
+        "enable": "Etkinleştir",
+        "disable": "Devre Dışı Bırak",
+        "skip": "Atla",
+        "eta": "ETA:",
+        "outdated": "Güncel değil"
+    },
+    "color": {
+        "resetToOld": "Eski renge sıfırla",
+        "acceptNew": "Yeni rengi kabul et"
+    },
+    "support": {
+        "koFiTooltip": "Ko-fi'de chaiNNer'ı destekle",
+        "koFiAria": "chaiNNer'ı destekle",
+        "koFiButton": "chaiNNer'ı destekle"
+    },
+    "edge": {
+        "removeEdge": "Kenar kaldırma düğmesi"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Kesme Noktasını Kaldır",
+        "removeEdge": "Kenarı Kaldır"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Düğümleri tuvala eklemek için çift tıklayın veya sürükleyip bırakın.",
+        "collapseExpandCategories": "Kategorileri Daralt/Genişlet"
+    },
+    "nodeMenu": {
+        "copy": "Kopyala",
+        "duplicate": "Çoğalt",
+        "resetNode": "Düğümü Sıfırla",
+        "resetInputs": "Girişleri Sıfırla",
+        "resetConnections": "Bağlantıları Sıfırla",
+        "resetAll": "Hepsini Sıfırla",
+        "enable": "Etkinleştir",
+        "disable": "Devre Dışı Bırak",
+        "skip": "Atla",
+        "unlock": "Kilidi Aç",
+        "lock": "Kilitle",
+        "refreshPreview": "Önizlemeyi Yenile",
+        "delete": "Sil",
+        "openDocumentation": "Dokümantasyonu Aç"
+    },
+    "nodesMenu": {
+        "copy": "Kopyala",
+        "duplicate": "Çoğalt",
+        "resetNodes": "Düğümleri Sıfırla",
+        "resetInputs": "Girişleri Sıfırla",
+        "resetConnections": "Bağlantıları Sıfırla",
+        "resetAll": "Hepsini Sıfırla",
+        "enableAll": "Hepsini Etkinleştir",
+        "disableAll": "Hepsini Devre Dışı Bırak",
+        "delete": "Sil"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Kesme Noktası Ekle",
+        "delete": "Sil"
+    },
+    "nodeSelector": {
+        "favorites": "Favoriler",
+        "missingDependencies": "Eksik bağımlılıklar.",
+        "unableToImport": "Düğüm(ler) içe aktarılamıyor.",
+        "clickToInstall": "{{packageName}} yüklemek için bağımlılık yöneticisini açmak için tıklayın.",
+        "criticalImportError": "{{packageName}} paketindeki bir bağımlılıkla kritik bir içe aktarma hatası oluştu.",
+        "nodes": "Düğümler"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "dir",
+            "isNot": "değildir",
+            "oneOf": "biridir",
+            "ofType": "türündedir",
+            "allOf": "Hepsi",
+            "atLeastOneOf": "En az biri",
+            "followingConditions": "aşağıdaki koşullar karşılanmalıdır:",
+            "condition": "Koşul:"
+        },
+        "nodeDocs": {
+            "optional": "isteğe bağlı",
+            "sequenced": "(Sıralı)",
+            "supportedFileTypes": "Desteklenen dosya türleri:",
+            "primaryInputDescription": "Bu giriş, desteklenen dosya türleri için birincil giriştir. Bu, desteklenen dosyaları chaiNNer'a sürükleyip bırakabileceğiniz ve bu girişin otomatik olarak doldurulmuş bir düğüm oluşturacağı anlamına gelir.",
+            "options": "Seçenekler:",
+            "type": "Tür:",
+            "inputs": "Girişler",
+            "noInputs": "Bu düğümün girişi yok.",
+            "outputs": "Çıkışlar",
+            "noOutputs": "Bu düğümün çıkışı yok.",
+            "seeAlso": "Ayrıca bakın",
+            "character_one": "karakter",
+            "character_other": "karakter"
+        },
+        "nodesList": {
+            "noNodesFound": "Düğüm bulunamadı"
+        }
+    }
+}
