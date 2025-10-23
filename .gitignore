@@ -241,6 +241,7 @@ dmypy.json
 
 # vite
 .vite/
+dist-web/
 
 # traces
 backend/traces
