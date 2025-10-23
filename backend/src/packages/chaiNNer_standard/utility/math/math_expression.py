@@ -163,11 +163,7 @@ def math_expression_node(expression: str, *args: float | None) -> float:
         if value is not None:
             variables[alphabet_lower[i]] = value
 
-    # Validate that we have at least one variable
-    if not variables:
-        raise ValueError("At least one input variable must be provided")
-
-    # Evaluate the expression
+    # Evaluate the expression (variables can be empty for constant expressions)
     evaluator = SafeMathEvaluator(variables)
     try:
         result = evaluator.eval(expression)
