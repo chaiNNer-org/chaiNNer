@@ -1,0 +1,410 @@
+{
+    "alert": {
+        "button": {
+            "ok": "OK",
+            "cancel": "Annulla",
+            "openLogsFolder": "Apri Cartella Log",
+            "exitApplication": "Esci dall'Applicazione",
+            "copyToClipboard": "Copia negli Appunti"
+        },
+        "stackTrace": "Traccia dello Stack",
+        "title": {
+            "systemInformation": "Informazioni di sistema"
+        }
+    },
+    "common": {
+        "cancel": "Annulla",
+        "close": "Chiudi",
+        "open": "Apri",
+        "settings": "Impostazioni"
+    },
+    "error": {
+        "error": "Errore",
+        "message": {
+            "criticalBackend": "Si è verificato un errore critico durante l'elaborazione dei dati del nodo restituiti dal backend."
+        },
+        "title": {
+            "unableToProcessNodes": "Impossibile elaborare i nodi del backend."
+        }
+    },
+    "header": {
+        "alpha": "Alpha",
+        "pause": "Pausa",
+        "pauseButton": "Pulsante pausa",
+        "resume": "Riprendi",
+        "run": "Esegui",
+        "runButton": "Pulsante esecuzione",
+        "stop": "Ferma",
+        "stopButton": "Pulsante stop",
+        "updateAvailable": "Aggiornamento disponibile ({{version}})",
+        "updateAvailableAria": "Aggiornamento disponibile",
+        "updateChangelog": "Registro modifiche aggiornamento",
+        "updateAvailableTitle": "Aggiornamento Disponibile ({{version}})",
+        "updateAvailableMessage": "È disponibile un aggiornamento per la versione {{version}}. Vuoi visualizzare il registro delle modifiche?",
+        "viewReleaseOnGitHub": "Visualizza release su GitHub",
+        "downloadFromWebsite": "Scarica da chaiNNer.app",
+        "ignoreUpdate": "Ignora Aggiornamento",
+        "viewUpdate": "Visualizza Aggiornamento"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Copia ID Override Input",
+        "directory": {
+            "clear": "Cancella",
+            "copyFullDirectoryPath": "Copia Percorso Completo Directory",
+            "openInFileExplorer": "Apri in Esplora File",
+            "selectDirectory": "Seleziona una directory...",
+            "clickToSelect": "Clicca per selezionare..."
+        },
+        "extractValueIntoNode": "Estrai valore nel nodo",
+        "file": {
+            "clear": "Cancella",
+            "copyFileName": "Copia Nome File",
+            "copyFullFilePath": "Copia Percorso Completo File",
+            "openInFileExplorer": "Apri in Esplora File",
+            "selectFile": "Seleziona un file...",
+            "clickToSelectFile": "Clicca per selezionare un file..."
+        },
+        "number": {
+            "copyText": "Copia Numero",
+            "paste": "Incolla"
+        },
+        "text": {
+            "copyText": "Copia Testo",
+            "paste": "Incolla",
+            "invalidCharacter": "Carattere non valido '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Aggiungi Input",
+        "colorCompare": {
+            "old": "vecchio",
+            "new": "nuovo"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Immagine non disponibile.",
+            "imagePreviewFailed": "L'anteprima dell'immagine non è riuscita a caricarsi, probabilmente tipo di file non supportato."
+        },
+        "model": {
+            "modelNotAvailable": "Dati del modello non disponibili."
+        }
+    },
+    "settings": {
+        "title": "Impostazioni",
+        "restartChaiNNer": "Riavvia chaiNNer",
+        "tabs": {
+            "appearance": "Aspetto",
+            "environment": "Ambiente",
+            "python": "Python",
+            "advanced": "Avanzato"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Tema Colore",
+                "description": "Scegli il tema per l'aspetto di chaiNNer.",
+                "options": {
+                    "dark": "Scuro",
+                    "light": "Chiaro",
+                    "system": "Sistema",
+                    "charcoal": "Carbone",
+                    "coffee": "Caffè",
+                    "blueberry": "Mirtillo",
+                    "dusk": "Crepuscolo",
+                    "oled": "OLED",
+                    "cyberpunk": "Cyberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Lingua (richiede riavvio)",
+                "description": "Scegli la lingua per l'interfaccia di chaiNNer."
+            },
+            "chainAnimation": {
+                "label": "Animazione catena",
+                "description": "Abilita animazioni che mostrano lo stato di elaborazione della catena."
+            },
+            "minimap": {
+                "label": "Minimappa",
+                "description": "Abilita una minimappa della catena corrente nell'angolo in basso a destra dell'editor di nodi."
+            },
+            "snapToGrid": {
+                "label": "Aggancia alla griglia",
+                "description": "Abilita l'aggancio dei nodi alla griglia."
+            },
+            "snapToGridAmount": {
+                "label": "Quantità aggancio griglia",
+                "description": "La quantità per l'aggancio alla griglia."
+            },
+            "viewportExportPadding": {
+                "label": "Padding esportazione PNG viewport",
+                "description": "La quantità di padding per l'esportazione PNG del viewport."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Template di Avvio",
+                "description": "Imposta un template di catena da usare di default quando chaiNNer si avvia.",
+                "placeholder": "Seleziona un file...",
+                "clear": "Cancella",
+                "pickFile": "Scegli file template di avvio"
+            },
+            "selectChain": "Seleziona Catena"
+        },
+        "python": {
+            "general": "Generale",
+            "useSystemPython": {
+                "label": "Usa Python di sistema (richiede riavvio)",
+                "description": "Usa Python di sistema per l'elaborazione di chaiNNer invece del Python incluso (non raccomandato)"
+            },
+            "systemPythonLocation": {
+                "label": "Posizione Python di sistema (opzionale)",
+                "description": "Se desiderato, usa un binario Python specifico piuttosto che quello predefinito invocato da 'python3' o 'python'. Questo è utile se hai multiple versioni di Python installate e vuoi sceglierne una specifica.",
+                "placeholder": "Seleziona un file...",
+                "clear": "Cancella",
+                "pickFile": "Scegli posizione Python di sistema"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Controlla aggiornamenti all'avvio",
+                "description": "Attiva il controllo degli aggiornamenti all'avvio."
+            },
+            "experimentalFeatures": {
+                "label": "Abilita funzionalità sperimentali",
+                "description": "Abilita funzionalità sperimentali per provarle prima che siano finite."
+            },
+            "hardwareAcceleration": {
+                "label": "Abilita accelerazione hardware (richiede riavvio)",
+                "description": "Abilita il rendering GPU per la GUI. Usa con cautela, poiché può diminuire severamente le prestazioni GPU per l'elaborazione delle immagini."
+            },
+            "allowMultipleInstances": {
+                "label": "Consenti istanze multiple simultanee",
+                "description": "Abilita istanze multiple simultanee di chaiNNer. Questo non è raccomandato, ma se la tua catena non sta usando abbastanza risorse di sistema, potresti trovare utile eseguire cose simultaneamente."
+            }
+        },
+        "noOptionsFound": "Nessuna opzione trovata.",
+        "clearCache": "Cancella cache"
+    },
+    "setup": {
+        "checkingPort": "Controllo porta disponibile...",
+        "checkingPython": "Controllo ambiente di sistema per Python valido...",
+        "downloadingPython": "Download Python Integrato...",
+        "extractingPython": "Estrazione file scaricati...",
+        "loading": "Caricamento...",
+        "startingBackend": "Avvio processo backend..."
+    },
+    "typeTags": {
+        "optional": "opzionale"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Seed casuale",
+            "randomSeedAria": "Seed Casuale"
+        }
+    },
+    "node": {
+        "disableHint": "Suggerimento: Usa Ctrl+Click per scorrere le opzioni.",
+        "note": {
+            "placeholder": "Testo Nota"
+        },
+        "implementationError": "Errore di Implementazione",
+        "implementationErrorMessage": "Impossibile determinare le informazioni chiave per il nodo {{nodeName}} ({{schemaId}}).",
+        "enable": "Abilita",
+        "disable": "Disabilita",
+        "skip": "Salta",
+        "eta": "ETA:",
+        "outdated": "Obsoleto"
+    },
+    "logo": {
+        "background": "sfondo",
+        "front": "anteriore"
+    },
+    "timer": {
+        "executionTook": "L'esecuzione ha richiesto circa {{duration}}.",
+        "hour_one": "ora",
+        "hour_other": "ore",
+        "minute_one": "minuto",
+        "minute_other": "minuti",
+        "second_one": "secondo",
+        "second_other": "secondi"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "I valori di {{inputs}} sono attualmente collegati allo stesso valore. Clicca qui per annullare questo collegamento.",
+        "clickToLink": "Clicca qui per collegare {{inputs}} allo stesso valore."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文"
+    },
+    "search": {
+        "placeholder": "Cerca...",
+        "missingNodes": "Nodi mancanti? Clicca per aprire il gestore dipendenze!",
+        "noCompatibleNodes": "Nessun nodo compatibile trovato."
+    },
+    "favorites": {
+        "title": "Preferiti",
+        "noFavorites": "Nessun Preferito.",
+        "addFavoritesTooltip": "Aggiungi Preferiti cliccando con il tasto destro sui nodi e selezionando Aggiungi ai Preferiti.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Aggiungi Preferiti passando il mouse sui nodi e cliccando sull'icona",
+            "afterIcon": ", o cliccando con il tasto destro e selezionando Aggiungi ai Preferiti."
+        },
+        "addToFavorites": "Aggiungi ai Preferiti",
+        "removeFromFavorites": "Rimuovi dai Preferiti"
+    },
+    "documentation": {
+        "title": "Documentazione Nodi",
+        "openDocumentation": "Apri Documentazione"
+    },
+    "dependencyManager": {
+        "title": "Gestore Dipendenze",
+        "manageDependencies": "Gestisci Dipendenze",
+        "updatesAvailable": "Aggiornamenti Disponibili",
+        "updatesAvailableDescription_one": "C'è {{count}} pacchetto con aggiornamenti di dipendenze disponibili.",
+        "updatesAvailableDescription_other": "Ci sono {{count}} pacchetti con aggiornamenti di dipendenze disponibili.",
+        "openDependencyManager": "Apri Gestore Dipendenze",
+        "packages": "Pacchetti",
+        "features": "Funzionalità",
+        "refresh": "Aggiorna",
+        "install": "Installa",
+        "update": "Aggiorna",
+        "uninstall": "Disinstalla",
+        "close": "Chiudi",
+        "missing": "Mancante",
+        "outdated": "Obsoleto",
+        "unavailable": "Non disponibile",
+        "enabled": "Abilitato",
+        "disabled": "Disabilitato",
+        "python": "Python",
+        "system": "Sistema",
+        "integrated": "Integrato",
+        "advanced": "Avanzato",
+        "installationMode": "Modalità installazione",
+        "normal": "Normale",
+        "manualCopy": "Manuale/Copia",
+        "consoleOutput": "Output console:",
+        "commandCopied": "Comando copiato negli appunti",
+        "commandCopiedDescription": "Apri un terminale esterno, incolla il comando ed eseguilo. Quando è finito, riavvia chaiNNer manualmente.",
+        "uninstallTitle": "Disinstalla",
+        "uninstallMessage": "Sei sicuro di voler disinstallare {{name}}?",
+        "unsavedChanges": "Modifiche non salvate",
+        "unsavedChangesMessage": "Potresti perdere le tue modifiche non salvate disinstallando {{name}}.\n\nSei sicuro di voler disinstallare {{name}}?",
+        "cancel": "Annulla",
+        "installing": "Installazione {{name}}...",
+        "uninstalling": "Disinstallazione {{name}}...",
+        "copyPythonPath": "Copia percorso Python negli appunti",
+        "pythonPath": "Il percorso Python è:",
+        "installAllPackages": "{{operations}} Tutti i Pacchetti ({{size}})",
+        "package_one": "pacchetto",
+        "package_other": "pacchetti",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Modalità Modifica",
+        "editContent": "Modifica Contenuto",
+        "markdownMode": "Modalità Markdown",
+        "viewMarkdown": "Visualizza Markdown"
+    },
+    "color": {
+        "resetToOld": "Ripristina al colore precedente",
+        "acceptNew": "Accetta nuovo colore"
+    },
+    "edge": {
+        "removeEdge": "Pulsante rimuovi bordo"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Rimuovi Punto di Interruzione",
+        "removeEdge": "Rimuovi Bordo"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Fai doppio clic o trascina e rilascia per aggiungere nodi alla tela.",
+        "collapseExpandCategories": "Comprimi/Espandi Categorie"
+    },
+    "support": {
+        "koFiTooltip": "Supporta chaiNNer su Ko-fi",
+        "koFiAria": "Supporta chaiNNer",
+        "koFiButton": "Supporta chaiNNer"
+    },
+    "nodeMenu": {
+        "copy": "Copia",
+        "duplicate": "Duplica",
+        "resetNode": "Ripristina Nodo",
+        "resetInputs": "Ripristina Input",
+        "resetConnections": "Ripristina Connessioni",
+        "resetAll": "Ripristina Tutto",
+        "enable": "Abilita",
+        "disable": "Disabilita",
+        "skip": "Salta",
+        "unlock": "Sblocca",
+        "lock": "Blocca",
+        "refreshPreview": "Aggiorna Anteprima",
+        "delete": "Elimina",
+        "openDocumentation": "Apri Documentazione"
+    },
+    "nodesMenu": {
+        "copy": "Copia",
+        "duplicate": "Duplica",
+        "resetNodes": "Ripristina Nodi",
+        "resetInputs": "Ripristina Input",
+        "resetConnections": "Ripristina Connessioni",
+        "resetAll": "Ripristina Tutto",
+        "enableAll": "Abilita Tutto",
+        "disableAll": "Disabilita Tutto",
+        "delete": "Elimina"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Aggiungi Punto di Interruzione",
+        "delete": "Elimina"
+    },
+    "nodeSelector": {
+        "favorites": "Preferiti",
+        "missingDependencies": "Dipendenze mancanti.",
+        "unableToImport": "Impossibile importare nodo/i.",
+        "clickToInstall": "Clicca per aprire il gestore dipendenze e installare {{packageName}}.",
+        "criticalImportError": "Si è verificato un errore critico di importazione con una dipendenza nel pacchetto: {{packageName}}.",
+        "nodes": "Nodi"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "è",
+            "isNot": "non è",
+            "oneOf": "uno di",
+            "ofType": "di tipo",
+            "allOf": "Tutti di",
+            "atLeastOneOf": "Almeno uno di",
+            "followingConditions": "devono essere soddisfatte le seguenti condizioni:",
+            "condition": "Condizione:"
+        },
+        "nodeDocs": {
+            "optional": "opzionale",
+            "sequenced": "(Sequenziato)",
+            "supportedFileTypes": "Tipi di file supportati:",
+            "primaryInputDescription": "Questo input è l'input principale per i suoi tipi di file supportati. Questo significa che puoi trascinare e rilasciare file supportati in chaiNNer, e creerà automaticamente un nodo con questo input riempito.",
+            "options": "Opzioni:",
+            "type": "Tipo:",
+            "inputs": "Input",
+            "noInputs": "Questo nodo non ha input.",
+            "outputs": "Output",
+            "noOutputs": "Questo nodo non ha output.",
+            "seeAlso": "Vedi anche",
+            "character_one": "carattere",
+            "character_other": "caratteri"
+        },
+        "nodesList": {
+            "noNodesFound": "Nessun nodo trovato"
+        }
+    }
+}

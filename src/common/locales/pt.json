@@ -1,0 +1,410 @@
+{
+    "alert": {
+        "button": {
+            "ok": "OK",
+            "cancel": "Cancelar",
+            "openLogsFolder": "Abrir Pasta de Logs",
+            "exitApplication": "Sair da Aplicação",
+            "copyToClipboard": "Copiar para Área de Transferência"
+        },
+        "stackTrace": "Rastreamento da Pilha",
+        "title": {
+            "systemInformation": "Informações do sistema"
+        }
+    },
+    "common": {
+        "cancel": "Cancelar",
+        "close": "Fechar",
+        "open": "Abrir",
+        "settings": "Configurações"
+    },
+    "error": {
+        "error": "Erro",
+        "message": {
+            "criticalBackend": "Ocorreu um erro crítico ao processar os dados do nó retornados pelo backend."
+        },
+        "title": {
+            "unableToProcessNodes": "Não é possível processar os nós do backend."
+        }
+    },
+    "header": {
+        "alpha": "Alpha",
+        "pause": "Pausar",
+        "pauseButton": "Botão de pausa",
+        "resume": "Retomar",
+        "run": "Executar",
+        "runButton": "Botão de execução",
+        "stop": "Parar",
+        "stopButton": "Botão de parar",
+        "updateAvailable": "Atualização disponível ({{version}})",
+        "updateAvailableAria": "Atualização disponível",
+        "updateChangelog": "Log de alterações da atualização",
+        "updateAvailableTitle": "Atualização Disponível ({{version}})",
+        "updateAvailableMessage": "Há uma atualização disponível para a versão {{version}}. Gostaria de ver o log de alterações?",
+        "viewReleaseOnGitHub": "Ver lançamento no GitHub",
+        "downloadFromWebsite": "Baixar do chaiNNer.app",
+        "ignoreUpdate": "Ignorar Atualização",
+        "viewUpdate": "Ver Atualização"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Copiar ID de Substituição de Entrada",
+        "directory": {
+            "clear": "Limpar",
+            "copyFullDirectoryPath": "Copiar Caminho Completo do Diretório",
+            "openInFileExplorer": "Abrir no Explorador de Arquivos",
+            "selectDirectory": "Selecionar um diretório...",
+            "clickToSelect": "Clique para selecionar..."
+        },
+        "extractValueIntoNode": "Extrair valor para o nó",
+        "file": {
+            "clear": "Limpar",
+            "copyFileName": "Copiar Nome do Arquivo",
+            "copyFullFilePath": "Copiar Caminho Completo do Arquivo",
+            "openInFileExplorer": "Abrir no Explorador de Arquivos",
+            "selectFile": "Selecionar um arquivo...",
+            "clickToSelectFile": "Clique para selecionar um arquivo..."
+        },
+        "number": {
+            "copyText": "Copiar Número",
+            "paste": "Colar"
+        },
+        "text": {
+            "copyText": "Copiar Texto",
+            "paste": "Colar",
+            "invalidCharacter": "Caractere inválido '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Adicionar Entrada",
+        "colorCompare": {
+            "old": "antigo",
+            "new": "novo"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Imagem não disponível.",
+            "imagePreviewFailed": "A visualização da imagem falhou ao carregar, provavelmente tipo de arquivo não suportado."
+        },
+        "model": {
+            "modelNotAvailable": "Dados do modelo não disponíveis."
+        }
+    },
+    "settings": {
+        "title": "Configurações",
+        "restartChaiNNer": "Reiniciar chaiNNer",
+        "tabs": {
+            "appearance": "Aparência",
+            "environment": "Ambiente",
+            "python": "Python",
+            "advanced": "Avançado"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Tema de Cor",
+                "description": "Escolha o tema para a aparência do chaiNNer.",
+                "options": {
+                    "dark": "Escuro",
+                    "light": "Claro",
+                    "system": "Sistema",
+                    "charcoal": "Carvão",
+                    "coffee": "Café",
+                    "blueberry": "Mirtilo",
+                    "dusk": "Crepúsculo",
+                    "oled": "OLED",
+                    "cyberpunk": "Cyberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Idioma (requer reinicialização)",
+                "description": "Escolha o idioma para a interface do chaiNNer."
+            },
+            "chainAnimation": {
+                "label": "Animação da cadeia",
+                "description": "Ativar animações que mostram o estado de processamento da cadeia."
+            },
+            "minimap": {
+                "label": "Minimapa",
+                "description": "Ativar um minimapa da cadeia atual no canto inferior direito do editor de nós."
+            },
+            "snapToGrid": {
+                "label": "Alinhar à grade",
+                "description": "Ativar alinhamento dos nós à grade."
+            },
+            "snapToGridAmount": {
+                "label": "Quantidade de alinhamento à grade",
+                "description": "A quantidade para alinhar à grade."
+            },
+            "viewportExportPadding": {
+                "label": "Preenchimento de exportação PNG da viewport",
+                "description": "A quantidade de preenchimento para a exportação PNG da viewport."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Modelo de Inicialização",
+                "description": "Definir um modelo de cadeia para usar por padrão quando o chaiNNer iniciar.",
+                "placeholder": "Selecionar um arquivo...",
+                "clear": "Limpar",
+                "pickFile": "Escolher arquivo de modelo de inicialização"
+            },
+            "selectChain": "Selecionar Cadeia"
+        },
+        "python": {
+            "general": "Geral",
+            "useSystemPython": {
+                "label": "Usar Python do sistema (requer reinicialização)",
+                "description": "Usar Python do sistema para processamento do chaiNNer em vez do Python incluído (não recomendado)"
+            },
+            "systemPythonLocation": {
+                "label": "Localização do Python do sistema (opcional)",
+                "description": "Se desejado, usar um binário Python específico em vez do padrão invocado por 'python3' ou 'python'. Isso é útil se você tem múltiplas versões de Python instaladas e quer escolher uma específica.",
+                "placeholder": "Selecionar um arquivo...",
+                "clear": "Limpar",
+                "pickFile": "Escolher localização do Python do sistema"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Verificar atualizações na inicialização",
+                "description": "Ativa a verificação de atualizações na inicialização."
+            },
+            "experimentalFeatures": {
+                "label": "Ativar recursos experimentais",
+                "description": "Ativar recursos experimentais para experimentá-los antes que estejam finalizados."
+            },
+            "hardwareAcceleration": {
+                "label": "Ativar aceleração de hardware (requer reinicialização)",
+                "description": "Ativar renderização GPU para a GUI. Use com cautela, pois pode diminuir severamente o desempenho da GPU para processamento de imagens."
+            },
+            "allowMultipleInstances": {
+                "label": "Permitir múltiplas instâncias simultâneas",
+                "description": "Ativar múltiplas instâncias simultâneas do chaiNNer. Isso não é recomendado, mas se sua cadeia não está usando recursos suficientes do sistema, você pode achar útil executar coisas simultaneamente."
+            }
+        },
+        "noOptionsFound": "Nenhuma opção encontrada.",
+        "clearCache": "Limpar cache"
+    },
+    "setup": {
+        "checkingPort": "Verificando porta disponível...",
+        "checkingPython": "Verificando ambiente do sistema para Python válido...",
+        "downloadingPython": "Baixando Python Integrado...",
+        "extractingPython": "Extraindo arquivos baixados...",
+        "loading": "Carregando...",
+        "startingBackend": "Iniciando processo backend..."
+    },
+    "typeTags": {
+        "optional": "opcional"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Semente aleatória",
+            "randomSeedAria": "Semente Aleatória"
+        }
+    },
+    "node": {
+        "disableHint": "Dica: Use Ctrl+Clique para percorrer as opções.",
+        "note": {
+            "placeholder": "Texto da Nota"
+        },
+        "implementationError": "Erro de Implementação",
+        "implementationErrorMessage": "Não é possível determinar informações-chave para o nó {{nodeName}} ({{schemaId}}).",
+        "enable": "Ativar",
+        "disable": "Desativar",
+        "skip": "Pular",
+        "eta": "ETA:",
+        "outdated": "Desatualizado"
+    },
+    "logo": {
+        "background": "fundo",
+        "front": "frente"
+    },
+    "timer": {
+        "executionTook": "A execução levou aproximadamente {{duration}}.",
+        "hour_one": "hora",
+        "hour_other": "horas",
+        "minute_one": "minuto",
+        "minute_other": "minutos",
+        "second_one": "segundo",
+        "second_other": "segundos"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "Os valores de {{inputs}} estão atualmente vinculados ao mesmo valor. Clique aqui para desfazer este vínculo.",
+        "clickToLink": "Clique aqui para vincular {{inputs}} ao mesmo valor."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文"
+    },
+    "search": {
+        "placeholder": "Pesquisar...",
+        "missingNodes": "Nós ausentes? Clique para abrir o gerenciador de dependências!",
+        "noCompatibleNodes": "Nenhum nó compatível encontrado."
+    },
+    "favorites": {
+        "title": "Favoritos",
+        "noFavorites": "Nenhum Favorito.",
+        "addFavoritesTooltip": "Adicionar Favoritos clicando com o botão direito nos nós e selecionando Adicionar aos Favoritos.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Adicionar Favoritos passando o mouse sobre os nós e clicando no ícone",
+            "afterIcon": ", ou clicando com o botão direito e selecionando Adicionar aos Favoritos."
+        },
+        "addToFavorites": "Adicionar aos Favoritos",
+        "removeFromFavorites": "Remover dos Favoritos"
+    },
+    "documentation": {
+        "title": "Documentação dos Nós",
+        "openDocumentation": "Abrir Documentação"
+    },
+    "dependencyManager": {
+        "title": "Gerenciador de Dependências",
+        "manageDependencies": "Gerenciar Dependências",
+        "updatesAvailable": "Atualizações Disponíveis",
+        "updatesAvailableDescription_one": "Há {{count}} pacote com atualizações de dependências disponíveis.",
+        "updatesAvailableDescription_other": "Há {{count}} pacotes com atualizações de dependências disponíveis.",
+        "openDependencyManager": "Abrir Gerenciador de Dependências",
+        "packages": "Pacotes",
+        "features": "Recursos",
+        "refresh": "Atualizar",
+        "install": "Instalar",
+        "update": "Atualizar",
+        "uninstall": "Desinstalar",
+        "close": "Fechar",
+        "missing": "Ausente",
+        "outdated": "Desatualizado",
+        "unavailable": "Indisponível",
+        "enabled": "Ativado",
+        "disabled": "Desativado",
+        "python": "Python",
+        "system": "Sistema",
+        "integrated": "Integrado",
+        "advanced": "Avançado",
+        "installationMode": "Modo de instalação",
+        "normal": "Normal",
+        "manualCopy": "Manual/Copiar",
+        "consoleOutput": "Saída do console:",
+        "commandCopied": "Comando copiado para área de transferência",
+        "commandCopiedDescription": "Abra um terminal externo, cole o comando e execute-o. Quando terminar, reinicie o chaiNNer manualmente.",
+        "uninstallTitle": "Desinstalar",
+        "uninstallMessage": "Tem certeza de que deseja desinstalar {{name}}?",
+        "unsavedChanges": "Alterações não salvas",
+        "unsavedChangesMessage": "Você pode perder suas alterações não salvas desinstalando {{name}}.\n\nTem certeza de que deseja desinstalar {{name}}?",
+        "cancel": "Cancelar",
+        "installing": "Instalando {{name}}...",
+        "uninstalling": "Desinstalando {{name}}...",
+        "copyPythonPath": "Copiar caminho Python para área de transferência",
+        "pythonPath": "O caminho Python é:",
+        "installAllPackages": "{{operations}} Todos os Pacotes ({{size}})",
+        "package_one": "pacote",
+        "package_other": "pacotes",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Modo de Edição",
+        "editContent": "Editar Conteúdo",
+        "markdownMode": "Modo Markdown",
+        "viewMarkdown": "Ver Markdown"
+    },
+    "color": {
+        "resetToOld": "Redefinir para cor antiga",
+        "acceptNew": "Aceitar nova cor"
+    },
+    "edge": {
+        "removeEdge": "Botão remover borda"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Remover Ponto de Interrupção",
+        "removeEdge": "Remover Borda"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Clique duplo ou arraste e solte para adicionar nós à tela.",
+        "collapseExpandCategories": "Recolher/Expandir Categorias"
+    },
+    "support": {
+        "koFiTooltip": "Apoiar chaiNNer no Ko-fi",
+        "koFiAria": "Apoiar chaiNNer",
+        "koFiButton": "Apoiar chaiNNer"
+    },
+    "nodeMenu": {
+        "copy": "Copiar",
+        "duplicate": "Duplicar",
+        "resetNode": "Redefinir Nó",
+        "resetInputs": "Redefinir Entradas",
+        "resetConnections": "Redefinir Conexões",
+        "resetAll": "Redefinir Tudo",
+        "enable": "Ativar",
+        "disable": "Desativar",
+        "skip": "Pular",
+        "unlock": "Desbloquear",
+        "lock": "Bloquear",
+        "refreshPreview": "Atualizar Visualização",
+        "delete": "Excluir",
+        "openDocumentation": "Abrir Documentação"
+    },
+    "nodesMenu": {
+        "copy": "Copiar",
+        "duplicate": "Duplicar",
+        "resetNodes": "Redefinir Nós",
+        "resetInputs": "Redefinir Entradas",
+        "resetConnections": "Redefinir Conexões",
+        "resetAll": "Redefinir Tudo",
+        "enableAll": "Ativar Todos",
+        "disableAll": "Desativar Todos",
+        "delete": "Excluir"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Adicionar Ponto de Interrupção",
+        "delete": "Excluir"
+    },
+    "nodeSelector": {
+        "favorites": "Favoritos",
+        "missingDependencies": "Dependências ausentes.",
+        "unableToImport": "Não é possível importar nó(s).",
+        "clickToInstall": "Clique para abrir o gerenciador de dependências e instalar {{packageName}}.",
+        "criticalImportError": "Ocorreu um erro crítico de importação com uma dependência no pacote: {{packageName}}.",
+        "nodes": "Nós"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "é",
+            "isNot": "não é",
+            "oneOf": "um de",
+            "ofType": "do tipo",
+            "allOf": "Todos de",
+            "atLeastOneOf": "Pelo menos um de",
+            "followingConditions": "as seguintes condições devem ser atendidas:",
+            "condition": "Condição:"
+        },
+        "nodeDocs": {
+            "optional": "opcional",
+            "sequenced": "(Sequenciado)",
+            "supportedFileTypes": "Tipos de arquivo suportados:",
+            "primaryInputDescription": "Esta entrada é a entrada principal para seus tipos de arquivo suportados. Isso significa que você pode arrastar e soltar arquivos suportados no chaiNNer, e ele criará automaticamente um nó com esta entrada preenchida.",
+            "options": "Opções:",
+            "type": "Tipo:",
+            "inputs": "Entradas",
+            "noInputs": "Este nó não tem entradas.",
+            "outputs": "Saídas",
+            "noOutputs": "Este nó não tem saídas.",
+            "seeAlso": "Veja também",
+            "character_one": "caractere",
+            "character_other": "caracteres"
+        },
+        "nodesList": {
+            "noNodesFound": "Nenhum nó encontrado"
+        }
+    }
+}

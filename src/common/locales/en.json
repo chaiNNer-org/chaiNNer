@@ -226,7 +226,12 @@
     "languages": {
         "english": "English",
         "spanish": "Español",
-        "german": "Deutsch"
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文"
     },
     "search": {
         "placeholder": "Search...",

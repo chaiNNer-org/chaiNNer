@@ -1,0 +1,410 @@
+{
+    "alert": {
+        "button": {
+            "ok": "确定",
+            "cancel": "取消",
+            "openLogsFolder": "打开日志文件夹",
+            "exitApplication": "退出应用程序",
+            "copyToClipboard": "复制到剪贴板"
+        },
+        "stackTrace": "堆栈跟踪",
+        "title": {
+            "systemInformation": "系统信息"
+        }
+    },
+    "common": {
+        "cancel": "取消",
+        "close": "关闭",
+        "open": "打开",
+        "settings": "设置"
+    },
+    "error": {
+        "error": "错误",
+        "message": {
+            "criticalBackend": "处理后端返回的节点数据时发生严重错误。"
+        },
+        "title": {
+            "unableToProcessNodes": "无法处理后端节点。"
+        }
+    },
+    "header": {
+        "alpha": "Alpha",
+        "pause": "暂停",
+        "pauseButton": "暂停按钮",
+        "resume": "恢复",
+        "run": "运行",
+        "runButton": "运行按钮",
+        "stop": "停止",
+        "stopButton": "停止按钮",
+        "updateAvailable": "更新可用 ({{version}})",
+        "updateAvailableAria": "更新可用",
+        "updateChangelog": "更新变更日志",
+        "updateAvailableTitle": "更新可用 ({{version}})",
+        "updateAvailableMessage": "版本 {{version}} 有可用更新。您想查看变更日志吗？",
+        "viewReleaseOnGitHub": "在 GitHub 上查看发布",
+        "downloadFromWebsite": "从 chaiNNer.app 下载",
+        "ignoreUpdate": "忽略更新",
+        "viewUpdate": "查看更新"
+    },
+    "inputs": {
+        "copyInputOverrideId": "复制输入覆盖ID",
+        "directory": {
+            "clear": "清除",
+            "copyFullDirectoryPath": "复制完整目录路径",
+            "openInFileExplorer": "在文件资源管理器中打开",
+            "selectDirectory": "选择目录...",
+            "clickToSelect": "点击选择..."
+        },
+        "extractValueIntoNode": "将值提取到节点",
+        "file": {
+            "clear": "清除",
+            "copyFileName": "复制文件名",
+            "copyFullFilePath": "复制完整文件路径",
+            "openInFileExplorer": "在文件资源管理器中打开",
+            "selectFile": "选择文件...",
+            "clickToSelectFile": "点击选择文件..."
+        },
+        "number": {
+            "copyText": "复制数字",
+            "paste": "粘贴"
+        },
+        "text": {
+            "copyText": "复制文本",
+            "paste": "粘贴",
+            "invalidCharacter": "无效字符 '{{character}}' (U+{{codePoint}})。"
+        },
+        "addInput": "添加输入",
+        "colorCompare": {
+            "old": "旧",
+            "new": "新"
+        },
+        "rgbHex": {
+            "hex": "十六进制"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "图像不可用。",
+            "imagePreviewFailed": "图像预览加载失败，可能是不支持的文件类型。"
+        },
+        "model": {
+            "modelNotAvailable": "模型数据不可用。"
+        }
+    },
+    "settings": {
+        "title": "设置",
+        "restartChaiNNer": "重启 chaiNNer",
+        "tabs": {
+            "appearance": "外观",
+            "environment": "环境",
+            "python": "Python",
+            "advanced": "高级"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "颜色主题",
+                "description": "选择 chaiNNer 外观的主题。",
+                "options": {
+                    "dark": "深色",
+                    "light": "浅色",
+                    "system": "系统",
+                    "charcoal": "木炭",
+                    "coffee": "咖啡",
+                    "blueberry": "蓝莓",
+                    "dusk": "黄昏",
+                    "oled": "OLED",
+                    "cyberpunk": "赛博朋克",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "语言（需要重启）",
+                "description": "选择 chaiNNer 界面的语言。"
+            },
+            "chainAnimation": {
+                "label": "链动画",
+                "description": "启用显示链处理状态的动画。"
+            },
+            "minimap": {
+                "label": "小地图",
+                "description": "在节点编辑器右下角启用当前链的小地图。"
+            },
+            "snapToGrid": {
+                "label": "对齐到网格",
+                "description": "启用节点网格对齐。"
+            },
+            "snapToGridAmount": {
+                "label": "网格对齐量",
+                "description": "对齐到网格的量。"
+            },
+            "viewportExportPadding": {
+                "label": "视口PNG导出填充",
+                "description": "视口PNG导出的填充量。"
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "启动模板",
+                "description": "设置 chaiNNer 启动时默认使用的链模板。",
+                "placeholder": "选择文件...",
+                "clear": "清除",
+                "pickFile": "选择启动模板文件"
+            },
+            "selectChain": "选择链"
+        },
+        "python": {
+            "general": "常规",
+            "useSystemPython": {
+                "label": "使用系统 Python（需要重启）",
+                "description": "使用系统 Python 进行 chaiNNer 处理，而不是捆绑的 Python（不推荐）"
+            },
+            "systemPythonLocation": {
+                "label": "系统 Python 位置（可选）",
+                "description": "如果需要，使用特定的 Python 二进制文件，而不是由 'python3' 或 'python' 调用的默认文件。如果您安装了多个 Python 版本并想选择特定的版本，这会很有用。",
+                "placeholder": "选择文件...",
+                "clear": "清除",
+                "pickFile": "选择系统 Python 位置"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "启动时检查更新",
+                "description": "切换启动时的更新检查。"
+            },
+            "experimentalFeatures": {
+                "label": "启用实验性功能",
+                "description": "启用实验性功能以在完成前试用它们。"
+            },
+            "hardwareAcceleration": {
+                "label": "启用硬件加速（需要重启）",
+                "description": "为 GUI 启用 GPU 渲染。请谨慎使用，因为它可能会严重降低图像处理的 GPU 性能。"
+            },
+            "allowMultipleInstances": {
+                "label": "允许多个并发实例",
+                "description": "启用 chaiNNer 的多个并发实例。这不推荐，但如果您的链没有使用足够的系统资源，您可能会发现同时运行事物很有用。"
+            }
+        },
+        "noOptionsFound": "未找到选项。",
+        "clearCache": "清除缓存"
+    },
+    "setup": {
+        "checkingPort": "检查可用端口...",
+        "checkingPython": "检查系统环境中的有效 Python...",
+        "downloadingPython": "下载集成 Python...",
+        "extractingPython": "提取下载的文件...",
+        "loading": "加载中...",
+        "startingBackend": "启动后端进程..."
+    },
+    "typeTags": {
+        "optional": "可选"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "随机种子",
+            "randomSeedAria": "随机种子"
+        }
+    },
+    "node": {
+        "disableHint": "提示：使用 Ctrl+点击循环选项。",
+        "note": {
+            "placeholder": "注释文本"
+        },
+        "implementationError": "实现错误",
+        "implementationErrorMessage": "无法确定节点 {{nodeName}} ({{schemaId}}) 的关键信息。",
+        "enable": "启用",
+        "disable": "禁用",
+        "skip": "跳过",
+        "eta": "预计时间：",
+        "outdated": "过时"
+    },
+    "logo": {
+        "background": "背景",
+        "front": "前景"
+    },
+    "timer": {
+        "executionTook": "执行大约花费了 {{duration}}。",
+        "hour_one": "小时",
+        "hour_other": "小时",
+        "minute_one": "分钟",
+        "minute_other": "分钟",
+        "second_one": "秒",
+        "second_other": "秒"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "{{inputs}} 的值当前链接到相同的值。点击此处取消此链接。",
+        "clickToLink": "点击此处将 {{inputs}} 链接到相同的值。"
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文"
+    },
+    "search": {
+        "placeholder": "搜索...",
+        "missingNodes": "缺少节点？点击打开依赖管理器！",
+        "noCompatibleNodes": "未找到兼容节点。"
+    },
+    "favorites": {
+        "title": "收藏夹",
+        "noFavorites": "无收藏。",
+        "addFavoritesTooltip": "右键点击节点并选择添加到收藏夹来添加收藏。",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "通过悬停在节点上并点击图标来添加收藏，",
+            "afterIcon": "或右键点击并选择添加到收藏夹。"
+        },
+        "addToFavorites": "添加到收藏夹",
+        "removeFromFavorites": "从收藏夹中移除"
+    },
+    "documentation": {
+        "title": "节点文档",
+        "openDocumentation": "打开文档"
+    },
+    "dependencyManager": {
+        "title": "依赖管理器",
+        "manageDependencies": "管理依赖",
+        "updatesAvailable": "可用更新",
+        "updatesAvailableDescription_one": "有 {{count}} 个包有可用的依赖更新。",
+        "updatesAvailableDescription_other": "有 {{count}} 个包有可用的依赖更新。",
+        "openDependencyManager": "打开依赖管理器",
+        "packages": "包",
+        "features": "功能",
+        "refresh": "刷新",
+        "install": "安装",
+        "update": "更新",
+        "uninstall": "卸载",
+        "close": "关闭",
+        "missing": "缺失",
+        "outdated": "过时",
+        "unavailable": "不可用",
+        "enabled": "已启用",
+        "disabled": "已禁用",
+        "python": "Python",
+        "system": "系统",
+        "integrated": "集成",
+        "advanced": "高级",
+        "installationMode": "安装模式",
+        "normal": "正常",
+        "manualCopy": "手动/复制",
+        "consoleOutput": "控制台输出：",
+        "commandCopied": "命令已复制到剪贴板",
+        "commandCopiedDescription": "打开外部终端，粘贴命令并运行。完成后，手动重启 chaiNNer。",
+        "uninstallTitle": "卸载",
+        "uninstallMessage": "您确定要卸载 {{name}} 吗？",
+        "unsavedChanges": "未保存的更改",
+        "unsavedChangesMessage": "卸载 {{name}} 可能会丢失您的未保存更改。\n\n您确定要卸载 {{name}} 吗？",
+        "cancel": "取消",
+        "installing": "正在安装 {{name}}...",
+        "uninstalling": "正在卸载 {{name}}...",
+        "copyPythonPath": "将 Python 路径复制到剪贴板",
+        "pythonPath": "Python 路径是：",
+        "installAllPackages": "{{operations}} 所有包 ({{size}})",
+        "package_one": "包",
+        "package_other": "包",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "编辑模式",
+        "editContent": "编辑内容",
+        "markdownMode": "Markdown 模式",
+        "viewMarkdown": "查看 Markdown"
+    },
+    "color": {
+        "resetToOld": "重置为旧颜色",
+        "acceptNew": "接受新颜色"
+    },
+    "edge": {
+        "removeEdge": "移除边按钮"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "移除断点",
+        "removeEdge": "移除边"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "双击或拖放将节点添加到画布。",
+        "collapseExpandCategories": "折叠/展开类别"
+    },
+    "support": {
+        "koFiTooltip": "在 Ko-fi 上支持 chaiNNer",
+        "koFiAria": "支持 chaiNNer",
+        "koFiButton": "支持 chaiNNer"
+    },
+    "nodeMenu": {
+        "copy": "复制",
+        "duplicate": "复制",
+        "resetNode": "重置节点",
+        "resetInputs": "重置输入",
+        "resetConnections": "重置连接",
+        "resetAll": "重置全部",
+        "enable": "启用",
+        "disable": "禁用",
+        "skip": "跳过",
+        "unlock": "解锁",
+        "lock": "锁定",
+        "refreshPreview": "刷新预览",
+        "delete": "删除",
+        "openDocumentation": "打开文档"
+    },
+    "nodesMenu": {
+        "copy": "复制",
+        "duplicate": "复制",
+        "resetNodes": "重置节点",
+        "resetInputs": "重置输入",
+        "resetConnections": "重置连接",
+        "resetAll": "重置全部",
+        "enableAll": "全部启用",
+        "disableAll": "全部禁用",
+        "delete": "删除"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "添加断点",
+        "delete": "删除"
+    },
+    "nodeSelector": {
+        "favorites": "收藏夹",
+        "missingDependencies": "缺少依赖。",
+        "unableToImport": "无法导入节点。",
+        "clickToInstall": "点击打开依赖管理器并安装 {{packageName}}。",
+        "criticalImportError": "包中的依赖项发生严重导入错误：{{packageName}}。",
+        "nodes": "节点"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "是",
+            "isNot": "不是",
+            "oneOf": "之一",
+            "ofType": "类型",
+            "allOf": "全部",
+            "atLeastOneOf": "至少一个",
+            "followingConditions": "必须满足以下条件：",
+            "condition": "条件："
+        },
+        "nodeDocs": {
+            "optional": "可选",
+            "sequenced": "（序列化）",
+            "supportedFileTypes": "支持的文件类型：",
+            "primaryInputDescription": "此输入是其支持文件类型的主要输入。这意味着您可以将支持的文件拖放到 chaiNNer 中，它将自动创建一个具有此输入填充的节点。",
+            "options": "选项：",
+            "type": "类型：",
+            "inputs": "输入",
+            "noInputs": "此节点没有输入。",
+            "outputs": "输出",
+            "noOutputs": "此节点没有输出。",
+            "seeAlso": "另请参阅",
+            "character_one": "字符",
+            "character_other": "字符"
+        },
+        "nodesList": {
+            "noNodesFound": "未找到节点"
+        }
+    }
+}
