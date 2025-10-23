@@ -1,0 +1,418 @@
+{
+    "alert": {
+        "button": {
+            "ok": "OK",
+            "cancel": "キャンセル",
+            "openLogsFolder": "ログフォルダを開く",
+            "exitApplication": "アプリケーションを終了",
+            "copyToClipboard": "クリップボードにコピー"
+        },
+        "stackTrace": "スタックトレース",
+        "title": {
+            "systemInformation": "システム情報"
+        }
+    },
+    "common": {
+        "cancel": "キャンセル",
+        "close": "閉じる",
+        "open": "開く",
+        "settings": "設定"
+    },
+    "error": {
+        "error": "エラー",
+        "message": {
+            "criticalBackend": "バックエンドから返されたノードデータの処理中に重大なエラーが発生しました。"
+        },
+        "title": {
+            "unableToProcessNodes": "バックエンドノードを処理できません。"
+        }
+    },
+    "header": {
+        "alpha": "アルファ",
+        "pause": "一時停止",
+        "pauseButton": "一時停止ボタン",
+        "resume": "再開",
+        "run": "実行",
+        "runButton": "実行ボタン",
+        "stop": "停止",
+        "stopButton": "停止ボタン",
+        "updateAvailable": "アップデート利用可能 ({{version}})",
+        "updateAvailableAria": "アップデート利用可能",
+        "updateChangelog": "アップデート変更ログ",
+        "updateAvailableTitle": "アップデート利用可能 ({{version}})",
+        "updateAvailableMessage": "バージョン{{version}}のアップデートが利用可能です。変更ログを表示しますか？",
+        "viewReleaseOnGitHub": "GitHubでリリースを表示",
+        "downloadFromWebsite": "chaiNNer.appからダウンロード",
+        "ignoreUpdate": "アップデートを無視",
+        "viewUpdate": "アップデートを表示"
+    },
+    "inputs": {
+        "copyInputOverrideId": "入力オーバーライドIDをコピー",
+        "directory": {
+            "clear": "クリア",
+            "copyFullDirectoryPath": "完全なディレクトリパスをコピー",
+            "openInFileExplorer": "ファイルエクスプローラーで開く",
+            "selectDirectory": "ディレクトリを選択...",
+            "clickToSelect": "クリックして選択..."
+        },
+        "extractValueIntoNode": "値をノードに抽出",
+        "file": {
+            "clear": "クリア",
+            "copyFileName": "ファイル名をコピー",
+            "copyFullFilePath": "完全なファイルパスをコピー",
+            "openInFileExplorer": "ファイルエクスプローラーで開く",
+            "selectFile": "ファイルを選択...",
+            "clickToSelectFile": "クリックしてファイルを選択..."
+        },
+        "number": {
+            "copyText": "番号をコピー",
+            "paste": "貼り付け"
+        },
+        "text": {
+            "copyText": "テキストをコピー",
+            "paste": "貼り付け",
+            "invalidCharacter": "無効な文字 '{{character}}' (U+{{codePoint}})。"
+        },
+        "addInput": "入力を追加",
+        "colorCompare": {
+            "old": "古い",
+            "new": "新しい"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "画像が利用できません。",
+            "imagePreviewFailed": "画像プレビューの読み込みに失敗しました。おそらくサポートされていないファイルタイプです。"
+        },
+        "model": {
+            "modelNotAvailable": "モデルデータが利用できません。"
+        }
+    },
+    "settings": {
+        "title": "設定",
+        "restartChaiNNer": "chaiNNerを再起動",
+        "tabs": {
+            "appearance": "外観",
+            "environment": "環境",
+            "python": "Python",
+            "advanced": "詳細"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "カラーテーマ",
+                "description": "chaiNNerの外観のテーマを選択してください。",
+                "options": {
+                    "dark": "ダーク",
+                    "light": "ライト",
+                    "system": "システム",
+                    "charcoal": "チャコール",
+                    "coffee": "コーヒー",
+                    "blueberry": "ブルーベリー",
+                    "dusk": "夕暮れ",
+                    "oled": "OLED",
+                    "cyberpunk": "サイバーパンク",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "言語（再起動が必要）",
+                "description": "chaiNNerのインターフェースの言語を選択してください。"
+            },
+            "chainAnimation": {
+                "label": "チェーンアニメーション",
+                "description": "チェーンの処理状態を示すアニメーションを有効にします。"
+            },
+            "minimap": {
+                "label": "ミニマップ",
+                "description": "ノードエディターの右下角に現在のチェーンのミニマップを有効にします。"
+            },
+            "snapToGrid": {
+                "label": "グリッドにスナップ",
+                "description": "ノードのグリッドスナップを有効にします。"
+            },
+            "snapToGridAmount": {
+                "label": "グリッドスナップ量",
+                "description": "グリッドにスナップする量。"
+            },
+            "viewportExportPadding": {
+                "label": "ビューポートPNGエクスポートパディング",
+                "description": "ビューポートPNGエクスポートのパディング量。"
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "スタートアップテンプレート",
+                "description": "chaiNNerが起動する際にデフォルトで使用するチェーンテンプレートを設定します。",
+                "placeholder": "ファイルを選択...",
+                "clear": "クリア",
+                "pickFile": "スタートアップテンプレートファイルを選択"
+            },
+            "selectChain": "チェーンを選択"
+        },
+        "python": {
+            "general": "一般",
+            "useSystemPython": {
+                "label": "システムPythonを使用（再起動が必要）",
+                "description": "バンドルされたPythonの代わりにシステムPythonをchaiNNerの処理に使用します（推奨されません）"
+            },
+            "systemPythonLocation": {
+                "label": "システムPythonの場所（オプション）",
+                "description": "希望する場合は、'python3'または'python'によって呼び出されるデフォルトのものではなく、特定のPythonバイナリを使用します。これは、複数のPythonバージョンがインストールされており、特定のものを選択したい場合に便利です。",
+                "placeholder": "ファイルを選択...",
+                "clear": "クリア",
+                "pickFile": "システムPythonの場所を選択"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "起動時にアップデートをチェック",
+                "description": "起動時のアップデートチェックを切り替えます。"
+            },
+            "experimentalFeatures": {
+                "label": "実験的機能を有効にする",
+                "description": "完成する前に実験的機能を試すために有効にします。"
+            },
+            "hardwareAcceleration": {
+                "label": "ハードウェアアクセラレーションを有効にする（再起動が必要）",
+                "description": "GUIのGPUレンダリングを有効にします。画像処理のGPUパフォーマンスを大幅に低下させる可能性があるため、注意して使用してください。"
+            },
+            "allowMultipleInstances": {
+                "label": "複数の同時インスタンスを許可",
+                "description": "chaiNNerの複数の同時インスタンスを有効にします。これは推奨されませんが、チェーンがシステムリソースを十分に使用していない場合、同時に物事を実行するのに役立つ場合があります。"
+            }
+        },
+        "noOptionsFound": "オプションが見つかりません。",
+        "clearCache": "キャッシュをクリア"
+    },
+    "setup": {
+        "checkingPort": "利用可能なポートをチェック中...",
+        "checkingPython": "有効なPythonのシステム環境をチェック中...",
+        "downloadingPython": "統合Pythonをダウンロード中...",
+        "extractingPython": "ダウンロードしたファイルを展開中...",
+        "loading": "読み込み中...",
+        "startingBackend": "バックエンドプロセスを開始中..."
+    },
+    "typeTags": {
+        "optional": "オプション"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "ランダムシード",
+            "randomSeedAria": "ランダムシード"
+        }
+    },
+    "node": {
+        "disableHint": "ヒント：Ctrl+クリックでオプションを循環します。",
+        "note": {
+            "placeholder": "ノートテキスト"
+        },
+        "implementationError": "実装エラー",
+        "implementationErrorMessage": "ノード{{nodeName}}（{{schemaId}}）のキー情報を特定できません。",
+        "enable": "有効",
+        "disable": "無効",
+        "skip": "スキップ",
+        "eta": "ETA：",
+        "outdated": "古い"
+    },
+    "logo": {
+        "background": "背景",
+        "front": "前面"
+    },
+    "timer": {
+        "executionTook": "実行には約{{duration}}かかりました。",
+        "hour_one": "時間",
+        "hour_other": "時間",
+        "minute_one": "分",
+        "minute_other": "分",
+        "second_one": "秒",
+        "second_other": "秒"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "{{inputs}}の値は現在同じ値にリンクされています。ここをクリックしてこのリンクを元に戻します。",
+        "clickToLink": "ここをクリックして{{inputs}}を同じ値にリンクします。"
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "検索...",
+        "missingNodes": "ノードが見つかりませんか？依存関係マネージャーを開くためにクリックしてください！",
+        "noCompatibleNodes": "互換性のあるノードが見つかりません。"
+    },
+    "favorites": {
+        "title": "お気に入り",
+        "noFavorites": "お気に入りがありません。",
+        "addFavoritesTooltip": "ノードを右クリックして「お気に入りに追加」を選択してお気に入りを追加します。",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "ノードにマウスを合わせてアイコンをクリックしてお気に入りを追加するか、",
+            "afterIcon": "右クリックして「お気に入りに追加」を選択します。"
+        },
+        "addToFavorites": "お気に入りに追加",
+        "removeFromFavorites": "お気に入りから削除"
+    },
+    "documentation": {
+        "title": "ノードドキュメント",
+        "openDocumentation": "ドキュメントを開く"
+    },
+    "dependencyManager": {
+        "title": "依存関係マネージャー",
+        "manageDependencies": "依存関係を管理",
+        "updatesAvailable": "利用可能なアップデート",
+        "updatesAvailableDescription_one": "利用可能な依存関係アップデートがある{{count}}個のパッケージがあります。",
+        "updatesAvailableDescription_other": "利用可能な依存関係アップデートがある{{count}}個のパッケージがあります。",
+        "openDependencyManager": "依存関係マネージャーを開く",
+        "packages": "パッケージ",
+        "features": "機能",
+        "refresh": "更新",
+        "install": "インストール",
+        "update": "アップデート",
+        "uninstall": "アンインストール",
+        "close": "閉じる",
+        "missing": "不足",
+        "outdated": "古い",
+        "unavailable": "利用不可",
+        "enabled": "有効",
+        "disabled": "無効",
+        "python": "Python",
+        "system": "システム",
+        "integrated": "統合",
+        "advanced": "詳細",
+        "installationMode": "インストールモード",
+        "normal": "通常",
+        "manualCopy": "手動/コピー",
+        "consoleOutput": "コンソール出力：",
+        "commandCopied": "コマンドがクリップボードにコピーされました",
+        "commandCopiedDescription": "外部ターミナルを開き、コマンドを貼り付けて実行してください。完了したら、chaiNNerを手動で再起動してください。",
+        "uninstallTitle": "アンインストール",
+        "uninstallMessage": "{{name}}をアンインストールしてもよろしいですか？",
+        "unsavedChanges": "未保存の変更",
+        "unsavedChangesMessage": "{{name}}をアンインストールすると、未保存の変更が失われる可能性があります。\n\n{{name}}をアンインストールしてもよろしいですか？",
+        "cancel": "キャンセル",
+        "installing": "{{name}}をインストール中...",
+        "uninstalling": "{{name}}をアンインストール中...",
+        "copyPythonPath": "Pythonパスをクリップボードにコピー",
+        "pythonPath": "Pythonパスは：",
+        "installAllPackages": "{{operations}}すべてのパッケージ（{{size}}）",
+        "package_one": "パッケージ",
+        "package_other": "パッケージ",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "編集モード",
+        "editContent": "コンテンツを編集",
+        "markdownMode": "Markdownモード",
+        "viewMarkdown": "Markdownを表示"
+    },
+    "color": {
+        "resetToOld": "古い色にリセット",
+        "acceptNew": "新しい色を受け入れる"
+    },
+    "edge": {
+        "removeEdge": "エッジ削除ボタン"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "ブレークポイントを削除",
+        "removeEdge": "エッジを削除"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "ダブルクリックまたはドラッグ&ドロップでノードをキャンバスに追加します。",
+        "collapseExpandCategories": "カテゴリを折りたたむ/展開"
+    },
+    "support": {
+        "koFiTooltip": "Ko-fiでchaiNNerをサポート",
+        "koFiAria": "chaiNNerをサポート",
+        "koFiButton": "chaiNNerをサポート"
+    },
+    "nodeMenu": {
+        "copy": "コピー",
+        "duplicate": "複製",
+        "resetNode": "ノードをリセット",
+        "resetInputs": "入力をリセット",
+        "resetConnections": "接続をリセット",
+        "resetAll": "すべてをリセット",
+        "enable": "有効",
+        "disable": "無効",
+        "skip": "スキップ",
+        "unlock": "ロック解除",
+        "lock": "ロック",
+        "refreshPreview": "プレビューを更新",
+        "delete": "削除",
+        "openDocumentation": "ドキュメントを開く"
+    },
+    "nodesMenu": {
+        "copy": "コピー",
+        "duplicate": "複製",
+        "resetNodes": "ノードをリセット",
+        "resetInputs": "入力をリセット",
+        "resetConnections": "接続をリセット",
+        "resetAll": "すべてをリセット",
+        "enableAll": "すべてを有効",
+        "disableAll": "すべてを無効",
+        "delete": "削除"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "ブレークポイントを追加",
+        "delete": "削除"
+    },
+    "nodeSelector": {
+        "favorites": "お気に入り",
+        "missingDependencies": "不足している依存関係。",
+        "unableToImport": "ノードをインポートできません。",
+        "clickToInstall": "クリックして依存関係マネージャーを開き、{{packageName}}をインストールします。",
+        "criticalImportError": "パッケージ内の依存関係で重大なインポートエラーが発生しました：{{packageName}}。",
+        "nodes": "ノード"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "は",
+            "isNot": "ではありません",
+            "oneOf": "の一つ",
+            "ofType": "のタイプ",
+            "allOf": "すべての",
+            "atLeastOneOf": "少なくとも一つの",
+            "followingConditions": "次の条件が満たされる必要があります：",
+            "condition": "条件："
+        },
+        "nodeDocs": {
+            "optional": "オプション",
+            "sequenced": "（シーケンス）",
+            "supportedFileTypes": "サポートされているファイルタイプ：",
+            "primaryInputDescription": "この入力は、サポートされているファイルタイプの主要入力です。これは、サポートされているファイルをchaiNNerにドラッグ&ドロップでき、この入力が自動的に入力されたノードが作成されることを意味します。",
+            "options": "オプション：",
+            "type": "タイプ：",
+            "inputs": "入力",
+            "noInputs": "このノードには入力がありません。",
+            "outputs": "出力",
+            "noOutputs": "このノードには出力がありません。",
+            "seeAlso": "関連項目",
+            "character_one": "文字",
+            "character_other": "文字"
+        },
+        "nodesList": {
+            "noNodesFound": "ノードが見つかりません"
+        }
+    }
+}

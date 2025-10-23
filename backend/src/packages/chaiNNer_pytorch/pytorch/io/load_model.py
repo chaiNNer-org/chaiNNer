@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from sanic.log import logger
 from spandrel import MAIN_REGISTRY, ModelDescriptor, ModelLoader
 from spandrel_extra_arches import EXTRA_REGISTRY
 
 from api import NodeContext
+from logger import logger
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.utils import split_file_path
@@ -75,7 +75,7 @@ def load_model_node(
     pytorch_device = exec_options.device
 
     try:
-        logger.debug(f"Reading state dict from path: {path}")
+        logger.debug("Reading state dict from path: %s", path)
 
         model_descriptor = ModelLoader(pytorch_device).load_from_file(path)
 

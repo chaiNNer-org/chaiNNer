@@ -11,6 +11,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Category, NodeSchema } from '../../../common/common-types';
 import { groupBy } from '../../../common/util';
 import { IconFactory } from '../CustomIcons';
@@ -122,27 +123,47 @@ interface PackageHintProps {
 }
 
 export const PackageHintText = memo(
-    ({ hint, packageName }: { hint?: string; packageName: string }) => (
-        <>
-            <Text>
-                {hint ||
-                    `A critical import error has occurred with a dependency in package: ${packageName}.`}
-            </Text>
-            <Text display={hint ? 'inherit' : 'none'}>
-                <em>Click</em> to open the dependency manager to install {packageName}.
-            </Text>
-        </>
-    )
+    ({ hint, packageName }: { hint?: string; packageName: string }) => {
+        const { t } = useTranslation();
+        return (
+            <>
+                <Text>
+                    {hint ||
+                        t(
+                            'nodeSelector.criticalImportError',
+                            'A critical import error has occurred with a dependency in package: {{packageName}}.',
+                            {
+                                packageName,
+                            }
+                        )}
+                </Text>
+                <Text display={hint ? 'inherit' : 'none'}>
+                    {t(
+                        'nodeSelector.clickToInstall',
+                        'Click to open the dependency manager to install {{packageName}}.',
+                        {
+                            packageName,
+                        }
+                    )}
+                </Text>
+            </>
+        );
+    }
 );
 
 export const PackageHint = memo(({ collapsed, onClick, hint, packageName }: PackageHintProps) => {
+    const { t } = useTranslation();
     return (
         <Box pt={1}>
             <TextBox
                 noWrap
                 collapsed={collapsed}
                 height="1.5rem"
-                text={hint ? 'Missing dependencies.' : 'Unable to import node(s).'}
+                text={
+                    hint
+                        ? t('nodeSelector.missingDependencies', 'Missing dependencies.')
+                        : t('nodeSelector.unableToImport', 'Unable to import node(s).')
+                }
                 toolTip={
                     <PackageHintText
                         hint={hint}

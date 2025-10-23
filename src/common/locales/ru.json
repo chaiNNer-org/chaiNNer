@@ -1,0 +1,421 @@
+{
+    "alert": {
+        "button": {
+            "ok": "ОК",
+            "cancel": "Отмена",
+            "openLogsFolder": "Открыть папку логов",
+            "exitApplication": "Выйти из приложения",
+            "copyToClipboard": "Копировать в буфер обмена"
+        },
+        "stackTrace": "Трассировка стека",
+        "title": {
+            "systemInformation": "Информация о системе"
+        }
+    },
+    "common": {
+        "cancel": "Отмена",
+        "close": "Закрыть",
+        "open": "Открыть",
+        "settings": "Настройки"
+    },
+    "error": {
+        "error": "Ошибка",
+        "message": {
+            "criticalBackend": "Произошла критическая ошибка при обработке данных узлов, возвращенных бэкендом."
+        },
+        "title": {
+            "unableToProcessNodes": "Невозможно обработать узлы бэкенда."
+        }
+    },
+    "header": {
+        "alpha": "Альфа",
+        "pause": "Пауза",
+        "pauseButton": "Кнопка паузы",
+        "resume": "Продолжить",
+        "run": "Запустить",
+        "runButton": "Кнопка запуска",
+        "stop": "Остановить",
+        "stopButton": "Кнопка остановки",
+        "updateAvailable": "Доступно обновление ({{version}})",
+        "updateAvailableAria": "Доступно обновление",
+        "updateChangelog": "Журнал изменений обновления",
+        "updateAvailableTitle": "Доступно обновление ({{version}})",
+        "updateAvailableMessage": "Доступно обновление для версии {{version}}. Хотите просмотреть журнал изменений?",
+        "viewReleaseOnGitHub": "Посмотреть релиз на GitHub",
+        "downloadFromWebsite": "Скачать с chaiNNer.app",
+        "ignoreUpdate": "Игнорировать обновление",
+        "viewUpdate": "Просмотреть обновление"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Копировать ID переопределения ввода",
+        "inputOverrideId": "ID переопределения ввода",
+        "inputOverrideIdCopied": "ID переопределения ввода скопирован в буфер обмена",
+        "inputOverrideIdTooltip": "Уникальный идентификатор для этого ввода. Используется для переопределения ввода в цепочке.",
+        "directory": {
+            "clear": "Очистить",
+            "copyFullDirectoryPath": "Копировать полный путь к папке",
+            "openInFileExplorer": "Открыть в проводнике",
+            "selectDirectory": "Выберите папку...",
+            "clickToSelect": "Нажмите для выбора..."
+        },
+        "extractValueIntoNode": "Извлечь значение в узел",
+        "file": {
+            "clear": "Очистить",
+            "copyFileName": "Копировать имя файла",
+            "copyFullFilePath": "Копировать полный путь к файлу",
+            "openInFileExplorer": "Открыть в проводнике",
+            "selectFile": "Выберите файл...",
+            "clickToSelectFile": "Нажмите для выбора файла..."
+        },
+        "number": {
+            "copyText": "Копировать число",
+            "paste": "Вставить"
+        },
+        "text": {
+            "copyText": "Копировать текст",
+            "paste": "Вставить",
+            "invalidCharacter": "Недопустимый символ '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Добавить ввод",
+        "colorCompare": {
+            "old": "старый",
+            "new": "новый"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Изображение недоступно.",
+            "imagePreviewFailed": "Не удалось загрузить предварительный просмотр изображения, вероятно, неподдерживаемый тип файла."
+        },
+        "model": {
+            "modelNotAvailable": "Данные модели недоступны."
+        }
+    },
+    "settings": {
+        "title": "Настройки",
+        "restartChaiNNer": "Перезапустить chaiNNer",
+        "tabs": {
+            "appearance": "Внешний вид",
+            "environment": "Окружение",
+            "python": "Python",
+            "advanced": "Дополнительно"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Цветовая тема",
+                "description": "Выберите тему для внешнего вида chaiNNer.",
+                "options": {
+                    "dark": "Темная",
+                    "light": "Светлая",
+                    "system": "Системная",
+                    "charcoal": "Угольная",
+                    "coffee": "Кофейная",
+                    "blueberry": "Черничная",
+                    "dusk": "Сумерки",
+                    "oled": "OLED",
+                    "cyberpunk": "Киберпанк",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Язык (требует перезапуска)",
+                "description": "Выберите язык для интерфейса chaiNNer."
+            },
+            "chainAnimation": {
+                "label": "Анимация цепочки",
+                "description": "Включить анимации, показывающие состояние обработки цепочки."
+            },
+            "minimap": {
+                "label": "Миникарта",
+                "description": "Включить миникарту текущей цепочки в правом нижнем углу редактора узлов."
+            },
+            "snapToGrid": {
+                "label": "Привязка к сетке",
+                "description": "Включить привязку узлов к сетке."
+            },
+            "snapToGridAmount": {
+                "label": "Размер привязки к сетке",
+                "description": "Размер привязки к сетке."
+            },
+            "viewportExportPadding": {
+                "label": "Отступы экспорта PNG области просмотра",
+                "description": "Размер отступов для экспорта PNG области просмотра."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Шаблон запуска",
+                "description": "Установить шаблон цепочки для использования по умолчанию при запуске chaiNNer.",
+                "placeholder": "Выберите файл...",
+                "clear": "Очистить",
+                "pickFile": "Выбрать файл шаблона запуска"
+            },
+            "selectChain": "Выбрать цепочку"
+        },
+        "python": {
+            "general": "Общие",
+            "useSystemPython": {
+                "label": "Использовать системный Python (требует перезапуска)",
+                "description": "Использовать системный Python для обработки chaiNNer вместо встроенного Python (не рекомендуется)"
+            },
+            "systemPythonLocation": {
+                "label": "Расположение системного Python (необязательно)",
+                "description": "При желании используйте конкретный исполняемый файл python вместо стандартного, вызываемого 'python3' или 'python'. Это полезно, если у вас установлено несколько версий python и вы хотите выбрать конкретную.",
+                "placeholder": "Выберите файл...",
+                "clear": "Очистить",
+                "pickFile": "Выбрать расположение системного python"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Проверять обновления при запуске",
+                "description": "Включает проверку обновлений при запуске."
+            },
+            "experimentalFeatures": {
+                "label": "Включить экспериментальные функции",
+                "description": "Включить экспериментальные функции, чтобы попробовать их до завершения разработки."
+            },
+            "hardwareAcceleration": {
+                "label": "Включить аппаратное ускорение (требует перезапуска)",
+                "description": "Включить GPU-рендеринг для GUI. Используйте с осторожностью, так как это может значительно снизить производительность GPU для обработки изображений."
+            },
+            "allowMultipleInstances": {
+                "label": "Разрешить несколько одновременных экземпляров",
+                "description": "Включить несколько одновременных экземпляров chaiNNer. Это не рекомендуется, но если ваша цепочка не использует достаточно системных ресурсов, это может быть полезно для параллельного выполнения задач."
+            }
+        },
+        "noOptionsFound": "Опции не найдены.",
+        "clearCache": "Очистить кэш"
+    },
+    "setup": {
+        "checkingPort": "Проверка доступного порта...",
+        "checkingPython": "Проверка системного окружения на наличие действительного Python...",
+        "downloadingPython": "Загрузка встроенного Python...",
+        "extractingPython": "Извлечение загруженных файлов...",
+        "loading": "Загрузка...",
+        "startingBackend": "Запуск процесса бэкенда..."
+    },
+    "typeTags": {
+        "optional": "необязательно"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Случайное семя",
+            "randomSeedAria": "Случайное семя"
+        }
+    },
+    "logo": {
+        "background": "фон",
+        "front": "передний план"
+    },
+    "timer": {
+        "executionTook": "Выполнение заняло приблизительно {{duration}}.",
+        "hour_one": "час",
+        "hour_other": "часов",
+        "minute_one": "минута",
+        "minute_other": "минут",
+        "second_one": "секунда",
+        "second_other": "секунд"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "Значения {{inputs}} в настоящее время связаны с одним и тем же значением. Нажмите здесь, чтобы отменить эту связь.",
+        "clickToLink": "Нажмите здесь, чтобы связать {{inputs}} с одним и тем же значением."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "Поиск...",
+        "missingNodes": "Отсутствуют узлы? Нажмите, чтобы открыть менеджер зависимостей!",
+        "noCompatibleNodes": "Совместимые узлы не найдены."
+    },
+    "favorites": {
+        "title": "Избранное",
+        "noFavorites": "Нет избранного.",
+        "addFavoritesTooltip": "Добавляйте в избранное, щелкая правой кнопкой мыши по узлам и выбирая 'Добавить в избранное'.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Добавляйте в избранное, наводя курсор на узлы и нажимая на",
+            "afterIcon": "иконку, или щелкая правой кнопкой мыши и выбирая 'Добавить в избранное'."
+        },
+        "addToFavorites": "Добавить в избранное",
+        "removeFromFavorites": "Удалить из избранного"
+    },
+    "documentation": {
+        "title": "Документация узла",
+        "openDocumentation": "Открыть документацию"
+    },
+    "dependencyManager": {
+        "title": "Менеджер зависимостей",
+        "manageDependencies": "Управление зависимостями",
+        "updatesAvailable": "Доступны обновления",
+        "updatesAvailableDescription_one": "Есть {{count}} пакет с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_other": "Есть {{count}} пакетов с доступными обновлениями зависимостей.",
+        "openDependencyManager": "Открыть менеджер зависимостей",
+        "packages": "Пакеты",
+        "features": "Функции",
+        "refresh": "Обновить",
+        "install": "Установить",
+        "update": "Обновить",
+        "uninstall": "Удалить",
+        "close": "Закрыть",
+        "missing": "Отсутствует",
+        "outdated": "Устарел",
+        "unavailable": "Недоступен",
+        "enabled": "Включен",
+        "disabled": "Отключен",
+        "python": "Python",
+        "system": "Система",
+        "integrated": "Встроенный",
+        "advanced": "Дополнительно",
+        "installationMode": "Режим установки",
+        "normal": "Обычный",
+        "manualCopy": "Ручной/Копирование",
+        "consoleOutput": "Вывод консоли:",
+        "commandCopied": "Команда скопирована в буфер обмена",
+        "commandCopiedDescription": "Откройте внешний терминал, вставьте команду и выполните её. После завершения вручную перезапустите chaiNNer.",
+        "uninstallTitle": "Удаление",
+        "uninstallMessage": "Вы уверены, что хотите удалить {{name}}?",
+        "unsavedChanges": "Несохраненные изменения",
+        "unsavedChangesMessage": "Вы можете потерять несохраненные изменения при удалении {{name}}.\n\nВы уверены, что хотите удалить {{name}}?",
+        "cancel": "Отмена",
+        "installing": "Установка {{name}}...",
+        "uninstalling": "Удаление {{name}}...",
+        "copyPythonPath": "Копировать путь Python в буфер обмена",
+        "pythonPath": "Путь Python:",
+        "installAllPackages": "{{operations}} Все пакеты ({{size}})",
+        "package_one": "пакет",
+        "package_other": "пакетов",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Режим редактирования",
+        "editContent": "Редактировать содержимое",
+        "markdownMode": "Режим Markdown",
+        "viewMarkdown": "Просмотр Markdown"
+    },
+    "node": {
+        "disableHint": "Подсказка: Используйте Ctrl+Click для переключения между опциями.",
+        "note": {
+            "placeholder": "Текст заметки"
+        },
+        "implementationError": "Ошибка реализации",
+        "implementationErrorMessage": "Не удалось определить ключевую информацию для узла {{nodeName}} ({{schemaId}}).",
+        "enable": "Включить",
+        "disable": "Отключить",
+        "skip": "Пропустить",
+        "eta": "Ожидаемое время:",
+        "outdated": "Устарел"
+    },
+    "color": {
+        "resetToOld": "Сбросить к старому цвету",
+        "acceptNew": "Принять новый цвет"
+    },
+    "support": {
+        "koFiTooltip": "Поддержать chaiNNer на Ko-fi",
+        "koFiAria": "Поддержать chaiNNer",
+        "koFiButton": "Поддержать chaiNNer"
+    },
+    "edge": {
+        "removeEdge": "Кнопка удаления связи"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Удалить точку останова",
+        "removeEdge": "Удалить связь"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Дважды щелкните или перетащите, чтобы добавить узлы на холст.",
+        "collapseExpandCategories": "Свернуть/Развернуть категории"
+    },
+    "nodeMenu": {
+        "copy": "Копировать",
+        "duplicate": "Дублировать",
+        "resetNode": "Сбросить узел",
+        "resetInputs": "Сбросить входы",
+        "resetConnections": "Сбросить соединения",
+        "resetAll": "Сбросить все",
+        "enable": "Включить",
+        "disable": "Отключить",
+        "skip": "Пропустить",
+        "unlock": "Разблокировать",
+        "lock": "Заблокировать",
+        "refreshPreview": "Обновить предварительный просмотр",
+        "delete": "Удалить",
+        "openDocumentation": "Открыть документацию"
+    },
+    "nodesMenu": {
+        "copy": "Копировать",
+        "duplicate": "Дублировать",
+        "resetNodes": "Сбросить узлы",
+        "resetInputs": "Сбросить входы",
+        "resetConnections": "Сбросить соединения",
+        "resetAll": "Сбросить все",
+        "enableAll": "Включить все",
+        "disableAll": "Отключить все",
+        "delete": "Удалить"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Добавить точку останова",
+        "delete": "Удалить"
+    },
+    "nodeSelector": {
+        "favorites": "Избранное",
+        "missingDependencies": "Отсутствуют зависимости.",
+        "unableToImport": "Не удалось импортировать узел(ы).",
+        "clickToInstall": "Нажмите, чтобы открыть менеджер зависимостей для установки {{packageName}}.",
+        "criticalImportError": "Произошла критическая ошибка импорта с зависимостью в пакете: {{packageName}}.",
+        "nodes": "Узлы"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "является",
+            "isNot": "не является",
+            "oneOf": "одним из",
+            "ofType": "типа",
+            "allOf": "Все",
+            "atLeastOneOf": "По крайней мере один из",
+            "followingConditions": "должны быть выполнены следующие условия:",
+            "condition": "Условие:"
+        },
+        "nodeDocs": {
+            "optional": "необязательно",
+            "sequenced": "(Последовательный)",
+            "supportedFileTypes": "Поддерживаемые типы файлов:",
+            "primaryInputDescription": "Этот вход является основным входом для поддерживаемых типов файлов. Это означает, что вы можете перетаскивать поддерживаемые файлы в chaiNNer, и он автоматически создаст узел с заполненным этим входом.",
+            "options": "Опции:",
+            "type": "Тип:",
+            "inputs": "Входы",
+            "noInputs": "У этого узла нет входов.",
+            "outputs": "Выходы",
+            "noOutputs": "У этого узла нет выходов.",
+            "seeAlso": "См. также",
+            "character_one": "символ",
+            "character_other": "символов"
+        },
+        "nodesList": {
+            "noNodesFound": "Узлы не найдены"
+        }
+    }
+}

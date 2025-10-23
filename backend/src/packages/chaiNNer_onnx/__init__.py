@@ -1,7 +1,6 @@
-from sanic.log import logger
-
 from api import KB, MB, Dependency, add_package
 from gpu import nvidia
+from logger import logger
 from system import is_arm_mac, is_windows
 
 general = "ONNX uses .onnx models to upscale images."
@@ -34,6 +33,7 @@ def get_onnx_runtime():
             pypi_name="onnxruntime-directml",
             version="1.17.1",
             size_estimate=15 * MB,
+            import_name="onnxruntime",
         )
     else:
         return Dependency(
@@ -84,4 +84,4 @@ onnx_category = package.add_category(
 )
 
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

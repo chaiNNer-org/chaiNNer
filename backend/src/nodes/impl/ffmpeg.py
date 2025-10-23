@@ -7,8 +7,8 @@ from pathlib import Path
 from subprocess import check_call
 
 import requests
-from sanic.log import logger
 
+from logger import logger
 from system import is_arm_mac, is_linux, is_mac, is_windows
 
 
@@ -62,7 +62,7 @@ def setup_integrated_ffmpeg(base_dir: Path):
             check_call(["xattr", "-dr", "com.apple.quarantine", str(ffmpeg_path)])
             check_call(["xattr", "-dr", "com.apple.quarantine", str(ffprobe_path)])
         except Exception as e:
-            logger.warn(f"Failed to un-quarantine ffmpeg: {e}")
+            logger.warning("Failed to un-quarantine ffmpeg: %s", e)
 
     if is_arm_mac:
         # M1 can only run signed files, we must ad-hoc sign it
@@ -72,7 +72,7 @@ def setup_integrated_ffmpeg(base_dir: Path):
             check_call(["codesign", "-s", "-", str(ffmpeg_path)])
             check_call(["codesign", "-s", "-", str(ffprobe_path)])
         except Exception as e:
-            logger.warn(f"Failed to sign ffmpeg: {e}")
+            logger.warning("Failed to sign ffmpeg: %s", e)
 
     if is_mac or is_linux:
         # Make the files executable
@@ -80,7 +80,7 @@ def setup_integrated_ffmpeg(base_dir: Path):
             ffmpeg_path.chmod(0o7777)
             ffprobe_path.chmod(0o7777)
         except Exception as e:
-            logger.warn(f"Failed to set permissions for ffmpeg: {e}")
+            logger.warning("Failed to set permissions for ffmpeg: %s", e)
 
 
 _setup_future: Future[None] | None = None
@@ -95,8 +95,8 @@ def run_setup(base_dir: Path):
             setup_integrated_ffmpeg(base_dir)
             return
         except Exception as e:
-            logger.warn(f"Failed to setup FFMPEG: {e}")
-            logger.warn("Trying again...")
+            logger.warning("Failed to setup FFMPEG: %s", e)
+            logger.warning("Trying again...")
 
         setup_integrated_ffmpeg(base_dir)
 
@@ -131,7 +131,7 @@ class FFMpegEnv:
         ffmpeg_path, ffprobe_path = get_executable_path(base_dir)
 
         if not ffmpeg_path.exists():
-            logger.info(f"Integrated FFMPEG not found at {ffmpeg_path}")
+            logger.info("Integrated FFMPEG not found at %s", ffmpeg_path)
             run_setup(base_dir)
 
         return FFMpegEnv(

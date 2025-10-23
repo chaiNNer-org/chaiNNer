@@ -1,6 +1,7 @@
 import { ChevronRightIcon, CloseIcon, CopyIcon, DeleteIcon } from '@chakra-ui/icons';
 import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
 import { Node, useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -12,6 +13,7 @@ import { UseContextMenu, useContextMenu } from './useContextMenu';
 import './useNodeMenu.scss';
 
 export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
+    const { t } = useTranslation();
     const { removeNodesById, resetInputs, resetConnections, duplicateNodes, setNodeDisabled } =
         useContext(GlobalContext);
 
@@ -29,7 +31,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     copyToClipboard(getNodes(), getEdges());
                 }}
             >
-                Copy
+                {t('nodesMenu.copy', 'Copy')}
             </MenuItem>
             <MenuItem
                 icon={<CopyIcon />}
@@ -37,7 +39,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     duplicateNodes(nodeIds);
                 }}
             >
-                Duplicate
+                {t('nodesMenu.duplicate', 'Duplicate')}
             </MenuItem>
             <MenuDivider />
             <MenuItem
@@ -48,7 +50,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                 ref={resetMenuParentRef}
             >
                 <HStack>
-                    <Text>Reset Nodes</Text>
+                    <Text>{t('nodesMenu.resetNodes', 'Reset Nodes')}</Text>
                     <Spacer />
                     <ChevronRightIcon />
                 </HStack>
@@ -67,7 +69,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                             resetInputs(nodeIds);
                         }}
                     >
-                        Reset Inputs
+                        {t('nodesMenu.resetInputs', 'Reset Inputs')}
                     </MenuItem>
                     <MenuItem
                         icon={<CloseIcon />}
@@ -75,7 +77,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                             resetConnections(nodeIds);
                         }}
                     >
-                        Reset Connections
+                        {t('nodesMenu.resetConnections', 'Reset Connections')}
                     </MenuItem>
                     <MenuItem
                         icon={<CloseIcon />}
@@ -84,7 +86,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                             resetConnections(nodeIds);
                         }}
                     >
-                        Reset All
+                        {t('nodesMenu.resetAll', 'Reset All')}
                     </MenuItem>
                 </MenuList>
             </div>
@@ -98,7 +100,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     }
                 }}
             >
-                Enable All
+                {t('nodesMenu.enableAll', 'Enable All')}
             </MenuItem>
             <MenuItem
                 icon={<MdPlayDisabled />}
@@ -109,7 +111,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     }
                 }}
             >
-                Disable All
+                {t('nodesMenu.disableAll', 'Disable All')}
             </MenuItem>
             <MenuDivider />
             <MenuItem
@@ -118,7 +120,7 @@ export const useNodesMenu = (nodes: Node<NodeData>[]): UseContextMenu => {
                     removeNodesById(nodeIds);
                 }}
             >
-                Delete
+                {t('nodesMenu.delete', 'Delete')}
             </MenuItem>
         </MenuList>
     ));

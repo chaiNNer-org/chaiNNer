@@ -1,12 +1,14 @@
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons';
 import { MenuItem, MenuList } from '@chakra-ui/react';
 import { MouseEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { GlobalContext } from '../contexts/GlobalNodeState';
 import { UseContextMenu, useContextMenu } from './useContextMenu';
 
 export const useEdgeMenu = (id: string): UseContextMenu => {
+    const { t } = useTranslation();
     const { removeEdgeById, addEdgeBreakpoint } = useContext(GlobalContext);
     const { screenToFlowPosition } = useReactFlow();
 
@@ -23,7 +25,7 @@ export const useEdgeMenu = (id: string): UseContextMenu => {
                         addEdgeBreakpoint(id, adjustedPosition);
                     }}
                 >
-                    Add Breakpoint
+                    {t('edgeMenu.addBreakpoint', 'Add Breakpoint')}
                 </MenuItem>
                 <MenuItem
                     icon={<DeleteIcon />}
@@ -31,7 +33,7 @@ export const useEdgeMenu = (id: string): UseContextMenu => {
                         removeEdgeById(id);
                     }}
                 >
-                    Delete
+                    {t('edgeMenu.delete', 'Delete')}
                 </MenuItem>
             </MenuList>
         );
