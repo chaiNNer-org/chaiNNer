@@ -2,5 +2,6 @@ ruff==0.4.0
 debugpy
 pyright==1.1.338
 pytest
+pytest-asyncio
 appdirs==1.4.4
 viztracer
