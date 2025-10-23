@@ -4,8 +4,8 @@ import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
 import it from './locales/it.json';
-import pt from './locales/pt.json';
 import ja from './locales/ja.json';
+import pt from './locales/pt.json';
 import zhCN from './locales/zh-CN.json';
 
 const resources = {
