@@ -9,7 +9,9 @@
   "scripts": {
     "start": "electron-forge start -- --devtools",
     "frontend": "electron-forge start -- --remote-backend=http://127.0.0.1:8000 --devtools",
+    "frontend:web": "vite --config vite.config.web.ts",
     "dev": "concurrently \"npm run dev:py\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
+    "dev:web": "concurrently \"npm run dev:py\" \"npm run frontend:web\"",
     "dev:reload": "concurrently \"npm run dev:py\" \"cross-env HOT_RESTART=1 electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
     "dev:profile": "concurrently \"npm run dev:py:profile\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
     "dev:py": "cd backend/src && cross-env CHECK_LEVEL=fix nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000",
