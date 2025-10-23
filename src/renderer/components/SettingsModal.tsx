@@ -152,7 +152,10 @@ const AppearanceSettings = memo(() => {
                         { label: t('languages.turkish', 'Türkçe'), value: 'tr' },
                         { label: t('languages.arabic', 'العربية'), value: 'ar' },
                         { label: t('languages.hindi', 'हिन्दी'), value: 'hi' },
-                        { label: t('languages.brazilianPortuguese', 'Português (Brasil)'), value: 'pt-BR' },
+                        {
+                            label: t('languages.brazilianPortuguese', 'Português (Brasil)'),
+                            value: 'pt-BR',
+                        },
                     ],
                     small: true,
                 }}
