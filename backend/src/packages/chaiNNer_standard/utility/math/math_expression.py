@@ -134,7 +134,9 @@ class SafeMathEvaluator:
             multiline=False,
             min_length=1,
         ).with_id(0),
-        NumberInput("a", min=None, max=None, precision="unlimited", step=1).with_id(1),
+        NumberInput("a", min=None, max=None, precision="unlimited", step=1)
+        .with_id(1)
+        .make_optional(),
         NumberInput("b", min=None, max=None, precision="unlimited", step=1)
         .with_id(2)
         .make_optional(),
