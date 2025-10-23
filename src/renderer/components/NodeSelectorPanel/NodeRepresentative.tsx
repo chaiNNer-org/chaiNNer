@@ -12,6 +12,7 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { DragEvent, memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { useReactFlow } from 'reactflow';
 import { useContext } from 'use-context-selector';
@@ -79,6 +80,7 @@ const NodeRepresentative = memo(
         toggleFavorite,
         openNodeDocumentation,
     }: NodeRepresentativeProps) => {
+        const { t } = useTranslation();
         const { featureStates, categories } = useContext(BackendContext);
 
         const { isOpen, onOpen, onClose } = useDisclosure();
@@ -101,7 +103,9 @@ const NodeRepresentative = memo(
                         toggleFavorite(node.schemaId);
                     }}
                 >
-                    {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
+                    {isFavorite
+                        ? t('favorites.removeFromFavorites', 'Remove from Favorites')
+                        : t('favorites.addToFavorites', 'Add to Favorites')}
                 </MenuItem>
                 <MenuItem
                     icon={<BsFillJournalBookmarkFill />}
@@ -109,7 +113,7 @@ const NodeRepresentative = memo(
                         openNodeDocumentation(node.schemaId);
                     }}
                 >
-                    Open Documentation
+                    {t('documentation.openDocumentation', 'Open Documentation')}
                 </MenuItem>
             </MenuList>
         ));
@@ -140,7 +144,10 @@ const NodeRepresentative = memo(
                     hasArrow
                     borderRadius={8}
                     isOpen={isOpen}
-                    label="Either double-click or drag and drop to add nodes to the canvas."
+                    label={t(
+                        'tooltips.addNodesToCanvas',
+                        'Either double-click or drag and drop to add nodes to the canvas.'
+                    )}
                     placement="top"
                     px={2}
                     py={1}
@@ -255,7 +262,7 @@ const NodeRepresentative = memo(
                                                 color: isFavorite ? 'yellow.500' : bgColor,
                                                 transition: '0.15s ease-in-out',
                                             }}
-                                            aria-label="Favorites"
+                                            aria-label={t('favorites.title', 'Favorites')}
                                             color={isFavorite ? 'gray.500' : bgColor}
                                             mr={2}
                                             opacity={isFavorite ? '100%' : '0%'}
@@ -278,17 +285,18 @@ const NodeRepresentative = memo(
                 </Tooltip>
             );
         }, [
-            collapsed,
-            isDisabled,
-            isOpen,
             node,
-            onClose,
-            onContextMenu,
-            onCreateNode,
-            unavailableReason,
-            toggleFavorite,
-            isFavorite,
             accentColor,
+            isOpen,
+            t,
+            onClose,
+            isDisabled,
+            onContextMenu,
+            collapsed,
+            unavailableReason,
+            isFavorite,
+            onCreateNode,
+            toggleFavorite,
         ]);
     }
 );

@@ -1,10 +1,12 @@
 import { Box, IconButton, Tooltip } from '@chakra-ui/react';
 import { memo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HiOutlineRefresh } from 'react-icons/hi';
 import { SchemaInput } from '../inputs/SchemaInput';
 import { GroupProps } from './props';
 
 export const SeedGroup = memo(({ inputs, nodeState }: GroupProps<'seed'>) => {
+    const { t } = useTranslation();
     const { setInputValue, isLocked, connectedInputs } = nodeState;
 
     const [input] = inputs;
@@ -28,11 +30,11 @@ export const SeedGroup = memo(({ inputs, nodeState }: GroupProps<'seed'>) => {
                         closeOnPointerDown
                         hasArrow
                         borderRadius={8}
-                        label="Random seed"
+                        label={t('groups.seed.randomSeed', 'Random seed')}
                         openDelay={500}
                     >
                         <IconButton
-                            aria-label="Random Seed"
+                            aria-label={t('groups.seed.randomSeedAria', 'Random Seed')}
                             className="nodrag"
                             h="2rem"
                             icon={<HiOutlineRefresh />}
