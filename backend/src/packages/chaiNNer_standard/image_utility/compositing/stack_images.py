@@ -207,19 +207,19 @@ def stack_images_node(
 
     if orientation == Orientation.HORIZONTAL:
         for i in range(len(fixed_imgs)):
-            assert fixed_imgs[i].shape[0] == fixed_imgs[0].shape[0], (
-                "Inputted heights are not the same and could not be auto-fixed"
-            )
-            assert fixed_imgs[i].dtype == fixed_imgs[0].dtype, (
-                "The image types are not the same and could not be auto-fixed"
-            )
+            assert (
+                fixed_imgs[i].shape[0] == fixed_imgs[0].shape[0]
+            ), "Inputted heights are not the same and could not be auto-fixed"
+            assert (
+                fixed_imgs[i].dtype == fixed_imgs[0].dtype
+            ), "The image types are not the same and could not be auto-fixed"
         return cv2.hconcat(fixed_imgs)
     elif orientation == Orientation.VERTICAL:
         for i in range(len(fixed_imgs)):
-            assert fixed_imgs[i].shape[1] == fixed_imgs[0].shape[1], (
-                "Inputted widths are not the same and could not be auto-fixed"
-            )
-            assert fixed_imgs[i].dtype == fixed_imgs[0].dtype, (
-                "The image types are not the same and could not be auto-fixed"
-            )
+            assert (
+                fixed_imgs[i].shape[1] == fixed_imgs[0].shape[1]
+            ), "Inputted widths are not the same and could not be auto-fixed"
+            assert (
+                fixed_imgs[i].dtype == fixed_imgs[0].dtype
+            ), "The image types are not the same and could not be auto-fixed"
         return cv2.vconcat(fixed_imgs)

@@ -183,16 +183,16 @@ def upscale_node(
 
     if mode == UpscalerMode.SCALE_TO:
         if crop:
-            assert (rw, rh) == (width, height), (
-                f"Expected the returned image to be {width}x{height}px but found {rw}x{rh}px instead "
-            )
+            assert (
+                (rw, rh) == (width, height)
+            ), f"Expected the returned image to be {width}x{height}px but found {rw}x{rh}px instead "
         else:
-            assert (rw, rh) == (int(iw * larger_ratio), int(ih * larger_ratio)), (
-                f"Expected the returned image to be {width}x{height}px but found {rw}x{rh}px instead "
-            )
+            assert (
+                (rw, rh) == (int(iw * larger_ratio), int(ih * larger_ratio))
+            ), f"Expected the returned image to be {width}x{height}px but found {rw}x{rh}px instead "
     else:
-        assert (rw, rh) == (int(iw * upscaling_resize), int(ih * upscaling_resize)), (
-            f"Expected the returned image to be {width}x{height}px but found {rw}x{rh}px instead "
-        )
+        assert (
+            (rw, rh) == (int(iw * upscaling_resize), int(ih * upscaling_resize))
+        ), f"Expected the returned image to be {width}x{height}px but found {rw}x{rh}px instead "
 
     return result

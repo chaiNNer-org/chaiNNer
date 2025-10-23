@@ -172,9 +172,9 @@ class Writer:
         if self.out is None:
             # Verify some parameters
             if self.encoder in (VideoEncoder.H264, VideoEncoder.H265):
-                assert height % 2 == 0 and width % 2 == 0, (
-                    f'The "{self.encoder.value}" encoder requires an even-number frame resolution.'
-                )
+                assert (
+                    height % 2 == 0 and width % 2 == 0
+                ), f'The "{self.encoder.value}" encoder requires an even-number frame resolution.'
 
             try:
                 self.out = (

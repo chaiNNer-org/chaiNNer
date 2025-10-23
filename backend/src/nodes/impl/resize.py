@@ -58,7 +58,7 @@ def resize(
     new_memory = new_w * new_h * c * 4
     if new_memory > MAX_MEMORY:
         raise RuntimeError(
-            f"Resize would require {round(new_memory / GB, 3)} GB of memory, but only {MAX_MEMORY // GB} GB are allowed."
+            f"Resize would require {round(new_memory / GB, 3)} GB of memory, but only {MAX_MEMORY//GB} GB are allowed."
         )
 
     if filter == ResizeFilter.AUTO:

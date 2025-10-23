@@ -109,9 +109,9 @@ def inpaint_node(
     mask: np.ndarray,
     model: MaskedImageModelDescriptor,
 ) -> np.ndarray:
-    assert img.shape[:2] == mask.shape[:2], (
-        "Input image and mask must have the same resolution"
-    )
+    assert (
+        img.shape[:2] == mask.shape[:2]
+    ), "Input image and mask must have the same resolution"
 
     exec_options = get_settings(context)
     context.add_cleanup(

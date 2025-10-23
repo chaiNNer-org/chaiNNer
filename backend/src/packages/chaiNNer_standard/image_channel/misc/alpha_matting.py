@@ -61,9 +61,9 @@ def alpha_matting_node(
     fg_threshold: int,
     bg_threshold: int,
 ) -> np.ndarray:
-    assert fg_threshold > bg_threshold, (
-        "The foreground threshold must be greater than the background threshold."
-    )
+    assert (
+        fg_threshold > bg_threshold
+    ), "The foreground threshold must be greater than the background threshold."
 
     h, w, c = get_h_w_c(img)
     assert (h, w) == trimap.shape[:2], "The image and trimap must have the same size."

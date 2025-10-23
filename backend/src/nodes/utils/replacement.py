@@ -70,7 +70,7 @@ class ReplacementString:
                 raise ValueError(
                     "Unknown replacement."
                     f" There is no replacement with the name or id {token.name}."
-                    f" Available replacements: {', '.join(replacements.keys())}."
+                    f" Available replacements: {', '.join(replacements.keys()) }."
                 )
 
         return result

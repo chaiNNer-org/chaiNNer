@@ -64,13 +64,13 @@ def z_stack_images_node(
     *inputs: np.ndarray | None,
 ) -> np.ndarray:
     images = [x for x in inputs if x is not None]
-    assert 2 <= len(images) <= 15, (
-        f"Number of images must be between 2 and 15 ({len(images)})"
-    )
+    assert (
+        2 <= len(images) <= 15
+    ), f"Number of images must be between 2 and 15 ({len(images)})"
 
-    assert all(get_h_w_c(image) == get_h_w_c(images[0]) for image in images), (
-        "All images must have the same dimensions and channels"
-    )
+    assert all(
+        get_h_w_c(image) == get_h_w_c(images[0]) for image in images
+    ), "All images must have the same dimensions and channels"
 
     if expression == Expression.MEAN:
         result = np.mean(images, axis=0)

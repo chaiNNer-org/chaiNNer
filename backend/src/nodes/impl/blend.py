@@ -198,9 +198,9 @@ def blend_images(overlay: np.ndarray, base: np.ndarray, blend_mode: BlendMode):
     o_shape = get_h_w_c(overlay)
     b_shape = get_h_w_c(base)
 
-    assert o_shape[:2] == b_shape[:2], (
-        "The overlay and the base image must have the same size"
-    )
+    assert (
+        o_shape[:2] == b_shape[:2]
+    ), "The overlay and the base image must have the same size"
 
     def assert_sane(c: int, name: str):
         sane = c in (1, 3, 4)

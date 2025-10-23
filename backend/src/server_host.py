@@ -368,7 +368,7 @@ async def setup_sse(request: Request):
         try:
             message = await ctx.setup_queue.get()
             await response.send(
-                f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
+                f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
             )
         except Exception:
             break
