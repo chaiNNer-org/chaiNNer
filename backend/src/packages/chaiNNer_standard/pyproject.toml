@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chainner-standard"
+version = "0.1.0"
+description = "Standard nodes package for chaiNNer"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "GPLv3"}
+authors = [
+    {name = "chaiNNer-org"}
+]
+
+dependencies = [
+    "numpy==1.24.4",
+    "opencv-python==4.8.0.76",
+    "Pillow==9.2.0",
+    "pillow-avif-plugin==1.4.3",
+    "ffmpeg-python==0.2.0",
+    "requests==2.28.2",
+    "google-re2==1.0",
+    "scipy==1.9.3",
+    "wcmatch==8.4.1",
+    "numba==0.57.1",
+    "PyMatting==1.1.10",
+    "chainner_ext==0.3.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4.0",
+]
+
+[tool.setuptools]
+packages = ["chainner_standard"]
+
+[tool.setuptools.package-data]
+chainner_standard = ["*.json", "**/*.json"]

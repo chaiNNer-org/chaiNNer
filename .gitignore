@@ -247,3 +247,10 @@ backend/traces
 
 # Compiled node schemas (generated files)
 backend/src/node_schemas/
+
+# Python package builds
+backend/dist/
+backend/src/packages/*/dist/
+backend/src/packages/*/build/
+backend/src/packages/*/*.egg-info/
+backend/src/packages/*/chainner_*/schema.json

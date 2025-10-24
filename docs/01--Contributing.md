@@ -38,6 +38,7 @@ The following commands will only work after you have installed the dependencies 
 -   `npm run test` - Runs the tests.
 -   `npm run test:update` - Runs the tests and updates any outdated snapshots.
 -   `npm run compile-nodes` - Compiles node schemas to JSON files. This should be run after adding or modifying nodes to ensure documentation is available even when dependencies are missing. See [backend/src/NODE_COMPILATION.md](../backend/src/NODE_COMPILATION.md) for more details.
+-   `npm run build-packages` - Builds chaiNNer packages as standalone Python packages. This creates distributable wheel files for each package. See [backend/src/PYTHON_PACKAGES.md](../backend/src/PYTHON_PACKAGES.md) for more details.
 
 ## Project structure
 
