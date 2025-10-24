@@ -147,6 +147,9 @@ async def nodes(_request: Request):
     logger.debug(api.registry.categories)
 
     node_list = []
+    loaded_schema_ids = set()
+
+    # First, add all successfully loaded nodes
     for node, sub in api.registry.nodes.values():
         node_dict = {
             "schemaId": node.schema_id,
@@ -171,6 +174,33 @@ async def nodes(_request: Request):
             "features": node.features,
         }
         node_list.append(node_dict)
+        loaded_schema_ids.add(node.schema_id)
+
+    # Then, add any compiled schemas for nodes that didn't load successfully
+    # This allows documentation and UI display even when dependencies are missing
+    for schema_id, schema in api.registry.compiled_schemas.items():
+        if schema_id not in loaded_schema_ids:
+            node_dict = {
+                "schemaId": schema.schema_id,
+                "name": schema.name,
+                "category": schema.category_id,
+                "nodeGroup": schema.node_group_id,
+                "inputs": schema.inputs,
+                "outputs": schema.outputs,
+                "groupLayout": schema.group_layout,
+                "iteratorInputs": schema.iterator_inputs,
+                "iteratorOutputs": schema.iterator_outputs,
+                "keyInfo": schema.key_info,
+                "suggestions": schema.suggestions,
+                "description": schema.description,
+                "seeAlso": schema.see_also,
+                "icon": schema.icon,
+                "kind": schema.kind,
+                "hasSideEffects": schema.has_side_effects,
+                "deprecated": schema.deprecated,
+                "features": schema.features,
+            }
+            node_list.append(node_dict)
 
     return json(
         {
@@ -575,6 +605,9 @@ async def import_packages(
     importlib.import_module("packages.chaiNNer_external")
 
     logger.info("Loading Nodes...")
+
+    # Load pre-compiled schemas first (for nodes that may fail to import)
+    api.registry.load_compiled_schemas()
 
     load_errors = api.registry.load_nodes(__file__)
     if len(load_errors) > 0:

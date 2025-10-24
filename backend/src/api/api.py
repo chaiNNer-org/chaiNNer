@@ -416,11 +416,36 @@ class LoadErrorInfo:
     error: Exception
 
 
+@dataclass
+class CompiledNodeSchema:
+    """Represents a compiled node schema loaded from JSON"""
+
+    schema_id: str
+    name: str
+    category_id: str
+    node_group_id: str
+    inputs: list[dict[str, Any]]
+    outputs: list[dict[str, Any]]
+    group_layout: list[Any]
+    iterator_inputs: list[dict[str, Any]]
+    iterator_outputs: list[dict[str, Any]]
+    key_info: dict[str, Any] | None
+    suggestions: list[dict[str, Any]]
+    description: str
+    see_also: list[str]
+    icon: str
+    kind: str
+    has_side_effects: bool
+    deprecated: bool
+    features: list[str]
+
+
 class PackageRegistry:
     def __init__(self) -> None:
         self.packages: dict[str, Package] = {}
         self.categories: list[Category] = []
         self.nodes: dict[str, tuple[NodeData, NodeGroup]] = {}
+        self.compiled_schemas: dict[str, CompiledNodeSchema] = {}
 
     def get_node(self, schema_id: str) -> NodeData:
         return self.nodes[schema_id][0]
@@ -475,6 +500,71 @@ class PackageRegistry:
                             # print warning
                             pass
                         self.nodes[node.schema_id] = node, sub
+
+    def load_compiled_schemas(self, schema_dir: str | None = None) -> int:
+        """
+        Load pre-compiled node schemas from JSON files.
+
+        This is useful for providing metadata about nodes that failed to import
+        due to missing dependencies or other errors.
+
+        Returns the number of schemas loaded.
+        """
+        import json
+        from pathlib import Path
+
+        if schema_dir is None:
+            # Default to node_schemas directory relative to this file
+            schema_dir = os.path.join(os.path.dirname(__file__), "..", "node_schemas")
+
+        schema_path = Path(schema_dir)
+        if not schema_path.exists():
+            logger.debug("Compiled schema directory not found: %s", schema_path)
+            return 0
+
+        count = 0
+        for json_file in schema_path.glob("*.json"):
+            try:
+                with open(json_file, encoding="utf-8") as f:
+                    data = json.load(f)
+
+                # Load each node schema
+                for node_data in data.get("nodes", []):
+                    schema = CompiledNodeSchema(
+                        schema_id=node_data["schemaId"],
+                        name=node_data["name"],
+                        category_id=node_data["category"],
+                        node_group_id=node_data["nodeGroup"],
+                        inputs=node_data["inputs"],
+                        outputs=node_data["outputs"],
+                        group_layout=node_data["groupLayout"],
+                        iterator_inputs=node_data["iteratorInputs"],
+                        iterator_outputs=node_data["iteratorOutputs"],
+                        key_info=node_data["keyInfo"],
+                        suggestions=node_data["suggestions"],
+                        description=node_data["description"],
+                        see_also=node_data["seeAlso"],
+                        icon=node_data["icon"],
+                        kind=node_data["kind"],
+                        has_side_effects=node_data["hasSideEffects"],
+                        deprecated=node_data["deprecated"],
+                        features=node_data["features"],
+                    )
+                    self.compiled_schemas[schema.schema_id] = schema
+                    count += 1
+
+                logger.debug(
+                    "Loaded %d schemas from %s",
+                    len(data.get("nodes", [])),
+                    json_file.name,
+                )
+            except Exception as e:
+                logger.warning(
+                    "Failed to load compiled schemas from %s: %s", json_file, e
+                )
+
+        logger.info("Loaded %d compiled node schema(s)", count)
+        return count
 
 
 registry = PackageRegistry()

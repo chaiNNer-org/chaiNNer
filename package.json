@@ -32,6 +32,7 @@
     "test:py": "pytest ./backend/tests/",
     "test:update": "npm run test:js -- -u",
     "test": "npm run test:js && npm run test:py",
+    "compile-nodes": "python ./backend/src/compile_nodes.py --output-dir ./backend/src/node_schemas",
     "postinstall": "patch-package"
   },
   "keywords": [],

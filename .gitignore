@@ -244,3 +244,6 @@ dmypy.json
 
 # traces
 backend/traces
+
+# Compiled node schemas (generated files)
+backend/src/node_schemas/
