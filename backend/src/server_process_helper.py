@@ -46,8 +46,8 @@ class _WorkerProcess:
             [python_location, server_file, *flags],
             shell=False,
             stdin=None,
-            stdout=subprocess.PIPE if not dev_mode else None,
-            stderr=subprocess.PIPE if not dev_mode else subprocess.STDOUT,
+            stdout=subprocess.PIPE if not dev_mode else subprocess.PIPE,
+            stderr=subprocess.PIPE if not dev_mode else subprocess.PIPE,
             encoding="utf-8",
             env=ENV,
         )
@@ -73,12 +73,17 @@ class _WorkerProcess:
         else:
             # In dev mode, pipe worker output with [Worker] prefix
             self._stdout_thread = threading.Thread(
-                target=self._read_worker_output,
+                target=self._read_worker_stdout,
                 daemon=True,
-                name="worker output reader",
+                name="worker stdout reader",
             )
             self._stdout_thread.start()
-            self._stderr_thread = None  # type: ignore
+            self._stderr_thread = threading.Thread(
+                target=self._read_worker_stderr,
+                daemon=True,
+                name="worker stderr reader",
+            )
+            self._stderr_thread.start()
 
         atexit.register(self.close)
 
@@ -102,6 +107,7 @@ class _WorkerProcess:
             self._stderr_thread = None  # type: ignore
         else:
             self._stdout_thread = None  # type: ignore
+            self._stderr_thread = None  # type: ignore
 
     def _read_stdout(self):
         p = self._process
@@ -145,8 +151,8 @@ class _WorkerProcess:
         cause = "stop event" if stopped else "stderr ending"
         logger.debug("Stopped reading worker stderr due to %s", cause)
 
-    def _read_worker_output(self):
-        """Read and print worker output with [Worker] prefix in dev mode."""
+    def _read_worker_stdout(self):
+        """Read and print worker stdout with [Worker] prefix in dev mode."""
         p = self._process
         if p is None or p.stdout is None:
             return
@@ -156,11 +162,28 @@ class _WorkerProcess:
             stopped = self._stop_event.is_set()
             if stopped:
                 break
-            # Print worker output with [Worker] prefix
+            # Print worker stdout with [Worker] prefix
             print(f"[Worker] {line.rstrip()}", flush=True)
 
-        cause = "stop event" if stopped else "worker output ending"
-        logger.debug("Stopped reading worker output due to %s", cause)
+        cause = "stop event" if stopped else "worker stdout ending"
+        logger.debug("Stopped reading worker stdout due to %s", cause)
+
+    def _read_worker_stderr(self):
+        """Read and print worker stderr with [Worker] prefix in dev mode."""
+        p = self._process
+        if p is None or p.stderr is None:
+            return
+
+        stopped = False
+        for line in p.stderr:
+            stopped = self._stop_event.is_set()
+            if stopped:
+                break
+            # Print worker stderr with [Worker] prefix
+            print(f"[Worker] {line.rstrip()}", flush=True)
+
+        cause = "stop event" if stopped else "worker stderr ending"
+        logger.debug("Stopped reading worker stderr due to %s", cause)
 
         stopped = self._stop_event.is_set()
         if not stopped:
