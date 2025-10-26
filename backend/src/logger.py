@@ -33,9 +33,7 @@ class ColoredFormatter(logging.Formatter):
         # Add color to the levelname
         levelname = record.levelname
         if levelname in COLORS and sys.stderr.isatty():
-            colored_levelname = (
-                f"{COLORS[levelname]}{levelname}{COLORS['RESET']}"
-            )
+            colored_levelname = f"{COLORS[levelname]}{levelname}{COLORS['RESET']}"
             record.levelname = colored_levelname
 
         result = super().format(record)
@@ -141,8 +139,7 @@ def setup_logger(
         # File format includes timestamp with milliseconds for correlation
         file_formatter = logging.Formatter(
             fmt=(
-                "%(asctime)s.%(msecs)03d [%(process)d] [%(levelname)s] "
-                "%(message)s"
+                "%(asctime)s.%(msecs)03d [%(process)d] [%(levelname)s] " "%(message)s"
             ),
             datefmt="%Y-%m-%d %H:%M:%S",
         )

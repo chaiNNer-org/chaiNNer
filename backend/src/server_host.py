@@ -45,9 +45,7 @@ class AppContext:
         # Re-initialize logger with logs directory from config
         global logger
         log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
-        logger = setup_logger(
-            "host", log_dir=log_dir, dev_mode=self.config.dev_mode
-        )
+        logger = setup_logger("host", log_dir=log_dir, dev_mode=self.config.dev_mode)
 
         # flags to pass along to the worker
         worker_flags: list[str] = []

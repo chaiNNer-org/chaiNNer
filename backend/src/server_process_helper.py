@@ -189,9 +189,7 @@ class WorkerServer:
 
     async def start(self, extra_flags: Iterable[str] = []):
         logger.info("Starting worker process on port %s...", self._port)
-        self._process = _WorkerProcess(
-            [str(self._port), *self._flags, *extra_flags]
-        )
+        self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
         self._is_checking_ready = False
