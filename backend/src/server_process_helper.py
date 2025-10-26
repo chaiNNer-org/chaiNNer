@@ -46,8 +46,8 @@ class _WorkerProcess:
             [python_location, server_file, *flags],
             shell=False,
             stdin=None,
-            stdout=subprocess.PIPE if not dev_mode else subprocess.PIPE,
-            stderr=subprocess.PIPE if not dev_mode else subprocess.PIPE,
+            stdout=None if dev_mode else subprocess.PIPE,
+            stderr=None if dev_mode else subprocess.PIPE,
             encoding="utf-8",
             env=ENV,
         )
