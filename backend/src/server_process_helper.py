@@ -95,6 +95,27 @@ class _WorkerProcess:
         self._stdout_thread = None  # type: ignore
         self._stderr_thread = None  # type: ignore
 
+    def _handle_worker_termination(self, stream_name: str):
+        """Handle worker process termination when a stream ends unexpectedly.
+
+        Args:
+            stream_name: Name of the stream that ended (for logging purposes)
+        """
+        stopped = self._stop_event.is_set()
+        if not stopped:
+            # the worker ended on its own, so it likely crashed
+            p = self._process
+            if p is not None:
+                returncode = p.wait()
+                if returncode == 0:
+                    logger.info("Worker process ended normally")
+                else:
+                    logger.error(
+                        "Worker process ended with non-zero return code %s",
+                        returncode,
+                    )
+        # Note: stream_name parameter is kept for future extensibility
+
     def _read_stdout(self):
         p = self._process
         if p is None or p.stdout is None:
@@ -110,17 +131,7 @@ class _WorkerProcess:
         cause = "stop event" if stopped else "stdout ending"
         logger.debug("Stopped reading worker stdout due to %s", cause)
 
-        stopped = self._stop_event.is_set()
-        if not stopped:
-            # the worker ended on its own, so it likely crashed
-            returncode = p.wait()
-            if returncode == 0:
-                logger.info("Worker process ended normally")
-            else:
-                logger.error(
-                    "Worker process ended with non-zero return code %s",
-                    returncode,
-                )
+        self._handle_worker_termination("stdout")
 
     def _read_stderr(self):
         p = self._process
@@ -136,6 +147,8 @@ class _WorkerProcess:
 
         cause = "stop event" if stopped else "stderr ending"
         logger.debug("Stopped reading worker stderr due to %s", cause)
+
+        self._handle_worker_termination("stderr")
 
     def _read_worker_stdout(self):
         """Read and print worker stdout with [Worker] prefix in dev mode."""
@@ -154,6 +167,8 @@ class _WorkerProcess:
         cause = "stop event" if stopped else "worker stdout ending"
         logger.debug("Stopped reading worker stdout due to %s", cause)
 
+        self._handle_worker_termination("worker stdout")
+
     def _read_worker_stderr(self):
         """Read and print worker stderr with [Worker] prefix in dev mode."""
         p = self._process
@@ -171,17 +186,7 @@ class _WorkerProcess:
         cause = "stop event" if stopped else "worker stderr ending"
         logger.debug("Stopped reading worker stderr due to %s", cause)
 
-        stopped = self._stop_event.is_set()
-        if not stopped:
-            # the worker ended on its own, so it likely crashed
-            returncode = p.wait()
-            if returncode == 0:
-                logger.info("Worker process ended normally")
-            else:
-                logger.error(
-                    "Worker process ended with non-zero return code %s",
-                    returncode,
-                )
+        self._handle_worker_termination("worker stderr")
 
 
 class WorkerServer:
