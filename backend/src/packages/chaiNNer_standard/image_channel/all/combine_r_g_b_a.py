@@ -54,7 +54,7 @@ from .. import all_group
         ).with_never_reason("All input channels must have the same size.")
     ],
 )
-def combine_rgba_node(
+def combine_r_g_b_a_node(
     img_r: np.ndarray | Color,
     img_g: np.ndarray | Color,
     img_b: np.ndarray | Color,

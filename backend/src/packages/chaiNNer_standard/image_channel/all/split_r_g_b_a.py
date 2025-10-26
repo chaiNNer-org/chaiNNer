@@ -33,7 +33,7 @@ from .. import all_group
         ).with_docs("The alpha (transparency mask) channel."),
     ],
 )
-def separate_rgba_node(
+def split_r_g_b_a_node(
     img: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     h, w, c = get_h_w_c(img)

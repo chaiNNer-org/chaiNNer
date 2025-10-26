@@ -42,7 +42,7 @@ from .. import transparency_group
         ).with_never_reason("RGB and Alpha must have the same size.")
     ],
 )
-def merge_transparency_node(
+def combine_rgb_a_node(
     rgb: np.ndarray | Color,
     a: np.ndarray | Color,
 ) -> np.ndarray:
