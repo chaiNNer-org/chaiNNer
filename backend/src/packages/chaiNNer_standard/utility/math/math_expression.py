@@ -134,18 +134,12 @@ class SafeMathEvaluator:
             multiline=False,
             min_length=1,
         ).with_id(0),
-        NumberInput("a", min=None, max=None, precision="unlimited", step=1)
-        .with_id(1)
-        .make_optional(),
-        NumberInput("b", min=None, max=None, precision="unlimited", step=1)
-        .with_id(2)
-        .make_optional(),
         optional_list_group(
             *[
                 NumberInput(letter, min=None, max=None, precision="unlimited", step=1)
-                .with_id(3 + i)
+                .with_id(1 + i)
                 .make_optional()
-                for i, letter in enumerate(ALPHABET[2:26])
+                for i, letter in enumerate(ALPHABET)
             ]
         ),
     ],
