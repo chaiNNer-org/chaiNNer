@@ -53,6 +53,13 @@ class ServerConfig:
     Usage: `--trace`
     """
 
+    dev_mode: bool
+    """
+    Whether to run in development mode.
+
+    Usage: `--dev`
+    """
+
     @staticmethod
     def parse_argv() -> ServerConfig:
         parser = argparse.ArgumentParser(description="ChaiNNer's server.")
@@ -93,6 +100,11 @@ class ServerConfig:
             action="store_true",
             help="Enable tracing using VizTracer.",
         )
+        parser.add_argument(
+            "--dev",
+            action="store_true",
+            help="Run in development mode.",
+        )
 
         parsed = parser.parse_args()
 
@@ -104,4 +116,5 @@ class ServerConfig:
             storage_dir=parsed.storage_dir or None,
             logs_dir=parsed.logs_dir or None,
             trace=parsed.trace,
+            dev_mode=parsed.dev,
         )
