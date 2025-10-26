@@ -39,30 +39,46 @@ class _WorkerProcess:
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
         python_location = sys.executable
 
+        # Check if dev mode is enabled
+        dev_mode = "--dev" in flags
+
         self._process = subprocess.Popen(
             [python_location, server_file, *flags],
             shell=False,
             stdin=None,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE if not dev_mode else subprocess.PIPE,
+            stderr=subprocess.PIPE if not dev_mode else subprocess.STDOUT,
             encoding="utf-8",
             env=ENV,
         )
         self._stop_event = threading.Event()
+        self._dev_mode = dev_mode
 
-        # Create a separate thread to read and print the output of the subprocess
-        self._stdout_thread = threading.Thread(
-            target=self._read_stdout,
-            daemon=True,
-            name="stdout reader",
-        )
-        self._stdout_thread.start()
-        self._stderr_thread = threading.Thread(
-            target=self._read_stderr,
-            daemon=True,
-            name="stderr reader",
-        )
-        self._stderr_thread.start()
+        # Create a separate thread to read and print the output of the
+        # subprocess
+        # In dev mode, we pipe stdout/stderr and prefix with [Worker]
+        if not dev_mode:
+            self._stdout_thread = threading.Thread(
+                target=self._read_stdout,
+                daemon=True,
+                name="stdout reader",
+            )
+            self._stdout_thread.start()
+            self._stderr_thread = threading.Thread(
+                target=self._read_stderr,
+                daemon=True,
+                name="stderr reader",
+            )
+            self._stderr_thread.start()
+        else:
+            # In dev mode, pipe worker output with [Worker] prefix
+            self._stdout_thread = threading.Thread(
+                target=self._read_worker_output,
+                daemon=True,
+                name="worker output reader",
+            )
+            self._stdout_thread.start()
+            self._stderr_thread = None  # type: ignore
 
         atexit.register(self.close)
 
@@ -81,8 +97,11 @@ class _WorkerProcess:
         self._process = None
         atexit.unregister(self.close)
 
-        self._stdout_thread = None
-        self._stderr_thread = None
+        if not self._dev_mode:
+            self._stdout_thread = None  # type: ignore
+            self._stderr_thread = None  # type: ignore
+        else:
+            self._stdout_thread = None  # type: ignore
 
     def _read_stdout(self):
         p = self._process
@@ -126,6 +145,35 @@ class _WorkerProcess:
         cause = "stop event" if stopped else "stderr ending"
         logger.debug("Stopped reading worker stderr due to %s", cause)
 
+    def _read_worker_output(self):
+        """Read and print worker output with [Worker] prefix in dev mode."""
+        p = self._process
+        if p is None or p.stdout is None:
+            return
+
+        stopped = False
+        for line in p.stdout:
+            stopped = self._stop_event.is_set()
+            if stopped:
+                break
+            # Print worker output with [Worker] prefix
+            print(f"[Worker] {line.rstrip()}", flush=True)
+
+        cause = "stop event" if stopped else "worker output ending"
+        logger.debug("Stopped reading worker output due to %s", cause)
+
+        stopped = self._stop_event.is_set()
+        if not stopped:
+            # the worker ended on its own, so it likely crashed
+            returncode = p.wait()
+            if returncode == 0:
+                logger.info("Worker process ended normally")
+            else:
+                logger.error(
+                    "Worker process ended with non-zero return code %s",
+                    returncode,
+                )
+
 
 class WorkerServer:
     def __init__(self, flags: Iterable[str] = []):
@@ -141,7 +189,9 @@ class WorkerServer:
 
     async def start(self, extra_flags: Iterable[str] = []):
         logger.info("Starting worker process on port %s...", self._port)
-        self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
+        self._process = _WorkerProcess(
+            [str(self._port), *self._flags, *extra_flags]
+        )
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
         self._is_checking_ready = False
