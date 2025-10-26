@@ -57,33 +57,23 @@ class _WorkerProcess:
         # Create a separate thread to read and print the output of the
         # subprocess
         # In dev mode, we pipe stdout/stderr and prefix with [Worker]
-        if not dev_mode:
-            self._stdout_thread = threading.Thread(
-                target=self._read_stdout,
-                daemon=True,
-                name="stdout reader",
-            )
-            self._stdout_thread.start()
-            self._stderr_thread = threading.Thread(
-                target=self._read_stderr,
-                daemon=True,
-                name="stderr reader",
-            )
-            self._stderr_thread.start()
-        else:
-            # In dev mode, pipe worker output with [Worker] prefix
-            self._stdout_thread = threading.Thread(
-                target=self._read_worker_stdout,
-                daemon=True,
-                name="worker stdout reader",
-            )
-            self._stdout_thread.start()
-            self._stderr_thread = threading.Thread(
-                target=self._read_worker_stderr,
-                daemon=True,
-                name="worker stderr reader",
-            )
-            self._stderr_thread.start()
+        stdout_target = self._read_worker_stdout if dev_mode else self._read_stdout
+        stderr_target = self._read_worker_stderr if dev_mode else self._read_stderr
+        stdout_name = "worker stdout reader" if dev_mode else "stdout reader"
+        stderr_name = "worker stderr reader" if dev_mode else "stderr reader"
+
+        self._stdout_thread = threading.Thread(
+            target=stdout_target,
+            daemon=True,
+            name=stdout_name,
+        )
+        self._stdout_thread.start()
+        self._stderr_thread = threading.Thread(
+            target=stderr_target,
+            daemon=True,
+            name=stderr_name,
+        )
+        self._stderr_thread.start()
 
         atexit.register(self.close)
 
@@ -102,12 +92,8 @@ class _WorkerProcess:
         self._process = None
         atexit.unregister(self.close)
 
-        if not self._dev_mode:
-            self._stdout_thread = None  # type: ignore
-            self._stderr_thread = None  # type: ignore
-        else:
-            self._stdout_thread = None  # type: ignore
-            self._stderr_thread = None  # type: ignore
+        self._stdout_thread = None  # type: ignore
+        self._stderr_thread = None  # type: ignore
 
     def _read_stdout(self):
         p = self._process
