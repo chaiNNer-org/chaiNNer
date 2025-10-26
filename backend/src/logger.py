@@ -98,17 +98,20 @@ def setup_logger(
 
     # Create logger with a unique name for this process type
     logger_name = f"chaiNNer.{process_type}"
-    logger = logging.getLogger(logger_name)
+    logger_instance = logging.getLogger(logger_name)
 
     # Mark as initialized
     _logger_initialized[logger_name] = True
 
-    # Avoid adding handlers multiple times if called again
-    if logger.handlers:
-        return logger
+    # If logger already has handlers, we need to reconfigure it for dev mode
+    if logger_instance.handlers:
+        # Clear existing handlers to reconfigure
+        logger_instance.handlers.clear()
+        # Update the initialization flag to allow reconfiguration
+        _logger_initialized[logger_name] = False
 
-    logger.setLevel(log_level)
-    logger.propagate = False
+    logger_instance.setLevel(log_level)
+    logger_instance.propagate = False
 
     # Console handler with colors
     console_handler = logging.StreamHandler(sys.stderr)
@@ -122,7 +125,7 @@ def setup_logger(
     console_handler.setFormatter(console_formatter)
 
     # Add console handler
-    logger.addHandler(console_handler)
+    logger_instance.addHandler(console_handler)
 
     # File handler with rotation (keeps last 5 files, 10MB each)
     # Skip file logging in dev mode
@@ -146,20 +149,20 @@ def setup_logger(
         file_handler.setFormatter(file_formatter)
 
         # Add file handler
-        logger.addHandler(file_handler)
+        logger_instance.addHandler(file_handler)
 
-        logger.info(
+        logger_instance.info(
             "Logger initialized for %s process. Log file: %s",
             process_type,
             log_file,
         )
     else:
-        logger.info(
+        logger_instance.info(
             "Logger initialized for %s process (dev mode - no file logging)",
             process_type,
         )
 
-    return logger
+    return logger_instance
 
 
 # Create a single logger instance that auto-detects the process type
@@ -173,13 +176,11 @@ def _get_logger() -> logging.Logger:
     """Get or create the logger for the current process type."""
     process_type = _get_process_type()
     logger_name = f"chaiNNer.{process_type}"
-    logger = logging.getLogger(logger_name)
+    logger_instance = logging.getLogger(logger_name)
 
-    # If logger hasn't been set up yet, set it up with defaults
-    if not _logger_initialized.get(logger_name, False):
-        setup_logger(process_type)
-
-    return logger
+    # Don't auto-setup the logger - let the server files do it with proper dev mode
+    # This prevents the global logger from having file logging when dev mode is enabled
+    return logger_instance
 
 
 # Export the logger instance
