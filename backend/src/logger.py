@@ -141,9 +141,7 @@ def setup_logger(
 
         # File format includes timestamp with milliseconds for correlation
         file_formatter = logging.Formatter(
-            fmt=(
-                "%(asctime)s.%(msecs)03d [%(process)d] [%(levelname)s] " "%(message)s"
-            ),
+            fmt="%(asctime)s.%(msecs)03d [%(process)d] [%(levelname)s] %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         file_handler.setFormatter(file_formatter)
