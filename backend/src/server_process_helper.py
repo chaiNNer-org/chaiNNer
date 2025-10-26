@@ -108,13 +108,13 @@ class _WorkerProcess:
             if p is not None:
                 returncode = p.wait()
                 if returncode == 0:
-                    logger.info("Worker process ended normally")
+                    logger.info("Worker process ended normally on %s", stream_name)
                 else:
                     logger.error(
-                        "Worker process ended with non-zero return code %s",
+                        "Worker process ended with non-zero return code %s on %s",
                         returncode,
+                        stream_name,
                     )
-        # Note: stream_name parameter is kept for future extensibility
 
     def _read_stdout(self):
         p = self._process
