@@ -127,9 +127,9 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     else:
         assert isinstance(raw_output, (tuple, list))
         output = list(raw_output)
-        assert (
-            len(output) == l
-        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+        assert len(output) == l, (
+            f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+        )
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
@@ -145,9 +145,9 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     partial: list[object] = [None] * l
 
     if l == len(generator_output.outputs):
-        assert isinstance(
-            raw_output, Generator
-        ), "Expected the output to be a generator"
+        assert isinstance(raw_output, Generator), (
+            "Expected the output to be a generator"
+        )
         return GeneratorOutput(
             info=generator_output,
             generator=raw_output,
@@ -158,9 +158,9 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     assert isinstance(raw_output, (tuple, list))
 
     iterator, *rest = raw_output
-    assert isinstance(
-        iterator, Generator
-    ), "Expected the first tuple element to be a generator"
+    assert isinstance(iterator, Generator), (
+        "Expected the first tuple element to be a generator"
+    )
     assert len(rest) == l - len(generator_output.outputs)
 
     # output-specific validations
@@ -780,20 +780,21 @@ class Executor:
 
             self.__send_node_progress(node, [], 0, expected_length)
 
-        # Assert that all expected lengths are the same
-        if not len(set(expected_lengths.values())) <= 1:
-            raise AssertionError(
-                "Expected all connected iterators to have the same length"
-            )
-
-        total_stopiters = 0
+        # Track which generators are exhausted
+        exhausted_generators: set[NodeId] = set()
         deferred_errors: list[str] = []
+
         # iterate
-        while True:
-            generator_output = None
-            try:
-                # iterate each iterator
-                for node in generator_nodes:
+        while len(exhausted_generators) < num_generators:
+            await self.progress.suspend()
+
+            # iterate each active iterator
+            for node in generator_nodes:
+                if node.id in exhausted_generators:
+                    continue
+
+                generator_output = None
+                try:
                     generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
 
@@ -814,24 +815,7 @@ class Executor:
                     # broadcast
                     await self.__send_node_broadcast(node, iter_output.output)
 
-                # run each of the output nodes
-                for output_node in output_nodes:
-                    await self.process_regular_node(output_node)
-
-                # run each of the collector nodes
-                for collector, timer, collector_node in collectors:
-                    await self.progress.suspend()
-                    iterate_inputs = await self.__gather_collector_inputs(
-                        collector_node
-                    )
-                    await self.progress.suspend()
-                    with timer.run():
-                        run_collector_iterate(collector_node, iterate_inputs, collector)
-
-                self.node_cache.delete_many(all_iterated_nodes)
-
-                await self.progress.suspend()
-                for node in generator_nodes:
+                    # Update progress for this specific generator
                     iter_times = iter_timers[node.id]
                     iter_times.add()
                     iterations = iter_times.iterations
@@ -841,22 +825,36 @@ class Executor:
                         iterations,
                         max(expected_lengths[node.id], iterations),
                     )
-                # cooperative yield so the event loop can run
-                # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
-                await asyncio.sleep(0)
-                await self.progress.suspend()
 
-            except Aborted:
-                raise
-            except StopIteration:
-                total_stopiters = total_stopiters + 1
-                if total_stopiters >= num_generators:
-                    break
-            except Exception as e:
-                if generator_output and generator_output.generator.fail_fast:
-                    raise e
-                else:
-                    deferred_errors.append(str(e))
+                except Aborted:
+                    raise
+                except StopIteration:
+                    exhausted_generators.add(node.id)
+                except Exception as e:
+                    if generator_output and generator_output.generator.fail_fast:
+                        raise e
+                    else:
+                        deferred_errors.append(str(e))
+                        exhausted_generators.add(node.id)
+
+            # run each of the output nodes
+            for output_node in output_nodes:
+                await self.process_regular_node(output_node)
+
+            # run each of the collector nodes
+            for collector, timer, collector_node in collectors:
+                await self.progress.suspend()
+                iterate_inputs = await self.__gather_collector_inputs(collector_node)
+                await self.progress.suspend()
+                with timer.run():
+                    run_collector_iterate(collector_node, iterate_inputs, collector)
+
+            self.node_cache.delete_many(all_iterated_nodes)
+
+            # cooperative yield so the event loop can run
+            # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
+            await asyncio.sleep(0)
+            await self.progress.suspend()
 
         # reset cached value
         self.node_cache.delete_many(all_iterated_nodes)
