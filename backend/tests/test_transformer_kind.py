@@ -7,6 +7,8 @@ as input and output a different-length iterator).
 
 from __future__ import annotations
 
+from typing import Callable
+
 from api.iter import Generator
 
 
@@ -62,7 +64,7 @@ class TestTransformerKind:
 
         # Simulate a "filter" transformation - only even numbers
         def filter_transform(
-            gen: Generator[int], predicate: callable
+            gen: Generator[int], predicate: Callable[[int], bool]
         ) -> Generator[int]:
             """Transform a generator by filtering items."""
 

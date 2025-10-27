@@ -134,9 +134,9 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     else:
         assert isinstance(raw_output, (tuple, list))
         output = list(raw_output)
-        assert len(output) == l, (
-            f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
-        )
+        assert (
+            len(output) == l
+        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
@@ -152,9 +152,9 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     partial: list[object] = [None] * l
 
     if l == len(generator_output.outputs):
-        assert isinstance(raw_output, Generator), (
-            "Expected the output to be a generator"
-        )
+        assert isinstance(
+            raw_output, Generator
+        ), "Expected the output to be a generator"
         return GeneratorOutput(
             info=generator_output,
             generator=raw_output,
@@ -165,9 +165,9 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     assert isinstance(raw_output, (tuple, list))
 
     iterator, *rest = raw_output
-    assert isinstance(iterator, Generator), (
-        "Expected the first tuple element to be a generator"
-    )
+    assert isinstance(
+        iterator, Generator
+    ), "Expected the first tuple element to be a generator"
     assert len(rest) == l - len(generator_output.outputs)
 
     # output-specific validations
@@ -490,7 +490,7 @@ class Executor:
         return result
 
     async def process_generator_node(
-        self, node: GeneratorNode, perform_cache: bool = True
+        self, node: GeneratorNode | TransformerNode, perform_cache: bool = True
     ) -> GeneratorOutput:
         """
         Processes the given iterator node.
