@@ -1,0 +1,89 @@
+name: Generate Node Documentation
+
+# Trigger this action after a release is published
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  USER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  USER_NAME: github-actions[bot]
+  USER_EMAIL: github-actions[bot]@users.noreply.github.com
+  OWNER: ${{ github.event.repository.owner.login }}
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+
+jobs:
+  generate-and-publish:
+    name: Generate and publish node documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Start backend and generate node documentation
+        run: |
+          # Start backend in background
+          python ./backend/src/run.py 8765 --install-builtin-packages > /tmp/backend.log 2>&1 &
+          BACKEND_PID=$!
+          
+          # Wait for backend to be ready (up to 3 minutes)
+          echo "Waiting for backend to start..."
+          for i in {1..90}; do
+            if curl -s http://127.0.0.1:8765/health > /dev/null 2>&1; then
+              echo "Backend is ready!"
+              break
+            fi
+            if [ $i -eq 90 ]; then
+              echo "Backend failed to start within 3 minutes"
+              cat /tmp/backend.log
+              kill $BACKEND_PID || true
+              exit 1
+            fi
+            sleep 2
+          done
+          
+          # Generate documentation
+          python scripts/generate_node_docs.py --url http://127.0.0.1:8765
+          
+          # Stop backend
+          kill $BACKEND_PID || true
+
+      - name: Pull wiki content
+        run: |
+          mkdir tmp_wiki
+          cd tmp_wiki
+          git init
+          git config user.name "$USER_NAME"
+          git config user.email "$USER_EMAIL"
+          git remote add origin https://x-access-token:${USER_TOKEN}@github.com/${OWNER}/${REPOSITORY_NAME}.wiki.git
+          git fetch origin
+          git checkout master || git checkout -b master
+          git pull origin master || echo "Wiki is empty, will create initial commit"
+
+      - name: Update wiki with generated docs
+        run: |
+          # Copy all documentation files
+          rsync -av --delete docs/ tmp_wiki/ --exclude .git
+          cd tmp_wiki
+          git add .
+          git diff --staged --quiet || git commit -m "Update node documentation (automated from release ${{ github.ref_name }})"
+          git push origin master
