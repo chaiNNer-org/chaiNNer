@@ -4,7 +4,7 @@ Comprehensive tests for the Executor class and chain execution.
 These tests validate the execution of chains, including:
 - Basic node execution
 - Generator/Iterator execution
-- Collector execution  
+- Collector execution
 - Error handling during execution
 """
 
@@ -13,23 +13,22 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any
-from unittest.mock import AsyncMock, Mock
+from typing import Any, Callable
+from unittest.mock import Mock
 
 import pytest
 
 from api import (
     Collector,
     ExecutionOptions,
-    Generator,
     InputId,
     NodeContext,
     NodeData,
     NodeId,
     OutputId,
 )
-from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode
-from chain.input import InputMap, ValueInput
+from chain.chain import Chain, CollectorNode, FunctionNode
+from chain.input import InputMap
 from events import EventQueue
 from process import Executor
 
@@ -38,7 +37,7 @@ def create_mock_node_data(
     schema_id: str,
     name: str,
     kind: str = "regularNode",
-    run_fn=None,
+    run_fn: Callable[..., Any] | None = None,
 ) -> NodeData:
     """Create a mock NodeData for testing."""
     node_data = Mock(spec=NodeData)

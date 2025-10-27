@@ -81,6 +81,9 @@ line-ending = "auto"
 [tool.ruff.lint.pep8-naming]
 ignore-names = ["*Input", "*Output", "*Dropdown"]
 
+[tool.ruff.lint.per-file-ignores]
+"backend/tests/*.py" = ["ANN001", "ANN002"]
+
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
 pythonpath = ["backend/src"]
