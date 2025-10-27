@@ -44,7 +44,7 @@ interface AdvancedNumberInputProps {
     controlsStep: number;
     hideTrailingZeros: boolean;
 
-    defaultValue: number;
+    defaultValue?: number;
     isDisabled?: boolean;
     small?: true;
 
@@ -85,7 +85,9 @@ export const AdvancedNumberInput = memo(
         alignSelf,
     }: AdvancedNumberInputProps) => {
         const getNumericValue = (): number | undefined => {
-            const rawNumber = inputString.trim() ? parseNumberString(inputString) : defaultValue;
+            const rawNumber = inputString.trim()
+                ? parseNumberString(inputString)
+                : defaultValue ?? 0;
             const valAsNumber = precision > 0 ? rawNumber : Math.round(rawNumber);
 
             if (!Number.isNaN(valAsNumber)) {
