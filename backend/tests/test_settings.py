@@ -6,9 +6,12 @@ import pytest
 
 from api.settings import (
     CacheSetting,
+    DropdownOption,
     DropdownSetting,
     ExecutionOptions,
+    JsonExecutionOptions,
     NumberSetting,
+    SettingsJson,
     SettingsParser,
     ToggleSetting,
 )
@@ -19,7 +22,7 @@ class TestExecutionOptions:
 
     def test_execution_options_creation(self):
         """Test creating ExecutionOptions."""
-        backend_settings = {
+        backend_settings: JsonExecutionOptions = {
             "package1": {"key1": "value1"},
             "package2": {"key2": 42},
         }
@@ -30,14 +33,14 @@ class TestExecutionOptions:
 
     def test_parse_static_method(self):
         """Test the parse static method."""
-        json_options = {"package1": {"setting1": True}}
+        json_options: JsonExecutionOptions = {"package1": {"setting1": True}}
         options = ExecutionOptions.parse(json_options)
 
         assert isinstance(options, ExecutionOptions)
 
     def test_get_package_settings_json_existing_package(self):
         """Test getting settings JSON for an existing package."""
-        backend_settings = {
+        backend_settings: JsonExecutionOptions = {
             "package1": {"key1": "value1", "key2": 42},
         }
         options = ExecutionOptions(backend_settings)
@@ -47,7 +50,7 @@ class TestExecutionOptions:
 
     def test_get_package_settings_json_nonexistent_package(self):
         """Test getting settings JSON for a nonexistent package."""
-        backend_settings = {"package1": {"key1": "value1"}}
+        backend_settings: JsonExecutionOptions = {"package1": {"key1": "value1"}}
         options = ExecutionOptions(backend_settings)
 
         result = options.get_package_settings_json("package2")
@@ -55,7 +58,7 @@ class TestExecutionOptions:
 
     def test_get_package_settings(self):
         """Test getting a SettingsParser for a package."""
-        backend_settings = {
+        backend_settings: JsonExecutionOptions = {
             "package1": {"key1": "value1"},
         }
         options = ExecutionOptions(backend_settings)
@@ -65,7 +68,7 @@ class TestExecutionOptions:
 
     def test_get_package_settings_caching(self):
         """Test that SettingsParser instances are cached."""
-        backend_settings = {
+        backend_settings: JsonExecutionOptions = {
             "package1": {"key1": "value1"},
         }
         options = ExecutionOptions(backend_settings)
@@ -78,7 +81,7 @@ class TestExecutionOptions:
 
     def test_get_package_settings_different_packages(self):
         """Test getting settings for different packages."""
-        backend_settings = {
+        backend_settings: JsonExecutionOptions = {
             "package1": {"key1": "value1"},
             "package2": {"key2": "value2"},
         }
@@ -96,7 +99,7 @@ class TestSettingsParser:
 
     def test_settings_parser_creation(self):
         """Test creating a SettingsParser."""
-        raw = {"key1": "value1", "key2": 42}
+        raw: SettingsJson = {"key1": "value1", "key2": 42}
         parser = SettingsParser(raw)
 
         assert parser is not None
@@ -258,7 +261,7 @@ class TestDropdownSetting:
 
     def test_dropdown_setting_creation(self):
         """Test creating a DropdownSetting."""
-        options = [
+        options: list[DropdownOption] = [
             {"label": "Option 1", "value": "opt1"},
             {"label": "Option 2", "value": "opt2"},
         ]

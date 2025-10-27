@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from api.group import Group, GroupId, GroupInfo, group
 from api.input import BaseInput
 from api.types import InputId
@@ -97,8 +99,10 @@ class TestGroup:
         assert result["id"] == 2
         assert result["kind"] == "optional"
         # Items are returned as-is, not converted to dict for BaseInput
-        assert result["items"][0] == input1
-        assert result["items"][1] == input2
+        items = result["items"]
+        assert isinstance(items, list)
+        assert items[0] == input1
+        assert items[1] == input2
 
     def test_group_to_dict_with_nested_group(self):
         """Test to_dict with nested groups."""
@@ -112,12 +116,15 @@ class TestGroup:
 
         assert result["id"] == 2
         assert result["kind"] == "outer"
-        assert len(result["items"]) == 2
+        items = cast(list[Any], result["items"])
+        assert len(items) == 2
         # First item should be the nested group dict
-        assert result["items"][0]["id"] == 1
-        assert result["items"][0]["kind"] == "inner"
+        first_item = items[0]
+        assert isinstance(first_item, dict)
+        assert first_item["id"] == 1
+        assert first_item["kind"] == "inner"
         # Second item should be the InputId
-        assert result["items"][1] == InputId(3)
+        assert items[1] == InputId(3)
 
     def test_group_with_options(self):
         """Test group with options in to_dict."""
