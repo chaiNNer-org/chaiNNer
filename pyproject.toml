@@ -84,3 +84,35 @@ ignore-names = ["*Input", "*Output", "*Dropdown"]
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
 pythonpath = ["backend/src"]
+
+[tool.coverage.run]
+source = ["backend/src"]
+omit = [
+    "backend/src/packages/**",
+    "backend/src/nodes/**",
+    "backend/src/server.py",
+    "backend/src/server_host.py",
+    "backend/src/server_process_helper.py",
+    "backend/src/run.py",
+    "backend/src/dependencies/**",
+    "backend/src/texconv/**",
+    "backend/src/fonts/**",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.html]
+directory = "htmlcov"
