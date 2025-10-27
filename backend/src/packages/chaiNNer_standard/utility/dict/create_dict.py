@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from nodes.properties.inputs import NumberInput, TextInput
+from nodes.properties.inputs import TextInput
 from nodes.properties.outputs import DictOutput
 
 from .. import dict_group

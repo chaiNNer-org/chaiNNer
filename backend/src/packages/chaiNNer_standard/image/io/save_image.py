@@ -407,17 +407,16 @@ def save_image_node(
                 # Convert metadata to PIL info dict
                 pil_info = {}
                 for key, value in metadata.items():
-                    # Only add string keys and values to info
-                    if isinstance(value, (str, int, float)):
-                        pil_info[key] = str(value)
-                
+                    # Convert all values to strings for info dict
+                    pil_info[key] = str(value)
+
                 # For EXIF data, we need to handle it specially
                 # This is a simple implementation that just adds to info
                 # More sophisticated EXIF handling would require PIL's ExifTags
                 if pil_info:
                     args["exif"] = image.getexif()
                     # Note: Full EXIF support would need more sophisticated handling
-            
+
             image.save(full_path, **args)
 
     else:

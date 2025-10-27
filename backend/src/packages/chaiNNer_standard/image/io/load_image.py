@@ -97,10 +97,10 @@ def _read_pil(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | N
         return None
 
     im = Image.open(path)
-    
+
     # Extract metadata from PIL image
     metadata: dict[str, str | int | float] = {}
-    
+
     # Get EXIF data if available
     try:
         exif = im.getexif()
@@ -116,7 +116,7 @@ def _read_pil(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | N
                         pass  # Skip values that can't be converted
     except Exception:
         pass  # EXIF not available or error reading it
-    
+
     # Get general info
     if hasattr(im, "info") and im.info:
         for key, value in im.info.items():
@@ -127,7 +127,7 @@ def _read_pil(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | N
                     metadata[key] = str(value)
                 except Exception:
                     pass
-    
+
     if im.mode == "P":
         # convert color palette to actual colors
         im = im.convert(im.palette.mode)
