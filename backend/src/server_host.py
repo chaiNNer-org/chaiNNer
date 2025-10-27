@@ -45,7 +45,7 @@ class AppContext:
         # Re-initialize logger with logs directory from config
         global logger
         log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
-        logger = setup_logger("host", log_dir=log_dir)
+        logger = setup_logger("host", log_dir=log_dir, dev_mode=self.config.dev_mode)
 
         # flags to pass along to the worker
         worker_flags: list[str] = []
@@ -55,6 +55,8 @@ class AppContext:
             worker_flags.extend(["--logs-dir", self.config.logs_dir])
         if self.config.trace:
             worker_flags.append("--trace")
+        if self.config.dev_mode:
+            worker_flags.append("--dev")
 
         self._worker: Final[WorkerServer] = WorkerServer(worker_flags)
         self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)

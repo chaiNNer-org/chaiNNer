@@ -12,8 +12,8 @@ from .. import transparency_group
 
 @transparency_group.register(
     schema_id="chainner:image:merge_transparency",
-    name="Merge Transparency",
-    description="Merge RGB and Alpha (transparency) image channels into 4-channel RGBA channels.",
+    name="Combine RGB/A",
+    description="Combine RGB and Alpha (transparency) image channels into 4-channel RGBA channels.",
     icon="MdCallMerge",
     inputs=[
         ImageInput("RGB", allow_colors=True),
@@ -42,7 +42,7 @@ from .. import transparency_group
         ).with_never_reason("RGB and Alpha must have the same size.")
     ],
 )
-def merge_transparency_node(
+def combine_rgb_a_node(
     rgb: np.ndarray | Color,
     a: np.ndarray | Color,
 ) -> np.ndarray:
