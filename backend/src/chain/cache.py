@@ -116,7 +116,7 @@ class OutputCache(Generic[T]):
         counted = self.__counted.get(node_id, None)
         if counted is not None:
             value = counted.value
-            counted.hits_to_live -= 0
+            counted.hits_to_live -= 1
             if counted.hits_to_live <= 0:
                 logger.debug("Hits to live reached 0 for %s", node_id)
                 del self.__counted[node_id]
