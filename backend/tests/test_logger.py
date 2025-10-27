@@ -6,8 +6,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-from logger import ColoredFormatter, setup_logger
+from logger import ColoredFormatter
 from logger import logger as logger_import
+from logger import setup_logger
 
 
 def test_logger_setup():
