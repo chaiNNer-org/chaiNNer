@@ -131,6 +131,35 @@ export class ChainLineage {
 
                 return lineage;
             }
+            case 'transformer': {
+                // transformer nodes consume an iterator and produce a new one
+                let lineage: Lineage | null = null;
+
+                if (schema.iteratorInputs.length !== 1) {
+                    throw new Error(
+                        `Transformer nodes should have exactly 1 iterator input info (${schema.schemaId})`
+                    );
+                }
+                const info = schema.iteratorInputs[0];
+
+                for (const inputId of info.inputs) {
+                    // eslint-disable-next-line no-continue
+                    if (exclude.has(inputId)) continue;
+
+                    const edge = this.getEdgeByTarget({ nodeId, inputId });
+                    // eslint-disable-next-line no-continue
+                    if (!edge) continue;
+
+                    const handle = parseSourceHandle(edge.sourceHandle!);
+                    const inputLineage = this.getOutputLineage(handle);
+                    if (inputLineage !== null) {
+                        lineage = inputLineage;
+                        break;
+                    }
+                }
+
+                return lineage;
+            }
             default:
                 return assertNever(schema.kind);
         }
@@ -190,6 +219,16 @@ export class ChainLineage {
             case 'collector': {
                 // collectors already return non-iterator outputs
                 return null;
+            }
+            case 'transformer': {
+                // transformer nodes create a new lineage
+                if (schema.iteratorOutputs.length !== 1) {
+                    throw new Error(
+                        `Transformer nodes should have exactly 1 iterator output info (${schema.schemaId})`
+                    );
+                }
+                const info = schema.iteratorOutputs[0];
+                return info.outputs.includes(outputId) ? Lineage.fromSourceNode(nodeId) : null;
             }
             default:
                 return assertNever(schema.kind);
