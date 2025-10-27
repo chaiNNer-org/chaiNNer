@@ -197,4 +197,3 @@ def test_timed_supplier_with_different_types():
     result_none, duration_none = wrapped_none()
     assert result_none is None
     assert duration_none >= 0
-

@@ -55,7 +55,7 @@ async def test_suspend_when_aborted():
     """Test suspend raises Aborted when controller is aborted."""
     controller = ProgressController()
     controller.abort()
-    
+
     with pytest.raises(Aborted):
         await controller.suspend()
 
@@ -65,20 +65,20 @@ async def test_suspend_when_paused_then_resumed():
     """Test suspend waits when paused, then continues when resumed."""
     controller = ProgressController()
     controller.pause()
-    
+
     async def resume_after_delay():
         await asyncio.sleep(0.2)
         controller.resume()
-    
+
     # Start the resume task
     resume_task = asyncio.create_task(resume_after_delay())
-    
+
     # This should block until resumed
     await controller.suspend()
-    
+
     # Clean up
     await resume_task
-    
+
     # Should have tracked some paused time
     assert controller.time_paused > 0
     assert not controller.paused
@@ -89,21 +89,21 @@ async def test_suspend_when_paused_then_aborted():
     """Test suspend raises Aborted when paused and then aborted."""
     controller = ProgressController()
     controller.pause()
-    
+
     async def abort_after_delay():
         await asyncio.sleep(0.2)
         controller.abort()
-    
+
     # Start the abort task
     abort_task = asyncio.create_task(abort_after_delay())
-    
+
     # This should block until aborted
     with pytest.raises(Aborted):
         await controller.suspend()
-    
+
     # Clean up
     await abort_task
-    
+
     # Should have tracked some paused time
     assert controller.time_paused > 0
 
@@ -112,32 +112,32 @@ async def test_suspend_when_paused_then_aborted():
 async def test_suspend_accumulates_time_paused():
     """Test that time_paused accumulates across multiple suspend calls."""
     controller = ProgressController()
-    
+
     # First pause and resume
     controller.pause()
-    
+
     async def resume_after_delay():
         await asyncio.sleep(0.15)
         controller.resume()
-    
+
     resume_task = asyncio.create_task(resume_after_delay())
     await controller.suspend()
     await resume_task
-    
+
     first_time = controller.time_paused
     assert first_time > 0
-    
+
     # Second pause and resume
     controller.pause()
-    
+
     async def resume_again():
         await asyncio.sleep(0.15)
         controller.resume()
-    
+
     resume_task2 = asyncio.create_task(resume_again())
     await controller.suspend()
     await resume_task2
-    
+
     # Time should have accumulated
     assert controller.time_paused > first_time
 
@@ -146,7 +146,7 @@ async def test_suspend_accumulates_time_paused():
 async def test_multiple_pauses_and_resumes():
     """Test multiple pause/resume cycles."""
     controller = ProgressController()
-    
+
     for _ in range(3):
         assert not controller.paused
         controller.pause()
@@ -160,6 +160,6 @@ def test_abort_while_paused():
     controller = ProgressController()
     controller.pause()
     controller.abort()
-    
+
     assert controller.paused  # Still marked as paused
     assert controller.aborted  # But also aborted

@@ -4,11 +4,10 @@ import logging
 import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-from logger import ColoredFormatter
+from logger import ColoredFormatter, setup_logger
 from logger import logger as logger_import
-from logger import setup_logger
 
 
 def test_logger_setup():
@@ -258,4 +257,3 @@ def test_colored_formatter_different_levels():
 
         # Verify levelname is restored
         assert record.levelname == level_name
-
