@@ -28,6 +28,14 @@ from nodes.utils.utils import get_h_w_c, split_file_path
 
 from .. import io_group
 
+# Try to import piexif for EXIF support with OpenCV
+try:
+    import piexif
+
+    PIEXIF_AVAILABLE = True
+except ImportError:
+    PIEXIF_AVAILABLE = False
+
 _Decoder = Callable[[Path, bool], Union[tuple[np.ndarray, dict[str, str | int | float]], None]]
 """
 An image decoder.
@@ -43,6 +51,43 @@ The second parameter indicates whether to extract metadata.
 
 def get_ext(path: Path | str) -> str:
     return split_file_path(path)[2].lower()
+
+
+def _read_exif_piexif(path: Path) -> dict[str, str | int | float]:
+    """Read EXIF metadata using piexif library."""
+    metadata: dict[str, str | int | float] = {}
+
+    if not PIEXIF_AVAILABLE:
+        return metadata
+
+    try:
+        exif_dict = piexif.load(str(path))
+
+        # Iterate through all EXIF IFDs (Image File Directories)
+        for ifd_name in ["0th", "Exif", "GPS", "1st", "Interop"]:
+            if ifd_name in exif_dict:
+                ifd = exif_dict[ifd_name]
+                for tag_id, value in ifd.items():
+                    # Convert value to string or number
+                    if isinstance(value, (int, float)):
+                        metadata[f"exif_{ifd_name}_{tag_id}"] = value
+                    elif isinstance(value, bytes):
+                        try:
+                            # Try to decode bytes to string
+                            decoded = value.decode("utf-8", errors="ignore").strip("\x00")
+                            if decoded:
+                                metadata[f"exif_{ifd_name}_{tag_id}"] = decoded
+                        except Exception:
+                            pass
+                    elif isinstance(value, (str, tuple, list)):
+                        try:
+                            metadata[f"exif_{ifd_name}_{tag_id}"] = str(value)
+                        except Exception:
+                            pass
+    except Exception as e:
+        logger.debug("Failed to read EXIF with piexif: %s", e)
+
+    return metadata
 
 
 def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
@@ -88,9 +133,15 @@ def _read_cv(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, 
             f'Error reading image image from path "{path}". Image may be corrupt.'
         )
 
-    # OpenCV doesn't provide easy access to metadata, so return empty dict
-    # Could potentially use exifread or piexif libraries here if needed in the future
-    return img, {}
+    # Extract EXIF metadata using piexif if available and requested
+    metadata: dict[str, str | int | float] = {}
+    if extract_metadata:
+        ext = get_ext(path)
+        # EXIF is primarily in JPEG files
+        if ext in [".jpg", ".jpeg", ".jpe"]:
+            metadata = _read_exif_piexif(path)
+
+    return img, metadata
 
 
 def _read_pil(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:

@@ -38,6 +38,14 @@ from nodes.utils.utils import get_h_w_c
 
 from .. import io_group
 
+# Try to import piexif for EXIF support with OpenCV
+try:
+    import piexif
+
+    PIEXIF_AVAILABLE = True
+except ImportError:
+    PIEXIF_AVAILABLE = False
+
 
 class ImageFormat(Enum):
     PNG = "png"
@@ -172,6 +180,57 @@ def DdsMipMapsDropdown() -> DropDownInput:
             {"option": "No", "value": 1},
         ],
     )
+
+
+def _write_exif_piexif(
+    image_path: Path,
+    metadata: dict[str, str | int | float],
+) -> None:
+    """Write EXIF metadata to a JPEG file using piexif."""
+    if not PIEXIF_AVAILABLE:
+        return
+
+    try:
+        # Try to load existing EXIF data
+        try:
+            exif_dict = piexif.load(str(image_path))
+        except Exception:
+            # Create a new EXIF dict if file doesn't have EXIF or can't be read
+            exif_dict = {"0th": {}, "Exif": {}, "GPS": {}, "1st": {}}
+
+        # Parse metadata keys and add to appropriate IFD
+        for key, value in metadata.items():
+            # Skip non-EXIF keys
+            if not key.startswith("exif_"):
+                continue
+
+            # Parse the key format: exif_{ifd_name}_{tag_id}
+            parts = key.split("_")
+            if len(parts) < 3:
+                continue
+
+            ifd_name = parts[1]
+            try:
+                tag_id = int(parts[2])
+            except ValueError:
+                continue
+
+            # Only write to supported IFDs
+            if ifd_name not in ["0th", "Exif", "GPS", "1st"]:
+                continue
+
+            # Convert value to appropriate type
+            if isinstance(value, str):
+                # Encode string as bytes
+                exif_dict[ifd_name][tag_id] = value.encode("utf-8")
+            elif isinstance(value, (int, float)):
+                exif_dict[ifd_name][tag_id] = int(value)
+
+        # Dump EXIF data and insert into image
+        exif_bytes = piexif.dump(exif_dict)
+        piexif.insert(exif_bytes, str(image_path))
+    except Exception as e:
+        logger.debug("Failed to write EXIF with piexif: %s", e)
 
 
 @io_group.register(
@@ -459,6 +518,10 @@ def save_image_node(
             pass
 
         cv_save_image(full_path, img, params)
+
+        # Write EXIF metadata for JPEG files using piexif if available
+        if metadata and image_format == ImageFormat.JPG:
+            _write_exif_piexif(full_path, metadata)
 
 
 def get_full_path(
