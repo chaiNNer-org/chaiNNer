@@ -114,6 +114,9 @@ class NumberInput(BaseInput):
         return self
 
     def enforce(self, value: object):
+        if self.optional and value is None:
+            return None
+
         assert isinstance(value, (int, float))
 
         if math.isnan(value):
