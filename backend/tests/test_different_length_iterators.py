@@ -7,6 +7,8 @@ with different expected lengths running concurrently.
 
 from __future__ import annotations
 
+import pytest  # type: ignore[import-untyped]
+
 from api.iter import Collector, Generator
 
 
@@ -44,22 +46,16 @@ class TestDifferentLengthIterators:
         assert next(iter2) == 4
 
         # gen1 should be exhausted now
-        try:
+        with pytest.raises(StopIteration):
             next(iter1)
-            raise AssertionError("Should have raised StopIteration")
-        except StopIteration:
-            pass
 
         # gen2 should still have values
         assert next(iter2) == 6
         assert next(iter2) == 8
 
         # Now gen2 should also be exhausted
-        try:
+        with pytest.raises(StopIteration):
             next(iter2)
-            raise AssertionError("Should have raised StopIteration")
-        except StopIteration:
-            pass
 
     def test_collector_with_varying_input_counts(self):
         """Test that collectors can handle varying numbers of items."""
