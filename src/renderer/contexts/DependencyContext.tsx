@@ -61,6 +61,7 @@ import {
 } from '../hooks/useBackendEventSource';
 import { useMemoObject } from '../hooks/useMemo';
 import { useSettings } from '../hooks/useSettings';
+import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertType } from './AlertBoxContext';
 import { BackendContext } from './BackendContext';
 import { GlobalContext } from './GlobalNodeState';
@@ -989,7 +990,7 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
         availableUpdates,
     });
 
-    let progress;
+    let progress: number | undefined;
     if (installMode === InstallMode.NORMAL && isRunningShell) {
         const totalDeps = packages
             .filter((pkg) => modifyingPackages.includes(pkg.id))
@@ -997,6 +998,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
             .reduce((a, b) => a + b, 0);
         progress = (overallProgress + individualProgress / (totalDeps + 1)) * 100;
     }
+
+    // Update taskbar progress
+    useEffect(() => {
+        if (installMode === InstallMode.NORMAL && isRunningShell && progress !== undefined) {
+            // Convert from percentage (0-100) to fraction (0-1)
+            ipcRenderer.send('set-progress-bar', progress / 100);
+        } else {
+            ipcRenderer.send('set-progress-bar', null);
+        }
+    }, [installMode, isRunningShell, progress]);
 
     return (
         <DependencyContext.Provider value={value}>
