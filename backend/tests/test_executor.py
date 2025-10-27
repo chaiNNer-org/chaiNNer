@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Callable
 from unittest.mock import Mock
 
-import pytest
+import pytest  # type: ignore[import-untyped]
 
 from api import (
     Collector,
@@ -30,7 +30,7 @@ from api import (
 from chain.chain import Chain, CollectorNode, FunctionNode
 from chain.input import InputMap
 from events import EventQueue
-from process import Executor
+from process import ExecutionId, Executor
 
 
 def create_mock_node_data(
@@ -40,7 +40,8 @@ def create_mock_node_data(
     run_fn: Callable[..., Any] | None = None,
 ) -> NodeData:
     """Create a mock NodeData for testing."""
-    node_data = Mock(spec=NodeData)
+    # Use Mock without spec to avoid frozen dataclass issues
+    node_data = Mock()
     node_data.schema_id = schema_id
     node_data.name = name
     node_data.kind = kind
@@ -54,7 +55,7 @@ def create_mock_node_data(
     else:
         node_data.run = Mock(return_value=None)
 
-    return node_data
+    return node_data  # type: ignore
 
 
 def create_function_node(node_id: NodeId, schema_id: str, name: str) -> FunctionNode:
@@ -105,7 +106,7 @@ class TestExecutorCreation:
     def test_executor_creation(self, executor_setup):
         """Test creating an Executor instance."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=True,
             options=executor_setup["options"],
@@ -123,7 +124,7 @@ class TestExecutorCreation:
     def test_executor_progress_controller(self, executor_setup):
         """Test that executor has a progress controller."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -143,7 +144,7 @@ class TestExecutorBasicExecution:
     async def test_empty_chain_execution(self, executor_setup):
         """Test executing an empty chain."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -171,7 +172,7 @@ class TestExecutorBasicExecution:
         executor_setup["chain"].add_node(node)
 
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -191,7 +192,7 @@ class TestExecutorProgressControl:
     def test_pause_executor(self, executor_setup):
         """Test pausing an executor."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -208,7 +209,7 @@ class TestExecutorProgressControl:
     def test_resume_executor(self, executor_setup):
         """Test resuming an executor."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -226,7 +227,7 @@ class TestExecutorProgressControl:
     def test_kill_executor(self, executor_setup):
         """Test killing an executor."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -247,7 +248,7 @@ class TestExecutorCaching:
     def test_executor_has_node_cache(self, executor_setup):
         """Test that executor has a node cache."""
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -265,7 +266,7 @@ class TestExecutorCaching:
         executor_setup["chain"].add_node(node)
 
         executor = Executor(
-            id="test-exec",
+            id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
@@ -320,7 +321,7 @@ class TestRunNode:
         output_mock = Mock()
         output_mock.id = OutputId(0)
         output_mock.enforce = Mock(side_effect=lambda x: x)
-        node_data.outputs = [output_mock]
+        node_data.outputs = [output_mock]  # type: ignore
 
         context = Mock(spec=NodeContext)
         context.settings = {}
@@ -365,8 +366,8 @@ class TestCollectorIteration:
         input_mock = Mock()
         input_mock.id = InputId(0)
         input_mock.enforce_ = Mock(side_effect=lambda x: x)
-        node_data.inputs = [input_mock]
-        node_data.single_iterable_input = iter_input_info
+        node_data.inputs = [input_mock]  # type: ignore
+        node_data.single_iterable_input = iter_input_info  # type: ignore
 
         collector_node.data = node_data
 
