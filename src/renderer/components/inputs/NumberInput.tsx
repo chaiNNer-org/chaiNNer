@@ -94,7 +94,7 @@ export const NumberInput = memo(
                 <HStack w="full">
                     <AdvancedNumberInput
                         controlsStep={controlsStep}
-                        defaultValue={def}
+                        defaultValue={input.optional && value === undefined ? 0 : def}
                         hideTrailingZeros={hideTrailingZeros}
                         inputString={displayString}
                         isDisabled={isLocked || isConnected}
