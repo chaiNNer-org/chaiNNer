@@ -51,8 +51,6 @@ def inpaint(
             )
 
             return result
-        except RuntimeError:
-            raise
         finally:
             # Collect garbage (clear VRAM)
             if d_img is not None:
