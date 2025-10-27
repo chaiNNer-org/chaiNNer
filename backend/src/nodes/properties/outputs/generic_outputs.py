@@ -130,3 +130,29 @@ class AnyOutput(BaseOutput):
 
     def enforce(self, value: object) -> object:
         return value
+
+
+class DictOutput(BaseOutput):
+    """Output for a dictionary with string keys and string/number values"""
+
+    def __init__(
+        self,
+        label: str = "Dictionary",
+        output_type: navi.ExpressionJson = "Dict",
+    ):
+        super().__init__(
+            output_type=navi.intersect_with_error("Dict", output_type),
+            label=label,
+            kind="generic",
+        )
+
+    def enforce(self, value: object) -> dict[str, str | int | float]:
+        assert isinstance(value, dict)
+        result: dict[str, str | int | float] = {}
+        for k, v in value.items():
+            assert isinstance(k, str), f"Dict keys must be strings, got {type(k)}"
+            assert isinstance(
+                v, (str, int, float)
+            ), f"Dict values must be strings or numbers, got {type(v)}"
+            result[k] = v
+        return result

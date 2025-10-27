@@ -660,3 +660,29 @@ def AnchorInput(label: str = "Anchor", icon: str = "BsFillImageFill") -> DropDow
         preferred_style="anchor",
         default=Anchor.CENTER,
     )
+
+
+class DictInput(BaseInput):
+    """Input for a dictionary with string keys and string/number values"""
+
+    def __init__(
+        self,
+        label: str = "Dictionary",
+        dict_type: navi.ExpressionJson = "Dict",
+    ):
+        super().__init__(
+            navi.intersect_with_error("Dict", dict_type),
+            label,
+            kind="generic",
+        )
+
+    def enforce(self, value: object) -> dict[str, str | int | float]:
+        assert isinstance(value, dict)
+        result: dict[str, str | int | float] = {}
+        for k, v in value.items():
+            assert isinstance(k, str), f"Dict keys must be strings, got {type(k)}"
+            assert isinstance(
+                v, (str, int, float)
+            ), f"Dict values must be strings or numbers, got {type(v)}"
+            result[k] = v
+        return result
