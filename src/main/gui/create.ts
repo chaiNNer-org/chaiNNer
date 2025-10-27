@@ -52,14 +52,27 @@ export const createGuiApp = (args: OpenArguments) => {
         app.disableHardwareAcceleration();
     }
 
-    const hasInstanceLock = settings.allowMultipleInstances || app.requestSingleInstanceLock();
-    if (!hasInstanceLock) {
-        app.quit();
-        return;
+    // When allowMultipleInstances is true, we still request the lock to determine
+    // which instance should write settings, but we don't quit if we don't get it.
+    // Only the first instance (the one with the lock) will write settings.
+    let canWriteSettings = true;
+    const hasLock = app.requestSingleInstanceLock();
+
+    if (settings.allowMultipleInstances) {
+        // In multi-instance mode, all instances can run
+        // But only the one with the lock can write settings
+        canWriteSettings = hasLock;
+    } else {
+        // In single instance mode, only the one with the lock can run
+        if (!hasLock) {
+            app.quit();
+            return;
+        }
+        canWriteSettings = true;
     }
 
     const createWindow = lazy(() => {
-        createMainWindow(args, settings).catch((error) => {
+        createMainWindow(args, settings, canWriteSettings).catch((error) => {
             log.error(error);
             // rethrow to let the global error handler deal with it
             return Promise.reject(error);
