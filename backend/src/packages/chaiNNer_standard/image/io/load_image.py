@@ -17,7 +17,7 @@ from nodes.impl.image_formats import (
     get_opencv_formats,
     get_pil_formats,
 )
-from nodes.properties.inputs import ImageFileInput
+from nodes.properties.inputs import BoolInput, ImageFileInput
 from nodes.properties.outputs import (
     DictOutput,
     DirectoryOutput,
@@ -28,7 +28,7 @@ from nodes.utils.utils import get_h_w_c, split_file_path
 
 from .. import io_group
 
-_Decoder = Callable[[Path], Union[tuple[np.ndarray, dict[str, str | int | float]], None]]
+_Decoder = Callable[[Path, bool], Union[tuple[np.ndarray, dict[str, str | int | float]], None]]
 """
 An image decoder.
 
@@ -37,6 +37,7 @@ instead of raising an exception. E.g. when the file extension indicates an
 unsupported format.
 
 Returns a tuple of (image, metadata_dict) if successful.
+The second parameter indicates whether to extract metadata.
 """
 
 
@@ -63,7 +64,7 @@ def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def _read_cv(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
+def _read_cv(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) not in get_opencv_formats():
         # not supported
         return None
@@ -88,45 +89,47 @@ def _read_cv(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | No
         )
 
     # OpenCV doesn't provide easy access to metadata, so return empty dict
+    # Could potentially use exifread or piexif libraries here if needed in the future
     return img, {}
 
 
-def _read_pil(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
+def _read_pil(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) not in get_pil_formats():
         # not supported
         return None
 
     im = Image.open(path)
 
-    # Extract metadata from PIL image
+    # Extract metadata from PIL image only if requested
     metadata: dict[str, str | int | float] = {}
 
-    # Get EXIF data if available
-    try:
-        exif = im.getexif()
-        if exif:
-            for tag_id, value in exif.items():
-                # Convert value to string or number
+    if extract_metadata:
+        # Get EXIF data if available
+        try:
+            exif = im.getexif()
+            if exif:
+                for tag_id, value in exif.items():
+                    # Convert value to string or number
+                    if isinstance(value, (int, float)):
+                        metadata[f"exif_{tag_id}"] = value
+                    elif isinstance(value, (str, bytes)):
+                        try:
+                            metadata[f"exif_{tag_id}"] = str(value)
+                        except Exception:
+                            pass  # Skip values that can't be converted
+        except Exception:
+            pass  # EXIF not available or error reading it
+
+        # Get general info
+        if hasattr(im, "info") and im.info:
+            for key, value in im.info.items():
                 if isinstance(value, (int, float)):
-                    metadata[f"exif_{tag_id}"] = value
+                    metadata[key] = value
                 elif isinstance(value, (str, bytes)):
                     try:
-                        metadata[f"exif_{tag_id}"] = str(value)
+                        metadata[key] = str(value)
                     except Exception:
-                        pass  # Skip values that can't be converted
-    except Exception:
-        pass  # EXIF not available or error reading it
-
-    # Get general info
-    if hasattr(im, "info") and im.info:
-        for key, value in im.info.items():
-            if isinstance(value, (int, float)):
-                metadata[key] = value
-            elif isinstance(value, (str, bytes)):
-                try:
-                    metadata[key] = str(value)
-                except Exception:
-                    pass
+                        pass
 
     if im.mode == "P":
         # convert color palette to actual colors
@@ -141,7 +144,7 @@ def _read_pil(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | N
     return img, metadata
 
 
-def _read_dds(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
+def _read_dds(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) != ".dds":
         # not supported
         return None
@@ -152,7 +155,7 @@ def _read_dds(path: Path) -> tuple[np.ndarray, dict[str, str | int | float]] | N
 
     png = dds_to_png_texconv(path)
     try:
-        result = _read_cv(png)
+        result = _read_cv(png, extract_metadata)
         if result is not None:
             img, metadata = result
             img = remove_unnecessary_alpha(img)
@@ -169,7 +172,7 @@ def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
     else:
         ext_set.update(ext)
 
-    return lambda path: decoder(path) if get_ext(path) in ext_set else None
+    return lambda path, extract_metadata: decoder(path, extract_metadata) if get_ext(path) in ext_set else None
 
 
 _decoders: list[tuple[str, _Decoder]] = [
@@ -188,13 +191,17 @@ valid_formats = get_available_image_formats()
     description=(
         "Load image from specified file. This node will output the loaded image, the"
         " directory of the image file, the name of the image file (without file"
-        " extension), and any metadata embedded in the image file."
+        " extension), and optionally any metadata embedded in the image file."
     ),
     icon="BsFillImageFill",
     inputs=[
         ImageFileInput(primary_input=True).with_docs(
             "Select the path of an image file."
-        )
+        ),
+        BoolInput("Read Metadata", default=False).with_docs(
+            "Whether to extract metadata from the image file. "
+            "Disable this option for faster loading if metadata is not needed."
+        ),
     ],
     outputs=[
         LargeImageOutput()
@@ -208,13 +215,14 @@ valid_formats = get_available_image_formats()
         FileNameOutput("Name", of_input=0),
         DictOutput("Metadata").with_docs(
             "Image metadata extracted from the file (e.g., EXIF data). "
-            "This will be an empty dictionary if no metadata is available."
+            "This will be an empty dictionary if metadata reading is disabled or no metadata is available."
         ),
     ],
     side_effects=True,
 )
 def load_image_node(
     path: Path,
+    extract_metadata: bool,
 ) -> tuple[np.ndarray, Path, str, dict[str, str | int | float]]:
     logger.debug("Reading image from path: %s", path)
 
@@ -225,7 +233,7 @@ def load_image_node(
     error = None
     for name, decoder in _decoders:
         try:
-            result = decoder(Path(path))
+            result = decoder(Path(path), extract_metadata)
             if result is not None:
                 img, metadata = result
         except Exception as e:
