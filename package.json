@@ -9,9 +9,9 @@
   "scripts": {
     "start": "electron-forge start -- --devtools",
     "frontend": "electron-forge start -- --remote-backend=http://127.0.0.1:8000 --devtools",
-    "dev": "concurrently \"npm run dev:py\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
-    "dev:reload": "concurrently \"npm run dev:py\" \"cross-env HOT_RESTART=1 electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
-    "dev:profile": "concurrently \"npm run dev:py:profile\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
+    "dev": "concurrently --kill-others \"npm run dev:py\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
+    "dev:reload": "concurrently --kill-others \"npm run dev:py\" \"cross-env HOT_RESTART=1 electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
+    "dev:profile": "concurrently --kill-others \"npm run dev:py:profile\" \"electron-forge start -- --remote-backend=http://127.0.0.1:8000 --refresh --devtools\"",
     "dev:py": "cd backend/src && cross-env CHECK_LEVEL=fix nodemon --exec \"python -m debugpy --listen 5678\" ./run.py 8000 --dev",
     "dev:py:profile": "cd backend/src && cross-env CHECK_LEVEL=fix nodemon --exec \"python ./run.py 8000 --trace --dev",
     "package": "cross-env NODE_ENV=production electron-forge package",
