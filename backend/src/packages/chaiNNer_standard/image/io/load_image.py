@@ -137,8 +137,8 @@ def _read_cv(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, 
     metadata: dict[str, str | int | float] = {}
     if extract_metadata:
         ext = get_ext(path)
-        # EXIF is primarily in JPEG files
-        if ext in [".jpg", ".jpeg", ".jpe"]:
+        # piexif supports JPEG and TIFF files
+        if ext in [".jpg", ".jpeg", ".jpe", ".tif", ".tiff"]:
             metadata = _read_exif_piexif(path)
 
     return img, metadata

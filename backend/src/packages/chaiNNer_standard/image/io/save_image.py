@@ -519,8 +519,8 @@ def save_image_node(
 
         cv_save_image(full_path, img, params)
 
-        # Write EXIF metadata for JPEG files using piexif if available
-        if metadata and image_format == ImageFormat.JPG:
+        # Write EXIF metadata for JPEG and TIFF files using piexif if available
+        if metadata and image_format in [ImageFormat.JPG, ImageFormat.TIFF]:
             _write_exif_piexif(full_path, metadata)
 
 
