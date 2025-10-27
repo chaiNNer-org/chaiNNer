@@ -8,9 +8,9 @@ import cv2
 import numpy as np
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
-from sanic.log import logger
 
 from api import KeyInfo, Lazy
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
     BC7_FORMATS,
@@ -339,13 +339,13 @@ def save_image_node(
 
     if full_path.exists():
         if skip_existing_files:
-            logger.debug(f"Skipping existing file: {full_path}")
+            logger.debug("Skipping existing file: %s", full_path)
             return
     else:
         # Create directory if it doesn't exist
         full_path.parent.mkdir(parents=True, exist_ok=True)
 
-    logger.debug(f"Writing image to path: {full_path}")
+    logger.debug("Writing image to path: %s", full_path)
     img = lazy_image.value
 
     # DDS files are handled separately

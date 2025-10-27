@@ -11,7 +11,7 @@ from .. import all_group
 
 @all_group.register(
     schema_id="chainner:image:split_channels",
-    name="Separate RGBA",
+    name="Split R/G/B/A",
     description=(
         "Split image channels into separate channels. "
         "Typically used for splitting off an alpha (transparency) layer."
@@ -33,7 +33,7 @@ from .. import all_group
         ).with_docs("The alpha (transparency mask) channel."),
     ],
 )
-def separate_rgba_node(
+def split_r_g_b_a_node(
     img: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     h, w, c = get_h_w_c(img)

@@ -5,7 +5,7 @@ import os
 from dataclasses import asdict, dataclass, field
 from typing import Any, Awaitable, Callable, Iterable, TypeVar
 
-from sanic.log import logger
+from logger import logger
 
 from .group import Group, GroupId, NestedGroup, NestedIdGroup
 from .input import BaseInput
@@ -83,7 +83,7 @@ class NodeGroup:
     nodes: list[NodeData] = field(default_factory=list)
 
     def add_node(self, node: NodeData):
-        logger.debug(f"Added {node.schema_id}")
+        logger.debug("Added %s", node.schema_id)
         self.nodes.append(node)
 
     def to_dict(self):

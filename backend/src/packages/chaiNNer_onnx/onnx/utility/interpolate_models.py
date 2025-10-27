@@ -7,9 +7,9 @@ import onnx
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from onnx import numpy_helper as onph
 from onnx.onnx_pb import TensorProto
-from sanic.log import logger
 
 from api import NodeContext
+from logger import logger
 from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.onnx.utils import safely_optimize_onnx_model

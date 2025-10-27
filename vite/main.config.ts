@@ -47,7 +47,7 @@ export default defineConfig((env) => {
         },
         server: {
             watch: {
-                ignored: ['**/translation.json'],
+                ignored: [],
             },
         },
     };

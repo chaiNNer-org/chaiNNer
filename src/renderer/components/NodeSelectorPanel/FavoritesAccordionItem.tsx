@@ -11,6 +11,7 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NodeSchema } from '../../../common/common-types';
 import { NodeRepresentativeList } from './NodeRepresentative';
 import { TextBox } from './TextBox';
@@ -23,6 +24,7 @@ interface FavoritesAccordionItemProps {
 
 export const FavoritesAccordionItem = memo(
     ({ favoriteNodes, noFavorites, collapsed }: FavoritesAccordionItemProps) => {
+        const { t } = useTranslation();
         return (
             <AccordionItem>
                 <Tooltip
@@ -31,7 +33,7 @@ export const FavoritesAccordionItem = memo(
                     borderRadius={8}
                     fontSize="1.05rem"
                     isDisabled={!collapsed}
-                    label={<b>Favorites</b>}
+                    label={<b>{t('favorites.title', 'Favorites')}</b>}
                     openDelay={500}
                     px={2}
                     py={1}
@@ -52,7 +54,7 @@ export const FavoritesAccordionItem = memo(
                                     textOverflow="clip"
                                     whiteSpace="nowrap"
                                 >
-                                    Favorites
+                                    {t('favorites.title', 'Favorites')}
                                 </Heading>
                             )}
                         </HStack>
@@ -74,19 +76,26 @@ export const FavoritesAccordionItem = memo(
                                 noWrap
                                 collapsed={collapsed}
                                 height="1.5rem"
-                                text="No Favorites."
+                                text={t('favorites.noFavorites', 'No Favorites.')}
                                 toolTip={
                                     collapsed ? (
                                         <>
-                                            Add Favorites by right-clicking nodes and selecting{' '}
-                                            <em>Add to Favorites</em>.
+                                            {t(
+                                                'favorites.addFavoritesTooltip',
+                                                'Add Favorites by right-clicking nodes and selecting Add to Favorites.'
+                                            )}
                                         </>
                                     ) : (
                                         <>
-                                            Add Favorites by hovering over nodes and clicking the{' '}
-                                            <StarIcon style={{ verticalAlign: 'baseline' }} /> icon,
-                                            or by right-clicking and selecting{' '}
-                                            <em>Add to Favorites</em>.
+                                            {t(
+                                                'favorites.addFavoritesTooltipExpanded.beforeIcon',
+                                                'Add Favorites by hovering over nodes and clicking the'
+                                            )}{' '}
+                                            <StarIcon style={{ verticalAlign: 'baseline' }} />{' '}
+                                            {t(
+                                                'favorites.addFavoritesTooltipExpanded.afterIcon',
+                                                'icon, or by right-clicking and selecting Add to Favorites.'
+                                            )}
                                         </>
                                     )
                                 }

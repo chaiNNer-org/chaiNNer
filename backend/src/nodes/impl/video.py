@@ -5,7 +5,8 @@ from pathlib import Path
 
 import ffmpeg
 import numpy as np
-from sanic.log import logger
+
+from logger import logger
 
 from .ffmpeg import FFMpegEnv
 

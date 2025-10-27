@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Tuple
 
 import numpy as np
-from sanic.log import logger
+
+from logger import logger
 
 Size = Tuple[int, int]
 """
@@ -96,7 +97,7 @@ def split_file_path(path: Path | str) -> tuple[Path, str, str]:
 
 def walk_error_handler(exception_instance: Exception):
     logger.warning(
-        f"Exception occurred during walk: {exception_instance} Continuing..."
+        "Exception occurred during walk: %s Continuing...", exception_instance
     )
 
 

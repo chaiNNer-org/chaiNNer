@@ -1,6 +1,7 @@
 import { NeverType } from '@chainner/navi';
 import { Center, Icon, IconButton } from '@chakra-ui/react';
 import { memo, useCallback, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TbUnlink } from 'react-icons/tb';
 import { EdgeProps, getBezierPath, getStraightPath, useKeyPress, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
@@ -73,6 +74,7 @@ export const CustomEdge = memo(
         data = {},
         style,
     }: EdgeProps<EdgeData>) => {
+        const { t: translate } = useTranslation();
         const sourceX = _sourceX - 1; // - 8 <- To align it with the node
         const targetX = _targetX + 1; // + 8
 
@@ -305,7 +307,7 @@ export const CustomEdge = memo(
                     >
                         <IconButton
                             isRound
-                            aria-label="Remove edge button"
+                            aria-label={translate('edge.removeEdge', 'Remove edge button')}
                             borderColor="var(--node-border-color)"
                             borderRadius={100}
                             borderWidth={2}

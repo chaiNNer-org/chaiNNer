@@ -5,7 +5,8 @@ from functools import cached_property
 from typing import Callable, Sequence
 
 import pynvml as nv
-from sanic.log import logger
+
+from logger import logger
 
 _FP16_ARCH_ABILITY_MAP = {
     nv.NVML_DEVICE_ARCH_KEPLER: False,
@@ -118,7 +119,7 @@ def _try_nvml_init():
             logger.info("No Nvidia GPU found, or invalid driver installed.")
         else:
             logger.info(
-                f"Unknown error occurred when trying to initialize Nvidia GPU: {e}"
+                "Unknown error occurred when trying to initialize Nvidia GPU: %s", e
             )
         return False
 
@@ -127,7 +128,7 @@ def _try_nvml_shutdown():
     try:
         nv.nvmlShutdown()
     except Exception:
-        logger.warn("Failed to shut down Nvidia GPU.", exc_info=True)
+        logger.warning("Failed to shut down Nvidia GPU.", exc_info=True)
 
 
 def _get_nvidia_info() -> NvInfo:
@@ -139,7 +140,9 @@ def _get_nvidia_info() -> NvInfo:
         devices = [NvDevice.from_index(i) for i in range(device_count)]
         return NvInfo(devices, _try_nvml_shutdown)
     except Exception as e:
-        logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")
+        logger.info(
+            "Unknown error occurred when trying to initialize Nvidia GPU: %s", e
+        )
         _try_nvml_shutdown()
         return NvInfo.unavailable()
 

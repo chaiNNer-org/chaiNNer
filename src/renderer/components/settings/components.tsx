@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import path from 'path';
 import { memo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Setting } from '../../../common/common-types';
 import { log } from '../../../common/log';
 import { appDataPath } from '../../appConstants';
@@ -37,6 +38,7 @@ export const ToggleSetting = memo(({ setting, value, setValue }: SettingsProps<'
 });
 
 export const DropdownSetting = memo(({ setting, value, setValue }: SettingsProps<'dropdown'>) => {
+    const { t } = useTranslation();
     const validValue = setting.options.some((o) => o.value === value);
     useEffect(() => {
         if (!validValue && !setting.disabled) {
@@ -66,7 +68,7 @@ export const DropdownSetting = memo(({ setting, value, setValue }: SettingsProps
                 }}
             >
                 {setting.options.length === 0 && (
-                    <option value={invalidKey}>No options found.</option>
+                    <option value={invalidKey}>{t('settings.noOptionsFound')}</option>
                 )}
                 {setting.options.map((o) => (
                     <option
@@ -112,6 +114,7 @@ export const NumberSetting = memo(({ setting, value, setValue }: SettingsProps<'
 });
 
 const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>) => {
+    const { t } = useTranslation();
     const cacheLocation = getCacheLocation(appDataPath, setting.directory);
 
     return (
@@ -134,7 +137,7 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                         })().catch(log.error);
                     }}
                 >
-                    Clear Cache
+                    {t('settings.clearCache')}
                 </Button>
 
                 <Switch

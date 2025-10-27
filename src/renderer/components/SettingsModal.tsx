@@ -27,6 +27,7 @@ import {
 } from '@chakra-ui/react';
 import path from 'path';
 import { memo, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
@@ -40,7 +41,9 @@ import { SettingContainer } from './settings/SettingContainer';
 import { SettingItem } from './settings/SettingItem';
 
 const AppearanceSettings = memo(() => {
+    const { t } = useTranslation();
     const [theme, setTheme] = useMutSetting('theme');
+    const [language, setLanguage] = useMutSetting('language');
     const [animateChain, setAnimateChain] = useMutSetting('animateChain');
     const [viewportExportPadding, setViewportExportPadding] =
         useMutSetting('viewportExportPadding');
@@ -56,32 +59,117 @@ const AppearanceSettings = memo(() => {
             <DropdownSetting
                 setValue={(value) => setTheme(value)}
                 setting={{
-                    label: 'Color Theme',
-                    description: "Choose the Theme for chaiNNer's appearance.",
+                    label: t('settings.appearance.colorTheme.label', 'Color Theme'),
+                    description: t(
+                        'settings.appearance.colorTheme.description',
+                        "Choose the Theme for chaiNNer's appearance."
+                    ),
                     options: [
-                        { label: 'Dark', value: 'default-dark' },
-                        { label: 'Light', value: 'default-light' },
-                        { label: 'System', value: 'default-system' },
-                        { label: 'Charcoal', value: 'charcoal-dark' },
-                        { label: 'Coffee', value: 'coffee-dark' },
-                        { label: 'Blueberry', value: 'blueberry-dark' },
-                        { label: 'Dusk', value: 'dusk-dark' },
-                        { label: 'OLED', value: 'oled-dark' },
-                        { label: 'Cyberpunk', value: 'cyberpunk-dark' },
-                        { label: 'Mixer3D', value: 'mixer-dark' },
-                        { label: 'NotRealEngine', value: 'notreal-dark' },
-                        { label: 'ComfortUI', value: 'comfort-dark' },
+                        {
+                            label: t('settings.appearance.colorTheme.options.dark', 'Dark'),
+                            value: 'default-dark',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.light', 'Light'),
+                            value: 'default-light',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.system', 'System'),
+                            value: 'default-system',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.charcoal', 'Charcoal'),
+                            value: 'charcoal-dark',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.coffee', 'Coffee'),
+                            value: 'coffee-dark',
+                        },
+                        {
+                            label: t(
+                                'settings.appearance.colorTheme.options.blueberry',
+                                'Blueberry'
+                            ),
+                            value: 'blueberry-dark',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.dusk', 'Dusk'),
+                            value: 'dusk-dark',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.oled', 'OLED'),
+                            value: 'oled-dark',
+                        },
+                        {
+                            label: t(
+                                'settings.appearance.colorTheme.options.cyberpunk',
+                                'Cyberpunk'
+                            ),
+                            value: 'cyberpunk-dark',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.mixer', 'Mixer3D'),
+                            value: 'mixer-dark',
+                        },
+                        {
+                            label: t(
+                                'settings.appearance.colorTheme.options.notreal',
+                                'NotRealEngine'
+                            ),
+                            value: 'notreal-dark',
+                        },
+                        {
+                            label: t('settings.appearance.colorTheme.options.comfort', 'ComfortUI'),
+                            value: 'comfort-dark',
+                        },
                     ],
                     small: true,
                 }}
                 value={theme}
             />
 
+            <DropdownSetting
+                setValue={(value) => setLanguage(value)}
+                setting={{
+                    label: t('settings.appearance.language.label', 'Language (requires restart)'),
+                    description: t(
+                        'settings.appearance.language.description',
+                        "Choose the language for chaiNNer's interface."
+                    ),
+                    options: [
+                        { label: t('languages.english', 'English'), value: 'en' },
+                        { label: t('languages.spanish', 'Español'), value: 'es' },
+                        { label: t('languages.german', 'Deutsch'), value: 'de' },
+                        { label: t('languages.french', 'Français'), value: 'fr' },
+                        { label: t('languages.italian', 'Italiano'), value: 'it' },
+                        { label: t('languages.portuguese', 'Português'), value: 'pt' },
+                        { label: t('languages.japanese', '日本語'), value: 'ja' },
+                        { label: t('languages.chinese', '中文'), value: 'zh-CN' },
+                        { label: t('languages.russian', 'Русский'), value: 'ru' },
+                        { label: t('languages.korean', '한국어'), value: 'ko' },
+                        { label: t('languages.dutch', 'Nederlands'), value: 'nl' },
+                        { label: t('languages.polish', 'Polski'), value: 'pl' },
+                        { label: t('languages.turkish', 'Türkçe'), value: 'tr' },
+                        { label: t('languages.arabic', 'العربية'), value: 'ar' },
+                        { label: t('languages.hindi', 'हिन्दी'), value: 'hi' },
+                        {
+                            label: t('languages.brazilianPortuguese', 'Português (Brasil)'),
+                            value: 'pt-BR',
+                        },
+                    ],
+                    small: true,
+                }}
+                value={language}
+            />
+
             <ToggleSetting
                 setValue={setAnimateChain}
                 setting={{
-                    label: 'Chain animation',
-                    description: 'Enable animations that show the processing state of the chain.',
+                    label: t('settings.appearance.chainAnimation.label', 'Chain animation'),
+                    description: t(
+                        'settings.appearance.chainAnimation.description',
+                        'Enable animations that show the processing state of the chain.'
+                    ),
                 }}
                 value={animateChain}
             />
@@ -89,9 +177,11 @@ const AppearanceSettings = memo(() => {
             <ToggleSetting
                 setValue={setShowMinimap}
                 setting={{
-                    label: 'Minimap',
-                    description:
-                        'Enable a minimap of the current chain in the bottom right corner of the node editor.',
+                    label: t('settings.appearance.minimap.label', 'Minimap'),
+                    description: t(
+                        'settings.appearance.minimap.description',
+                        'Enable a minimap of the current chain in the bottom right corner of the node editor.'
+                    ),
                 }}
                 value={showMinimap}
             />
@@ -99,8 +189,11 @@ const AppearanceSettings = memo(() => {
             <ToggleSetting
                 setValue={setSnapToGrid}
                 setting={{
-                    label: 'Snap to grid',
-                    description: 'Enable node grid snapping.',
+                    label: t('settings.appearance.snapToGrid.label', 'Snap to grid'),
+                    description: t(
+                        'settings.appearance.snapToGrid.description',
+                        'Enable node grid snapping.'
+                    ),
                 }}
                 value={snapToGrid}
             />
@@ -108,8 +201,11 @@ const AppearanceSettings = memo(() => {
             <NumberSetting
                 setValue={setSnapToGridAmount}
                 setting={{
-                    label: 'Snap to grid amount',
-                    description: 'The amount to snap the grid to.',
+                    label: t('settings.appearance.snapToGridAmount.label', 'Snap to grid amount'),
+                    description: t(
+                        'settings.appearance.snapToGridAmount.description',
+                        'The amount to snap the grid to.'
+                    ),
                     max: 45,
                     min: 1,
                 }}
@@ -119,8 +215,14 @@ const AppearanceSettings = memo(() => {
             <NumberSetting
                 setValue={setViewportExportPadding}
                 setting={{
-                    label: 'Viewport PNG export padding',
-                    description: 'The amount of padding for the viewport PNG export.',
+                    label: t(
+                        'settings.appearance.viewportExportPadding.label',
+                        'Viewport PNG export padding'
+                    ),
+                    description: t(
+                        'settings.appearance.viewportExportPadding.description',
+                        'The amount of padding for the viewport PNG export.'
+                    ),
                     max: 100,
                     min: 0,
                 }}
@@ -131,6 +233,7 @@ const AppearanceSettings = memo(() => {
 });
 
 const EnvironmentSettings = memo(() => {
+    const { t } = useTranslation();
     const [startupTemplate, setStartupTemplate] = useMutSetting('startupTemplate');
 
     const [lastDirectory, setLastDirectory] = useState(startupTemplate || '');
@@ -139,7 +242,7 @@ const EnvironmentSettings = memo(() => {
         const fileDir = startupTemplate ? path.dirname(startupTemplate) : lastDirectory;
         const fileFilter = [
             {
-                name: 'Select Chain',
+                name: t('settings.environment.selectChain', 'Select Chain'),
                 extensions: ['chn'],
             },
         ];
@@ -154,7 +257,7 @@ const EnvironmentSettings = memo(() => {
             setStartupTemplate(selectedPath);
             setLastDirectory(path.dirname(selectedPath));
         }
-    }, [startupTemplate, lastDirectory, setStartupTemplate]);
+    }, [startupTemplate, lastDirectory, setStartupTemplate, t]);
 
     return (
         <VStack
@@ -162,8 +265,11 @@ const EnvironmentSettings = memo(() => {
             w="full"
         >
             <SettingContainer
-                description="Set a chain template to use by default when chaiNNer starts up."
-                title="Startup Template"
+                description={t(
+                    'settings.environment.startupTemplate.description',
+                    'Set a chain template to use by default when chaiNNer starts up.'
+                )}
+                title={t('settings.environment.startupTemplate.label', 'Startup Template')}
             >
                 <HStack>
                     <Tooltip
@@ -181,11 +287,17 @@ const EnvironmentSettings = memo(() => {
 
                             <Input
                                 isReadOnly
-                                alt="Pick startup template file"
+                                alt={t(
+                                    'settings.environment.startupTemplate.pickFile',
+                                    'Pick startup template file'
+                                )}
                                 className="nodrag"
                                 cursor="pointer"
                                 draggable={false}
-                                placeholder="Select a file..."
+                                placeholder={t(
+                                    'settings.environment.startupTemplate.placeholder',
+                                    'Select a file...'
+                                )}
                                 textOverflow="ellipsis"
                                 value={startupTemplate ? path.parse(startupTemplate).base : ''}
                                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -194,7 +306,7 @@ const EnvironmentSettings = memo(() => {
                         </InputGroup>
                     </Tooltip>
                     <IconButton
-                        aria-label="clear"
+                        aria-label={t('settings.environment.startupTemplate.clear', 'Clear')}
                         icon={<SmallCloseIcon />}
                         size="xs"
                         onClick={() => setStartupTemplate('')}
@@ -206,6 +318,7 @@ const EnvironmentSettings = memo(() => {
 });
 
 const PythonSettings = memo(() => {
+    const { t } = useTranslation();
     const { packages } = useContext(BackendContext);
     const [packageSettings, setPackageSettings] = useMutSetting('packageSettings');
 
@@ -234,7 +347,7 @@ const PythonSettings = memo(() => {
                 <Tab>
                     <HStack cursor="pointer">
                         <Icon as={FaPython} />
-                        <Text cursor="pointer">General</Text>
+                        <Text cursor="pointer">{t('settings.python.general', 'General')}</Text>
                     </HStack>
                 </Tab>
                 {packagesWithSettings.map((pkg) => (
@@ -256,16 +369,27 @@ const PythonSettings = memo(() => {
                         <ToggleSetting
                             setValue={setUseSystemPython}
                             setting={{
-                                label: 'Use system Python (requires restart)',
-                                description:
-                                    "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)",
+                                label: t(
+                                    'settings.python.useSystemPython.label',
+                                    'Use system Python (requires restart)'
+                                ),
+                                description: t(
+                                    'settings.python.useSystemPython.description',
+                                    "Use system Python for chaiNNer's processing instead of the bundled Python (not recommended)"
+                                ),
                             }}
                             value={useSystemPython}
                         />
                         {useSystemPython && (
                             <SettingContainer
-                                description="If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
-                                title="System Python location (optional)"
+                                description={t(
+                                    'settings.python.systemPythonLocation.description',
+                                    "If wanted, use a specific python binary rather than the default one invoked by 'python3' or 'python'. This is useful if you have multiple python versions installed and want to pick a specific one."
+                                )}
+                                title={t(
+                                    'settings.python.systemPythonLocation.label',
+                                    'System Python location (optional)'
+                                )}
                             >
                                 <HStack>
                                     <Tooltip
@@ -283,11 +407,17 @@ const PythonSettings = memo(() => {
 
                                             <Input
                                                 isReadOnly
-                                                alt="Pick system python location"
+                                                alt={t(
+                                                    'settings.python.systemPythonLocation.pickFile',
+                                                    'Pick system python location'
+                                                )}
                                                 className="nodrag"
                                                 cursor="pointer"
                                                 draggable={false}
-                                                placeholder="Select a file..."
+                                                placeholder={t(
+                                                    'settings.python.systemPythonLocation.placeholder',
+                                                    'Select a file...'
+                                                )}
                                                 textOverflow="ellipsis"
                                                 value={
                                                     systemPythonLocation
@@ -300,7 +430,10 @@ const PythonSettings = memo(() => {
                                         </InputGroup>
                                     </Tooltip>
                                     <IconButton
-                                        aria-label="clear"
+                                        aria-label={t(
+                                            'settings.python.systemPythonLocation.clear',
+                                            'Clear'
+                                        )}
                                         icon={<SmallCloseIcon />}
                                         size="xs"
                                         onClick={() => setSystemPythonLocation('')}
@@ -349,6 +482,7 @@ const PythonSettings = memo(() => {
 });
 
 const AdvancedSettings = memo(() => {
+    const { t } = useTranslation();
     const [checkForUpdatesOnStartup, setCheckForUpdatesOnStartup] = useMutSetting(
         'checkForUpdatesOnStartup'
     );
@@ -365,26 +499,42 @@ const AdvancedSettings = memo(() => {
             <ToggleSetting
                 setValue={setCheckForUpdatesOnStartup}
                 setting={{
-                    label: 'Check for Update on Start-up',
-                    description: 'Toggles checking for updates on start-up.',
+                    label: t(
+                        'settings.advanced.checkForUpdates.label',
+                        'Check for Update on Start-up'
+                    ),
+                    description: t(
+                        'settings.advanced.checkForUpdates.description',
+                        'Toggles checking for updates on start-up.'
+                    ),
                 }}
                 value={checkForUpdatesOnStartup}
             />
             <ToggleSetting
                 setValue={setExperimentalFeatures}
                 setting={{
-                    label: 'Enable experimental features',
-                    description:
-                        'Enable experimental features to try them out before they are finished.',
+                    label: t(
+                        'settings.advanced.experimentalFeatures.label',
+                        'Enable experimental features'
+                    ),
+                    description: t(
+                        'settings.advanced.experimentalFeatures.description',
+                        'Enable experimental features to try them out before they are finished.'
+                    ),
                 }}
                 value={experimentalFeatures}
             />
             <ToggleSetting
                 setValue={setHardwareAcceleration}
                 setting={{
-                    label: 'Enable Hardware Acceleration (requires restart)',
-                    description:
-                        'Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing.',
+                    label: t(
+                        'settings.advanced.hardwareAcceleration.label',
+                        'Enable Hardware Acceleration (requires restart)'
+                    ),
+                    description: t(
+                        'settings.advanced.hardwareAcceleration.description',
+                        'Enable GPU rendering for the GUI. Use with caution, as it may severely decrease GPU performance for image processing.'
+                    ),
                 }}
                 value={hardwareAcceleration}
             />
@@ -393,9 +543,14 @@ const AdvancedSettings = memo(() => {
                 <ToggleSetting
                     setValue={setAllowMultipleInstances}
                     setting={{
-                        label: 'Allow multiple concurrent instances',
-                        description:
-                            'Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently.',
+                        label: t(
+                            'settings.advanced.allowMultipleInstances.label',
+                            'Allow multiple concurrent instances'
+                        ),
+                        description: t(
+                            'settings.advanced.allowMultipleInstances.description',
+                            'Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently.'
+                        ),
                     }}
                     value={allowMultipleInstances}
                 />
@@ -410,6 +565,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
+    const { t } = useTranslation();
     return (
         <Modal
             isCentered
@@ -427,7 +583,7 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                 my={0}
                 w="750px"
             >
-                <ModalHeader>Settings</ModalHeader>
+                <ModalHeader>{t('settings.title', 'Settings')}</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody
                     position="relative"
@@ -447,25 +603,33 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                             <Tab>
                                 <HStack cursor="pointer">
                                     <Icon as={BsPaletteFill} />
-                                    <Text cursor="pointer">Appearance</Text>
+                                    <Text cursor="pointer">
+                                        {t('settings.tabs.appearance', 'Appearance')}
+                                    </Text>
                                 </HStack>
                             </Tab>
                             <Tab>
                                 <HStack cursor="pointer">
                                     <Icon as={BsFillPencilFill} />
-                                    <Text cursor="pointer">Environment</Text>
+                                    <Text cursor="pointer">
+                                        {t('settings.tabs.environment', 'Environment')}
+                                    </Text>
                                 </HStack>
                             </Tab>
                             <Tab>
                                 <HStack cursor="pointer">
                                     <Icon as={FaPython} />
-                                    <Text cursor="pointer">Python</Text>
+                                    <Text cursor="pointer">
+                                        {t('settings.tabs.python', 'Python')}
+                                    </Text>
                                 </HStack>
                             </Tab>
                             <Tab>
                                 <HStack cursor="pointer">
                                     <Icon as={FaTools} />
-                                    <Text cursor="pointer">Advanced</Text>
+                                    <Text cursor="pointer">
+                                        {t('settings.tabs.advanced', 'Advanced')}
+                                    </Text>
                                 </HStack>
                             </Tab>
                         </TabList>
@@ -498,14 +662,14 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
                                 await ipcRenderer.invoke('relaunch-application');
                             }}
                         >
-                            Restart chaiNNer
+                            {t('settings.restartChaiNNer', 'Restart chaiNNer')}
                         </Button>
                         <Button
                             colorScheme="blue"
                             mr={3}
                             onClick={onClose}
                         >
-                            Close
+                            {t('common.close', 'Close')}
                         </Button>
                     </HStack>
                 </ModalFooter>
@@ -515,6 +679,7 @@ export const SettingsModal = memo(({ isOpen, onClose }: SettingsModalProps) => {
 });
 
 export const SettingsButton = memo(() => {
+    const { t } = useTranslation();
     const {
         isOpen: isSettingsOpen,
         onOpen: onSettingsOpen,
@@ -526,18 +691,18 @@ export const SettingsButton = memo(() => {
                 closeOnClick
                 closeOnMouseDown
                 borderRadius={8}
-                label="Settings"
+                label={t('common.settings', 'Settings')}
                 px={2}
                 py={1}
             >
                 <IconButton
-                    aria-label="Settings"
+                    aria-label={t('common.settings', 'Settings')}
                     icon={<SettingsIcon />}
                     size="md"
                     variant="outline"
                     onClick={onSettingsOpen}
                 >
-                    Settings
+                    {t('common.settings', 'Settings')}
                 </IconButton>
             </Tooltip>
             <SettingsModal

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+from typing import Callable
 
 import numpy as np
 import torch
@@ -48,6 +49,41 @@ def _rgb_to_bgr(t: torch.Tensor) -> torch.Tensor:
         return t
 
 
+def _pad(
+    img: np.ndarray, model: ImageModelDescriptor[torch.nn.Module]
+) -> tuple[np.ndarray, Callable[[np.ndarray], np.ndarray]]:
+    """
+    Pads the image to satisfy the model's size requirements.
+    Returns the padded image and a function to remove the padding from the output.
+    """
+    h, w = img.shape[:2]
+
+    pad_w, pad_h = model.size_requirements.get_padding(w, h)
+
+    def remove_padding(output: np.ndarray) -> np.ndarray:
+        if pad_w == 0 and pad_h == 0:
+            return output
+
+        out_h, out_w = output.shape[:2]
+        scale_w = out_w // (w + pad_w)
+        scale_h = out_h // (h + pad_h)
+        new_pad_w = int(pad_w * scale_w)
+        new_pad_h = int(pad_h * scale_h)
+
+        if new_pad_w > 0 or new_pad_h > 0:
+            return output[: out_h - new_pad_h, : out_w - new_pad_w]
+        return output
+
+    if pad_w > 0 or pad_h > 0:
+        # Pad with reflection
+        paddings = [(0, pad_h), (0, pad_w)]
+        if len(img.shape) == 3:
+            paddings.append((0, 0))
+        img = np.pad(img, paddings, "reflect")
+
+    return img, remove_padding
+
+
 def _into_tensor(
     img: np.ndarray, device: torch.device, dtype: torch.dtype
 ) -> torch.Tensor:
@@ -92,8 +128,11 @@ def pytorch_auto_split(
 
         input_tensor = None
         try:
+            # Apply padding to satisfy size requirements
+            padded_img, remove_padding = _pad(img, model)
+
             # convert to tensor
-            input_tensor = _into_tensor(img, device, dtype)
+            input_tensor = _into_tensor(padded_img, device, dtype)
             input_tensor = _rgb_to_bgr(input_tensor)
             input_tensor = _into_batched_form(input_tensor)
 
@@ -104,6 +143,9 @@ def pytorch_auto_split(
             output_tensor = _into_standard_image_form(output_tensor)
             output_tensor = _rgb_to_bgr(output_tensor)
             result = output_tensor.detach().cpu().detach().float().numpy()
+
+            # Remove padding from output
+            result = remove_padding(result)
 
             return result
         except RuntimeError as e:
