@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import List
+
 import pytest
 
 from api.settings import (
@@ -261,7 +263,7 @@ class TestDropdownSetting:
 
     def test_dropdown_setting_creation(self):
         """Test creating a DropdownSetting."""
-        options: list[DropdownOption] = [
+        options: List[DropdownOption] = [
             {"label": "Option 1", "value": "opt1"},
             {"label": "Option 2", "value": "opt2"},
         ]

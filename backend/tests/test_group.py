@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, List, cast
 
 from api.group import Group, GroupId, GroupInfo, group
 from api.input import BaseInput
@@ -116,7 +116,7 @@ class TestGroup:
 
         assert result["id"] == 2
         assert result["kind"] == "outer"
-        items = cast(list[Any], result["items"])
+        items = cast(List[Any], result["items"])
         assert len(items) == 2
         # First item should be the nested group dict
         first_item = items[0]
