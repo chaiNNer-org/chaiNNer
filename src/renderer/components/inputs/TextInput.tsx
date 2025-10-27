@@ -266,9 +266,14 @@ export const TextInput = memo(
             inputElement = (
                 <Tooltip
                     isOpen={lastInvalidCharacter !== undefined}
-                    label={`Invalid character '${lastInvalidCharacter ?? ''}' (U+${codePoint
-                        .toString(16)
-                        .padStart(4, '0')}).`}
+                    label={t(
+                        'inputs.text.invalidCharacter',
+                        "Invalid character '{{character}}' (U+{{codePoint}}).",
+                        {
+                            character: lastInvalidCharacter ?? '',
+                            codePoint: codePoint.toString(16).padStart(4, '0'),
+                        }
+                    )}
                     onClose={() => setLastInvalidCharacter(undefined)}
                 >
                     {inputElement}

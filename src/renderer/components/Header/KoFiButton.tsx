@@ -1,22 +1,24 @@
 import { IconButton, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { SiKofi } from 'react-icons/si';
 import { links } from '../../../common/links';
 import { log } from '../../../common/log';
 import { ipcRenderer } from '../../safeIpc';
 
 export const KoFiButton = memo(() => {
+    const { t } = useTranslation();
     return (
         <Tooltip
             closeOnClick
             closeOnMouseDown
             borderRadius={8}
-            label="Support chaiNNer on Ko-fi"
+            label={t('support.koFiTooltip', 'Support chaiNNer on Ko-fi')}
             px={2}
             py={1}
         >
             <IconButton
-                aria-label="Support chaiNNer"
+                aria-label={t('support.koFiAria', 'Support chaiNNer')}
                 icon={<SiKofi />}
                 size="md"
                 variant="outline"
@@ -26,7 +28,7 @@ export const KoFiButton = memo(() => {
                     });
                 }}
             >
-                Support chaiNNer
+                {t('support.koFiButton', 'Support chaiNNer')}
             </IconButton>
         </Tooltip>
     );

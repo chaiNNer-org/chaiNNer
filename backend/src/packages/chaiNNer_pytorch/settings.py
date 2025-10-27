@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 
 import torch
-from sanic.log import logger
 
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
 from gpu import nvidia
+from logger import logger
 from system import is_arm_mac
 
 from . import package

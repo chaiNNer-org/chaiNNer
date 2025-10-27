@@ -8,7 +8,8 @@ from google.protobuf.internal.containers import (
     RepeatedScalarFieldContainer,
 )
 from onnx.onnx_pb import AttributeProto, GraphProto, ModelProto, NodeProto, TensorProto
-from sanic.log import logger
+
+from logger import logger
 
 from ..ncnn.model import (
     DTYPE_FP16,
@@ -2575,7 +2576,9 @@ class Onnx2NcnnConverter:
         )
         ncnn_model = NcnnModel(ncnn_node_count, ncnn_blob_count)
         logger.debug(
-            f"Node count: {ncnn_model.node_count}, Blob count: {ncnn_model.blob_count}"
+            "Node count: %d, Blob count: %d",
+            ncnn_model.node_count,
+            ncnn_model.blob_count,
         )
 
         bin_length = 0
@@ -3169,7 +3172,7 @@ class Onnx2NcnnConverter:
                 alpha = get_node_attr_f(node, "alpha", 1)
                 layer.add_param(0, alpha)
             elif op == "EmbedLayerNormalization":
-                logger.error(f"No NCNN documentation for {op} yet, will not function")
+                logger.error("No NCNN documentation for %s yet, will not function", op)
                 words = self.weights[node.input[2]]
                 positions = self.weights[node.input[3]]
                 W = self.weights[node.input[5]]
@@ -3696,7 +3699,7 @@ class Onnx2NcnnConverter:
             elif op == "Sin":
                 layer.add_param(0, UOT.SIN)
             elif op == "SkipLayerNormalization":
-                logger.error(f"No NCNN documentation for {op} yet, will not function")
+                logger.error("No NCNN documentation for %s yet, will not function", op)
                 W = self.weights[node.input[2]]
                 B = self.weights[node.input[3]]
                 B2 = self.weights[node.input[4]]

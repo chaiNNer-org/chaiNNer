@@ -20,6 +20,7 @@ exports[`Migrate settings 1`] = `
     "chainner:utility:copy_to_clipboard",
   ],
   "hardwareAcceleration": false,
+  "language": "en",
   "lastWindowSize": {
     "height": 1007,
     "maximized": false,

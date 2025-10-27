@@ -45,16 +45,13 @@ def inpaint(
 
             result = model(d_img, d_mask)
             result = tensor2np(
-                result.detach().cpu().detach(),
+                result.detach().cpu(),
                 change_range=False,
                 imtype=np.float32,
             )
 
-            del d_img
-            del d_mask
-
             return result
-        except RuntimeError:
+        finally:
             # Collect garbage (clear VRAM)
             if d_img is not None:
                 try:
@@ -68,10 +65,9 @@ def inpaint(
                 except Exception:
                     pass
                 del d_mask
+
             gc.collect()
             safe_cuda_cache_empty()
-
-            raise
 
 
 @processing_group.register(

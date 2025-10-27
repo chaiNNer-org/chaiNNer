@@ -292,6 +292,8 @@ def check_naming_conventions(
         .replace("(", "")
         .replace(")", "")
         .replace("&", "and")
+        .replace("/", "_")
+        .replace("\\", "_")
     )
 
     func_name = wrapped_func.__name__

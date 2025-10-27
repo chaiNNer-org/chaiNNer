@@ -11,7 +11,9 @@ import {
     MenuList,
     Text,
 } from '@chakra-ui/react';
+import i18n from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { VscLightbulbAutofix } from 'react-icons/vsc';
 import { CategoryMap } from '../../common/CategoryMap';
 import {
@@ -53,6 +55,7 @@ interface SchemaItemProps {
 }
 const SchemaItem = memo(
     ({ name, icon, onClick, isFavorite, accentColor, isSelected, scrollRef }: SchemaItemProps) => {
+        const { t } = useTranslation();
         const bgColor = useThemeColor('--bg-700');
         const menuBgColor = useThemeColor('--bg-800');
 
@@ -96,7 +99,7 @@ const SchemaItem = memo(
                 </Text>
                 {isFavorite && (
                     <StarIcon
-                        aria-label="Favorites"
+                        aria-label={t('favorites.title', 'Favorites')}
                         boxSize={2.5}
                         color="gray.500"
                         overflow="hidden"
@@ -175,7 +178,7 @@ const groupSchemata = (
 
     const favs: FavoritesSchemaGroup = {
         type: 'favorites',
-        name: 'Favorites',
+        name: i18n.t('favorites.title', 'Favorites'),
         items: cats.flatMap((c) => c.items).filter((n) => favorites.has(n.schema.schemaId)),
     };
 
@@ -321,6 +324,7 @@ interface MenuProps {
 
 export const Menu = memo(
     ({ onSelect, schemata, favorites, categories, suggestions, featureStates }: MenuProps) => {
+        const { t } = useTranslation();
         const [searchQuery, setSearchQuery] = useState('');
         const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -407,7 +411,7 @@ export const Menu = memo(
                     <Input
                         autoFocus
                         borderRadius="md"
-                        placeholder="Search..."
+                        placeholder={t('search.placeholder', 'Search...')}
                         spellCheck={false}
                         type="text"
                         value={searchQuery}
@@ -499,7 +503,7 @@ export const Menu = memo(
                             opacity="50%"
                             w="full"
                         >
-                            No compatible nodes found.
+                            {i18n.t('search.noCompatibleNodes', 'No compatible nodes found.')}
                         </Center>
                     )}
                 </Box>

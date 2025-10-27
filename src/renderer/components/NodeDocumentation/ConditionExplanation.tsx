@@ -1,6 +1,8 @@
 import { evaluate } from '@chainner/navi';
 import { Code, ListItem, Text, UnorderedList } from '@chakra-ui/react';
+import i18n from 'i18next';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Condition, InputId, NodeSchema, OfKind } from '../../../common/common-types';
 import { simplifyCondition } from '../../../common/nodes/condition';
 import { getChainnerScope } from '../../../common/types/chainner-scope';
@@ -61,8 +63,12 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
                     >
                         {getInputLabel(schema, condition.enum)}
                     </Text>{' '}
-                    is {negated && ' not'}
-                    {valueOptions.length === 1 ? '' : ' one of '}
+                    {negated
+                        ? i18n.t('nodeDocumentation.conditionExplanation.isNot')
+                        : i18n.t('nodeDocumentation.conditionExplanation.is')}
+                    {valueOptions.length === 1
+                        ? ''
+                        : ` ${i18n.t('nodeDocumentation.conditionExplanation.oneOf')} `}
                     <DropDownOptions options={valueOptions} />
                 </>
             );
@@ -93,7 +99,7 @@ const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): 
 
             return (
                 <>
-                    {prefix} of type{' '}
+                    {prefix} {i18n.t('nodeDocumentation.conditionExplanation.ofType')}{' '}
                     <Code
                         display="inline"
                         userSelect="text"
@@ -137,8 +143,10 @@ const renderCondition = (
                 userSelect="text"
             >
                 {prefix}
-                {condition.kind === 'and' ? 'All of' : 'At least one of'} the following conditions
-                must be met:
+                {condition.kind === 'and'
+                    ? i18n.t('nodeDocumentation.conditionExplanation.allOf')
+                    : i18n.t('nodeDocumentation.conditionExplanation.atLeastOneOf')}{' '}
+                {i18n.t('nodeDocumentation.conditionExplanation.followingConditions')}
             </Text>
             <UnorderedList
                 alignItems="left"
@@ -169,13 +177,14 @@ interface CEProps {
 }
 // eslint-disable-next-line react/prop-types
 export const ConditionExplanation = memo(({ condition, schema }: CEProps) => {
+    const { t } = useTranslation();
     return renderCondition(
         simplifyCondition(condition),
         <Text
             as="i"
             pr={1}
         >
-            Condition:
+            {t('nodeDocumentation.conditionExplanation.condition')}
         </Text>,
         { schema }
     );

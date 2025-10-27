@@ -1,0 +1,421 @@
+{
+    "alert": {
+        "button": {
+            "ok": "ठीक है",
+            "cancel": "रद्द करें",
+            "openLogsFolder": "लॉग फ़ोल्डर खोलें",
+            "exitApplication": "एप्लिकेशन से बाहर निकलें",
+            "copyToClipboard": "क्लिपबोर्ड में कॉपी करें"
+        },
+        "stackTrace": "स्टैक ट्रेस",
+        "title": {
+            "systemInformation": "सिस्टम जानकारी"
+        }
+    },
+    "common": {
+        "cancel": "रद्द करें",
+        "close": "बंद करें",
+        "open": "खोलें",
+        "settings": "सेटिंग्स"
+    },
+    "error": {
+        "error": "त्रुटि",
+        "message": {
+            "criticalBackend": "बैकएंड द्वारा लौटाए गए नोड डेटा को प्रोसेस करते समय एक गंभीर त्रुटि हुई।"
+        },
+        "title": {
+            "unableToProcessNodes": "बैकएंड नोड्स को प्रोसेस नहीं किया जा सकता।"
+        }
+    },
+    "header": {
+        "alpha": "अल्फा",
+        "pause": "रोकें",
+        "pauseButton": "रोकें बटन",
+        "resume": "जारी रखें",
+        "run": "चलाएं",
+        "runButton": "चलाएं बटन",
+        "stop": "बंद करें",
+        "stopButton": "बंद करें बटन",
+        "updateAvailable": "अपडेट उपलब्ध ({{version}})",
+        "updateAvailableAria": "अपडेट उपलब्ध",
+        "updateChangelog": "अपडेट चेंजलॉग",
+        "updateAvailableTitle": "अपडेट उपलब्ध ({{version}})",
+        "updateAvailableMessage": "वर्जन {{version}} के लिए अपडेट उपलब्ध है। क्या आप चेंजलॉग देखना चाहते हैं?",
+        "viewReleaseOnGitHub": "GitHub पर रिलीज़ देखें",
+        "downloadFromWebsite": "chaiNNer.app से डाउनलोड करें",
+        "ignoreUpdate": "अपडेट को नज़रअंदाज़ करें",
+        "viewUpdate": "अपडेट देखें"
+    },
+    "inputs": {
+        "copyInputOverrideId": "इनपुट ओवरराइड ID कॉपी करें",
+        "inputOverrideId": "इनपुट ओवरराइड ID",
+        "inputOverrideIdCopied": "इनपुट ओवरराइड ID क्लिपबोर्ड में कॉपी हो गया",
+        "inputOverrideIdTooltip": "इस इनपुट के लिए अद्वितीय पहचानकर्ता। चेन में इनपुट को ओवरराइड करने के लिए उपयोग किया जाता है।",
+        "directory": {
+            "clear": "साफ़ करें",
+            "copyFullDirectoryPath": "पूरा डायरेक्टरी पाथ कॉपी करें",
+            "openInFileExplorer": "फ़ाइल एक्सप्लोरर में खोलें",
+            "selectDirectory": "एक डायरेक्टरी चुनें...",
+            "clickToSelect": "चुनने के लिए क्लिक करें..."
+        },
+        "extractValueIntoNode": "नोड में मान निकालें",
+        "file": {
+            "clear": "साफ़ करें",
+            "copyFileName": "फ़ाइल नाम कॉपी करें",
+            "copyFullFilePath": "पूरा फ़ाइल पाथ कॉपी करें",
+            "openInFileExplorer": "फ़ाइल एक्सप्लोरर में खोलें",
+            "selectFile": "एक फ़ाइल चुनें...",
+            "clickToSelectFile": "फ़ाइल चुनने के लिए क्लिक करें..."
+        },
+        "number": {
+            "copyText": "नंबर कॉपी करें",
+            "paste": "पेस्ट करें"
+        },
+        "text": {
+            "copyText": "टेक्स्ट कॉपी करें",
+            "paste": "पेस्ट करें",
+            "invalidCharacter": "अमान्य वर्ण '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "इनपुट जोड़ें",
+        "colorCompare": {
+            "old": "पुराना",
+            "new": "नया"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "छवि उपलब्ध नहीं है।",
+            "imagePreviewFailed": "छवि पूर्वावलोकन लोड नहीं हो सका, संभवतः असमर्थित फ़ाइल प्रकार।"
+        },
+        "model": {
+            "modelNotAvailable": "मॉडल डेटा उपलब्ध नहीं है।"
+        }
+    },
+    "settings": {
+        "title": "सेटिंग्स",
+        "restartChaiNNer": "chaiNNer को पुनः आरंभ करें",
+        "tabs": {
+            "appearance": "दिखावट",
+            "environment": "वातावरण",
+            "python": "Python",
+            "advanced": "उन्नत"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "रंग थीम",
+                "description": "chaiNNer की दिखावट के लिए थीम चुनें।",
+                "options": {
+                    "dark": "डार्क",
+                    "light": "लाइट",
+                    "system": "सिस्टम",
+                    "charcoal": "कोयला",
+                    "coffee": "कॉफी",
+                    "blueberry": "ब्लूबेरी",
+                    "dusk": "गोधूलि",
+                    "oled": "OLED",
+                    "cyberpunk": "साइबरपंक",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "भाषा (रिस्टार्ट आवश्यक)",
+                "description": "chaiNNer इंटरफेस के लिए भाषा चुनें।"
+            },
+            "chainAnimation": {
+                "label": "चेन एनिमेशन",
+                "description": "चेन की प्रोसेसिंग स्थिति दिखाने वाले एनिमेशन सक्षम करें।"
+            },
+            "minimap": {
+                "label": "मिनीमैप",
+                "description": "नोड एडिटर के निचले दाएं कोने में वर्तमान चेन का मिनीमैप सक्षम करें।"
+            },
+            "snapToGrid": {
+                "label": "ग्रिड पर स्नैप करें",
+                "description": "नोड ग्रिड स्नैपिंग सक्षम करें।"
+            },
+            "snapToGridAmount": {
+                "label": "ग्रिड स्नैप मात्रा",
+                "description": "ग्रिड पर स्नैप करने की मात्रा।"
+            },
+            "viewportExportPadding": {
+                "label": "व्यूपोर्ट PNG एक्सपोर्ट पैडिंग",
+                "description": "व्यूपोर्ट PNG एक्सपोर्ट के लिए पैडिंग की मात्रा।"
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "स्टार्टअप टेम्प्लेट",
+                "description": "chaiNNer शुरू होने पर डिफ़ॉल्ट रूप से उपयोग करने के लिए चेन टेम्प्लेट सेट करें।",
+                "placeholder": "एक फ़ाइल चुनें...",
+                "clear": "साफ़ करें",
+                "pickFile": "स्टार्टअप टेम्प्लेट फ़ाइल चुनें"
+            },
+            "selectChain": "चेन चुनें"
+        },
+        "python": {
+            "general": "सामान्य",
+            "useSystemPython": {
+                "label": "सिस्टम Python उपयोग करें (रिस्टार्ट आवश्यक)",
+                "description": "बंडल किए गए Python के बजाय chaiNNer की प्रोसेसिंग के लिए सिस्टम Python उपयोग करें (अनुशंसित नहीं)"
+            },
+            "systemPythonLocation": {
+                "label": "सिस्टम Python स्थान (वैकल्पिक)",
+                "description": "यदि चाहें, तो 'python3' या 'python' द्वारा कॉल किए गए डिफ़ॉल्ट के बजाय एक विशिष्ट python बाइनरी उपयोग करें। यह तब उपयोगी है जब आपके पास कई python संस्करण इंस्टॉल हों और आप एक विशिष्ट चुनना चाहते हों।",
+                "placeholder": "एक फ़ाइल चुनें...",
+                "clear": "साफ़ करें",
+                "pickFile": "सिस्टम python स्थान चुनें"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "स्टार्टअप पर अपडेट जांचें",
+                "description": "स्टार्टअप पर अपडेट जांच को टॉगल करता है।"
+            },
+            "experimentalFeatures": {
+                "label": "प्रयोगात्मक सुविधाएं सक्षम करें",
+                "description": "पूरा होने से पहले प्रयोगात्मक सुविधाओं को आज़माने के लिए सक्षम करें।"
+            },
+            "hardwareAcceleration": {
+                "label": "हार्डवेयर त्वरण सक्षम करें (रिस्टार्ट आवश्यक)",
+                "description": "GUI के लिए GPU रेंडरिंग सक्षम करें। सावधानी से उपयोग करें, क्योंकि यह छवि प्रोसेसिंग के लिए GPU प्रदर्शन को गंभीर रूप से कम कर सकता है।"
+            },
+            "allowMultipleInstances": {
+                "label": "कई समवर्ती इंस्टेंस की अनुमति दें",
+                "description": "chaiNNer के कई समवर्ती इंस्टेंस सक्षम करें। यह अनुशंसित नहीं है, लेकिन यदि आपकी चेन आपके सिस्टम संसाधनों का पर्याप्त उपयोग नहीं कर रही है, तो आपको चीजों को समवर्ती रूप से चलाने के लिए यह सहायक लग सकता है।"
+            }
+        },
+        "noOptionsFound": "कोई विकल्प नहीं मिला।",
+        "clearCache": "कैश साफ़ करें"
+    },
+    "setup": {
+        "checkingPort": "उपलब्ध पोर्ट की जांच कर रहे हैं...",
+        "checkingPython": "वैध Python के लिए सिस्टम वातावरण की जांच कर रहे हैं...",
+        "downloadingPython": "एकीकृत Python डाउनलोड कर रहे हैं...",
+        "extractingPython": "डाउनलोड की गई फ़ाइलें निकाल रहे हैं...",
+        "loading": "लोड हो रहा है...",
+        "startingBackend": "बैकएंड प्रक्रिया शुरू कर रहे हैं..."
+    },
+    "typeTags": {
+        "optional": "वैकल्पिक"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "यादृच्छिक बीज",
+            "randomSeedAria": "यादृच्छिक बीज"
+        }
+    },
+    "logo": {
+        "background": "पृष्ठभूमि",
+        "front": "अग्रभूमि"
+    },
+    "timer": {
+        "executionTook": "निष्पादन में लगभग {{duration}} लगा।",
+        "hour_one": "घंटा",
+        "hour_other": "घंटे",
+        "minute_one": "मिनट",
+        "minute_other": "मिनट",
+        "second_one": "सेकंड",
+        "second_other": "सेकंड"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "{{inputs}} के मान वर्तमान में एक ही मान से जुड़े हैं। इस लिंक को पूर्ववत करने के लिए यहां क्लिक करें।",
+        "clickToLink": "{{inputs}} को एक ही मान से जोड़ने के लिए यहां क्लिक करें।"
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "खोजें...",
+        "missingNodes": "लापता नोड्स? निर्भरता प्रबंधक खोलने के लिए क्लिक करें!",
+        "noCompatibleNodes": "कोई संगत नोड नहीं मिला।"
+    },
+    "favorites": {
+        "title": "पसंदीदा",
+        "noFavorites": "कोई पसंदीदा नहीं।",
+        "addFavoritesTooltip": "नोड्स पर राइट-क्लिक करके और 'पसंदीदा में जोड़ें' चुनकर पसंदीदा जोड़ें।",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "नोड्स पर होवर करके और",
+            "afterIcon": "आइकन पर क्लिक करके, या राइट-क्लिक करके 'पसंदीदा में जोड़ें' चुनकर पसंदीदा जोड़ें।"
+        },
+        "addToFavorites": "पसंदीदा में जोड़ें",
+        "removeFromFavorites": "पसंदीदा से हटाएं"
+    },
+    "documentation": {
+        "title": "नोड दस्तावेज़ीकरण",
+        "openDocumentation": "दस्तावेज़ीकरण खोलें"
+    },
+    "dependencyManager": {
+        "title": "निर्भरता प्रबंधक",
+        "manageDependencies": "निर्भरताओं का प्रबंधन करें",
+        "updatesAvailable": "अपडेट उपलब्ध",
+        "updatesAvailableDescription_one": "{{count}} पैकेज उपलब्ध निर्भरता अपडेट के साथ है।",
+        "updatesAvailableDescription_other": "{{count}} पैकेज उपलब्ध निर्भरता अपडेट के साथ हैं।",
+        "openDependencyManager": "निर्भरता प्रबंधक खोलें",
+        "packages": "पैकेज",
+        "features": "सुविधाएं",
+        "refresh": "ताज़ा करें",
+        "install": "इंस्टॉल करें",
+        "update": "अपडेट करें",
+        "uninstall": "अनइंस्टॉल करें",
+        "close": "बंद करें",
+        "missing": "लापता",
+        "outdated": "पुराना",
+        "unavailable": "अनुपलब्ध",
+        "enabled": "सक्षम",
+        "disabled": "अक्षम",
+        "python": "Python",
+        "system": "सिस्टम",
+        "integrated": "एकीकृत",
+        "advanced": "उन्नत",
+        "installationMode": "इंस्टॉलेशन मोड",
+        "normal": "सामान्य",
+        "manualCopy": "मैनुअल/कॉपी",
+        "consoleOutput": "कंसोल आउटपुट:",
+        "commandCopied": "कमांड क्लिपबोर्ड में कॉपी हो गया",
+        "commandCopiedDescription": "एक बाहरी टर्मिनल खोलें, कमांड पेस्ट करें और इसे चलाएं। जब यह चलना समाप्त हो जाए, तो chaiNNer को मैन्युअल रूप से पुनः आरंभ करें।",
+        "uninstallTitle": "अनइंस्टॉल",
+        "uninstallMessage": "क्या आप वाकई {{name}} को अनइंस्टॉल करना चाहते हैं?",
+        "unsavedChanges": "असहेजित परिवर्तन",
+        "unsavedChangesMessage": "{{name}} को अनइंस्टॉल करके आप अपने असहेजित परिवर्तन खो सकते हैं।\n\nक्या आप वाकई {{name}} को अनइंस्टॉल करना चाहते हैं?",
+        "cancel": "रद्द करें",
+        "installing": "{{name}} इंस्टॉल हो रहा है...",
+        "uninstalling": "{{name}} अनइंस्टॉल हो रहा है...",
+        "copyPythonPath": "Python पाथ को क्लिपबोर्ड में कॉपी करें",
+        "pythonPath": "Python पाथ है:",
+        "installAllPackages": "सभी पैकेज {{operations}} ({{size}})",
+        "package_one": "पैकेज",
+        "package_other": "पैकेज",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "संपादन मोड",
+        "editContent": "सामग्री संपादित करें",
+        "markdownMode": "मार्कडाउन मोड",
+        "viewMarkdown": "मार्कडाउन देखें"
+    },
+    "node": {
+        "disableHint": "संकेत: विकल्पों के माध्यम से चक्र करने के लिए Ctrl+Click का उपयोग करें।",
+        "note": {
+            "placeholder": "नोट टेक्स्ट"
+        },
+        "implementationError": "कार्यान्वयन त्रुटि",
+        "implementationErrorMessage": "नोड {{nodeName}} ({{schemaId}}) के लिए कुंजी जानकारी निर्धारित नहीं की जा सकती।",
+        "enable": "सक्षम करें",
+        "disable": "अक्षम करें",
+        "skip": "छोड़ें",
+        "eta": "ETA:",
+        "outdated": "पुराना"
+    },
+    "color": {
+        "resetToOld": "पुराने रंग पर रीसेट करें",
+        "acceptNew": "नया रंग स्वीकार करें"
+    },
+    "support": {
+        "koFiTooltip": "Ko-fi पर chaiNNer का समर्थन करें",
+        "koFiAria": "chaiNNer का समर्थन करें",
+        "koFiButton": "chaiNNer का समर्थन करें"
+    },
+    "edge": {
+        "removeEdge": "एज हटाने का बटन"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "ब्रेकपॉइंट हटाएं",
+        "removeEdge": "एज हटाएं"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "नोड्स को कैनवास में जोड़ने के लिए डबल-क्लिक करें या ड्रैग और ड्रॉप करें।",
+        "collapseExpandCategories": "श्रेणियों को संकुचित/विस्तारित करें"
+    },
+    "nodeMenu": {
+        "copy": "कॉपी करें",
+        "duplicate": "डुप्लिकेट करें",
+        "resetNode": "नोड रीसेट करें",
+        "resetInputs": "इनपुट रीसेट करें",
+        "resetConnections": "कनेक्शन रीसेट करें",
+        "resetAll": "सभी रीसेट करें",
+        "enable": "सक्षम करें",
+        "disable": "अक्षम करें",
+        "skip": "छोड़ें",
+        "unlock": "अनलॉक करें",
+        "lock": "लॉक करें",
+        "refreshPreview": "पूर्वावलोकन ताज़ा करें",
+        "delete": "हटाएं",
+        "openDocumentation": "दस्तावेज़ीकरण खोलें"
+    },
+    "nodesMenu": {
+        "copy": "कॉपी करें",
+        "duplicate": "डुप्लिकेट करें",
+        "resetNodes": "नोड्स रीसेट करें",
+        "resetInputs": "इनपुट रीसेट करें",
+        "resetConnections": "कनेक्शन रीसेट करें",
+        "resetAll": "सभी रीसेट करें",
+        "enableAll": "सभी सक्षम करें",
+        "disableAll": "सभी अक्षम करें",
+        "delete": "हटाएं"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "ब्रेकपॉइंट जोड़ें",
+        "delete": "हटाएं"
+    },
+    "nodeSelector": {
+        "favorites": "पसंदीदा",
+        "missingDependencies": "लापता निर्भरताएं।",
+        "unableToImport": "नोड(स) को आयात नहीं किया जा सकता।",
+        "clickToInstall": "{{packageName}} इंस्टॉल करने के लिए निर्भरता प्रबंधक खोलने के लिए क्लिक करें।",
+        "criticalImportError": "पैकेज {{packageName}} में एक निर्भरता के साथ एक गंभीर आयात त्रुटि हुई है।",
+        "nodes": "नोड्स"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "है",
+            "isNot": "नहीं है",
+            "oneOf": "में से एक",
+            "ofType": "प्रकार का",
+            "allOf": "सभी",
+            "atLeastOneOf": "कम से कम एक",
+            "followingConditions": "निम्नलिखित शर्तों को पूरा किया जाना चाहिए:",
+            "condition": "शर्त:"
+        },
+        "nodeDocs": {
+            "optional": "वैकल्पिक",
+            "sequenced": "(क्रमबद्ध)",
+            "supportedFileTypes": "समर्थित फ़ाइल प्रकार:",
+            "primaryInputDescription": "यह इनपुट इसके समर्थित फ़ाइल प्रकारों के लिए प्राथमिक इनपुट है। इसका मतलब है कि आप समर्थित फ़ाइलों को chaiNNer में खींच और छोड़ सकते हैं, और यह इस इनपुट के साथ स्वचालित रूप से भरा हुआ एक नोड बनाएगा।",
+            "options": "विकल्प:",
+            "type": "प्रकार:",
+            "inputs": "इनपुट",
+            "noInputs": "इस नोड में कोई इनपुट नहीं है।",
+            "outputs": "आउटपुट",
+            "noOutputs": "इस नोड में कोई आउटपुट नहीं है।",
+            "seeAlso": "यह भी देखें",
+            "character_one": "वर्ण",
+            "character_other": "वर्ण"
+        },
+        "nodesList": {
+            "noNodesFound": "कोई नोड नहीं मिला"
+        }
+    }
+}

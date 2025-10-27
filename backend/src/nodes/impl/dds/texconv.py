@@ -10,7 +10,8 @@ from pathlib import Path
 from tempfile import mkdtemp
 
 import numpy as np
-from sanic.log import logger
+
+from logger import logger
 
 from ...utils.utils import split_file_path
 from ..image_utils import cv_save_image
