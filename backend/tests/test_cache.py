@@ -127,17 +127,28 @@ def test_output_cache_counted_hits_decrease():
     # Set with 3 hits to live
     cache.set(node_id, "value1", CacheStrategy(3))
 
+    assert cache.get_hits_to_live(node_id) == 3
+
     # First get
     assert cache.get(node_id) == "value1"
     assert cache.has(node_id)
+
+    assert cache.get_hits_to_live(node_id) == 2
 
     # Second get
     assert cache.get(node_id) == "value1"
     assert cache.has(node_id)
 
+    assert cache.get_hits_to_live(node_id) == 1
+
     # Third get
     assert cache.get(node_id) == "value1"
-    assert cache.has(node_id)
+    assert not cache.has(node_id)
+
+    assert cache.get_hits_to_live(node_id) is None
+
+    # Fourth get should be none
+    assert cache.get(node_id) is None
 
 
 def test_output_cache_no_caching_strategy():
