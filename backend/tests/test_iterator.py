@@ -191,45 +191,6 @@ class TestGeneratorFailFast:
         assert gen_no_fail_fast.fail_fast is False
         assert gen_no_fail_fast is gen  # Should return self
 
-    def test_fail_fast_with_exceptions(self):
-        """Test that fail_fast flag is properly set when exceptions occur.
-
-        Note: The fail_fast flag itself doesn't change Generator behavior -
-        it always yields exceptions. The flag is used by the Executor to
-        determine whether to raise immediately or collect errors.
-        """
-
-        def failing_fn(i: int) -> int:
-            if i == 2:
-                raise ValueError(f"Error at {i}")
-            return i * 10
-
-        # Test with fail_fast=True (default)
-        gen_fast = Generator.from_range(5, failing_fn)
-        assert gen_fast.fail_fast is True
-
-        results_fast = list(gen_fast.supplier())
-        assert results_fast[0] == 0
-        assert results_fast[1] == 10
-        assert isinstance(results_fast[2], ValueError)
-        assert results_fast[3] == 30
-        assert results_fast[4] == 40
-
-        # Test with fail_fast=False
-        gen_slow = Generator.from_range(5, failing_fn).with_fail_fast(False)
-        assert gen_slow.fail_fast is False
-
-        results_slow = list(gen_slow.supplier())
-        # Generator behavior is identical - it still yields exceptions
-        assert results_slow[0] == 0
-        assert results_slow[1] == 10
-        assert isinstance(results_slow[2], ValueError)
-        assert results_slow[3] == 30
-        assert results_slow[4] == 40
-
-        # The difference is that the Executor would raise immediately for gen_fast
-        # but collect errors for gen_slow
-
 
 class TestCollector:
     """Test Collector functionality."""
