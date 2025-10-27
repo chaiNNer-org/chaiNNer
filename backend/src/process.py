@@ -28,6 +28,7 @@ from api import (
     NodeId,
     OutputId,
     SettingsParser,
+    Transformer,
     registry,
 )
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
@@ -184,8 +185,10 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
 
 def run_node(
     node: NodeData, context: NodeContext, inputs: list[object], node_id: NodeId
-) -> NodeOutput | CollectorOutput:
+) -> NodeOutput | CollectorOutput | TransformerOutput:
     if node.kind == "collector":
+        ignored_inputs = node.single_iterable_input.inputs
+    elif node.kind == "transformer":
         ignored_inputs = node.single_iterable_input.inputs
     else:
         ignored_inputs = []
@@ -203,6 +206,9 @@ def run_node(
             return CollectorOutput(raw_output)
         if node.kind == "generator":
             return enforce_generator_output(raw_output, node)
+        if node.kind == "transformer":
+            assert isinstance(raw_output, Transformer)
+            return TransformerOutput(raw_output)
 
         assert node.kind == "regularNode"
         return enforce_output(raw_output, node)
@@ -366,7 +372,12 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = Union[RegularOutput, GeneratorOutput]
+@dataclass(frozen=True)
+class TransformerOutput:
+    transformer: Transformer
+
+
+NodeOutput = Union[RegularOutput, GeneratorOutput, TransformerOutput]
 
 ExecutionId = NewType("ExecutionId", str)
 
@@ -462,7 +473,7 @@ class Executor:
 
     async def process(
         self, node_id: NodeId, perform_cache: bool = True
-    ) -> NodeOutput | CollectorOutput:
+    ) -> NodeOutput | CollectorOutput | TransformerOutput:
         # Return cached output value from an already-run node if that cached output exists
         if perform_cache:
             cached = self.node_cache.get(node_id)
@@ -490,7 +501,7 @@ class Executor:
         return result
 
     async def process_generator_node(
-        self, node: GeneratorNode | TransformerNode, perform_cache: bool = True
+        self, node: GeneratorNode, perform_cache: bool = True
     ) -> GeneratorOutput:
         """
         Processes the given iterator node.
@@ -501,6 +512,56 @@ class Executor:
         result = await self.process(node.id, perform_cache)
         assert isinstance(result, GeneratorOutput)
         return result
+
+    async def process_transformer_node(
+        self, node: TransformerNode, perform_cache: bool = True
+    ) -> GeneratorOutput:
+        """
+        Processes the given transformer node.
+
+        This will get the input generator, apply the transformation, and return
+        a new generator. Only `node-start` and `node-broadcast` events will be sent.
+        """
+        # First get the transformer object
+        result = await self.__process(node, perform_cache)
+        assert isinstance(result, TransformerOutput)
+        transformer = result.transformer
+
+        # Get the input generator from the connected iterator input
+        iterable_input = node.data.single_iterable_input
+        input_gen = None
+        for input_id in iterable_input.inputs:
+            edge_input = self.inputs.get(node.id, input_id)
+            if isinstance(edge_input, EdgeInput):
+                source_output = await self.__get_node_output(
+                    edge_input.id, edge_input.index
+                )
+                if isinstance(source_output, Generator):
+                    input_gen = source_output
+                    break
+
+        assert input_gen is not None, "Transformer node must have a generator input"
+
+        # Apply the transformation to create a new generator
+        def transformed_supplier():
+            return transformer.transform(input_gen.supplier())
+
+        # The expected length is unknown since transformation can change it
+        # We use the input length as an estimate
+        new_generator = Generator.from_iter(
+            transformed_supplier, input_gen.expected_length
+        )
+        new_generator.fail_fast = input_gen.fail_fast
+
+        # Create a GeneratorOutput with the new generator
+        iterator_output_info = node.data.single_iterable_output
+        partial: list[object] = [None] * len(node.data.outputs)
+
+        return GeneratorOutput(
+            info=iterator_output_info,
+            generator=new_generator,
+            partial_output=partial,
+        )
 
     async def process_collector_node(self, node: CollectorNode) -> CollectorOutput:
         """
@@ -614,12 +675,12 @@ class Executor:
 
     async def __process(
         self, node: Node, perform_cache: bool = True
-    ) -> NodeOutput | CollectorOutput:
+    ) -> NodeOutput | CollectorOutput | TransformerOutput:
         """
         Process a single node.
 
-        In the case of generator and collectors, it will only run the node itself,
-        not the actual iteration or collection.
+        In the case of generator, collectors, and transformers, it will only run the node itself,
+        not the actual iteration or collection/transformation.
         """
 
         logger.debug("node: %s", node)
@@ -666,9 +727,15 @@ class Executor:
                 generators=[output.generator],
             )
             # TODO: execution time
+        elif isinstance(output, TransformerOutput):
+            # Transformer nodes don't broadcast until they're converted to generators
+            # TODO: execution time
+            pass
 
         # Cache the output of the node
-        if perform_cache and not isinstance(output, CollectorOutput):
+        if perform_cache and not isinstance(
+            output, (CollectorOutput, TransformerOutput)
+        ):
             self.node_cache.set(node.id, output, self.cache_strategy[node.id])
 
         await self.progress.suspend()
@@ -757,7 +824,10 @@ class Executor:
 
         # run the generator nodes before anything else
         for node in generator_nodes:
-            generator_output = await self.process_generator_node(node)
+            if isinstance(node, TransformerNode):
+                generator_output = await self.process_transformer_node(node)
+            else:
+                generator_output = await self.process_generator_node(node)
             generator_suppliers[node.id] = (
                 generator_output.generator.supplier().__iter__()
             )
@@ -806,7 +876,10 @@ class Executor:
             try:
                 # iterate each iterator
                 for node in generator_nodes:
-                    generator_output = await self.process_generator_node(node)
+                    if isinstance(node, TransformerNode):
+                        generator_output = await self.process_transformer_node(node)
+                    else:
+                        generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
 
                     values = next(generator_supplier)
@@ -873,7 +946,10 @@ class Executor:
         # reset cached value
         self.node_cache.delete_many(all_iterated_nodes)
         for node in generator_nodes:
-            generator_output = await self.process_generator_node(node)
+            if isinstance(node, TransformerNode):
+                generator_output = await self.process_transformer_node(node)
+            else:
+                generator_output = await self.process_generator_node(node)
             self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
 
             # re-broadcast final value

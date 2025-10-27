@@ -1969,16 +1969,6 @@ const saveVideoAdvancedModeMigration: ModernMigration = (data) => {
     return data;
 };
 
-const transformerToGenerator: ModernMigration = (data) => {
-    data.nodes.forEach((node) => {
-        if (node.type === 'transformer') {
-            node.type = 'generator';
-        }
-    });
-
-    return data;
-};
-
 const splitLoadImagePairs: ModernMigration = (data) => {
     const newNodes: Node<NodeData>[] = [];
     const newEdges: Edge<EdgeData>[] = [];
@@ -2153,7 +2143,6 @@ const migrations = [
     normalMapGeneratorInvert,
     saveVideoInputPatchMigration,
     saveVideoAdvancedModeMigration,
-    transformerToGenerator,
     splitLoadImagePairs,
 ];
 

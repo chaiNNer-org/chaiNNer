@@ -70,3 +70,19 @@ R = TypeVar("R")
 class Collector(Generic[N, R]):
     on_iterate: Callable[[N], None]
     on_complete: Callable[[], R]
+
+
+T = TypeVar("T")
+
+
+@dataclass
+class Transformer(Generic[T]):
+    """
+    A transformer takes an iterable and transforms it into a new iterable.
+
+    The transform function should take an iterable of items and yield transformed items.
+    This allows for filtering (yielding fewer items), limiting (stopping early),
+    or interpolation (yielding more items).
+    """
+
+    transform: Callable[[Iterable[T | Exception]], Iterable[T | Exception]]
