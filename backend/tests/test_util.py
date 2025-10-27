@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import time
 from typing import TypeVar
 
-from util import combine_sets
+from util import combine_sets, timed_supplier
 
 T = TypeVar("T")
 
@@ -138,3 +139,62 @@ def test_combine_sets_identity_three():
     test_output = [{"a"}, {"b"}, {"c"}, {"d"}, {"e"}, {"f"}]
     result = combine_sets(test_sets)
     assert ls_equal(result, test_output)
+
+
+def test_timed_supplier_returns_result_and_time():
+    """Test that timed_supplier returns both result and elapsed time."""
+
+    def sample_function():
+        return 42
+
+    wrapped = timed_supplier(sample_function)
+    result, duration = wrapped()
+
+    assert result == 42
+    assert isinstance(duration, float)
+    assert duration >= 0
+
+
+def test_timed_supplier_measures_time():
+    """Test that timed_supplier accurately measures execution time."""
+
+    def slow_function():
+        time.sleep(0.1)
+        return "done"
+
+    wrapped = timed_supplier(slow_function)
+    result, duration = wrapped()
+
+    assert result == "done"
+    assert duration >= 0.1
+    # Allow some margin for execution overhead
+    assert duration < 0.2
+
+
+def test_timed_supplier_with_different_types():
+    """Test that timed_supplier works with different return types."""
+
+    def returns_list():
+        return [1, 2, 3]
+
+    def returns_dict():
+        return {"key": "value"}
+
+    def returns_none():
+        return None
+
+    wrapped_list = timed_supplier(returns_list)
+    result_list, duration_list = wrapped_list()
+    assert result_list == [1, 2, 3]
+    assert duration_list >= 0
+
+    wrapped_dict = timed_supplier(returns_dict)
+    result_dict, duration_dict = wrapped_dict()
+    assert result_dict == {"key": "value"}
+    assert duration_dict >= 0
+
+    wrapped_none = timed_supplier(returns_none)
+    result_none, duration_none = wrapped_none()
+    assert result_none is None
+    assert duration_none >= 0
+

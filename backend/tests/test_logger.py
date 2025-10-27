@@ -1,9 +1,12 @@
 """Tests for the logging system."""
 
 import logging
+import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+from logger import ColoredFormatter
 from logger import logger as logger_import
 from logger import setup_logger
 
@@ -134,3 +137,125 @@ def test_separate_process_types():
             handler.close()
         host_logger.handlers.clear()
         worker_logger.handlers.clear()
+
+
+def test_setup_logger_dev_mode():
+    """Test that dev mode skips file logging."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        log_dir = Path(temp_dir)
+
+        # Clear any existing logger
+        import logging as base_logging
+
+        test_logger_name = "chaiNNer.test_dev"
+        test_logger = base_logging.getLogger(test_logger_name)
+        test_logger.handlers.clear()
+        test_logger.setLevel(logging.NOTSET)
+
+        # Set up logger in dev mode
+        logger = setup_logger(
+            "test_dev", log_dir=log_dir, log_level=logging.INFO, dev_mode=True
+        )
+
+        # In dev mode, should only have console handler, not file handler
+        assert len(logger.handlers) == 1
+        assert isinstance(logger.handlers[0], logging.StreamHandler)
+
+        # Verify no log file is created
+        log_file = log_dir / "test_dev.log"
+        assert not log_file.exists()
+
+        # Clean up
+        for handler in logger.handlers:
+            handler.close()
+        logger.handlers.clear()
+
+
+def test_colored_formatter_with_tty():
+    """Test that ColoredFormatter adds colors when stderr is a TTY."""
+    formatter = ColoredFormatter(
+        fmt="[%(levelname)s] %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    # Create a mock record
+    record = logging.LogRecord(
+        name="test",
+        level=logging.INFO,
+        pathname="",
+        lineno=0,
+        msg="Test message",
+        args=(),
+        exc_info=None,
+    )
+
+    # Mock sys.stderr.isatty() to return True
+    with patch.object(sys.stderr, "isatty", return_value=True):
+        formatted = formatter.format(record)
+        # Should contain ANSI color codes
+        assert "\033[" in formatted
+        assert "INFO" in formatted
+        assert "Test message" in formatted
+
+    # Verify original levelname is restored
+    assert record.levelname == "INFO"
+
+
+def test_colored_formatter_without_tty():
+    """Test that ColoredFormatter doesn't add colors when stderr is not a TTY."""
+    formatter = ColoredFormatter(
+        fmt="[%(levelname)s] %(message)s",
+        datefmt="%H:%M:%S",
+    )
+
+    # Create a mock record
+    record = logging.LogRecord(
+        name="test",
+        level=logging.WARNING,
+        pathname="",
+        lineno=0,
+        msg="Test warning",
+        args=(),
+        exc_info=None,
+    )
+
+    # Mock sys.stderr.isatty() to return False
+    with patch.object(sys.stderr, "isatty", return_value=False):
+        formatted = formatter.format(record)
+        # Should not contain ANSI color codes
+        assert "\033[" not in formatted
+        assert "WARNING" in formatted
+        assert "Test warning" in formatted
+
+
+def test_colored_formatter_different_levels():
+    """Test that ColoredFormatter works with different log levels."""
+    formatter = ColoredFormatter(fmt="[%(levelname)s] %(message)s")
+
+    levels = [
+        (logging.DEBUG, "DEBUG"),
+        (logging.INFO, "INFO"),
+        (logging.WARNING, "WARNING"),
+        (logging.ERROR, "ERROR"),
+        (logging.CRITICAL, "CRITICAL"),
+    ]
+
+    for level, level_name in levels:
+        record = logging.LogRecord(
+            name="test",
+            level=level,
+            pathname="",
+            lineno=0,
+            msg=f"Test {level_name}",
+            args=(),
+            exc_info=None,
+        )
+
+        # Format with TTY
+        with patch.object(sys.stderr, "isatty", return_value=True):
+            formatted = formatter.format(record)
+            assert level_name in formatted
+
+        # Verify levelname is restored
+        assert record.levelname == level_name
+
