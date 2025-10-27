@@ -30,6 +30,7 @@
     "lint:fix": "eslint . --fix --ext \".js,.jsx,.ts,.tsx\" && stylelint src/**/*.scss --fix && ruff check backend --fix && ruff format backend",
     "test:js": "vitest",
     "test:py": "pytest ./backend/tests/",
+    "test:py:coverage": "pytest ./backend/tests/ --cov=backend/src --cov-report=html --cov-report=term",
     "test:update": "npm run test:js -- -u",
     "test": "npm run test:js && npm run test:py",
     "postinstall": "patch-package"
