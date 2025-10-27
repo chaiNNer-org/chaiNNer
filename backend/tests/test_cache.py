@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import Mock
 
-from api import NodeId, OutputId
+from api import InputId, NodeId, OutputId
 from chain.cache import (
     CacheStrategy,
     OutputCache,
@@ -285,7 +285,7 @@ def test_get_cache_strategies_simple_chain():
     # Add edge from node1 to node2
     edge = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("node2"), 0),
+        EdgeTarget(NodeId("node2"), InputId(0)),
     )
     chain.add_edge(edge)
 
@@ -310,11 +310,11 @@ def test_get_cache_strategies_node_with_multiple_outputs():
     # node1 outputs to both node2 and node3
     edge1 = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("node2"), 0),
+        EdgeTarget(NodeId("node2"), InputId(0)),
     )
     edge2 = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("node3"), 0),
+        EdgeTarget(NodeId("node3"), InputId(0)),
     )
     chain.add_edge(edge1)
     chain.add_edge(edge2)

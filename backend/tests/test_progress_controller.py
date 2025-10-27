@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
+import pytest  # type: ignore[import-untyped]
 
 from progress_controller import Aborted, ProgressController
 

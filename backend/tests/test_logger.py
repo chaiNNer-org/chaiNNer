@@ -146,14 +146,14 @@ def test_setup_logger_dev_mode():
         # Clear any existing logger
         import logging as base_logging
 
-        test_logger_name = "chaiNNer.test_dev"
+        test_logger_name = "chaiNNer.worker"
         test_logger = base_logging.getLogger(test_logger_name)
         test_logger.handlers.clear()
         test_logger.setLevel(logging.NOTSET)
 
         # Set up logger in dev mode
         logger = setup_logger(
-            "test_dev", log_dir=log_dir, log_level=logging.INFO, dev_mode=True
+            "worker", log_dir=log_dir, log_level=logging.INFO, dev_mode=True
         )
 
         # In dev mode, should only have console handler, not file handler
@@ -161,7 +161,7 @@ def test_setup_logger_dev_mode():
         assert isinstance(logger.handlers[0], logging.StreamHandler)
 
         # Verify no log file is created
-        log_file = log_dir / "test_dev.log"
+        log_file = log_dir / "worker.log"
         assert not log_file.exists()
 
         # Clean up

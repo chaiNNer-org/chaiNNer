@@ -71,7 +71,7 @@ def test_optimize_removes_dead_node():
     # Connect node1 to node3
     edge = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("node3"), 0),
+        EdgeTarget(NodeId("node3"), InputId(0)),
     )
     chain.add_edge(edge)
 
@@ -97,7 +97,7 @@ def test_optimize_chain_with_connections():
     # Connect node1 to node2
     edge = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("node2"), 0),
+        EdgeTarget(NodeId("node2"), InputId(0)),
     )
     chain.add_edge(edge)
 
@@ -128,11 +128,11 @@ def test_optimize_passthrough_node():
     # Connect: node1 -> passthrough -> node3
     edge1 = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("pass"), 0),
+        EdgeTarget(NodeId("pass"), InputId(0)),
     )
     edge2 = Edge(
         EdgeSource(NodeId("pass"), OutputId(0)),
-        EdgeTarget(NodeId("node3"), 0),
+        EdgeTarget(NodeId("node3"), InputId(0)),
     )
     chain.add_edge(edge1)
     chain.add_edge(edge2)
@@ -179,16 +179,16 @@ def test_optimize_switch_node_with_constant_index():
     # Connect nodes to switch inputs
     edge1 = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("switch"), 1),
+        EdgeTarget(NodeId("switch"), InputId(1)),
     )
     edge2 = Edge(
         EdgeSource(NodeId("node2"), OutputId(0)),
-        EdgeTarget(NodeId("switch"), 2),
+        EdgeTarget(NodeId("switch"), InputId(2)),
     )
     # Connect switch to output
     edge3 = Edge(
         EdgeSource(NodeId("switch"), OutputId(0)),
-        EdgeTarget(NodeId("output"), 0),
+        EdgeTarget(NodeId("output"), InputId(0)),
     )
 
     chain.add_edge(edge1)
@@ -232,16 +232,16 @@ def test_optimize_conditional_with_constant_condition():
     # Connect branches to conditional
     edge1 = Edge(
         EdgeSource(NodeId("true"), OutputId(0)),
-        EdgeTarget(NodeId("cond"), 1),
+        EdgeTarget(NodeId("cond"), InputId(1)),
     )
     edge2 = Edge(
         EdgeSource(NodeId("false"), OutputId(0)),
-        EdgeTarget(NodeId("cond"), 2),
+        EdgeTarget(NodeId("cond"), InputId(2)),
     )
     # Connect conditional to output
     edge3 = Edge(
         EdgeSource(NodeId("cond"), OutputId(0)),
-        EdgeTarget(NodeId("output"), 0),
+        EdgeTarget(NodeId("output"), InputId(0)),
     )
 
     chain.add_edge(edge1)
@@ -280,15 +280,15 @@ def test_optimize_conditional_with_identical_branches():
     # Both branches use the same source
     edge1 = Edge(
         EdgeSource(NodeId("source"), OutputId(0)),
-        EdgeTarget(NodeId("cond"), 1),
+        EdgeTarget(NodeId("cond"), InputId(1)),
     )
     edge2 = Edge(
         EdgeSource(NodeId("source"), OutputId(0)),
-        EdgeTarget(NodeId("cond"), 2),
+        EdgeTarget(NodeId("cond"), InputId(2)),
     )
     edge3 = Edge(
         EdgeSource(NodeId("cond"), OutputId(0)),
-        EdgeTarget(NodeId("output"), 0),
+        EdgeTarget(NodeId("output"), InputId(0)),
     )
 
     chain.add_edge(edge1)
@@ -319,11 +319,11 @@ def test_optimize_multiple_passes():
     # node1 -> node2 -> node3
     edge1 = Edge(
         EdgeSource(NodeId("node1"), OutputId(0)),
-        EdgeTarget(NodeId("node2"), 0),
+        EdgeTarget(NodeId("node2"), InputId(0)),
     )
     edge2 = Edge(
         EdgeSource(NodeId("node2"), OutputId(0)),
-        EdgeTarget(NodeId("node3"), 0),
+        EdgeTarget(NodeId("node3"), InputId(0)),
     )
 
     chain.add_edge(edge1)
