@@ -1,7 +1,8 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
+import i18n from 'i18next';
 import TimeAgo from 'javascript-time-ago';
 import en from 'javascript-time-ago/locale/en.json';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
 import { ChainnerSettings } from '../common/settings/settings';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
@@ -59,6 +60,18 @@ export const App = memo(() => {
         }),
         []
     );
+
+    // Apply language setting
+    useEffect(() => {
+        if (settings?.language) {
+            i18n.changeLanguage(settings.language).catch(() => {
+                // Fallback to English if language fails to load
+                i18n.changeLanguage('en').catch(() => {
+                    // ignore
+                });
+            });
+        }
+    }, [settings?.language]);
 
     return (
         <ChakraProvider theme={darktheme}>

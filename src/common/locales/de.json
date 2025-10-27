@@ -1,0 +1,418 @@
+{
+  "alert": {
+    "button": {
+      "ok": "OK",
+      "cancel": "Abbrechen",
+      "openLogsFolder": "Protokollordner öffnen",
+      "exitApplication": "Anwendung beenden",
+      "copyToClipboard": "In Zwischenablage kopieren"
+    },
+    "stackTrace": "Stack-Trace",
+    "title": {
+      "systemInformation": "Systeminformationen"
+    }
+  },
+  "common": {
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "open": "Öffnen",
+    "settings": "Einstellungen"
+  },
+  "error": {
+    "error": "Fehler",
+    "message": {
+      "criticalBackend": "Ein kritischer Fehler ist beim Verarbeiten der vom Backend zurückgegebenen Knotendaten aufgetreten."
+    },
+    "title": {
+      "unableToProcessNodes": "Backend-Knoten können nicht verarbeitet werden."
+    }
+  },
+  "header": {
+    "alpha": "Alpha",
+    "pause": "Pause",
+    "pauseButton": "Pause-Schaltfläche",
+    "resume": "Fortsetzen",
+    "run": "Ausführen",
+    "runButton": "Ausführen-Schaltfläche",
+    "stop": "Stopp",
+    "stopButton": "Stopp-Schaltfläche",
+    "updateAvailable": "Update verfügbar ({{version}})",
+    "updateAvailableAria": "Update verfügbar",
+    "updateChangelog": "Update-Änderungsprotokoll",
+    "updateAvailableTitle": "Update verfügbar ({{version}})",
+    "updateAvailableMessage": "Es ist ein Update für Version {{version}} verfügbar. Möchten Sie das Änderungsprotokoll anzeigen?",
+    "viewReleaseOnGitHub": "Release auf GitHub anzeigen",
+    "downloadFromWebsite": "Von chaiNNer.app herunterladen",
+    "ignoreUpdate": "Update ignorieren",
+    "viewUpdate": "Update anzeigen"
+  },
+  "inputs": {
+    "copyInputOverrideId": "Eingabe-Override-ID kopieren",
+    "directory": {
+      "clear": "Löschen",
+      "copyFullDirectoryPath": "Vollständigen Verzeichnispfad kopieren",
+      "openInFileExplorer": "Im Datei-Explorer öffnen",
+      "selectDirectory": "Verzeichnis auswählen...",
+      "clickToSelect": "Klicken zum Auswählen..."
+    },
+    "extractValueIntoNode": "Wert in Knoten extrahieren",
+    "file": {
+      "clear": "Löschen",
+      "copyFileName": "Dateinamen kopieren",
+      "copyFullFilePath": "Vollständigen Dateipfad kopieren",
+      "openInFileExplorer": "Im Datei-Explorer öffnen",
+      "selectFile": "Datei auswählen...",
+      "clickToSelectFile": "Klicken Sie, um eine Datei auszuwählen..."
+    },
+    "number": {
+      "copyText": "Nummer kopieren",
+      "paste": "Einfügen"
+    },
+    "text": {
+      "copyText": "Text kopieren",
+      "paste": "Einfügen",
+      "invalidCharacter": "Ungültiges Zeichen '{{character}}' (U+{{codePoint}})."
+    },
+    "addInput": "Eingabe hinzufügen",
+    "colorCompare": {
+      "old": "alt",
+      "new": "neu"
+    },
+    "rgbHex": {
+      "hex": "Hex"
+    }
+  },
+  "outputs": {
+    "largeImage": {
+      "imageNotAvailable": "Bild nicht verfügbar.",
+      "imagePreviewFailed": "Bildvorschau konnte nicht geladen werden, wahrscheinlich nicht unterstützter Dateityp."
+    },
+    "model": {
+      "modelNotAvailable": "Modelldaten nicht verfügbar."
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "restartChaiNNer": "chaiNNer neu starten",
+    "tabs": {
+      "appearance": "Aussehen",
+      "environment": "Umgebung",
+      "python": "Python",
+      "advanced": "Erweitert"
+    },
+    "appearance": {
+      "colorTheme": {
+        "label": "Farbschema",
+        "description": "Wählen Sie das Theme für das Aussehen von chaiNNer.",
+        "options": {
+          "dark": "Dunkel",
+          "light": "Hell",
+          "system": "System",
+          "charcoal": "Holzkohle",
+          "coffee": "Kaffee",
+          "blueberry": "Blaubeere",
+          "dusk": "Dämmerung",
+          "oled": "OLED",
+          "cyberpunk": "Cyberpunk",
+          "mixer": "Mixer3D",
+          "notreal": "NotRealEngine",
+          "comfort": "ComfortUI"
+        }
+      },
+      "language": {
+        "label": "Sprache (Erfordert Neustart)",
+        "description": "Wählen Sie die Sprache für die Benutzeroberfläche von chaiNNer."
+      },
+      "chainAnimation": {
+        "label": "Kettenanimation",
+        "description": "Aktivieren Sie Animationen, die den Verarbeitungsstatus der Kette anzeigen."
+      },
+      "minimap": {
+        "label": "Minimap",
+        "description": "Aktivieren Sie eine Minimap der aktuellen Kette in der unteren rechten Ecke des Knoteneditors."
+      },
+      "snapToGrid": {
+        "label": "Am Raster einrasten",
+        "description": "Knotenrastereinrastung aktivieren."
+      },
+      "snapToGridAmount": {
+        "label": "Rastereinrastungsmenge",
+        "description": "Die Menge zum Einrasten am Raster."
+      },
+      "viewportExportPadding": {
+        "label": "Viewport-PNG-Export-Padding",
+        "description": "Die Menge des Paddings für den Viewport-PNG-Export."
+      }
+    },
+    "environment": {
+      "startupTemplate": {
+        "label": "Startvorlage",
+        "description": "Legen Sie eine Kettenvorlage fest, die standardmäßig beim Start von chaiNNer verwendet werden soll.",
+        "placeholder": "Datei auswählen...",
+        "clear": "Löschen",
+        "pickFile": "Startvorlage-Datei auswählen"
+      },
+      "selectChain": "Kette auswählen"
+    },
+    "python": {
+      "general": "Allgemein",
+      "useSystemPython": {
+        "label": "System-Python verwenden (erfordert Neustart)",
+        "description": "System-Python für die Verarbeitung von chaiNNer anstelle des gebündelten Python verwenden (nicht empfohlen)"
+      },
+      "systemPythonLocation": {
+        "label": "System-Python-Speicherort (optional)",
+        "description": "Wenn gewünscht, verwenden Sie eine bestimmte Python-Binärdatei anstelle der Standarddatei, die von 'python3' oder 'python' aufgerufen wird. Dies ist nützlich, wenn Sie mehrere Python-Versionen installiert haben und eine bestimmte auswählen möchten.",
+        "placeholder": "Datei auswählen...",
+        "clear": "Löschen",
+        "pickFile": "System-Python-Speicherort auswählen"
+      }
+    },
+    "advanced": {
+      "checkForUpdates": {
+        "label": "Beim Start auf Updates prüfen",
+        "description": "Schaltet die Überprüfung auf Updates beim Start um."
+      },
+      "experimentalFeatures": {
+        "label": "Experimentelle Funktionen aktivieren",
+        "description": "Aktivieren Sie experimentelle Funktionen, um sie auszuprobieren, bevor sie fertiggestellt sind."
+      },
+      "hardwareAcceleration": {
+        "label": "Hardwarebeschleunigung aktivieren (erfordert Neustart)",
+        "description": "Aktivieren Sie GPU-Rendering für die GUI. Verwenden Sie dies mit Vorsicht, da es die GPU-Leistung für die Bildverarbeitung stark verringern kann."
+      },
+      "allowMultipleInstances": {
+        "label": "Mehrere gleichzeitige Instanzen zulassen",
+        "description": "Aktivieren Sie mehrere gleichzeitige Instanzen von chaiNNer. Dies wird nicht empfohlen, aber wenn Ihre Kette nicht genügend Systemressourcen verwendet, kann es hilfreich sein, Dinge gleichzeitig auszuführen."
+      }
+    },
+    "noOptionsFound": "Keine Optionen gefunden.",
+    "clearCache": "Cache löschen"
+  },
+  "setup": {
+    "checkingPort": "Verfügbaren Port überprüfen...",
+    "checkingPython": "Systemumgebung auf gültiges Python überprüfen...",
+    "downloadingPython": "Integriertes Python herunterladen...",
+    "extractingPython": "Heruntergeladene Dateien extrahieren...",
+    "loading": "Laden...",
+    "startingBackend": "Backend-Prozess starten..."
+  },
+  "typeTags": {
+    "optional": "optional"
+  },
+  "groups": {
+    "seed": {
+      "randomSeed": "Zufälliger Seed",
+      "randomSeedAria": "Zufälliger Seed"
+    }
+  },
+  "node": {
+    "disableHint": "Hinweis: Verwenden Sie Strg+Klick, um durch die Optionen zu wechseln.",
+    "note": {
+      "placeholder": "Notiztext"
+    },
+    "implementationError": "Implementierungsfehler",
+    "implementationErrorMessage": "Kann keine Schlüsselinformationen für Knoten {{nodeName}} ({{schemaId}}) bestimmen.",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "skip": "Überspringen",
+    "eta": "ETA:",
+    "outdated": "Veraltet"
+  },
+  "logo": {
+    "background": "bg",
+    "front": "front"
+  },
+  "timer": {
+    "executionTook": "Die Ausführung dauerte ungefähr {{duration}}.",
+    "hour_one": "Stunde",
+    "hour_other": "Stunden",
+    "minute_one": "Minute",
+    "minute_other": "Minuten",
+    "second_one": "Sekunde",
+    "second_other": "Sekunden"
+  },
+  "linkedInputs": {
+    "currentlyLinked": "Die Werte von {{inputs}} sind derzeit mit demselben Wert verknüpft. Klicken Sie hier, um diese Verknüpfung rückgängig zu machen.",
+    "clickToLink": "Klicken Sie hier, um {{inputs}} mit demselben Wert zu verknüpfen."
+  },
+  "languages": {
+    "english": "English",
+    "spanish": "Español",
+    "german": "Deutsch",
+    "french": "Français",
+    "italian": "Italiano",
+    "portuguese": "Português",
+    "japanese": "日本語",
+    "chinese": "中文",
+    "russian": "Русский",
+    "korean": "한국어",
+    "dutch": "Nederlands",
+    "polish": "Polski",
+    "turkish": "Türkçe",
+    "arabic": "العربية",
+    "hindi": "हिन्दी",
+    "brazilianPortuguese": "Português (Brasil)"
+  },
+  "search": {
+    "placeholder": "Suchen...",
+    "missingNodes": "Fehlende Knoten? Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen!",
+    "noCompatibleNodes": "Keine kompatiblen Knoten gefunden."
+  },
+  "favorites": {
+    "title": "Favoriten",
+    "noFavorites": "Keine Favoriten.",
+    "addFavoritesTooltip": "Favoriten hinzufügen, indem Sie mit der rechten Maustaste auf Knoten klicken und 'Zu Favoriten hinzufügen' auswählen.",
+    "addFavoritesTooltipExpanded": {
+      "beforeIcon": "Favoriten hinzufügen, indem Sie über Knoten fahren und auf das",
+      "afterIcon": "-Symbol klicken, oder mit der rechten Maustaste klicken und 'Zu Favoriten hinzufügen' auswählen."
+    },
+    "addToFavorites": "Zu Favoriten hinzufügen",
+    "removeFromFavorites": "Aus Favoriten entfernen"
+  },
+  "documentation": {
+    "title": "Knoten-Dokumentation",
+    "openDocumentation": "Dokumentation öffnen"
+  },
+  "dependencyManager": {
+    "title": "Abhängigkeitsmanager",
+    "manageDependencies": "Abhängigkeiten verwalten",
+    "updatesAvailable": "Updates verfügbar",
+    "updatesAvailableDescription_one": "Es gibt {{count}} Paket mit verfügbaren Abhängigkeitsupdates.",
+    "updatesAvailableDescription_other": "Es gibt {{count}} Pakete mit verfügbaren Abhängigkeitsupdates.",
+    "openDependencyManager": "Abhängigkeitsmanager öffnen",
+    "packages": "Pakete",
+    "features": "Funktionen",
+    "refresh": "Aktualisieren",
+    "install": "Installieren",
+    "update": "Aktualisieren",
+    "uninstall": "Deinstallieren",
+    "close": "Schließen",
+    "missing": "Fehlend",
+    "outdated": "Veraltet",
+    "unavailable": "Nicht verfügbar",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "python": "Python",
+    "system": "System",
+    "integrated": "Integriert",
+    "advanced": "Erweitert",
+    "installationMode": "Installationsmodus",
+    "normal": "Normal",
+    "manualCopy": "Manuell/Kopieren",
+    "consoleOutput": "Konsolenausgabe:",
+    "commandCopied": "Befehl in die Zwischenablage kopiert",
+    "commandCopiedDescription": "Öffnen Sie ein externes Terminal, fügen Sie den Befehl ein und führen Sie ihn aus. Wenn er fertig ist, starten Sie chaiNNer manuell neu.",
+    "uninstallTitle": "Deinstallieren",
+    "uninstallMessage": "Sind Sie sicher, dass Sie {{name}} deinstallieren möchten?",
+    "unsavedChanges": "Ungespeicherte Änderungen",
+    "unsavedChangesMessage": "Sie könnten Ihre ungespeicherten Änderungen durch die Deinstallation von {{name}} verlieren.\n\nSind Sie sicher, dass Sie {{name}} deinstallieren möchten?",
+    "cancel": "Abbrechen",
+    "installing": "Installiere {{name}}...",
+    "uninstalling": "Deinstalliere {{name}}...",
+    "copyPythonPath": "Python-Pfad in die Zwischenablage kopieren",
+    "pythonPath": "Python-Pfad ist:",
+    "installAllPackages": "{{operations}} Alle Pakete ({{size}})",
+    "package_one": "Paket",
+    "package_other": "Pakete",
+    "brackets": {
+      "open": "[",
+      "close": "]"
+    }
+  },
+  "note": {
+    "editMode": "Bearbeitungsmodus",
+    "editContent": "Inhalt bearbeiten",
+    "markdownMode": "Markdown-Modus",
+    "viewMarkdown": "Markdown anzeigen"
+  },
+  "color": {
+    "resetToOld": "Auf alte Farbe zurücksetzen",
+    "acceptNew": "Neue Farbe akzeptieren"
+  },
+  "edge": {
+    "removeEdge": "Kanten-Entfernen-Button"
+  },
+  "breakpoint": {
+    "removeBreakpoint": "Haltepunkt entfernen",
+    "removeEdge": "Kante entfernen"
+  },
+  "tooltips": {
+    "addNodesToCanvas": "Doppelklicken oder Ziehen und Ablegen, um Knoten zur Leinwand hinzuzufügen.",
+    "collapseExpandCategories": "Kategorien ein-/ausklappen"
+  },
+  "support": {
+    "koFiTooltip": "chaiNNer auf Ko-fi unterstützen",
+    "koFiAria": "chaiNNer unterstützen",
+    "koFiButton": "chaiNNer unterstützen"
+  },
+  "nodeMenu": {
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "resetNode": "Knoten zurücksetzen",
+    "resetInputs": "Eingaben zurücksetzen",
+    "resetConnections": "Verbindungen zurücksetzen",
+    "resetAll": "Alles zurücksetzen",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "skip": "Überspringen",
+    "unlock": "Entsperren",
+    "lock": "Sperren",
+    "refreshPreview": "Vorschau aktualisieren",
+    "delete": "Löschen",
+    "openDocumentation": "Dokumentation öffnen"
+  },
+  "nodesMenu": {
+    "copy": "Kopieren",
+    "duplicate": "Duplizieren",
+    "resetNodes": "Knoten zurücksetzen",
+    "resetInputs": "Eingaben zurücksetzen",
+    "resetConnections": "Verbindungen zurücksetzen",
+    "resetAll": "Alles zurücksetzen",
+    "enableAll": "Alle aktivieren",
+    "disableAll": "Alle deaktivieren",
+    "delete": "Löschen"
+  },
+  "edgeMenu": {
+    "addBreakpoint": "Haltepunkt hinzufügen",
+    "delete": "Löschen"
+  },
+  "nodeSelector": {
+    "favorites": "Favoriten",
+    "missingDependencies": "Fehlende Abhängigkeiten.",
+    "unableToImport": "Knoten können nicht importiert werden.",
+    "clickToInstall": "Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",
+    "criticalImportError": "Ein kritischer Importfehler ist mit einer Abhängigkeit im Paket aufgetreten: {{packageName}}.",
+    "nodes": "Knoten"
+  },
+  "nodeDocumentation": {
+    "conditionExplanation": {
+      "is": "ist",
+      "isNot": "ist nicht",
+      "oneOf": "einer von",
+      "ofType": "vom Typ",
+      "allOf": "Alle von",
+      "atLeastOneOf": "Mindestens einer von",
+      "followingConditions": "die folgenden Bedingungen müssen erfüllt sein:",
+      "condition": "Bedingung:"
+    },
+    "nodeDocs": {
+      "optional": "optional",
+      "sequenced": "(Sequenziert)",
+      "supportedFileTypes": "Unterstützte Dateitypen:",
+      "primaryInputDescription": "Diese Eingabe ist die primäre Eingabe für ihre unterstützten Dateitypen. Das bedeutet, dass Sie unterstützte Dateien in chaiNNer ziehen und ablegen können, und es wird automatisch einen Knoten mit dieser ausgefüllten Eingabe erstellen.",
+      "options": "Optionen:",
+      "type": "Typ:",
+      "inputs": "Eingaben",
+      "noInputs": "Dieser Knoten hat keine Eingaben.",
+      "outputs": "Ausgaben",
+      "noOutputs": "Dieser Knoten hat keine Ausgaben.",
+      "seeAlso": "Siehe auch",
+      "character_one": "Zeichen",
+      "character_other": "Zeichen"
+    },
+    "nodesList": {
+      "noNodesFound": "Keine Knoten gefunden"
+    }
+  }
+}

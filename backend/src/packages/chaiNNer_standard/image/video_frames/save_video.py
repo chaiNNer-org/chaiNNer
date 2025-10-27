@@ -9,9 +9,9 @@ from typing import Any, Literal
 
 import ffmpeg
 import numpy as np
-from sanic.log import logger
 
 from api import Collector, IteratorInputInfo, KeyInfo, NodeContext
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ffmpeg import FFMpegEnv
 from nodes.impl.image_utils import to_uint8
@@ -217,6 +217,10 @@ class Writer:
 
         if self.audio is not None:
             video_path = self.save_path
+            if not os.path.exists(video_path):
+                logger.error(f"Video file not found at {video_path}")
+                return
+
             base, ext = os.path.splitext(video_path)
             audio_video_path = f"{base}_av{ext}"
 
@@ -225,37 +229,67 @@ class Writer:
                 "vcodec": "copy",
                 "acodec": "copy",
             }
-            if self.container == VideoFormat.WEBM:
-                if self.audio_settings in (AudioSettings.TRANSCODE, AudioSettings.AUTO):
-                    output_params["acodec"] = "libopus"
-                    output_params["b:a"] = "320k"
-                else:
-                    raise ValueError(f"WebM does not support {self.audio_settings}")
-            elif self.audio_settings == AudioSettings.TRANSCODE:
-                output_params["acodec"] = "aac"
-                output_params["b:a"] = "320k"
 
             try:
-                video_stream = ffmpeg.input(video_path)
+                logger.debug(f"Attempting to process audio from: {self.audio}")
+
+                # Create video stream
+                video_stream = ffmpeg.input(str(video_path))
+
+                # Handle WebM specific settings
+                if self.container == VideoFormat.WEBM:
+                    if self.audio_settings in (
+                        AudioSettings.TRANSCODE,
+                        AudioSettings.AUTO,
+                    ):
+                        output_params["acodec"] = "libopus"
+                        output_params["b:a"] = "320k"
+                    else:
+                        raise ValueError(f"WebM does not support {self.audio_settings}")
+                elif self.audio_settings == AudioSettings.TRANSCODE:
+                    output_params["acodec"] = "aac"
+                    output_params["b:a"] = "320k"
+
+                # Use the ffmpeg environment from the class
+                cmd = (
+                    self.ffmpeg_env.ffmpeg if hasattr(self, "ffmpeg_env") else "ffmpeg"
+                )
+
                 output_video = ffmpeg.output(
-                    self.audio,
-                    video_stream,
-                    audio_video_path,
+                    video_stream,  # video first
+                    self.audio,  # audio second (already an input stream)
+                    str(audio_video_path),
                     **output_params,
                 ).overwrite_output()
-                ffmpeg.run(output_video)
-                # delete original, rename new
-                os.remove(video_path)
-                os.rename(audio_video_path, video_path)
-            except Exception:
-                logger.warning(
-                    "Failed to copy audio to video, input file probably contains "
-                    "no audio or audio stream is supported by this container. Ignoring audio settings."
-                )
+
                 try:
-                    os.remove(audio_video_path)
-                except Exception:
-                    pass
+                    ffmpeg.run(
+                        output_video, cmd=cmd, capture_stdout=True, capture_stderr=True
+                    )
+                except ffmpeg.Error as e:
+                    error_msg = e.stderr.decode() if hasattr(e, "stderr") else str(e)
+                    logger.error(f"FFmpeg error: {error_msg}")
+                    return
+
+                if os.path.exists(audio_video_path):
+                    os.remove(video_path)
+                    os.rename(audio_video_path, video_path)
+                else:
+                    logger.error(
+                        f"Expected output file not created: {audio_video_path}"
+                    )
+
+            except Exception as e:
+                error_msg = f"Failed to copy audio to video: {e!s}"
+                logger.warning(error_msg)
+
+                if os.path.exists(audio_video_path):
+                    try:
+                        os.remove(audio_video_path)
+                    except Exception as cleanup_error:
+                        logger.warning(
+                            f"Failed to cleanup temporary file: {cleanup_error!s}"
+                        )
 
 
 @video_frames_group.register(

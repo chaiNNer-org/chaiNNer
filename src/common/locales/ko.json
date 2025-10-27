@@ -1,0 +1,421 @@
+{
+    "alert": {
+        "button": {
+            "ok": "확인",
+            "cancel": "취소",
+            "openLogsFolder": "로그 폴더 열기",
+            "exitApplication": "애플리케이션 종료",
+            "copyToClipboard": "클립보드에 복사"
+        },
+        "stackTrace": "스택 추적",
+        "title": {
+            "systemInformation": "시스템 정보"
+        }
+    },
+    "common": {
+        "cancel": "취소",
+        "close": "닫기",
+        "open": "열기",
+        "settings": "설정"
+    },
+    "error": {
+        "error": "오류",
+        "message": {
+            "criticalBackend": "백엔드에서 반환된 노드 데이터를 처리하는 중에 치명적인 오류가 발생했습니다."
+        },
+        "title": {
+            "unableToProcessNodes": "백엔드 노드를 처리할 수 없습니다."
+        }
+    },
+    "header": {
+        "alpha": "알파",
+        "pause": "일시정지",
+        "pauseButton": "일시정지 버튼",
+        "resume": "재개",
+        "run": "실행",
+        "runButton": "실행 버튼",
+        "stop": "중지",
+        "stopButton": "중지 버튼",
+        "updateAvailable": "업데이트 사용 가능 ({{version}})",
+        "updateAvailableAria": "업데이트 사용 가능",
+        "updateChangelog": "업데이트 변경 로그",
+        "updateAvailableTitle": "업데이트 사용 가능 ({{version}})",
+        "updateAvailableMessage": "버전 {{version}}에 대한 업데이트가 사용 가능합니다. 변경 로그를 보시겠습니까?",
+        "viewReleaseOnGitHub": "GitHub에서 릴리스 보기",
+        "downloadFromWebsite": "chaiNNer.app에서 다운로드",
+        "ignoreUpdate": "업데이트 무시",
+        "viewUpdate": "업데이트 보기"
+    },
+    "inputs": {
+        "copyInputOverrideId": "입력 재정의 ID 복사",
+        "inputOverrideId": "입력 재정의 ID",
+        "inputOverrideIdCopied": "입력 재정의 ID가 클립보드에 복사되었습니다",
+        "inputOverrideIdTooltip": "이 입력에 대한 고유 식별자입니다. 체인에서 입력을 재정의하는 데 사용됩니다.",
+        "directory": {
+            "clear": "지우기",
+            "copyFullDirectoryPath": "전체 디렉토리 경로 복사",
+            "openInFileExplorer": "파일 탐색기에서 열기",
+            "selectDirectory": "디렉토리 선택...",
+            "clickToSelect": "선택하려면 클릭..."
+        },
+        "extractValueIntoNode": "값을 노드로 추출",
+        "file": {
+            "clear": "지우기",
+            "copyFileName": "파일 이름 복사",
+            "copyFullFilePath": "전체 파일 경로 복사",
+            "openInFileExplorer": "파일 탐색기에서 열기",
+            "selectFile": "파일 선택...",
+            "clickToSelectFile": "파일을 선택하려면 클릭..."
+        },
+        "number": {
+            "copyText": "숫자 복사",
+            "paste": "붙여넣기"
+        },
+        "text": {
+            "copyText": "텍스트 복사",
+            "paste": "붙여넣기",
+            "invalidCharacter": "잘못된 문자 '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "입력 추가",
+        "colorCompare": {
+            "old": "이전",
+            "new": "새로운"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "이미지를 사용할 수 없습니다.",
+            "imagePreviewFailed": "이미지 미리보기 로드에 실패했습니다. 지원되지 않는 파일 형식일 수 있습니다."
+        },
+        "model": {
+            "modelNotAvailable": "모델 데이터를 사용할 수 없습니다."
+        }
+    },
+    "settings": {
+        "title": "설정",
+        "restartChaiNNer": "chaiNNer 재시작",
+        "tabs": {
+            "appearance": "외관",
+            "environment": "환경",
+            "python": "Python",
+            "advanced": "고급"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "색상 테마",
+                "description": "chaiNNer의 외관을 위한 테마를 선택하세요.",
+                "options": {
+                    "dark": "다크",
+                    "light": "라이트",
+                    "system": "시스템",
+                    "charcoal": "차콜",
+                    "coffee": "커피",
+                    "blueberry": "블루베리",
+                    "dusk": "황혼",
+                    "oled": "OLED",
+                    "cyberpunk": "사이버펑크",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "언어 (재시작 필요)",
+                "description": "chaiNNer 인터페이스의 언어를 선택하세요."
+            },
+            "chainAnimation": {
+                "label": "체인 애니메이션",
+                "description": "체인의 처리 상태를 보여주는 애니메이션을 활성화합니다."
+            },
+            "minimap": {
+                "label": "미니맵",
+                "description": "노드 편집기의 오른쪽 하단 모서리에 현재 체인의 미니맵을 활성화합니다."
+            },
+            "snapToGrid": {
+                "label": "그리드에 맞추기",
+                "description": "노드 그리드 스냅을 활성화합니다."
+            },
+            "snapToGridAmount": {
+                "label": "그리드 맞춤 양",
+                "description": "그리드에 맞출 양입니다."
+            },
+            "viewportExportPadding": {
+                "label": "뷰포트 PNG 내보내기 패딩",
+                "description": "뷰포트 PNG 내보내기를 위한 패딩 양입니다."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "시작 템플릿",
+                "description": "chaiNNer가 시작될 때 기본적으로 사용할 체인 템플릿을 설정합니다.",
+                "placeholder": "파일 선택...",
+                "clear": "지우기",
+                "pickFile": "시작 템플릿 파일 선택"
+            },
+            "selectChain": "체인 선택"
+        },
+        "python": {
+            "general": "일반",
+            "useSystemPython": {
+                "label": "시스템 Python 사용 (재시작 필요)",
+                "description": "번들된 Python 대신 시스템 Python을 chaiNNer의 처리에 사용합니다 (권장하지 않음)"
+            },
+            "systemPythonLocation": {
+                "label": "시스템 Python 위치 (선택사항)",
+                "description": "원하는 경우 'python3' 또는 'python'으로 호출되는 기본값 대신 특정 python 바이너리를 사용하세요. 여러 python 버전이 설치되어 있고 특정 버전을 선택하고 싶을 때 유용합니다.",
+                "placeholder": "파일 선택...",
+                "clear": "지우기",
+                "pickFile": "시스템 python 위치 선택"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "시작 시 업데이트 확인",
+                "description": "시작 시 업데이트 확인을 전환합니다."
+            },
+            "experimentalFeatures": {
+                "label": "실험적 기능 활성화",
+                "description": "완료되기 전에 실험적 기능을 시도해볼 수 있도록 활성화합니다."
+            },
+            "hardwareAcceleration": {
+                "label": "하드웨어 가속 활성화 (재시작 필요)",
+                "description": "GUI를 위한 GPU 렌더링을 활성화합니다. 이미지 처리에 GPU 성능을 심각하게 저하시킬 수 있으므로 주의해서 사용하세요."
+            },
+            "allowMultipleInstances": {
+                "label": "여러 동시 인스턴스 허용",
+                "description": "chaiNNer의 여러 동시 인스턴스를 활성화합니다. 권장하지 않지만 체인이 시스템 리소스를 충분히 사용하지 않는 경우 동시에 실행하는 데 도움이 될 수 있습니다."
+            }
+        },
+        "noOptionsFound": "옵션을 찾을 수 없습니다.",
+        "clearCache": "캐시 지우기"
+    },
+    "setup": {
+        "checkingPort": "사용 가능한 포트 확인 중...",
+        "checkingPython": "유효한 Python에 대한 시스템 환경 확인 중...",
+        "downloadingPython": "통합 Python 다운로드 중...",
+        "extractingPython": "다운로드된 파일 추출 중...",
+        "loading": "로딩 중...",
+        "startingBackend": "백엔드 프로세스 시작 중..."
+    },
+    "typeTags": {
+        "optional": "선택사항"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "랜덤 시드",
+            "randomSeedAria": "랜덤 시드"
+        }
+    },
+    "logo": {
+        "background": "배경",
+        "front": "전면"
+    },
+    "timer": {
+        "executionTook": "실행에 약 {{duration}}이 걸렸습니다.",
+        "hour_one": "시간",
+        "hour_other": "시간",
+        "minute_one": "분",
+        "minute_other": "분",
+        "second_one": "초",
+        "second_other": "초"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "{{inputs}}의 값이 현재 같은 값에 연결되어 있습니다. 이 링크를 취소하려면 여기를 클릭하세요.",
+        "clickToLink": "{{inputs}}를 같은 값에 연결하려면 여기를 클릭하세요."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "검색...",
+        "missingNodes": "누락된 노드가 있나요? 의존성 관리자를 열려면 클릭하세요!",
+        "noCompatibleNodes": "호환 가능한 노드를 찾을 수 없습니다."
+    },
+    "favorites": {
+        "title": "즐겨찾기",
+        "noFavorites": "즐겨찾기가 없습니다.",
+        "addFavoritesTooltip": "노드를 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "노드 위에 마우스를 올리고",
+            "afterIcon": "아이콘을 클릭하거나 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요."
+        },
+        "addToFavorites": "즐겨찾기에 추가",
+        "removeFromFavorites": "즐겨찾기에서 제거"
+    },
+    "documentation": {
+        "title": "노드 문서",
+        "openDocumentation": "문서 열기"
+    },
+    "dependencyManager": {
+        "title": "의존성 관리자",
+        "manageDependencies": "의존성 관리",
+        "updatesAvailable": "사용 가능한 업데이트",
+        "updatesAvailableDescription_one": "사용 가능한 의존성 업데이트가 있는 {{count}}개의 패키지가 있습니다.",
+        "updatesAvailableDescription_other": "사용 가능한 의존성 업데이트가 있는 {{count}}개의 패키지가 있습니다.",
+        "openDependencyManager": "의존성 관리자 열기",
+        "packages": "패키지",
+        "features": "기능",
+        "refresh": "새로고침",
+        "install": "설치",
+        "update": "업데이트",
+        "uninstall": "제거",
+        "close": "닫기",
+        "missing": "누락됨",
+        "outdated": "오래됨",
+        "unavailable": "사용 불가",
+        "enabled": "활성화됨",
+        "disabled": "비활성화됨",
+        "python": "Python",
+        "system": "시스템",
+        "integrated": "통합",
+        "advanced": "고급",
+        "installationMode": "설치 모드",
+        "normal": "일반",
+        "manualCopy": "수동/복사",
+        "consoleOutput": "콘솔 출력:",
+        "commandCopied": "명령이 클립보드에 복사되었습니다",
+        "commandCopiedDescription": "외부 터미널을 열고 명령을 붙여넣고 실행하세요. 완료되면 chaiNNer를 수동으로 재시작하세요.",
+        "uninstallTitle": "제거",
+        "uninstallMessage": "{{name}}을(를) 제거하시겠습니까?",
+        "unsavedChanges": "저장되지 않은 변경사항",
+        "unsavedChangesMessage": "{{name}}을(를) 제거하면 저장되지 않은 변경사항을 잃을 수 있습니다.\n\n{{name}}을(를) 제거하시겠습니까?",
+        "cancel": "취소",
+        "installing": "{{name}} 설치 중...",
+        "uninstalling": "{{name}} 제거 중...",
+        "copyPythonPath": "Python 경로를 클립보드에 복사",
+        "pythonPath": "Python 경로:",
+        "installAllPackages": "모든 패키지 {{operations}} ({{size}})",
+        "package_one": "패키지",
+        "package_other": "패키지",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "편집 모드",
+        "editContent": "내용 편집",
+        "markdownMode": "마크다운 모드",
+        "viewMarkdown": "마크다운 보기"
+    },
+    "node": {
+        "disableHint": "힌트: 옵션을 순환하려면 Ctrl+Click을 사용하세요.",
+        "note": {
+            "placeholder": "노트 텍스트"
+        },
+        "implementationError": "구현 오류",
+        "implementationErrorMessage": "노드 {{nodeName}} ({{schemaId}})에 대한 주요 정보를 확인할 수 없습니다.",
+        "enable": "활성화",
+        "disable": "비활성화",
+        "skip": "건너뛰기",
+        "eta": "예상 시간:",
+        "outdated": "오래됨"
+    },
+    "color": {
+        "resetToOld": "이전 색상으로 재설정",
+        "acceptNew": "새 색상 수락"
+    },
+    "support": {
+        "koFiTooltip": "Ko-fi에서 chaiNNer 지원",
+        "koFiAria": "chaiNNer 지원",
+        "koFiButton": "chaiNNer 지원"
+    },
+    "edge": {
+        "removeEdge": "엣지 제거 버튼"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "브레이크포인트 제거",
+        "removeEdge": "엣지 제거"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "노드를 캔버스에 추가하려면 두 번 클릭하거나 드래그 앤 드롭하세요.",
+        "collapseExpandCategories": "카테고리 접기/펼치기"
+    },
+    "nodeMenu": {
+        "copy": "복사",
+        "duplicate": "복제",
+        "resetNode": "노드 재설정",
+        "resetInputs": "입력 재설정",
+        "resetConnections": "연결 재설정",
+        "resetAll": "모두 재설정",
+        "enable": "활성화",
+        "disable": "비활성화",
+        "skip": "건너뛰기",
+        "unlock": "잠금 해제",
+        "lock": "잠금",
+        "refreshPreview": "미리보기 새로고침",
+        "delete": "삭제",
+        "openDocumentation": "문서 열기"
+    },
+    "nodesMenu": {
+        "copy": "복사",
+        "duplicate": "복제",
+        "resetNodes": "노드 재설정",
+        "resetInputs": "입력 재설정",
+        "resetConnections": "연결 재설정",
+        "resetAll": "모두 재설정",
+        "enableAll": "모두 활성화",
+        "disableAll": "모두 비활성화",
+        "delete": "삭제"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "브레이크포인트 추가",
+        "delete": "삭제"
+    },
+    "nodeSelector": {
+        "favorites": "즐겨찾기",
+        "missingDependencies": "누락된 의존성.",
+        "unableToImport": "노드를 가져올 수 없습니다.",
+        "clickToInstall": "{{packageName}}을(를) 설치하려면 의존성 관리자를 열려면 클릭하세요.",
+        "criticalImportError": "패키지 {{packageName}}의 의존성에서 치명적인 가져오기 오류가 발생했습니다.",
+        "nodes": "노드"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "입니다",
+            "isNot": "아닙니다",
+            "oneOf": "중 하나",
+            "ofType": "타입",
+            "allOf": "모두",
+            "atLeastOneOf": "최소 하나",
+            "followingConditions": "다음 조건이 충족되어야 합니다:",
+            "condition": "조건:"
+        },
+        "nodeDocs": {
+            "optional": "선택사항",
+            "sequenced": "(순차적)",
+            "supportedFileTypes": "지원되는 파일 형식:",
+            "primaryInputDescription": "이 입력은 지원되는 파일 형식에 대한 주요 입력입니다. 이는 지원되는 파일을 chaiNNer로 드래그 앤 드롭할 수 있으며, 이 입력이 자동으로 채워진 노드를 생성한다는 의미입니다.",
+            "options": "옵션:",
+            "type": "타입:",
+            "inputs": "입력",
+            "noInputs": "이 노드에는 입력이 없습니다.",
+            "outputs": "출력",
+            "noOutputs": "이 노드에는 출력이 없습니다.",
+            "seeAlso": "참고",
+            "character_one": "문자",
+            "character_other": "문자"
+        },
+        "nodesList": {
+            "noNodesFound": "노드를 찾을 수 없습니다"
+        }
+    }
+}

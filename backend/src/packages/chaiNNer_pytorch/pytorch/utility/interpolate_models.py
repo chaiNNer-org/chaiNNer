@@ -4,7 +4,6 @@ import gc
 
 import numpy as np
 import torch
-from sanic.log import logger
 from spandrel import (
     ImageModelDescriptor,
     MaskedImageModelDescriptor,
@@ -13,6 +12,7 @@ from spandrel import (
 )
 
 from api.node_context import NodeContext
+from logger import logger
 from nodes.impl.pytorch.utils import np2tensor, tensor2np
 from nodes.properties.inputs import ModelInput, SliderInput
 from nodes.properties.outputs import ModelOutput, NumberOutput

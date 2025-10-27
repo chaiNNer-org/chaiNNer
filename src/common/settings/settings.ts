@@ -6,6 +6,7 @@ export interface ChainnerSettings {
 
     // renderer
     theme: string;
+    language: string;
     checkForUpdatesOnStartup: boolean;
     startupTemplate: string;
     animateChain: boolean;
@@ -33,6 +34,7 @@ export const defaultSettings: Readonly<ChainnerSettings> = {
 
     // renderer
     theme: 'default-dark',
+    language: 'en',
     checkForUpdatesOnStartup: true,
     startupTemplate: '',
     animateChain: true,

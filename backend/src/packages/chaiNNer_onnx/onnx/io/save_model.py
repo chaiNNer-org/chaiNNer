@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sanic.log import logger
-
+from logger import logger
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import DirectoryInput, OnnxModelInput, RelativePathInput
 
@@ -25,7 +24,7 @@ from .. import io_group
 )
 def save_model_node(model: OnnxModel, directory: Path, model_name: str) -> None:
     full_path = (directory / f"{model_name}.onnx").resolve()
-    logger.debug(f"Writing file to path: {full_path}")
+    logger.debug("Writing file to path: %s", full_path)
     full_path.parent.mkdir(parents=True, exist_ok=True)
     with open(full_path, "wb") as f:
         f.write(model.bytes)

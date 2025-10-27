@@ -7,11 +7,11 @@ from enum import Enum
 from typing import Any, Literal, TypedDict, TypeVar
 
 import numpy as np
-from sanic.log import logger
 from typing_extensions import NotRequired
 
 import navi
 from api import BaseInput, InputConversion, group
+from logger import logger
 
 from ...condition import Condition, ConditionJson
 from ...impl.blend import BlendMode
@@ -102,7 +102,9 @@ class DropDownInput(BaseInput[T]):
 
         if self.default not in self.accepted_values:
             logger.error(
-                f"Invalid default value {self.default} in {label} dropdown. Using first value instead."
+                "Invalid default value %s in %s dropdown. Using first value instead.",
+                self.default,
+                label,
             )
             self.default = options[0]["value"]
 

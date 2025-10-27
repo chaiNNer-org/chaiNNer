@@ -1,6 +1,5 @@
-from sanic.log import logger
-
 from api import KB, MB, Dependency, add_package
+from logger import logger
 
 package = add_package(
     __file__,
@@ -148,4 +147,4 @@ utility_category = package.add_category(
 )
 
 
-logger.debug(f"Loaded package {package.name}")
+logger.debug("Loaded package %s", package.name)

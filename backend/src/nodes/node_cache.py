@@ -9,9 +9,9 @@ from enum import Enum
 from typing import Iterable, NewType
 
 import numpy as np
-from sanic.log import logger
 
 from api import RunFn
+from logger import logger
 
 CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", 1024**3))  # default 1 GiB
 CACHE_REGISTRY: list[NodeOutputCache] = []
@@ -88,7 +88,9 @@ class NodeOutputCache:
         while True:
             total_bytes = sum([cache.size() for cache in CACHE_REGISTRY])
             logger.debug(
-                f"Cache size: {total_bytes} ({100*total_bytes/CACHE_MAX_BYTES:0.1f}% of limit)"
+                "Cache size: %d (%.1f%% of limit)",
+                total_bytes,
+                100 * total_bytes / CACHE_MAX_BYTES,
             )
             if total_bytes <= CACHE_MAX_BYTES:
                 return
