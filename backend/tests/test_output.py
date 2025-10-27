@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from api.output import BaseOutput
 from api.types import InputId, OutputId
 
@@ -187,11 +189,8 @@ class TestBaseOutput:
         """Test that enforce raises an assertion error for None."""
         output = BaseOutput(output_type="number", label="Test")
 
-        try:
+        with pytest.raises(AssertionError):
             output.enforce(None)
-            raise AssertionError("Expected AssertionError")
-        except AssertionError:
-            pass  # Expected
 
     def test_method_chaining(self):
         """Test that methods can be chained."""
