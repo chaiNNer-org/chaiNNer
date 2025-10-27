@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from api.group import Group, GroupId, GroupInfo, NestedGroup, group
+from api.group import Group, GroupId, GroupInfo, group
 from api.input import BaseInput
 from api.types import InputId
 
@@ -197,7 +197,7 @@ class TestGroupFunction:
 
         # Check that the result is compatible with NestedGroup type
         assert isinstance(result, Group)
-        assert all(isinstance(item, BaseInput) or isinstance(item, Group) for item in result.items)
+        assert all(isinstance(item, (BaseInput, Group)) for item in result.items)
 
     def test_group_function_with_no_items(self):
         """Test group() function with no items."""

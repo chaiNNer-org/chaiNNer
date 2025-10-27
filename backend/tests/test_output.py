@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import navi
 from api.output import BaseOutput
 from api.types import InputId, OutputId
 
@@ -190,7 +189,7 @@ class TestBaseOutput:
 
         try:
             output.enforce(None)
-            assert False, "Expected AssertionError"
+            raise AssertionError("Expected AssertionError")
         except AssertionError:
             pass  # Expected
 
