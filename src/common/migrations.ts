@@ -1421,7 +1421,7 @@ const oldToNewIterators: ModernMigration = (data) => {
             },
             id: node.id,
             position: node.position,
-            type: 'newIterator',
+            type: 'transformer',
             selected: false,
         };
 
@@ -1554,7 +1554,7 @@ const oldToNewIterators: ModernMigration = (data) => {
                     },
                     id: node.id,
                     position: node.position,
-                    type: 'newIterator',
+                    type: 'transformer',
                     selected: false,
                 };
 
@@ -1969,9 +1969,9 @@ const saveVideoAdvancedModeMigration: ModernMigration = (data) => {
     return data;
 };
 
-const newIteratorToGenerator: ModernMigration = (data) => {
+const transformerToGenerator: ModernMigration = (data) => {
     data.nodes.forEach((node) => {
-        if (node.type === 'newIterator') {
+        if (node.type === 'transformer') {
             node.type = 'generator';
         }
     });
@@ -2153,7 +2153,7 @@ const migrations = [
     normalMapGeneratorInvert,
     saveVideoInputPatchMigration,
     saveVideoAdvancedModeMigration,
-    newIteratorToGenerator,
+    transformerToGenerator,
     splitLoadImagePairs,
 ];
 

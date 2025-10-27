@@ -146,7 +146,7 @@ class NodeGroup:
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 1
         elif kind == "collector":
             assert len(iterator_inputs) == 1 and len(iterator_outputs) == 0
-        elif kind == "newIterator":
+        elif kind == "transformer":
             assert len(iterator_inputs) == 1 and len(iterator_outputs) == 1
         else:
             assert len(iterator_inputs) == 0 and len(iterator_outputs) == 0

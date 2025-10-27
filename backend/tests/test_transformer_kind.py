@@ -1,5 +1,5 @@
 """
-Test for newIterator node kind.
+Test for transformer node kind.
 
 This test validates that nodes can transform iterators (take an iterator
 as input and output a different-length iterator).
@@ -7,19 +7,17 @@ as input and output a different-length iterator).
 
 from __future__ import annotations
 
-import pytest  # type: ignore[import-untyped]
-
-from api.iter import Collector, Generator
+from api.iter import Generator
 
 
-class TestNewIteratorKind:
-    """Test the newIterator node kind functionality."""
+class TestTransformerKind:
+    """Test the transformer node kind functionality."""
 
     def test_iterator_transform_concept(self):
         """
         Test the concept of transforming an iterator.
 
-        A newIterator node should be able to:
+        A transformer node should be able to:
         1. Take a Generator as input
         2. Transform it (e.g., filter, limit, interpolate)
         3. Return a new Generator with different length

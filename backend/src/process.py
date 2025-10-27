@@ -36,8 +36,8 @@ from chain.chain import (
     CollectorNode,
     FunctionNode,
     GeneratorNode,
-    NewIteratorNode,
     Node,
+    TransformerNode,
 )
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict, NodeBroadcastData
@@ -676,7 +676,7 @@ class Executor:
         return output
 
     def __get_iterated_nodes(
-        self, node: GeneratorNode | NewIteratorNode
+        self, node: GeneratorNode | TransformerNode
     ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
         """
         Returns all collector and output nodes iterated by the given generator node
@@ -693,7 +693,7 @@ class Executor:
 
             if isinstance(n, CollectorNode):
                 collectors.add(n)
-            elif isinstance(n, (GeneratorNode, NewIteratorNode)):
+            elif isinstance(n, (GeneratorNode, TransformerNode)):
                 raise ValueError("Nested sequences are not supported")
             else:
                 assert isinstance(n, FunctionNode)
@@ -717,7 +717,7 @@ class Executor:
 
     def __generator_fill_partial_output(
         self,
-        node: GeneratorNode | NewIteratorNode,
+        node: GeneratorNode | TransformerNode,
         partial_output: Output,
         values: object,
     ) -> Output:
@@ -740,7 +740,7 @@ class Executor:
         return output
 
     async def __iterate_generator_nodes(
-        self, generator_nodes: list[GeneratorNode | NewIteratorNode]
+        self, generator_nodes: list[GeneratorNode | TransformerNode]
     ):
         await self.progress.suspend()
 
@@ -909,14 +909,14 @@ class Executor:
     async def __process_nodes(self):
         self.__send_chain_start()
 
-        generator_nodes: list[GeneratorNode | NewIteratorNode] = []
+        generator_nodes: list[GeneratorNode | TransformerNode] = []
 
         # Group nodes to run by shared lineage
         # TODO: there's probably a better way of doing this
         gens_by_outs: dict[NodeId, set[NodeId]] = {}
         for node_id in self.chain.topological_order():
             node = self.chain.nodes[node_id]
-            if isinstance(node, (GeneratorNode, NewIteratorNode)):
+            if isinstance(node, (GeneratorNode, TransformerNode)):
                 # we first need to run generator nodes in topological order
                 generator_nodes.append(node)
                 collector_nodes, output_nodes, __all_iterated_nodes = (
@@ -938,10 +938,10 @@ class Executor:
 
         # TODO: Look for a way to avoid duplicating this work
         for group in combined_groups:
-            nodes_to_run: list[GeneratorNode | NewIteratorNode] = []
+            nodes_to_run: list[GeneratorNode | TransformerNode] = []
             for node_id in group:
                 generator_node = self.chain.nodes[node_id]
-                if isinstance(generator_node, (GeneratorNode, NewIteratorNode)):
+                if isinstance(generator_node, (GeneratorNode, TransformerNode)):
                     nodes_to_run.append(generator_node)
             await self.__iterate_generator_nodes(nodes_to_run)
 
