@@ -23,7 +23,7 @@ from sanic_cors import CORS
 import api
 from api import ExecutionOptions, Group, JsonExecutionOptions, NodeId
 from chain.cache import OutputCache
-from chain.chain import Chain, FunctionNode, GeneratorNode
+from chain.chain import Chain, FunctionNode, GeneratorNode, NewIteratorNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
@@ -318,6 +318,8 @@ async def run_individual(request: Request):
         node_data, _ = schema_data
         if node_data.kind == "generator":
             node = GeneratorNode(node_id, full_data["schemaId"])
+        elif node_data.kind == "newIterator":
+            node = NewIteratorNode(node_id, full_data["schemaId"])
         elif node_data.kind == "regularNode":
             node = FunctionNode(node_id, full_data["schemaId"])
         else:
@@ -561,7 +563,7 @@ async def sse(request: Request):
     while True:
         message = await ctx.queue.get()
         await response.send(
-            f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+            f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
         )
 
 

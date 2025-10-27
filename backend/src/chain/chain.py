@@ -50,7 +50,18 @@ class CollectorNode:
         return self.data.side_effects
 
 
-Node = Union[FunctionNode, GeneratorNode, CollectorNode]
+class NewIteratorNode:
+    def __init__(self, node_id: NodeId, schema_id: str):
+        self.id: NodeId = node_id
+        self.schema_id: str = schema_id
+        self.data: NodeData = registry.get_node(schema_id)
+        assert self.data.kind == "newIterator"
+
+    def has_side_effects(self) -> bool:
+        return self.data.side_effects
+
+
+Node = Union[FunctionNode, GeneratorNode, CollectorNode, NewIteratorNode]
 
 
 @dataclass(frozen=True)
