@@ -23,7 +23,9 @@ export const NumberInput = memo(
     }: InputProps<'number', number>) => {
         const { def, min, max, unit, precision, controlsStep, hideTrailingZeros } = input;
 
-        const [inputString, setInputString] = useState(String(value ?? def));
+        const [inputString, setInputString] = useState(
+            String(value ?? (input.optional ? '' : def))
+        );
 
         useEffect(() => {
             setInputString((prev) => {
@@ -41,10 +43,10 @@ export const NumberInput = memo(
         }, [value]);
 
         useEffect(() => {
-            if (value === undefined) {
+            if (value === undefined && !input.optional) {
                 setValue(def);
             }
-        }, [value, def, setValue]);
+        }, [value, def, setValue, input.optional]);
 
         const typeNumberString = isNumericLiteral(inputType) ? inputType.toString() : '';
         const displayString = isConnected ? typeNumberString : inputString;
