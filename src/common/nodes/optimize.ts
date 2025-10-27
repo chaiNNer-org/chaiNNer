@@ -89,9 +89,9 @@ interface Optimized {
 }
 type Optimization = (chain: Chain, context: Context) => Optimized;
 
-const removeDisabledNodes: Optimization = ({ nodes, edges }) => {
+const removeDisabledNodes: Optimization = ({ nodes, edges }, { schemata }) => {
     // remove disabled nodes
-    const disabledNodes = new Set(getEffectivelyDisabledNodes(nodes, edges));
+    const disabledNodes = new Set(getEffectivelyDisabledNodes(nodes, edges, schemata));
     if (disabledNodes.size === 0) {
         // nothing to do
         return { chain: { nodes, edges }, report: {} };
