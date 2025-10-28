@@ -86,6 +86,12 @@ package = add_package(
             version="0.3.10",
             size_estimate=2.0 * MB,
         ),
+        Dependency(
+            display_name="piexif",
+            pypi_name="piexif",
+            version="1.1.3",
+            size_estimate=45 * KB,
+        ),
     ],
 )
 

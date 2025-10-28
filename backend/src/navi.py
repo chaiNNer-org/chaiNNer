@@ -217,3 +217,11 @@ def Color(  # noqa: N802
     if channels_as is not None:
         fields["channels"] = field(channels_as, "channels")
     return named("Color", fields)
+
+
+def Dict() -> ExpressionJson:  # noqa: N802
+    """
+    Creates a Dict type that represents a dictionary with string keys
+    and values that can be either strings or numbers.
+    """
+    return named("Dict", None)

@@ -27,6 +27,7 @@ const colorList = () => {
         { type: StringType.instance, color: getComputedColor('--type-color-string') },
         { type: resolveName('bool'), color: getComputedColor('--type-color-bool') },
         { type: resolveName('Color'), color: getComputedColor('--type-color-color') },
+        { type: resolveName('Dict'), color: getComputedColor('--type-color-dict') },
         { type: resolveName('PyTorchModel'), color: getComputedColor('--type-color-torch') },
         { type: resolveName('OnnxModel'), color: getComputedColor('--type-color-onnx') },
         { type: resolveName('NcnnNetwork'), color: getComputedColor('--type-color-ncnn') },

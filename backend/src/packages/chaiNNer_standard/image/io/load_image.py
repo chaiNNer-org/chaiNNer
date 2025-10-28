@@ -17,24 +17,98 @@ from nodes.impl.image_formats import (
     get_opencv_formats,
     get_pil_formats,
 )
-from nodes.properties.inputs import ImageFileInput
-from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
+from nodes.properties.inputs import BoolInput, ImageFileInput
+from nodes.properties.outputs import (
+    DictOutput,
+    DirectoryOutput,
+    FileNameOutput,
+    LargeImageOutput,
+)
 from nodes.utils.utils import get_h_w_c, split_file_path
 
 from .. import io_group
 
-_Decoder = Callable[[Path], np.ndarray | None]
+# Try to import piexif for EXIF support with OpenCV
+try:
+    import piexif
+
+    PIEXIF_AVAILABLE = True
+except ImportError:
+    PIEXIF_AVAILABLE = False
+
+_Decoder = Callable[
+    [Path, bool], tuple[np.ndarray, dict[str, str | int | float]] | None
+]
 """
 An image decoder.
 
 Of the given image is naturally not supported, the decoder may return `None`
 instead of raising an exception. E.g. when the file extension indicates an
 unsupported format.
+
+Returns a tuple of (image, metadata_dict) if successful.
+The second parameter indicates whether to extract metadata.
 """
 
 
 def get_ext(path: Path | str) -> str:
     return split_file_path(path)[2].lower()
+
+
+def _read_exif_piexif(path: Path) -> dict[str, str | int | float]:
+    """Read EXIF metadata using piexif library."""
+    metadata: dict[str, str | int | float] = {}
+
+    if not PIEXIF_AVAILABLE:
+        return metadata
+
+    try:
+        exif_dict = piexif.load(str(path))
+
+        # Iterate through all EXIF IFDs (Image File Directories)
+        for ifd_name in ["0th", "Exif", "GPS", "1st", "Interop"]:
+            if ifd_name in exif_dict:
+                ifd = exif_dict[ifd_name]
+                for tag_id, value in ifd.items():
+                    # Store in a format that preserves the original structure
+                    # Key format: exif_{ifd_name}_{tag_id}_{type_hint}
+                    key_base = f"exif_{ifd_name}_{tag_id}"
+
+                    if isinstance(value, bytes):
+                        try:
+                            # Try to decode bytes to string for display
+                            decoded = value.decode("utf-8", errors="ignore").strip("\x00")
+                            if decoded:
+                                # Store as string with type hint
+                                metadata[f"{key_base}_bytes"] = decoded
+                        except Exception:
+                            pass
+                    elif isinstance(value, int):
+                        metadata[f"{key_base}_int"] = value
+                    elif isinstance(value, tuple):
+                        # Store tuple as comma-separated string
+                        try:
+                            metadata[f"{key_base}_tuple"] = ",".join(str(v) for v in value)
+                        except Exception:
+                            pass
+                    elif isinstance(value, list):
+                        # Store list as comma-separated string
+                        try:
+                            metadata[f"{key_base}_list"] = ",".join(str(v) for v in value)
+                        except Exception:
+                            pass
+                    elif isinstance(value, str):
+                        metadata[f"{key_base}_str"] = value
+                    # For other types, try to convert to string
+                    else:
+                        try:
+                            metadata[f"{key_base}_other"] = str(value)
+                        except Exception:
+                            pass
+    except Exception as e:
+        logger.debug("Failed to read EXIF with piexif: %s", e)
+
+    return metadata
 
 
 def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
@@ -56,7 +130,9 @@ def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def _read_cv(path: Path) -> np.ndarray | None:
+def _read_cv(
+    path: Path, extract_metadata: bool
+) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) not in get_opencv_formats():
         # not supported
         return None
@@ -80,15 +156,57 @@ def _read_cv(path: Path) -> np.ndarray | None:
             f'Error reading image image from path "{path}". Image may be corrupt.'
         )
 
-    return img
+    # Extract EXIF metadata using piexif if available and requested
+    metadata: dict[str, str | int | float] = {}
+    if extract_metadata:
+        ext = get_ext(path)
+        # piexif supports JPEG and TIFF files
+        if ext in [".jpg", ".jpeg", ".jpe", ".tif", ".tiff"]:
+            metadata = _read_exif_piexif(path)
+
+    return img, metadata
 
 
-def _read_pil(path: Path) -> np.ndarray | None:
+def _read_pil(
+    path: Path, extract_metadata: bool
+) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) not in get_pil_formats():
         # not supported
         return None
 
     im = Image.open(path)
+
+    # Extract metadata from PIL image only if requested
+    metadata: dict[str, str | int | float] = {}
+
+    if extract_metadata:
+        # Get EXIF data if available
+        try:
+            exif = im.getexif()
+            if exif:
+                for tag_id, value in exif.items():
+                    # Convert value to string or number
+                    if isinstance(value, int | float):
+                        metadata[f"exif_{tag_id}"] = value
+                    elif isinstance(value, str | bytes):
+                        try:
+                            metadata[f"exif_{tag_id}"] = str(value)
+                        except Exception:
+                            pass  # Skip values that can't be converted
+        except Exception:
+            pass  # EXIF not available or error reading it
+
+        # Get general info
+        if hasattr(im, "info") and im.info:
+            for key, value in im.info.items():
+                if isinstance(value, int | float):
+                    metadata[key] = value
+                elif isinstance(value, str | bytes):
+                    try:
+                        metadata[key] = str(value)
+                    except Exception:
+                        pass
+
     if im.mode == "P":
         # convert color palette to actual colors
         im = im.convert(im.palette.mode)
@@ -99,10 +217,12 @@ def _read_pil(path: Path) -> np.ndarray | None:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
     elif c == 4:
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
-    return img
+    return img, metadata
 
 
-def _read_dds(path: Path) -> np.ndarray | None:
+def _read_dds(
+    path: Path, extract_metadata: bool
+) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) != ".dds":
         # not supported
         return None
@@ -113,10 +233,12 @@ def _read_dds(path: Path) -> np.ndarray | None:
 
     png = dds_to_png_texconv(path)
     try:
-        img = _read_cv(png)
-        if img is not None:
+        result = _read_cv(png, extract_metadata)
+        if result is not None:
+            img, metadata = result
             img = remove_unnecessary_alpha(img)
-        return img
+            return img, metadata
+        return None
     finally:
         os.remove(png)
 
@@ -128,7 +250,11 @@ def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
     else:
         ext_set.update(ext)
 
-    return lambda path: decoder(path) if get_ext(path) in ext_set else None
+    return (
+        lambda path, extract_metadata: decoder(path, extract_metadata)
+        if get_ext(path) in ext_set
+        else None
+    )
 
 
 _decoders: list[tuple[str, _Decoder]] = [
@@ -146,14 +272,18 @@ valid_formats = get_available_image_formats()
     name="Load Image",
     description=(
         "Load image from specified file. This node will output the loaded image, the"
-        " directory of the image file, and the name of the image file (without file"
-        " extension)."
+        " directory of the image file, the name of the image file (without file"
+        " extension), and optionally any metadata embedded in the image file."
     ),
     icon="BsFillImageFill",
     inputs=[
         ImageFileInput(primary_input=True).with_docs(
             "Select the path of an image file."
-        )
+        ),
+        BoolInput("Read Metadata", default=False).with_docs(
+            "Whether to extract metadata from the image file. "
+            "Disable this option for faster loading if metadata is not needed."
+        ),
     ],
     outputs=[
         LargeImageOutput()
@@ -165,19 +295,29 @@ valid_formats = get_available_image_formats()
         .suggest(),
         DirectoryOutput("Directory", of_input=0),
         FileNameOutput("Name", of_input=0),
+        DictOutput("Metadata").with_docs(
+            "Image metadata extracted from the file (e.g., EXIF data). "
+            "This will be an empty dictionary if metadata reading is disabled or no metadata is available."
+        ),
     ],
     side_effects=True,
 )
-def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
+def load_image_node(
+    path: Path,
+    extract_metadata: bool,
+) -> tuple[np.ndarray, Path, str, dict[str, str | int | float]]:
     logger.debug("Reading image from path: %s", path)
 
     dirname, basename, _ = split_file_path(path)
 
     img = None
+    metadata: dict[str, str | int | float] = {}
     error = None
     for name, decoder in _decoders:
         try:
-            img = decoder(Path(path))
+            result = decoder(Path(path), extract_metadata)
+            if result is not None:
+                img, metadata = result
         except Exception as e:
             error = e
             logger.warning("Decoder %s failed", name)
@@ -192,4 +332,4 @@ def load_image_node(path: Path) -> tuple[np.ndarray, Path, str]:
             f'The image "{path}" you are trying to read cannot be read by chaiNNer.'
         )
 
-    return img, dirname, basename
+    return img, dirname, basename, metadata

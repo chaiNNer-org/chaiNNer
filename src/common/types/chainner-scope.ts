@@ -53,6 +53,8 @@ struct Image {
 }
 struct Color { channels: int(1..) }
 
+struct Dict;
+
 struct Video;
 
 // models
