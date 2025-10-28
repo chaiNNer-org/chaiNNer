@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, TypeVar, Union
+from typing import TypeVar
 
 from api import InputId, NodeData, NodeId, OutputId, registry
 
@@ -50,7 +51,7 @@ class CollectorNode:
         return self.data.side_effects
 
 
-Node = Union[FunctionNode, GeneratorNode, CollectorNode]
+Node = FunctionNode | GeneratorNode | CollectorNode
 
 
 @dataclass(frozen=True)

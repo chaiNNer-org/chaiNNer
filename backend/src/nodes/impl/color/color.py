@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
-from typing import Iterable, Literal, TypedDict, Union, cast
+from collections.abc import Iterable
+from typing import Literal, TypedDict, cast
 
 import numpy as np
 
 from nodes.utils.utils import get_h_w_c
 
-FloatLike = Union[np.floating, float]
+FloatLike = np.floating | float
 
 
 def _norm(n: FloatLike) -> float:

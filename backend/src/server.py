@@ -534,7 +534,7 @@ async def get_features(_request: Request):
     )
 
     features_json = []
-    for (feature, package), state in zip(features, results):
+    for (feature, package), state in zip(features, results, strict=False):
         if state is None:
             continue
 

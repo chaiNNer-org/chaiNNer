@@ -109,7 +109,7 @@ def union_types(types: list[_Ty]) -> _Ty:
     assert len(types) > 0
     t: Any = types[0]
     for t2 in types[1:]:
-        t = Union[t, cast(Any, t2)]
+        t = t | cast(Any, t2)
     return t
 
 

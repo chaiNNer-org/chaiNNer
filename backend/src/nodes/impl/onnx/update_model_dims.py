@@ -6,7 +6,7 @@
 # - Improved type hints
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import onnx.checker
 from onnx import ModelProto, ValueInfoProto

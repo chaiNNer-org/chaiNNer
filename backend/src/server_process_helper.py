@@ -9,7 +9,7 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Iterable
+from collections.abc import Iterable
 
 import aiohttp
 from sanic import HTTPResponse, Request

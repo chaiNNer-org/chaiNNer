@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Tuple, Union
+from typing import Any, Literal
 
 import onnx
 from onnx.onnx_pb import ModelProto, ValueInfoProto
@@ -8,17 +8,17 @@ from onnx.onnx_pb import ModelProto, ValueInfoProto
 from .update_model_dims import update_inputs_outputs_dims
 
 OnnxTensorFormat = Literal["BCHW", "BHWC"]
-OnnxTensorShape = Tuple[
-    Union[int, str],
-    Union[int, str],
-    Union[int, str],
-    Union[int, str],
+OnnxTensorShape = tuple[
+    int | str,
+    int | str,
+    int | str,
+    int | str,
 ]
-OnnxParsedTensorShape = Tuple[
+OnnxParsedTensorShape = tuple[
     OnnxTensorFormat,
     int,
-    Union[int, None],
-    Union[int, None],
+    int | None,
+    int | None,
 ]
 """
 The elements are:

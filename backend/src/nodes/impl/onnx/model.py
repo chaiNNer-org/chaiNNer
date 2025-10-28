@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Final, Literal, Union
+from typing import Final, Literal
 
 OnnxSubType = Literal["Generic", "RemBg"]
 
@@ -81,4 +81,4 @@ class OnnxRemBg:
 
 
 OnnxModels = (OnnxGeneric, OnnxRemBg)
-OnnxModel = Union[OnnxGeneric, OnnxRemBg]
+OnnxModel = OnnxGeneric | OnnxRemBg

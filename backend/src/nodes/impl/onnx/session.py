@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any
 from weakref import WeakKeyDictionary
 
 import onnxruntime as ort
@@ -8,7 +8,7 @@ import onnxruntime as ort
 from .model import OnnxModel
 from .utils import OnnxParsedTensorShape, parse_onnx_shape
 
-ProviderDesc = Union[str, Tuple[str, Dict[Any, Any]]]
+ProviderDesc = str | tuple[str, dict[Any, Any]]
 
 
 def create_inference_session(

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Generic, TypeVar
 
 import numpy as np
 
