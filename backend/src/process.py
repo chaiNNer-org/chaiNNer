@@ -818,12 +818,13 @@ class Executor:
         return output
 
     def __get_iterated_nodes(
-        self, node: GeneratorNode
-    ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
+        self, node: GeneratorNode | TransformerNode
+    ) -> tuple[set[CollectorNode], set[FunctionNode], set[TransformerNode], set[Node]]:
         """
-        Returns all collector and output nodes iterated by the given generator node
+        Returns all collector, transformer, and output nodes iterated by the given generator/transformer node
         """
         collectors: set[CollectorNode] = set()
+        transformers: set[TransformerNode] = set()
         output_nodes: set[FunctionNode] = set()
 
         seen: set[Node] = {node}
@@ -835,6 +836,9 @@ class Executor:
 
             if isinstance(n, CollectorNode):
                 collectors.add(n)
+            elif isinstance(n, TransformerNode):
+                # Transformers start a new lineage, so we add them but don't traverse beyond
+                transformers.add(n)
             elif isinstance(n, GeneratorNode):
                 raise ValueError("Nested sequences are not supported")
             else:
@@ -855,10 +859,31 @@ class Executor:
                 target_node = self.chain.nodes[edge.target.id]
                 visit(target_node)
 
-        return collectors, output_nodes, seen
+        return collectors, output_nodes, transformers, seen
 
     def __generator_fill_partial_output(
         self, node: GeneratorNode, partial_output: Output, values: object
+    ) -> Output:
+        iterable_output = node.data.single_iterable_output
+
+        values_list: list[object] = []
+        if len(iterable_output.outputs) == 1:
+            values_list.append(values)
+        else:
+            assert isinstance(values, tuple | list)
+            values_list.extend(values)
+
+        assert len(values_list) == len(iterable_output.outputs)
+
+        output: Output = partial_output.copy()
+        for index, o in enumerate(node.data.outputs):
+            if o.id in iterable_output.outputs:
+                output[index] = o.enforce(values_list.pop(0))
+
+        return output
+
+    def __transformer_fill_partial_output(
+        self, node: TransformerNode, partial_output: Output, values: object
     ) -> Output:
         iterable_output = node.data.single_iterable_output
 
@@ -899,7 +924,7 @@ class Executor:
                 generator_output.generator.supplier().__iter__()
             )
 
-            collector_nodes, __output_nodes, __all_iterated_nodes = (
+            collector_nodes, __output_nodes, transformer_nodes, __all_iterated_nodes = (
                 self.__get_iterated_nodes(node)
             )
             for iterated_node in __all_iterated_nodes:
@@ -907,12 +932,16 @@ class Executor:
             for o_node in __output_nodes:
                 output_nodes.add(o_node)
 
-            if len(collector_nodes) == 0 and len(output_nodes) == 0:
+            if (
+                len(collector_nodes) == 0
+                and len(output_nodes) == 0
+                and len(transformer_nodes) == 0
+            ):
                 # unusual, but this can happen
                 # since we don't need to actually iterate the iterator, we can stop here
                 return
 
-            # run each of the collector nodes
+            # run each of the collector nodes (but not transformers, which are handled during iteration)
             for collector_node in collector_nodes:
                 await self.progress.suspend()
                 timer = _Timer()
@@ -1047,6 +1076,7 @@ class Executor:
         self.__send_chain_start()
 
         generator_nodes: list[GeneratorNode] = []
+        transformer_nodes: list[TransformerNode] = []
 
         # Group nodes to run by shared lineage
         # TODO: there's probably a better way of doing this
@@ -1056,7 +1086,7 @@ class Executor:
             if isinstance(node, GeneratorNode):
                 # we first need to run generator nodes in topological order
                 generator_nodes.append(node)
-                collector_nodes, output_nodes, __all_iterated_nodes = (
+                collector_nodes, output_nodes, __transformer_nodes, __all_iterated_nodes = (
                     self.__get_iterated_nodes(node)
                 )
                 for collector in collector_nodes:
@@ -1069,6 +1099,34 @@ class Executor:
                         gens_by_outs[out_node.id].add(node.id)
                     else:
                         gens_by_outs[out_node.id] = {node.id}
+                # Transformers start a new lineage, so we track them separately
+                for transformer in __transformer_nodes:
+                    if gens_by_outs.get(transformer.id, None) is not None:
+                        gens_by_outs[transformer.id].add(node.id)
+                    else:
+                        gens_by_outs[transformer.id] = {node.id}
+                    transformer_nodes.append(transformer)
+            elif isinstance(node, TransformerNode):
+                # Transformers act like generators for downstream nodes
+                collector_nodes, output_nodes, __transformer_nodes, __all_iterated_nodes = (
+                    self.__get_iterated_nodes(node)
+                )
+                for collector in collector_nodes:
+                    if gens_by_outs.get(collector.id, None) is not None:
+                        gens_by_outs[collector.id].add(node.id)
+                    else:
+                        gens_by_outs[collector.id] = {node.id}
+                for out_node in output_nodes:
+                    if gens_by_outs.get(out_node.id, None) is not None:
+                        gens_by_outs[out_node.id].add(node.id)
+                    else:
+                        gens_by_outs[out_node.id] = {node.id}
+                # Nested transformers also start a new lineage
+                for transformer in __transformer_nodes:
+                    if gens_by_outs.get(transformer.id, None) is not None:
+                        gens_by_outs[transformer.id].add(node.id)
+                    else:
+                        gens_by_outs[transformer.id] = {node.id}
 
         groups: list[set[NodeId]] = list(gens_by_outs.values())
         combined_groups = combine_sets(groups)
