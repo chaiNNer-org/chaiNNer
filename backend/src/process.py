@@ -1160,6 +1160,26 @@ class Executor:
                 self.cache_strategy[collector_node.id],
             )
 
+        # finalize collectors downstream of transformers
+        for transformer, transformer_node in transformers:
+            t_collectors, t_output_nodes, t_all_node_ids = transformer_downstream[transformer_node.id]
+            for t_collector, t_timer, t_collector_node in t_collectors:
+                await self.progress.suspend()
+                with t_timer.run():
+                    t_collector_output = enforce_output(
+                        t_collector.on_complete(), t_collector_node.data
+                    )
+
+                await self.__send_node_broadcast(t_collector_node, t_collector_output.output)
+                # TODO: execution time
+                self.__send_node_finish(t_collector_node, t_timer.duration)
+
+                self.node_cache.set(
+                    t_collector_node.id,
+                    t_collector_output,
+                    self.cache_strategy[t_collector_node.id],
+                )
+
         if len(deferred_errors) > 0:
             error_string = "- " + "\n- ".join(deferred_errors)
             raise Exception(f"Errors occurred during iteration:\n{error_string}")
