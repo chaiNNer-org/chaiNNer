@@ -70,22 +70,39 @@ def _read_exif_piexif(path: Path) -> dict[str, str | int | float]:
             if ifd_name in exif_dict:
                 ifd = exif_dict[ifd_name]
                 for tag_id, value in ifd.items():
-                    # Convert value to string or number
-                    if isinstance(value, int | float):
-                        metadata[f"exif_{ifd_name}_{tag_id}"] = value
-                    elif isinstance(value, bytes):
+                    # Store in a format that preserves the original structure
+                    # Key format: exif_{ifd_name}_{tag_id}_{type_hint}
+                    key_base = f"exif_{ifd_name}_{tag_id}"
+
+                    if isinstance(value, bytes):
                         try:
-                            # Try to decode bytes to string
-                            decoded = value.decode("utf-8", errors="ignore").strip(
-                                "\x00"
-                            )
+                            # Try to decode bytes to string for display
+                            decoded = value.decode("utf-8", errors="ignore").strip("\x00")
                             if decoded:
-                                metadata[f"exif_{ifd_name}_{tag_id}"] = decoded
+                                # Store as string with type hint
+                                metadata[f"{key_base}_bytes"] = decoded
                         except Exception:
                             pass
-                    elif isinstance(value, str | tuple | list):
+                    elif isinstance(value, int):
+                        metadata[f"{key_base}_int"] = value
+                    elif isinstance(value, tuple):
+                        # Store tuple as comma-separated string
                         try:
-                            metadata[f"exif_{ifd_name}_{tag_id}"] = str(value)
+                            metadata[f"{key_base}_tuple"] = ",".join(str(v) for v in value)
+                        except Exception:
+                            pass
+                    elif isinstance(value, list):
+                        # Store list as comma-separated string
+                        try:
+                            metadata[f"{key_base}_list"] = ",".join(str(v) for v in value)
+                        except Exception:
+                            pass
+                    elif isinstance(value, str):
+                        metadata[f"{key_base}_str"] = value
+                    # For other types, try to convert to string
+                    else:
+                        try:
+                            metadata[f"{key_base}_other"] = str(value)
                         except Exception:
                             pass
     except Exception as e:

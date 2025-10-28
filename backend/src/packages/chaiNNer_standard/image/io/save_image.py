@@ -186,7 +186,7 @@ def _write_exif_piexif(
     image_path: Path,
     metadata: dict[str, str | int | float],
 ) -> None:
-    """Write EXIF metadata to a JPEG file using piexif."""
+    """Write EXIF metadata to a JPEG/TIFF file using piexif."""
     if not PIEXIF_AVAILABLE:
         return
 
@@ -204,9 +204,9 @@ def _write_exif_piexif(
             if not key.startswith("exif_"):
                 continue
 
-            # Parse the key format: exif_{ifd_name}_{tag_id}
+            # Parse the key format: exif_{ifd_name}_{tag_id}_{type_hint}
             parts = key.split("_")
-            if len(parts) < 3:
+            if len(parts) < 4:
                 continue
 
             ifd_name = parts[1]
@@ -215,16 +215,69 @@ def _write_exif_piexif(
             except ValueError:
                 continue
 
+            type_hint = parts[3] if len(parts) > 3 else "str"
+
             # Only write to supported IFDs
             if ifd_name not in ["0th", "Exif", "GPS", "1st"]:
                 continue
 
-            # Convert value to appropriate type
-            if isinstance(value, str):
-                # Encode string as bytes
-                exif_dict[ifd_name][tag_id] = value.encode("utf-8")
-            elif isinstance(value, int | float):
-                exif_dict[ifd_name][tag_id] = int(value)
+            # Convert value based on type hint
+            try:
+                if type_hint == "bytes":
+                    # Convert string back to bytes
+                    if isinstance(value, str):
+                        exif_dict[ifd_name][tag_id] = value.encode("utf-8")
+                    else:
+                        exif_dict[ifd_name][tag_id] = str(value).encode("utf-8")
+                elif type_hint == "int":
+                    # Keep as int
+                    exif_dict[ifd_name][tag_id] = int(value)
+                elif type_hint == "tuple":
+                    # Parse comma-separated values back to tuple
+                    if isinstance(value, str):
+                        values = [v.strip() for v in value.split(",")]
+                        # Try to convert to appropriate types
+                        tuple_values = []
+                        for v in values:
+                            try:
+                                # Try int first
+                                tuple_values.append(int(v))
+                            except ValueError:
+                                try:
+                                    # Then try float
+                                    tuple_values.append(float(v))
+                                except ValueError:
+                                    # Keep as string
+                                    tuple_values.append(v)
+                        exif_dict[ifd_name][tag_id] = tuple(tuple_values)
+                    else:
+                        exif_dict[ifd_name][tag_id] = (int(value),)
+                elif type_hint == "list":
+                    # Parse comma-separated values back to list
+                    if isinstance(value, str):
+                        values = [v.strip() for v in value.split(",")]
+                        # Try to convert to appropriate types
+                        list_values = []
+                        for v in values:
+                            try:
+                                list_values.append(int(v))
+                            except ValueError:
+                                try:
+                                    list_values.append(float(v))
+                                except ValueError:
+                                    list_values.append(v)
+                        exif_dict[ifd_name][tag_id] = list_values
+                    else:
+                        exif_dict[ifd_name][tag_id] = [int(value)]
+                elif type_hint == "str":
+                    # Keep as string but encode as bytes for piexif
+                    exif_dict[ifd_name][tag_id] = str(value).encode("utf-8")
+                else:
+                    # Default: try to encode as bytes
+                    exif_dict[ifd_name][tag_id] = str(value).encode("utf-8")
+            except Exception as e:
+                logger.debug("Failed to convert metadata value for tag %s: %s", tag_id, e)
+                continue
 
         # Dump EXIF data and insert into image
         exif_bytes = piexif.dump(exif_dict)
