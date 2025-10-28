@@ -8,7 +8,7 @@ from spandrel.architectures.SCUNet import SCUNet
 
 
 def is_onnx_supported(model: ModelDescriptor) -> bool:
-    return not isinstance(model.model, SCUNet | SAFMN | CRAFT)
+    return not isinstance(model.model, (SCUNet, SAFMN, CRAFT))  # noqa: UP038
 
 
 def convert_to_onnx_impl(
