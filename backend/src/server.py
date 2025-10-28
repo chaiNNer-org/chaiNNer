@@ -72,7 +72,7 @@ class AppContext:
         # try using the chaiNNer's app dir
         try:
             # appdirs is likely only installed on dev machines
-            from appdirs import user_data_dir
+            from appdirs import user_data_dir  # ruff-disable=PLC0415
 
             app_data_dir = Path(user_data_dir(roaming=True)) / default_sub_dir
             logger.info("Using app data as storage directory: %s", app_data_dir)
@@ -561,7 +561,7 @@ async def sse(request: Request):
     while True:
         message = await ctx.queue.get()
         await response.send(
-            f"event: {message['event']}\n" f"data: {stringify(message['data'])}\n\n"
+            f"event: {message['event']}\ndata: {stringify(message['data'])}\n\n"
         )
 
 
@@ -604,7 +604,7 @@ async def import_packages(
                 else:
                     count = len(modules)
                     if count > 3:
-                        modules = modules[:2] + [f"and {count - 2} more ..."]
+                        modules = [*modules[:2], f"and {count - 2} more ..."]
                     l = "\n".join("  ->  " + m for m in modules)
                     logger.warning("%s  ->  %d modules ...\n%s", error, count, l)
 

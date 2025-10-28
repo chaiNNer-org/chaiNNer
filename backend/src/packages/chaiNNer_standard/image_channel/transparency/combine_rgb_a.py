@@ -62,9 +62,9 @@ def combine_rgb_a_node(
     # check same size
     for i in rgb, a:
         if isinstance(i, np.ndarray):
-            assert (
-                i.shape[:2] == start_shape
-            ), "All channel images must have the same resolution"
+            assert i.shape[:2] == start_shape, (
+                "All channel images must have the same resolution"
+            )
 
     def to_image(i: np.ndarray | Color) -> np.ndarray:
         if isinstance(i, np.ndarray):

@@ -46,6 +46,9 @@ extend-select = [
     # "SIM", # flake8-simplify
     # "TCH", # flake8-tidy-imports
     "NPY", # NumPy-specific rules
+    # "ERA", # Eradicate commented code
+    "YTT", # flake8-2020,
+    # "S",   # flake8-bandit
 ]
 ignore = [
     "E501",    # Line too long
@@ -62,6 +65,8 @@ ignore = [
     "N999",    # Invalid module name (which triggers for chaiNNer)
     "N818",    # Exception name should end in Error
     "ISC001",  # Implicit string concatenation, conflicts with formatter
+    "PLC0415", # Conditional import used --- conflicts with optional dependencies
+    "S101",    # Use of assert detected. The enclosed code will be removed when compiling to optimised bytecode.
 ]
 
 [tool.ruff.format]

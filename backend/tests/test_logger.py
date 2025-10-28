@@ -1,6 +1,7 @@
 """Tests for the logging system."""
 
 import logging
+import logging as base_logging
 import sys
 import tempfile
 from pathlib import Path
@@ -17,8 +18,6 @@ def test_logger_setup():
         log_dir = Path(temp_dir)
 
         # Clear any existing logger to ensure clean test
-        import logging as base_logging
-
         test_logger_name = "chaiNNer.worker"
         test_logger = base_logging.getLogger(test_logger_name)
         test_logger.handlers.clear()
@@ -75,7 +74,6 @@ def test_separate_process_types():
         log_dir = Path(temp_dir)
 
         # Use unique logger names for this test
-        import logging as base_logging
 
         # Create fresh loggers for this test
         host_logger = base_logging.getLogger("chaiNNer.test_host")
@@ -144,7 +142,6 @@ def test_setup_logger_dev_mode():
         log_dir = Path(temp_dir)
 
         # Clear any existing logger
-        import logging as base_logging
 
         test_logger_name = "chaiNNer.worker"
         test_logger = base_logging.getLogger(test_logger_name)

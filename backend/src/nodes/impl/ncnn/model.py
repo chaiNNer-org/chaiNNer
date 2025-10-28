@@ -405,9 +405,9 @@ class NcnnModel:
         layer_bytes = b""
 
         if weights_a:
-            assert len(weights_a) == len(
-                weights_b
-            ), "All corresponding nodes must have same number of weights"
+            assert len(weights_a) == len(weights_b), (
+                "All corresponding nodes must have same number of weights"
+            )
 
             layer_bytes_list = []
             for weight_name, weight_a in weights_a.items():
@@ -419,13 +419,13 @@ class NcnnModel:
                     )
                     raise
 
-                assert (
-                    weight_a.shape == weight_b.shape
-                ), "Corresponding weights must have the same size and shape"
+                assert weight_a.shape == weight_b.shape, (
+                    "Corresponding weights must have the same size and shape"
+                )
 
-                assert len(weight_a.quantize_tag) == len(
-                    weight_b.quantize_tag
-                ), "Weights must either both have or both not have a quantize tag"
+                assert len(weight_a.quantize_tag) == len(weight_b.quantize_tag), (
+                    "Weights must either both have or both not have a quantize tag"
+                )
 
                 if (
                     weight_a.quantize_tag == DTYPE_FP16
@@ -702,9 +702,9 @@ class NcnnModel:
             (i, l) for i, l in enumerate(model_b.layers) if l.weight_data
         ]
 
-        assert len(layer_a_weights) == len(
-            layer_b_weights
-        ), "Models must have same number of layers containing weights"
+        assert len(layer_a_weights) == len(layer_b_weights), (
+            "Models must have same number of layers containing weights"
+        )
 
         weight_bytes_list = []
         for layer_a, layer_b in zip(layer_a_weights, layer_b_weights, strict=False):
@@ -776,9 +776,9 @@ class NcnnModelWrapper:
                 scale *= checked_cast(int, layer.params[3].value)
                 current_conv = layer
 
-        assert (
-            current_conv is not None
-        ), "Cannot broadcast; model has no Convolution layers"
+        assert current_conv is not None, (
+            "Cannot broadcast; model has no Convolution layers"
+        )
 
         out_nc = checked_cast(int, current_conv.params[0].value) // pixel_shuffle**2
 
