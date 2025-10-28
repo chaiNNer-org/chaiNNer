@@ -141,7 +141,7 @@ async def get_verified_api() -> Api | None:
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     # find the first working api
-    for api, result in zip(apis, results):
+    for api, result in zip(apis, results, strict=False):
         if not isinstance(result, Exception):
             logger.info("Found stable diffusion API at %s", api.base_url)
             _CURRENT_API = api

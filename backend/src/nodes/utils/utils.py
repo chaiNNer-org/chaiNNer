@@ -6,13 +6,12 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
 
 from logger import logger
 
-Size = Tuple[int, int]
+Size = tuple[int, int]
 """
 The width and height (in that order) of an image.
 """

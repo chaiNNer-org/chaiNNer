@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, TypedDict, Union
+from typing import Literal, TypedDict
 
 from api import NodeId
 
@@ -26,7 +26,7 @@ class JsonValueInput(TypedDict):
     value: object
 
 
-JsonInput = Union[JsonEdgeInput, JsonValueInput]
+JsonInput = JsonEdgeInput | JsonValueInput
 
 
 class JsonNode(TypedDict):

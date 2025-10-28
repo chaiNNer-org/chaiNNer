@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, Literal, TypedDict, Union
+from typing import Literal, TypedDict
 
 import navi
 from api import BroadcastData, ErrorValue, InputId, IterOutputId, NodeId, OutputId
@@ -27,13 +27,13 @@ class BackendStateEvent(TypedDict):
     data: None
 
 
-BackendEvent = Union[BackendStatusEvent, BackendStateEvent]
+BackendEvent = BackendStatusEvent | BackendStateEvent
 
 
 # Execution events
 
 
-InputsDict = Dict[InputId, ErrorValue]
+InputsDict = dict[InputId, ErrorValue]
 
 
 class ExecutionErrorSource(TypedDict):
@@ -108,17 +108,17 @@ class NodeFinishEvent(TypedDict):
     data: NodeFinishData
 
 
-ExecutionEvent = Union[
-    ExecutionErrorEvent,
-    ChainStartEvent,
-    NodeStartEvent,
-    NodeProgressUpdateEvent,
-    NodeBroadcastEvent,
-    NodeFinishEvent,
-]
+ExecutionEvent = (
+    ExecutionErrorEvent
+    | ChainStartEvent
+    | NodeStartEvent
+    | NodeProgressUpdateEvent
+    | NodeBroadcastEvent
+    | NodeFinishEvent
+)
 
 
-Event = Union[ExecutionEvent, BackendEvent]
+Event = ExecutionEvent | BackendEvent
 
 
 class EventConsumer(ABC):

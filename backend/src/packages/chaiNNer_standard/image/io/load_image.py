@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import platform
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Callable, Iterable, Union
 
 import cv2
 import numpy as np
@@ -69,7 +69,7 @@ def _read_exif_piexif(path: Path) -> dict[str, str | int | float]:
                 ifd = exif_dict[ifd_name]
                 for tag_id, value in ifd.items():
                     # Convert value to string or number
-                    if isinstance(value, (int, float)):
+                    if isinstance(value, int | float):
                         metadata[f"exif_{ifd_name}_{tag_id}"] = value
                     elif isinstance(value, bytes):
                         try:
@@ -79,7 +79,7 @@ def _read_exif_piexif(path: Path) -> dict[str, str | int | float]:
                                 metadata[f"exif_{ifd_name}_{tag_id}"] = decoded
                         except Exception:
                             pass
-                    elif isinstance(value, (str, tuple, list)):
+                    elif isinstance(value, str | tuple | list):
                         try:
                             metadata[f"exif_{ifd_name}_{tag_id}"] = str(value)
                         except Exception:
@@ -161,9 +161,9 @@ def _read_pil(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str,
             if exif:
                 for tag_id, value in exif.items():
                     # Convert value to string or number
-                    if isinstance(value, (int, float)):
+                    if isinstance(value, int | float):
                         metadata[f"exif_{tag_id}"] = value
-                    elif isinstance(value, (str, bytes)):
+                    elif isinstance(value, str | bytes):
                         try:
                             metadata[f"exif_{tag_id}"] = str(value)
                         except Exception:
@@ -174,9 +174,9 @@ def _read_pil(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str,
         # Get general info
         if hasattr(im, "info") and im.info:
             for key, value in im.info.items():
-                if isinstance(value, (int, float)):
+                if isinstance(value, int | float):
                     metadata[key] = value
-                elif isinstance(value, (str, bytes)):
+                elif isinstance(value, str | bytes):
                     try:
                         metadata[key] = str(value)
                     except Exception:

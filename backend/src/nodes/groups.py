@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Union
-
 from api import BaseInput, NestedGroup, group
 
 from .condition import Condition, EnumValues, InputValue
 
-RawEnumValues = Union[
-    InputValue, List[str], List[int], Tuple[str, ...], Tuple[int, ...]
-]
+RawEnumValues = InputValue | list[str] | list[int] | tuple[str, ...] | tuple[int, ...]
 
 
 def if_group(condition: Condition):

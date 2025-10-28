@@ -223,7 +223,7 @@ def _write_exif_piexif(
             if isinstance(value, str):
                 # Encode string as bytes
                 exif_dict[ifd_name][tag_id] = value.encode("utf-8")
-            elif isinstance(value, (int, float)):
+            elif isinstance(value, int | float):
                 exif_dict[ifd_name][tag_id] = int(value)
 
         # Dump EXIF data and insert into image

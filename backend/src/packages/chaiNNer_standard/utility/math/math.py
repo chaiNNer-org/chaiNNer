@@ -139,7 +139,7 @@ def math_node(op: MathOperation, a: float, b: float) -> int | float:
         except Exception as e:
             raise ValueError(f"{a}^{b} is not defined for real numbers.") from e
 
-        if isinstance(result, (int, float)):
+        if isinstance(result, int | float):
             return result
         raise ValueError(f"{a}^{b} is not defined for real numbers.")
     elif op == MathOperation.LOG:

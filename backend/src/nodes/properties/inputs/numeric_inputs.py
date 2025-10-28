@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Literal, Union
+from typing import Literal
 
 import navi
 from api import BaseInput, InputConversion, InputKind
@@ -9,7 +9,7 @@ from api import BaseInput, InputConversion, InputKind
 from ...utils.utils import round_half_up
 from .label import LabelStyle, get_default_label_style
 
-Precision = Union[int, Literal["unlimited"]]
+Precision = int | Literal["unlimited"]
 
 
 def _get_step(precision: Precision) -> float:
@@ -117,7 +117,7 @@ class NumberInput(BaseInput):
         if self.optional and value is None:
             return None
 
-        assert isinstance(value, (int, float))
+        assert isinstance(value, int | float)
 
         if math.isnan(value):
             raise ValueError("NaN is not a valid number")

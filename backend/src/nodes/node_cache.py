@@ -5,8 +5,9 @@ import hashlib
 import os
 import tempfile
 import time
+from collections.abc import Iterable
 from enum import Enum
-from typing import Iterable, NewType
+from typing import NewType
 
 import numpy as np
 
@@ -45,7 +46,7 @@ class NodeOutputCache:
     def _args_to_key(args: Iterable[object]) -> CacheKey:
         key = []
         for arg in args:
-            if isinstance(arg, (int, float, bool, str, bytes)):
+            if isinstance(arg, int | float | bool | str | bytes):
                 key.append(arg)
             elif arg is None:
                 key.append(None)

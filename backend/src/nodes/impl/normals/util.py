@@ -1,8 +1,6 @@
-from typing import Tuple
-
 import numpy as np
 
-XYZ = Tuple[np.ndarray, np.ndarray, np.ndarray]
+XYZ = tuple[np.ndarray, np.ndarray, np.ndarray]
 """
 The normalized XYZ components of a normal map. Z is guaranteed to be >= 0.
 """

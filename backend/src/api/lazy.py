@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import time
 from asyncio import AbstractEventLoop
-from typing import Any, Callable, Coroutine, Generic, TypeVar
+from collections.abc import Callable, Coroutine
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
