@@ -622,6 +622,11 @@ class Executor:
             for input_index, i in enumerate(node.data.inputs):
                 if i.id in iterable_input.inputs:
                     ignore.add(input_index)
+        elif isinstance(node, TransformerNode):
+            iterable_input = node.data.single_iterable_input
+            for input_index, i in enumerate(node.data.inputs):
+                if i.id in iterable_input.inputs:
+                    ignore.add(input_index)
 
         # some inputs are lazy, so we want to lazily resolve them
         lazy: set[int] = set()
