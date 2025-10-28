@@ -29,10 +29,11 @@ from api import (
     NodeId,
     OutputId,
     SettingsParser,
+    Transformer,
     registry,
 )
 from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_strategies
-from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
+from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node, TransformerNode
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict, NodeBroadcastData
 from logger import logger
@@ -176,10 +177,51 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     )
 
 
+def enforce_transformer_output(raw_output: object, node: NodeData) -> TransformerOutput:
+    l = len(node.outputs)
+    transformer_output = node.single_iterable_output
+
+    partial: list[object] = [None] * l
+
+    if l == len(transformer_output.outputs):
+        # The raw_output should be a Transformer
+        assert isinstance(raw_output, Transformer), (
+            "Expected the output to be a Transformer"
+        )
+        return TransformerOutput(
+            info=transformer_output,
+            transformer=raw_output,
+            partial_output=partial,
+        )
+
+    assert l > len(transformer_output.outputs)
+    assert isinstance(raw_output, tuple | list)
+
+    # Similar to generator, but the first element is the transformer
+    transformer, *rest = raw_output
+    assert isinstance(transformer, Transformer), (
+        "Expected the first tuple element to be a Transformer"
+    )
+    assert len(rest) == l - len(transformer_output.outputs)
+
+    # output-specific validations
+    for i, o in enumerate(node.outputs):
+        if o.id not in transformer_output.outputs:
+            partial[i] = o.enforce(rest.pop(0))
+
+    return TransformerOutput(
+        info=transformer_output,
+        transformer=transformer,
+        partial_output=partial,
+    )
+
+
 def run_node(
     node: NodeData, context: NodeContext, inputs: list[object], node_id: NodeId
 ) -> NodeOutput | CollectorOutput:
     if node.kind == "collector":
+        ignored_inputs = node.single_iterable_input.inputs
+    elif node.kind == "transformer":
         ignored_inputs = node.single_iterable_input.inputs
     else:
         ignored_inputs = []
@@ -197,6 +239,8 @@ def run_node(
             return CollectorOutput(raw_output)
         if node.kind == "generator":
             return enforce_generator_output(raw_output, node)
+        if node.kind == "transformer":
+            return enforce_transformer_output(raw_output, node)
 
         assert node.kind == "regularNode"
         return enforce_output(raw_output, node)
@@ -249,6 +293,56 @@ def run_collector_iterate(
             node.data, get_partial_inputs(enforced_inputs)
         )
         raise NodeExecutionError(node.id, node.data, str(e), input_dict) from e
+
+
+def run_transformer_iterate(
+    node: TransformerNode, inputs: list[object], transformer: Transformer
+) -> list[object]:
+    """
+    Run a transformer on the given input values.
+    Returns a list of output values (can be empty, single, or multiple values).
+    """
+    iterable_input = node.data.single_iterable_input
+
+    def get_partial_inputs(values: list[object]) -> list[object]:
+        partial_inputs: list[object] = []
+        index = 0
+        for i in node.data.inputs:
+            if i.id in iterable_input.inputs:
+                partial_inputs.append(values[index])
+                index += 1
+            else:
+                partial_inputs.append(None)
+        return partial_inputs
+
+    enforced_inputs: list[object] = []
+    try:
+        for i in node.data.inputs:
+            if i.id in iterable_input.inputs:
+                enforced_inputs.append(i.enforce_(inputs[len(enforced_inputs)]))
+    except Exception as e:
+        input_dict = collect_input_information(
+            node.data, get_partial_inputs(inputs), enforced=False
+        )
+        raise NodeExecutionError(node.id, node.data, str(e), input_dict) from e
+
+    input_value = (
+        enforced_inputs[0] if len(enforced_inputs) == 1 else tuple(enforced_inputs)
+    )
+
+    try:
+        # Call the transformer and get the list of output values
+        output_values = transformer.transform(input_value)
+        assert isinstance(output_values, list), (
+            "Transformer must return a list of values"
+        )
+        return output_values
+    except Exception as e:
+        input_dict = collect_input_information(
+            node.data, get_partial_inputs(enforced_inputs)
+        )
+        raise NodeExecutionError(node.id, node.data, str(e), input_dict) from e
+
 
 
 class _Timer:
@@ -360,7 +454,14 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = RegularOutput | GeneratorOutput
+@dataclass(frozen=True)
+class TransformerOutput:
+    info: IteratorOutputInfo
+    transformer: Transformer
+    partial_output: Output
+
+
+NodeOutput = RegularOutput | GeneratorOutput | TransformerOutput
 
 ExecutionId = NewType("ExecutionId", str)
 
@@ -507,6 +608,19 @@ class Executor:
         assert isinstance(result, CollectorOutput)
         return result
 
+    async def process_transformer_node(
+        self, node: TransformerNode, perform_cache: bool = True
+    ) -> TransformerOutput:
+        """
+        Processes the given transformer node.
+
+        This will **not** iterate the returned transformer. Only `node-start` and
+        `node-broadcast` events will be sent.
+        """
+        result = await self.process(node.id, perform_cache)
+        assert isinstance(result, TransformerOutput)
+        return result
+
     async def __get_node_output(self, node_id: NodeId, output_index: int) -> object:
         """
         Returns the output value of the given node.
@@ -526,6 +640,11 @@ class Executor:
             assert value is not None, "A generator output was not assigned correctly"
             return value
 
+        if isinstance(output, TransformerOutput):
+            value = output.partial_output[output_index]
+            assert value is not None, "A transformer output was not assigned correctly"
+            return value
+
         assert isinstance(output, RegularOutput)
         return output.output[output_index]
 
@@ -543,9 +662,14 @@ class Executor:
         Returns the list of input values for the given node.
         """
 
-        # we want to ignore some inputs if we are running a collector node
+        # we want to ignore some inputs if we are running a collector or transformer node
         ignore: set[int] = set()
         if isinstance(node, CollectorNode):
+            iterable_input = node.data.single_iterable_input
+            for input_index, i in enumerate(node.data.inputs):
+                if i.id in iterable_input.inputs:
+                    ignore.add(input_index)
+        elif isinstance(node, TransformerNode):
             iterable_input = node.data.single_iterable_input
             for input_index, i in enumerate(node.data.inputs):
                 if i.id in iterable_input.inputs:
@@ -580,6 +704,24 @@ class Executor:
     async def __gather_collector_inputs(self, node: CollectorNode) -> list[object]:
         """
         Returns the input values to be consumed by `Collector.on_iterate`.
+        """
+
+        iterable_input = node.data.single_iterable_input
+
+        assigned_inputs = self.inputs.get(node.id)
+        assert len(assigned_inputs) == len(node.data.inputs)
+
+        inputs = []
+        for input_index, node_input in enumerate(assigned_inputs):
+            i = node.data.inputs[input_index]
+            if i.id in iterable_input.inputs:
+                inputs.append(await self.__resolve_node_input(node_input))
+
+        return inputs
+
+    async def __gather_transformer_inputs(self, node: TransformerNode) -> list[object]:
+        """
+        Returns the input values to be consumed by `Transformer.transform`.
         """
 
         iterable_input = node.data.single_iterable_input
@@ -658,6 +800,12 @@ class Executor:
                 node,
                 output.partial_output,
                 generators=[output.generator],
+            )
+            # TODO: execution time
+        elif isinstance(output, TransformerOutput):
+            await self.__send_node_broadcast(
+                node,
+                output.partial_output,
             )
             # TODO: execution time
 

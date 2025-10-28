@@ -71,3 +71,17 @@ R = TypeVar("R")
 class Collector(Generic[N, R]):
     on_iterate: Callable[[N], None]
     on_complete: Callable[[], R]
+
+
+T = TypeVar("T")
+U = TypeVar("U")
+
+
+@dataclass
+class Transformer(Generic[T, U]):
+    """
+    A transformer processes iterator values and can output 0, 1, or multiple values per input.
+    The transform function takes an input value and returns a list of output values.
+    """
+
+    transform: Callable[[T], list[U]]
