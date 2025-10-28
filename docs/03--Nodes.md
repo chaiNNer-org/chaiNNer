@@ -173,8 +173,6 @@ def blur_node(img: np.ndarray, radius: float) -> np.ndarray:
 
 If you forget type hints or get them wrong, you will get a warning or an error when you try to register the node. The input and output metadata is used to validate your type hints. E.g. if you forget the `| None` for optional inputs, you will get a warning.
 
-Note: We support Python 3.8 and 3.9, so you need to add `from __future__ import annotations` to the top of your file to use the union operator (`|`) in type hints.
-
 ### Types
 
 All inputs and outputs have types. These types are automatically generated from the input/output class and their supplied arguments. E.g. `NumberInput("foo", minimum=0, maximum=100)` will have the type `int(0..100)` (read: an integer between 0 and 100 inclusive).

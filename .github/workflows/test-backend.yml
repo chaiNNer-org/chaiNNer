@@ -25,7 +25,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version: ['3.8', '3.9', '3.10', '3.11']
+                python-version: ['3.10', '3.11']
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
@@ -41,12 +41,12 @@ jobs:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
               with:
-                  python-version: '3.9'
+                  python-version: '3.10'
                   cache: 'pip'
             - uses: actions/cache@v3
               with:
                   path: ~/.cache/chainner_pip
-                  key: chainner-pip-cache-3.9
+                  key: chainner-pip-cache-3.10
             - name: Run type check
               run: |
                   python ./backend/src/run.py --close-after-start --install-builtin-packages 2>&1 | tee type-check-output.log
@@ -63,11 +63,11 @@ jobs:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4
               with:
-                  python-version: '3.9'
+                  python-version: '3.10'
             - uses: actions/cache@v3
               with:
                   path: ~/.cache/chainner_pip
-                  key: chainner-pip-cache-3.9
+                  key: chainner-pip-cache-3.10
             - run: python ./backend/src/run.py --close-after-start --install-builtin-packages
               env:
                   NAME_CHECK_LEVEL: 'error'
@@ -76,7 +76,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version: ['3.8', '3.9', '3.10', '3.11']
+                python-version: ['3.10', '3.11']
         steps:
             - uses: actions/checkout@v3
             - uses: actions/setup-python@v4

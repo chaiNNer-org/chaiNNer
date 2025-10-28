@@ -707,7 +707,7 @@ class NcnnModel:
         ), "Models must have same number of layers containing weights"
 
         weight_bytes_list = []
-        for layer_a, layer_b in zip(layer_a_weights, layer_b_weights):
+        for layer_a, layer_b in zip(layer_a_weights, layer_b_weights, strict=False):
             interp_layer, layer_bytes = NcnnModel.interp_layers(
                 layer_a[1], layer_b[1], alpha
             )

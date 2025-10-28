@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Generic, Literal, Mapping, Optional, TypedDict, TypeVar, Union
+from typing import Any, Generic, Literal, TypedDict, TypeVar
 
 import navi
 
@@ -76,9 +77,10 @@ class UnknownErrorValue(TypedDict):
     typeModule: str
 
 
-ErrorValue = Union[
-    LiteralErrorValue, FormattedErrorValue, UnknownErrorValue, PendingErrorValue
-]
+ErrorValue = (
+    LiteralErrorValue | FormattedErrorValue | UnknownErrorValue | PendingErrorValue
+)
+
 
 T = TypeVar("T")
 
@@ -135,7 +137,7 @@ class BaseInput(Generic[T]):
             # bools need to be 0 or 1
             return {"type": "literal", "value": int(value)}
 
-        if isinstance(value, (int, float, str)) or value is None:
+        if isinstance(value, int | float | str) or value is None:
             return {"type": "literal", "value": value}
 
         if isinstance(value, Path):
@@ -186,7 +188,7 @@ class BaseInput(Generic[T]):
         self.optional = True
         if self.associated_type is not None:
             associated_type = self.associated_type
-            self.associated_type = Optional[associated_type]
+            self.associated_type = associated_type | None
         return self
 
     def make_lazy(self):

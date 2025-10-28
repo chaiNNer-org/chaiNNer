@@ -31,7 +31,7 @@ class ModelInput(BaseInput):
         if spandrel is not None:
             assert isinstance(
                 value,
-                (spandrel.ImageModelDescriptor, spandrel.MaskedImageModelDescriptor),
+                spandrel.ImageModelDescriptor | spandrel.MaskedImageModelDescriptor,
             ), "Expected a supported PyTorch model."
         return value
 

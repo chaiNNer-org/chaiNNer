@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, TypedDict, Union
+from typing import TypedDict
 
 from logger import logger
 
-SettingsJson = Dict[str, object]
-JsonExecutionOptions = Dict[str, SettingsJson]
+SettingsJson = dict[str, object]
+JsonExecutionOptions = dict[str, SettingsJson]
 
 
 class ExecutionOptions:
@@ -114,4 +114,4 @@ class CacheSetting:
     type: str = "cache"
 
 
-Setting = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
+Setting = ToggleSetting | DropdownSetting | NumberSetting | CacheSetting

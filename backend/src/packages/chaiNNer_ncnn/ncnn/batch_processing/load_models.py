@@ -69,7 +69,7 @@ def load_models_node(
         )
 
     # Check if the filenames match
-    for param_file, bin_file in zip(param_files, bin_files):
+    for param_file, bin_file in zip(param_files, bin_files, strict=False):
         param_file_name, _ = os.path.splitext(param_file)
         bin_file_name, _ = os.path.splitext(bin_file)
 
@@ -79,7 +79,7 @@ def load_models_node(
                 " Please check your files."
             )
 
-    model_files = list(zip(param_files, bin_files))
+    model_files = list(zip(param_files, bin_files, strict=False))
 
     return (
         Generator.from_list(model_files, load_model).with_fail_fast(fail_fast),

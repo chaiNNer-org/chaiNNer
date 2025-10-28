@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, Union, cast
+from typing import Literal, cast
 
 DxgiFormat = Literal[
     "UNKNOWN",
@@ -141,7 +141,7 @@ LegacyFormat = Literal[
 Legacy DX9 formats. Those are the FourCC of those formats.
 """
 
-DDSFormat = Union[DxgiFormat, LegacyFormat]
+DDSFormat = DxgiFormat | LegacyFormat
 
 LEGACY_TO_DXGI: dict[LegacyFormat, DxgiFormat] = {
     "DXT1": "BC1_UNORM",

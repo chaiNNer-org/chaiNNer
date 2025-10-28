@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import gc
-from typing import Generic, Iterable, TypeVar
+from collections.abc import Iterable
+from typing import Generic, TypeVar
 
 from api import NodeId
 from logger import logger

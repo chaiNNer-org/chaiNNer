@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import os
 import platform
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Callable, Iterable, Union
 
 import cv2
 import numpy as np
@@ -23,7 +23,7 @@ from nodes.utils.utils import get_h_w_c, split_file_path
 
 from .. import io_group
 
-_Decoder = Callable[[Path], Union[np.ndarray, None]]
+_Decoder = Callable[[Path], np.ndarray | None]
 """
 An image decoder.
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Union
 
 from api import NodeData, NodeId, OutputId
 
@@ -19,7 +18,7 @@ class ValueInput:
     value: object
 
 
-Input = Union[EdgeInput, ValueInput]
+Input = EdgeInput | ValueInput
 
 
 class InputMap:

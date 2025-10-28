@@ -5,9 +5,9 @@ import os
 import re
 import subprocess
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from logging import Logger
-from typing import Iterable
 
 from custom_types import UpdateProgressFn
 

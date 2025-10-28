@@ -30,7 +30,7 @@ def perform_interp(
     amount_a = 1 - amount_b
 
     interp_weights_list = []
-    for weight_a, weight_b in zip(model_a_weights, model_b_weights):
+    for weight_a, weight_b in zip(model_a_weights, model_b_weights, strict=False):
         weight_name = weight_b.name
         weight_array_a = onph.to_array(weight_a)
         weight_array_b = onph.to_array(weight_b)

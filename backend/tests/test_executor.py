@@ -11,9 +11,10 @@ These tests validate the execution of chains, including:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 from unittest.mock import Mock
 
 import pytest  # type: ignore[import-untyped]
