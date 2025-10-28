@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, List, cast
+from typing import Any, cast
 
 from api.group import Group, GroupId, GroupInfo, group
 from api.input import BaseInput
@@ -116,7 +116,7 @@ class TestGroup:
 
         assert result["id"] == 2
         assert result["kind"] == "outer"
-        items = cast(List[Any], result["items"])
+        items = cast(list[Any], result["items"])
         assert len(items) == 2
         # First item should be the nested group dict
         first_item = items[0]
@@ -204,7 +204,7 @@ class TestGroupFunction:
 
         # Check that the result is compatible with NestedGroup type
         assert isinstance(result, Group)
-        assert all(isinstance(item, (BaseInput, Group)) for item in result.items)
+        assert all(isinstance(item, BaseInput | Group) for item in result.items)
 
     def test_group_function_with_no_items(self):
         """Test group() function with no items."""
