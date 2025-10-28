@@ -909,7 +909,7 @@ class Executor:
         num_generators = len(generator_nodes)
         expected_lengths = {}
         collectors: list[tuple[Collector, _Timer, CollectorNode]] = []
-        transformers: list[tuple[Transformer, TransformerNode]] = []
+        transformers: list[tuple[Transformer, TransformerNode, TransformerOutput]] = []
         output_nodes: set[FunctionNode] = set()
         all_iterated_nodes: set[NodeId] = set()
         
@@ -959,7 +959,8 @@ class Executor:
                 await self.progress.suspend()
                 transformer_output = await self.process_transformer_node(transformer_node)
                 assert isinstance(transformer_output, TransformerOutput)
-                transformers.append((transformer_output.transformer, transformer_node))
+                # Store both the Transformer object and the TransformerOutput for later use
+                transformers.append((transformer_output.transformer, transformer_node, transformer_output))
                 
                 # Get nodes downstream of this transformer
                 t_collectors, t_output_nodes, t_transformers, t_all_nodes = (
@@ -1031,7 +1032,7 @@ class Executor:
                 # Process transformers to get transformed values
                 # For each transformer, get its input, transform it, and run downstream for each result
                 if len(transformers) > 0:
-                    for transformer, transformer_node in transformers:
+                    for transformer, transformer_node, transformer_output_obj in transformers:
                         await self.progress.suspend()
                         transform_inputs = await self.__gather_transformer_inputs(
                             transformer_node
@@ -1049,9 +1050,7 @@ class Executor:
                         # For each transformed value, run the downstream sub-chain
                         for transformed_value in transformed_values:
                             # Update transformer cache with current transformed value
-                            transformer_output_obj = await self.process_transformer_node(
-                                transformer_node
-                            )
+                            # Use the transformer_output that was created during initialization
                             transform_iter_output = RegularOutput(
                                 self.__transformer_fill_partial_output(
                                     transformer_node,
@@ -1162,7 +1161,7 @@ class Executor:
             )
 
         # finalize collectors downstream of transformers
-        for transformer, transformer_node in transformers:
+        for transformer, transformer_node, transformer_output_obj in transformers:
             t_collectors, t_output_nodes, t_all_node_ids = transformer_downstream[transformer_node.id]
             for t_collector, t_timer, t_collector_node in t_collectors:
                 await self.progress.suspend()
