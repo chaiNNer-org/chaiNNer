@@ -20,7 +20,7 @@ from .. import dict_group
         DictOutput("Dictionary").suggest(),
     ],
 )
-def set_dict_key_node(
+def set_dictionary_key_node(
     dictionary: dict[str, str | int | float],
     key: str,
     value: str,

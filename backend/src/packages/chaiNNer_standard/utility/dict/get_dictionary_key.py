@@ -19,7 +19,7 @@ from .. import dict_group
         TextOutput("Value").suggest(),
     ],
 )
-def get_dict_key_node(
+def get_dictionary_key_node(
     dictionary: dict[str, str | int | float],
     key: str,
 ) -> str:

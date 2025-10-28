@@ -23,7 +23,7 @@ from .. import dict_group
         DictOutput("Dictionary").suggest(),
     ],
 )
-def remove_dict_keys_node(
+def remove_dictionary_keys_node(
     dictionary: dict[str, str | int | float],
     key1: str | None,
     key2: str | None,

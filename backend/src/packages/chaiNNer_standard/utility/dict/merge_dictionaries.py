@@ -19,7 +19,7 @@ from .. import dict_group
         DictOutput("Merged Dictionary").suggest(),
     ],
 )
-def merge_dicts_node(
+def merge_dictionaries_node(
     dict1: dict[str, str | int | float],
     dict2: dict[str, str | int | float],
 ) -> dict[str, str | int | float]:

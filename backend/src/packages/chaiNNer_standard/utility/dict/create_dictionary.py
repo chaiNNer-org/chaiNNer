@@ -27,7 +27,7 @@ from .. import dict_group
         DictOutput("Dictionary").suggest(),
     ],
 )
-def create_dict_node(
+def create_dictionary_node(
     key1: str | None,
     value1: str | None,
     key2: str | None,

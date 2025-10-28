@@ -36,7 +36,9 @@ try:
 except ImportError:
     PIEXIF_AVAILABLE = False
 
-_Decoder = Callable[[Path, bool], Union[tuple[np.ndarray, dict[str, str | int | float]], None]]
+_Decoder = Callable[
+    [Path, bool], tuple[np.ndarray, dict[str, str | int | float]] | None
+]
 """
 An image decoder.
 
@@ -74,7 +76,9 @@ def _read_exif_piexif(path: Path) -> dict[str, str | int | float]:
                     elif isinstance(value, bytes):
                         try:
                             # Try to decode bytes to string
-                            decoded = value.decode("utf-8", errors="ignore").strip("\x00")
+                            decoded = value.decode("utf-8", errors="ignore").strip(
+                                "\x00"
+                            )
                             if decoded:
                                 metadata[f"exif_{ifd_name}_{tag_id}"] = decoded
                         except Exception:
@@ -109,7 +113,9 @@ def remove_unnecessary_alpha(img: np.ndarray) -> np.ndarray:
     return img
 
 
-def _read_cv(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
+def _read_cv(
+    path: Path, extract_metadata: bool
+) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) not in get_opencv_formats():
         # not supported
         return None
@@ -144,7 +150,9 @@ def _read_cv(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, 
     return img, metadata
 
 
-def _read_pil(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
+def _read_pil(
+    path: Path, extract_metadata: bool
+) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) not in get_pil_formats():
         # not supported
         return None
@@ -195,7 +203,9 @@ def _read_pil(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str,
     return img, metadata
 
 
-def _read_dds(path: Path, extract_metadata: bool) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
+def _read_dds(
+    path: Path, extract_metadata: bool
+) -> tuple[np.ndarray, dict[str, str | int | float]] | None:
     if get_ext(path) != ".dds":
         # not supported
         return None
@@ -223,7 +233,11 @@ def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
     else:
         ext_set.update(ext)
 
-    return lambda path, extract_metadata: decoder(path, extract_metadata) if get_ext(path) in ext_set else None
+    return (
+        lambda path, extract_metadata: decoder(path, extract_metadata)
+        if get_ext(path) in ext_set
+        else None
+    )
 
 
 _decoders: list[tuple[str, _Decoder]] = [
