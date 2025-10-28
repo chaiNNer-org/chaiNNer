@@ -240,11 +240,6 @@ def _write_exif_piexif(
     icon="MdSave",
     inputs=[
         ImageInput().make_lazy(),
-        DictInput("Metadata")
-        .make_optional()
-        .with_docs(
-            "Optional metadata to embed in the image file. The metadata will be saved where supported by the image format (e.g., EXIF data for JPEG/PNG)."
-        ),
         DirectoryInput(must_exist=False),
         RelativePathInput("Subdirectory Path")
         .make_optional()
@@ -367,6 +362,12 @@ def _write_exif_piexif(
                 },
             ).with_id(17)
         ),
+        DictInput("Metadata")
+        .with_id(19)
+        .make_optional()
+        .with_docs(
+            "Optional metadata to embed in the image file. The metadata will be saved where supported by the image format (e.g., EXIF data for JPEG/PNG)."
+        ),
         BoolInput("Skip existing files", default=False)
         .with_id(1000)
         .with_docs(
@@ -380,7 +381,6 @@ def _write_exif_piexif(
 )
 def save_image_node(
     lazy_image: Lazy[np.ndarray],
-    metadata: dict[str, str | int | float] | None,
     base_directory: Path,
     relative_path: str | None,
     filename: str,
@@ -399,6 +399,7 @@ def save_image_node(
     dds_mipmap_levels: int,
     dds_separate_alpha: bool,
     avif_chroma_subsampling: AvifSubsampling,
+    metadata: dict[str, str | int | float] | None,
     skip_existing_files: bool,
 ) -> None:
     full_path = get_full_path(base_directory, relative_path, filename, image_format)
