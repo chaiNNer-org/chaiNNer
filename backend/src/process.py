@@ -760,8 +760,12 @@ class Executor:
 
             if isinstance(n, CollectorNode):
                 collectors.add(n)
-            elif isinstance(n, (GeneratorNode, TransformerNode)):
+            elif isinstance(n, GeneratorNode):
                 raise ValueError("Nested sequences are not supported")
+            elif isinstance(n, TransformerNode):
+                # Transformer nodes act as endpoints for this iteration segment
+                # They will start their own iteration segment
+                return
             else:
                 assert isinstance(n, FunctionNode)
 
@@ -862,13 +866,10 @@ class Executor:
 
             self.__send_node_progress(node, [], 0, expected_length)
 
-        # Assert that all expected lengths are the same
-        if not len(set(expected_lengths.values())) <= 1:
-            raise AssertionError(
-                "Expected all connected iterators to have the same length"
-            )
+        # Note: Different iteration segments (e.g., before and after transformers)
+        # can have different lengths, so we don't validate same length here
 
-        total_stopiters = 0
+        exhausted_generators: set[NodeId] = set()
         deferred_errors: list[str] = []
         # iterate
         while True:
@@ -876,28 +877,51 @@ class Executor:
             try:
                 # iterate each iterator
                 for node in generator_nodes:
+                    # Skip exhausted generators
+                    if node.id in exhausted_generators:
+                        continue
+
                     if isinstance(node, TransformerNode):
                         generator_output = await self.process_transformer_node(node)
                     else:
                         generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
 
-                    values = next(generator_supplier)
+                    try:
+                        values = next(generator_supplier)
 
-                    # Check if the generator yielded an exception
-                    if isinstance(values, Exception):
-                        raise values
+                        # Check if the generator yielded an exception
+                        if isinstance(values, Exception):
+                            raise values
 
-                    # write current values to cache
-                    iter_output = RegularOutput(
-                        self.__generator_fill_partial_output(
-                            node, generator_output.partial_output, values
+                        # write current values to cache
+                        iter_output = RegularOutput(
+                            self.__generator_fill_partial_output(
+                                node, generator_output.partial_output, values
+                            )
                         )
-                    )
-                    self.node_cache.set(node.id, iter_output, StaticCaching)
+                        self.node_cache.set(node.id, iter_output, StaticCaching)
 
-                    # broadcast
-                    await self.__send_node_broadcast(node, iter_output.output)
+                        # broadcast
+                        await self.__send_node_broadcast(node, iter_output.output)
+
+                        # Track progress for this generator
+                        iter_times = iter_timers[node.id]
+                        iter_times.add()
+                        iterations = iter_times.iterations
+                        self.__send_node_progress(
+                            node,
+                            iter_times.times,
+                            iterations,
+                            max(expected_lengths[node.id], iterations),
+                        )
+                    except StopIteration:
+                        # This generator is exhausted, mark it
+                        exhausted_generators.add(node.id)
+
+                # If all generators are exhausted, stop iterating
+                if len(exhausted_generators) >= num_generators:
+                    break
 
                 # run each of the output nodes
                 for output_node in output_nodes:
@@ -916,16 +940,6 @@ class Executor:
                 self.node_cache.delete_many(all_iterated_nodes)
 
                 await self.progress.suspend()
-                for node in generator_nodes:
-                    iter_times = iter_timers[node.id]
-                    iter_times.add()
-                    iterations = iter_times.iterations
-                    self.__send_node_progress(
-                        node,
-                        iter_times.times,
-                        iterations,
-                        max(expected_lengths[node.id], iterations),
-                    )
                 # cooperative yield so the event loop can run
                 # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
                 await asyncio.sleep(0)
@@ -933,10 +947,6 @@ class Executor:
 
             except Aborted:
                 raise
-            except StopIteration:
-                total_stopiters = total_stopiters + 1
-                if total_stopiters >= num_generators:
-                    break
             except Exception as e:
                 if generator_output and generator_output.generator.fail_fast:
                     raise e
