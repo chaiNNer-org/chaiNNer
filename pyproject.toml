@@ -63,6 +63,7 @@ ignore = [
     "N999",    # Invalid module name (which triggers for chaiNNer)
     "N818",    # Exception name should end in Error
     "ISC001",  # Implicit string concatenation, conflicts with formatter
+    "PLC0415", # Conditional import used --- conflicts with optional dependencies
 ]
 
 [tool.ruff.format]
