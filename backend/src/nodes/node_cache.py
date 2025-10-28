@@ -14,7 +14,7 @@ import numpy as np
 from api import RunFn
 from logger import logger
 
-CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", 1024**3))  # default 1 GiB
+CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", str(1024**3)))  # default 1 GiB
 CACHE_REGISTRY: list[NodeOutputCache] = []
 
 

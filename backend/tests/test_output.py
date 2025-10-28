@@ -57,7 +57,7 @@ class TestBaseOutput:
             associated_type=int,
         )
 
-        assert output.associated_type == int
+        assert output.associated_type is int
 
     def test_with_id(self):
         """Test the with_id method."""

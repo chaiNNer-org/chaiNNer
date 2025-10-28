@@ -312,9 +312,9 @@ class EnumInput(DropDownInput[E]):
         if type_name is None:
             type_name = enum.__name__
 
-        assert (
-            re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is not None
-        ), f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
+        assert re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", variant.name) is not None, (
+            f"Expected the name of {enum.__name__}.{variant.name} to be snake case."
+        )
 
         return f"{type_name}::{join_pascal_case(split_snake_case(variant.name))}"
 
@@ -509,9 +509,9 @@ class ColorInput(BaseInput[Color]):
                 else:
                     raise ValueError("Cannot find default color value")
             else:
-                assert (
-                    default.channels in self.channels
-                ), "The default color is not accepted."
+                assert default.channels in self.channels, (
+                    "The default color is not accepted."
+                )
 
         self.default: Color = default
 

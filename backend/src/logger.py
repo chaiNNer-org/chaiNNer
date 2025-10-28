@@ -12,6 +12,7 @@ import logging
 import logging.handlers
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Literal
 
@@ -72,8 +73,6 @@ def setup_logger(
     # Determine log directory
     if log_dir is None:
         # Use the same location as the frontend logs
-        import tempfile
-
         # Use the same logic as frontend's getLogsFolder() function
         if os.name == "nt":  # Windows
             user_data = os.environ.get("APPDATA", os.path.expanduser("~"))

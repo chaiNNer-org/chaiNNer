@@ -36,7 +36,7 @@ T = TypeVar("T")
 
 
 @dataclass(order=True)
-class __ProcessingItem(Generic[T]):  # noqa: N801
+class __ProcessingItem(Generic[T]):
     cost: int
     path: list[T] = field(compare=False)
 

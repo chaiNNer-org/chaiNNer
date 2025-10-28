@@ -55,7 +55,7 @@ class Lazy(Generic[T]):
     @staticmethod
     def ready(value: T) -> Lazy[T]:
         lazy = Lazy(lambda: value)
-        lazy._value = _Result.ok(value)  # noqa: SLF001
+        lazy._value = _Result.ok(value)
         return lazy
 
     @staticmethod

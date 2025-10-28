@@ -31,7 +31,7 @@ from api import (
 from chain.chain import Chain, CollectorNode, FunctionNode
 from chain.input import InputMap
 from events import EventQueue
-from process import ExecutionId, Executor
+from process import ExecutionId, Executor, run_collector_iterate, run_node
 
 
 def create_mock_node_data(
@@ -310,7 +310,6 @@ class TestRunNode:
 
     def test_run_node_returns_output(self):
         """Test that run_node returns proper output."""
-        from process import run_node
 
         # Create a node that returns a value
         def run_fn():
@@ -338,7 +337,6 @@ class TestCollectorIteration:
 
     def test_run_collector_iterate_basic(self):
         """Test basic collector iteration."""
-        from process import run_collector_iterate
 
         # Create collector
         results = []

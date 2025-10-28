@@ -80,9 +80,9 @@ def combine_r_g_b_a_node(
     # check same size
     for i in inputs:
         if isinstance(i, np.ndarray):
-            assert (
-                i.shape[:2] == start_shape
-            ), "All channel images must have the same resolution"
+            assert i.shape[:2] == start_shape, (
+                "All channel images must have the same resolution"
+            )
 
     channels = [
         (

@@ -150,4 +150,4 @@ def _get_nvidia_info() -> NvInfo:
 nvidia = _get_nvidia_info()
 
 
-__all__ = ["nvidia", "NvInfo", "NvDevice", "MemoryUsage"]
+__all__ = ["MemoryUsage", "NvDevice", "NvInfo", "nvidia"]
