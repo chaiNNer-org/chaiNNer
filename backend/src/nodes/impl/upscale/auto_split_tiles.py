@@ -1,4 +1,5 @@
-from typing import Callable, NewType
+from collections.abc import Callable
+from typing import NewType
 
 import numpy as np
 

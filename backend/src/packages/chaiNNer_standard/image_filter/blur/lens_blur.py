@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from functools import reduce
-from typing import Dict, Literal
+from typing import Literal
 
 import cv2
 import numpy as np
@@ -56,14 +56,14 @@ kernel_params = [
 ]
 
 ParamKey = Literal["a", "b", "A", "B"]
-Params = Dict[ParamKey, float]
+Params = dict[ParamKey, float]
 
 
 def get_parameters(component_count: int) -> tuple[list[Params], float]:
     parameter_index = max(0, min(component_count - 1, len(kernel_params) - 1))
     param_keys: list[ParamKey] = ["a", "b", "A", "B"]
     parameter_dictionaries = [
-        dict(zip(param_keys, b)) for b in kernel_params[parameter_index]
+        dict(zip(param_keys, b, strict=False)) for b in kernel_params[parameter_index]
     ]
     return (parameter_dictionaries, kernel_scales[parameter_index])
 
@@ -81,7 +81,7 @@ def complex_kernel_1d(radius: int, scale: float, a: float, b: float):
 
 def normalize_kernels(kernels: list[np.ndarray], params: list[Params]):
     total = 0
-    for k, p in zip(kernels, params):
+    for k, p in zip(kernels, params, strict=False):
         for i in range(k.shape[1]):
             for j in range(k.shape[1]):
                 total += p["A"] * (
@@ -107,7 +107,7 @@ def lens_blur(
     components = normalize_kernels(components, parameters)
     img = np.power(img, exposure_gamma)
     component_output = []
-    for component, component_params in zip(components, parameters):
+    for component, component_params in zip(components, parameters, strict=False):
         channels = []
         component_real = np.real(component)
         component_imag = np.imag(component)

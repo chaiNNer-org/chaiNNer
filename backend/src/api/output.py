@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Generic, Literal, Mapping, TypeVar
+from collections.abc import Mapping
+from typing import Any, Generic, Literal, TypeVar
 
 import navi
 

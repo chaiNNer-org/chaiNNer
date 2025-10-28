@@ -66,7 +66,7 @@ class SafeMathEvaluator:
     def eval_node(self, node: Any) -> float:
         if isinstance(node, ast.Constant):
             # Ensure we only handle numeric constants
-            if isinstance(node.value, (int, float)):
+            if isinstance(node.value, int | float):
                 return float(node.value)
             raise ValueError(f"Unsupported constant type: {type(node.value)}")
         elif isinstance(node, ast.Name):
@@ -102,7 +102,7 @@ class SafeMathEvaluator:
             args = [self.eval_node(arg) for arg in node.args]
             result = func_obj(*args)
             # Ensure result is a float
-            if isinstance(result, (int, float)):
+            if isinstance(result, int | float):
                 return float(result)
             raise ValueError(
                 f"Function '{func_name}' returned non-numeric value: {type(result)}"

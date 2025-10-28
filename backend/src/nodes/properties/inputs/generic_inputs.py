@@ -260,7 +260,7 @@ class EnumInput(DropDownInput[E]):
         variant_types: list[str] = []
         for variant in enum:
             value = variant.value
-            assert isinstance(value, (int, str))
+            assert isinstance(value, int | str)
 
             variant_type = EnumInput.get_variant_type(variant, type_name)
             option_label = option_labels.get(
@@ -460,7 +460,7 @@ class SeedInput(NumberInput):
     def enforce(self, value: object) -> Seed:  # type: ignore
         if isinstance(value, Seed):
             return value
-        if isinstance(value, (int, float, str)):
+        if isinstance(value, int | float | str):
             return Seed(int(value))
         raise ValueError(f"Cannot convert {value} to Seed")
 

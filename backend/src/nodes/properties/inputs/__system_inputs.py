@@ -31,7 +31,7 @@ class StaticValueInput(BaseInput):
         if not isinstance(value, self.associated_type):
             return_value = self.associated_type(value)
 
-        if isinstance(value, (float, int)) and math.isnan(value):
+        if isinstance(value, float | int) and math.isnan(value):
             raise ValueError("NaN is not a valid number")
 
         return return_value

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import List, cast
+from typing import cast
 
 import onnxruntime as ort
 
@@ -26,7 +26,7 @@ if not is_arm_mac:
 
 
 def get_providers():
-    providers = cast(List[str], ort.get_available_providers())
+    providers = cast(list[str], ort.get_available_providers())
 
     default = providers[0]
     if "CUDAExecutionProvider" in providers:

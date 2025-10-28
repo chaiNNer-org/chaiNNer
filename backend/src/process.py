@@ -5,11 +5,12 @@ import functools
 import gc
 import time
 import typing
+from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
+from typing import Literal, NewType
 
 import navi
 from api import (
@@ -38,7 +39,7 @@ from logger import logger
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
 
-Output = List[object]
+Output = list[object]
 
 
 def collect_input_information(
@@ -49,7 +50,7 @@ def collect_input_information(
     try:
         input_dict: InputsDict = {}
 
-        for value, node_input in zip(inputs, node.inputs):
+        for value, node_input in zip(inputs, node.inputs, strict=False):
             if isinstance(value, Lazy) and value.has_value:
                 value = value.value  # noqa: PLW2901
 
@@ -125,7 +126,7 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     elif l == 1:
         output = [raw_output]
     else:
-        assert isinstance(raw_output, (tuple, list))
+        assert isinstance(raw_output, tuple | list)
         output = list(raw_output)
         assert (
             len(output) == l
@@ -155,7 +156,7 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
         )
 
     assert l > len(generator_output.outputs)
-    assert isinstance(raw_output, (tuple, list))
+    assert isinstance(raw_output, tuple | list)
 
     iterator, *rest = raw_output
     assert isinstance(
@@ -318,7 +319,7 @@ def compute_sequence_broadcast(
 ):
     sequence_types: dict[IterOutputId, navi.ExpressionJson] = {}
     item_types: dict[OutputId, navi.ExpressionJson] = {}
-    for g, iter_output in zip(generators, node_iter_outputs):
+    for g, iter_output in zip(generators, node_iter_outputs, strict=False):
         try:
             sequence_types[iter_output.id] = iter_output.get_broadcast_sequence_type(g)
             for output_id, type in iter_output.get_broadcast_item_types(g).items():
@@ -359,7 +360,7 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = Union[RegularOutput, GeneratorOutput]
+NodeOutput = RegularOutput | GeneratorOutput
 
 ExecutionId = NewType("ExecutionId", str)
 
@@ -717,7 +718,7 @@ class Executor:
         if len(iterable_output.outputs) == 1:
             values_list.append(values)
         else:
-            assert isinstance(values, (tuple, list))
+            assert isinstance(values, tuple | list)
             values_list.extend(values)
 
         assert len(values_list) == len(iterable_output.outputs)
@@ -1019,7 +1020,9 @@ class Executor:
 
                 # use a weighted average
                 weights = [max(1 / i, 0.9**i) for i in range(len(times), 0, -1)]
-                avg_time = sum(t * w for t, w in zip(times, weights)) / sum(weights)
+                avg_time = sum(
+                    t * w for t, w in zip(times, weights, strict=False)
+                ) / sum(weights)
 
             remaining = max(0, length - index)
             return avg_time * remaining

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import importlib
 import os
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import asdict, dataclass, field
-from typing import Any, Awaitable, Callable, Iterable, TypeVar
+from typing import Any, TypeVar
 
 from logger import logger
 

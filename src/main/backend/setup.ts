@@ -65,7 +65,7 @@ const getSystemPythonInfo = async (token: ProgressToken, config: PythonSetupConf
                 title: 'System Python not installed or invalid version',
                 message:
                     'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                    ' Please install Python (3.8+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
+                    ' Please install Python (3.10+) if you would like to use system Python. You can get Python from https://www.python.org/downloads/.' +
                     ' Be sure to select the add to PATH option.' +
                     '\n\nChaiNNer will start using its integrated Python for now.' +
                     ' You can change this later in the settings.',
@@ -85,7 +85,7 @@ const getSystemPythonInfo = async (token: ProgressToken, config: PythonSetupConf
             title: 'Error checking for valid Python instance',
             message:
                 'It seems like you do not have a valid version of Python installed on your system, or something went wrong with your installed instance.' +
-                ' Please install Python (3.8+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
+                ' Please install Python (3.10+) to use this application. You can get Python from https://www.python.org/downloads/. Be sure to select the add to PATH option.',
             options: [
                 {
                     title: 'Get Python',
@@ -129,7 +129,7 @@ const getIntegratedPythonInfo = async (
             title: 'Unable to install integrated Python',
             message:
                 'chaiNNer needs a stable internet connection to install its integrated Python environment. Please make sure you have a stable internet connection and try again.' +
-                "\n\nAlternatively, if you have Python 3.8 or later installed, chaiNNer can use your system's Python environment instead. (If you choose this option, chaiNNer will install packages into your system Python environment.)" +
+                "\n\nAlternatively, if you have Python 3.10 or later installed, chaiNNer can use your system's Python environment instead. (If you choose this option, chaiNNer will install packages into your system Python environment.)" +
                 '\n\nchaiNNer requires a valid Python environment to run. Please choose one of the following options:',
             options: [
                 {

@@ -64,7 +64,7 @@ def convert_to_ncnn_node(
         )
 
     assert is_onnx_supported(model) and not isinstance(
-        model.model, (HAT, DAT, OmniSR, SwinIR, Swin2SR, SCUNet, SPAN, SRFormer)
+        model.model, HAT | DAT | OmniSR | SwinIR | Swin2SR | SCUNet | SPAN | SRFormer
     ), f"{model.architecture.name} is not supported for NCNN conversions at this time."
 
     exec_options = get_settings(context)
