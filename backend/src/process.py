@@ -976,11 +976,12 @@ class Executor:
                     assert isinstance(t_collector_output, CollectorOutput)
                     t_collector_list.append((t_collector_output.collector, t_timer, t_collector_node))
                 
-                # Track all nodes downstream of this transformer
+                # Track all nodes downstream of this transformer (excluding the transformer itself)
                 t_all_node_ids: set[NodeId] = set()
                 for t_node in t_all_nodes:
-                    all_iterated_nodes.add(t_node.id)
-                    t_all_node_ids.add(t_node.id)
+                    if t_node.id != transformer_node.id:
+                        all_iterated_nodes.add(t_node.id)
+                        t_all_node_ids.add(t_node.id)
                 
                 # Store downstream nodes for this transformer
                 transformer_downstream[transformer_node.id] = (t_collector_list, t_output_nodes, t_all_node_ids)
