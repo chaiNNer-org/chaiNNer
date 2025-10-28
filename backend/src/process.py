@@ -912,6 +912,9 @@ class Executor:
         transformers: list[tuple[Transformer, TransformerNode]] = []
         output_nodes: set[FunctionNode] = set()
         all_iterated_nodes: set[NodeId] = set()
+        
+        # Track which collectors/output nodes are downstream of each transformer
+        transformer_downstream: dict[NodeId, tuple[list[tuple[Collector, _Timer, CollectorNode]], set[FunctionNode], set[NodeId]]] = {}
 
         generator_suppliers: dict[NodeId, typing.Iterator[Output | Exception]] = {}
 
@@ -942,7 +945,7 @@ class Executor:
                 # since we don't need to actually iterate the iterator, we can stop here
                 return
 
-            #run each of the collector nodes (but not transformers, which are handled during iteration)
+            # Run each of the collector nodes (but not those downstream of transformers)
             for collector_node in collector_nodes:
                 await self.progress.suspend()
                 timer = _Timer()
@@ -951,12 +954,36 @@ class Executor:
                 assert isinstance(collector_output, CollectorOutput)
                 collectors.append((collector_output.collector, timer, collector_node))
 
-            # Process transformer nodes to get Transformer objects
+            # Process transformer nodes to get Transformer objects and their downstream nodes
             for transformer_node in transformer_nodes:
                 await self.progress.suspend()
                 transformer_output = await self.process_transformer_node(transformer_node)
                 assert isinstance(transformer_output, TransformerOutput)
                 transformers.append((transformer_output.transformer, transformer_node))
+                
+                # Get nodes downstream of this transformer
+                t_collectors, t_output_nodes, t_transformers, t_all_nodes = (
+                    self.__get_iterated_nodes(transformer_node)
+                )
+                
+                # Process collectors downstream of this transformer
+                t_collector_list: list[tuple[Collector, _Timer, CollectorNode]] = []
+                for t_collector_node in t_collectors:
+                    await self.progress.suspend()
+                    t_timer = _Timer()
+                    with t_timer.run():
+                        t_collector_output = await self.process_collector_node(t_collector_node)
+                    assert isinstance(t_collector_output, CollectorOutput)
+                    t_collector_list.append((t_collector_output.collector, t_timer, t_collector_node))
+                
+                # Track all nodes downstream of this transformer
+                t_all_node_ids: set[NodeId] = set()
+                for t_node in t_all_nodes:
+                    all_iterated_nodes.add(t_node.id)
+                    t_all_node_ids.add(t_node.id)
+                
+                # Store downstream nodes for this transformer
+                transformer_downstream[transformer_node.id] = (t_collector_list, t_output_nodes, t_all_node_ids)
 
             expected_length = generator_output.generator.expected_length
             expected_lengths[node.id] = expected_length
@@ -1003,8 +1030,6 @@ class Executor:
                 # Process transformers to get transformed values
                 # For each transformer, get its input, transform it, and run downstream for each result
                 if len(transformers) > 0:
-                    # For now, we handle transformers sequentially
-                    # TODO: Handle more complex transformer chains
                     for transformer, transformer_node in transformers:
                         await self.progress.suspend()
                         transform_inputs = await self.__gather_transformer_inputs(
@@ -1017,10 +1042,10 @@ class Executor:
                             transformer_node, transform_inputs, transformer
                         )
                         
-                        # For each transformed value, we need to:
-                        # 1. Update the transformer's cache
-                        # 2. Run downstream nodes that depend on this transformer
-                        # For now, we'll process collectors/output nodes for each transformed value
+                        # Get the downstream nodes for this transformer
+                        t_collectors, t_output_nodes, t_all_node_ids = transformer_downstream[transformer_node.id]
+                        
+                        # For each transformed value, run the downstream sub-chain
                         for transformed_value in transformed_values:
                             # Update transformer cache with current transformed value
                             transformer_output_obj = await self.process_transformer_node(
@@ -1042,16 +1067,28 @@ class Executor:
                                 transformer_node, transform_iter_output.output
                             )
                             
-                            # TODO: Run downstream nodes that depend on this specific transformer
-                            # For now, collectors and output nodes are run once per generator iteration
-                            # A more complete implementation would track which collectors/output nodes
-                            # are downstream of each transformer and run them here
+                            # Run output nodes downstream of this transformer
+                            for t_output_node in t_output_nodes:
+                                await self.process_regular_node(t_output_node)
+                            
+                            # Run collector nodes downstream of this transformer
+                            for t_collector, t_timer, t_collector_node in t_collectors:
+                                await self.progress.suspend()
+                                t_iterate_inputs = await self.__gather_collector_inputs(
+                                    t_collector_node
+                                )
+                                await self.progress.suspend()
+                                with t_timer.run():
+                                    run_collector_iterate(t_collector_node, t_iterate_inputs, t_collector)
+                            
+                            # Clear cache for nodes downstream of this transformer
+                            self.node_cache.delete_many(t_all_node_ids)
                 
-                # run each of the output nodes
+                # run each of the output nodes (not downstream of transformers)
                 for output_node in output_nodes:
                     await self.process_regular_node(output_node)
 
-                # run each of the collector nodes
+                # run each of the collector nodes (not downstream of transformers)
                 for collector, timer, collector_node in collectors:
                     await self.progress.suspend()
                     iterate_inputs = await self.__gather_collector_inputs(
