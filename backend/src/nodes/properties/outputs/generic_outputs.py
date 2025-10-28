@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
+
 import navi
 from api import BaseOutput
 
@@ -17,7 +19,7 @@ class NumberOutput(BaseOutput[int | float]):
         super().__init__(
             navi.intersect_with_error("number", output_type),
             label,
-            associated_type=int | float,
+            associated_type=Union[int, float],  # noqa: UP007
         )
 
     def get_broadcast_type(self, value: int | float):
