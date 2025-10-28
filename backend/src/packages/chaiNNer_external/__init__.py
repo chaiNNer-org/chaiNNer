@@ -7,7 +7,7 @@ package = add_package(
     __file__,
     id="chaiNNer_external",
     name="External",
-    description="Interact with an external Stable Diffusion API",
+    description="Interact with external APIs like Stable Diffusion and RTX Remix",
 )
 
 external_stable_diffusion_category = package.add_category(
@@ -34,6 +34,27 @@ web_ui_feature_descriptor = package.add_feature(
     id="webui",
     name="AUTOMATIC1111/stable-diffusion-webui",
     description=_FEATURE_DESCRIPTION,
+)
+
+external_rtx_remix_category = package.add_category(
+    name="RTX Remix (External)",
+    description="Interact with NVIDIA RTX Remix REST API",
+    icon="SiNvidia",
+    color="#76B900",
+)
+
+_RTX_REMIX_FEATURE_DESCRIPTION = """
+ChaiNNer can connect to [NVIDIA RTX Remix](https://docs.omniverse.nvidia.com/kit/docs/rtx_remix/1.2.4/docs/howto/learning-restapi.html) to interact with RTX Remix runtime via REST API.
+
+If you want to use the RTX Remix nodes, make sure RTX Remix runtime is running with the REST API enabled.
+
+To manually set where chaiNNer looks for the API, use the `RTX_REMIX_PROTOCOL`, `RTX_REMIX_HOST`, and `RTX_REMIX_PORT` environment variables. By default, `127.0.0.1:8111` will be used. If not specified, chaiNNer will try to auto-detect the connection.
+"""
+
+rtx_remix_feature_descriptor = package.add_feature(
+    id="rtx_remix",
+    name="NVIDIA RTX Remix",
+    description=_RTX_REMIX_FEATURE_DESCRIPTION,
 )
 
 logger.debug("Loaded package %s", package.name)
