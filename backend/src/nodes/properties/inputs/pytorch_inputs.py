@@ -29,12 +29,9 @@ class ModelInput(BaseInput):
 
     def enforce(self, value: object):
         if spandrel is not None:
-            assert isinstance(  # noqa: UP038
+            assert isinstance(
                 value,
-                (
-                    spandrel.ImageModelDescriptor,
-                    spandrel.MaskedImageModelDescriptor,
-                ),
+                spandrel.ImageModelDescriptor | spandrel.MaskedImageModelDescriptor,
             ), "Expected a supported PyTorch model."
         return value
 
