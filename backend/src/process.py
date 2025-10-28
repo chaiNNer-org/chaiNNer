@@ -529,16 +529,21 @@ class Executor:
 
         # Get the input generator from the connected iterator input
         iterable_input = node.data.single_iterable_input
+        assigned_inputs = self.inputs.get(node.id)
+
         input_gen = None
-        for input_id in iterable_input.inputs:
-            edge_input = self.inputs.get(node.id, input_id)
-            if isinstance(edge_input, EdgeInput):
-                source_output = await self.__get_node_output(
-                    edge_input.id, edge_input.index
-                )
-                if isinstance(source_output, Generator):
-                    input_gen = source_output
-                    break
+        for input_index, node_input in enumerate(assigned_inputs):
+            i = node.data.inputs[input_index]
+            if i.id in iterable_input.inputs:
+                # Get the source node's output
+                if isinstance(node_input, EdgeInput):
+                    source_node_id = node_input.id
+                    source_output = await self.process(source_node_id, perform_cache)
+
+                    # The source should be a generator or another transformer
+                    if isinstance(source_output, GeneratorOutput):
+                        input_gen = source_output.generator
+                        break
 
         assert input_gen is not None, "Transformer node must have a generator input"
 
