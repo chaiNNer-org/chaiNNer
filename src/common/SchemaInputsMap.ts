@@ -21,7 +21,14 @@ const createInputList = (schema: NodeSchema): readonly InputItem[] => {
 
             const input = byId.get(i);
             if (input === undefined) {
-                throw new Error(`Invalid or duplicate input id`);
+                const availableIds = Array.from(byId.keys());
+                const isDuplicate = !availableIds.includes(i);
+                const errorMessage = isDuplicate
+                    ? `Duplicate input id '${i}' in schema '${schema.name}' (id: ${schema.schemaId})`
+                    : `Invalid input id '${i}' in schema '${schema.name}' (id: ${
+                          schema.schemaId
+                      }). Available ids: ${availableIds.join(', ')}`;
+                throw new Error(errorMessage);
             }
             byId.delete(i);
             return input;
