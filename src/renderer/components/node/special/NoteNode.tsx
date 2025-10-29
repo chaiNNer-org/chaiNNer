@@ -377,7 +377,7 @@ const NoteNodeInner = memo(({ data, selected }: NodeProps) => {
                                 className="nodrag nowheel"
                                 color="gray.800"
                                 h="full"
-                                overflowY="scroll"
+                                overflowY="auto"
                                 px={2}
                                 py={1}
                                 sx={noteScrollbarStyle}
