@@ -671,12 +671,16 @@ class Executor:
 
     def __get_iterated_nodes(
         self, node: GeneratorNode
-    ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
+    ) -> tuple[set[CollectorNode], set[FunctionNode], set[GeneratorNode], set[Node]]:
         """
-        Returns all collector and output nodes iterated by the given generator node
+        Returns all collector, output, and nested generator nodes iterated by the given generator node.
+        
+        This now supports nested iteration - when a generator is found downstream,
+        it will be treated as a nested iterator that processes each value from the parent.
         """
         collectors: set[CollectorNode] = set()
         output_nodes: set[FunctionNode] = set()
+        nested_generators: set[GeneratorNode] = set()
 
         seen: set[Node] = {node}
 
@@ -688,7 +692,10 @@ class Executor:
             if isinstance(n, CollectorNode):
                 collectors.add(n)
             elif isinstance(n, GeneratorNode):
-                raise ValueError("Nested sequences are not supported")
+                # Support nested iteration - this generator will iterate for each parent value
+                nested_generators.add(n)
+                # Don't traverse beyond nested generators - they define their own iteration scope
+                return
             else:
                 assert isinstance(n, FunctionNode)
 
@@ -707,7 +714,7 @@ class Executor:
                 target_node = self.chain.nodes[edge.target.id]
                 visit(target_node)
 
-        return collectors, output_nodes, seen
+        return collectors, output_nodes, nested_generators, seen
 
     def __generator_fill_partial_output(
         self, node: GeneratorNode, partial_output: Output, values: object
@@ -732,17 +739,20 @@ class Executor:
 
     async def __iterate_generator_nodes(self, generator_nodes: list[GeneratorNode]):
         """
-        New bottom-up, pull-based iteration system.
+        New bottom-up, pull-based iteration system with nested iteration support.
         
         Instead of pushing values from generators to consumers, we pull values
         from leaf nodes (collectors and nodes with side effects), which in turn
         pull from their dependencies, creating a natural bottom-up flow.
+        
+        Supports nested iteration where a generator can consume from another generator.
         """
         await self.progress.suspend()
 
         # Collect all nodes involved in iteration
         collectors: list[tuple[Collector, _Timer, CollectorNode]] = []
         output_nodes: set[FunctionNode] = set()
+        nested_generators: set[GeneratorNode] = set()
         all_iterated_nodes: set[NodeId] = set()
         
         # Track generator state
@@ -757,15 +767,17 @@ class Executor:
                 generator_output.generator.supplier().__iter__()
             )
             
-            collector_nodes, __output_nodes, __all_iterated_nodes = (
+            collector_nodes, __output_nodes, __nested_generators, __all_iterated_nodes = (
                 self.__get_iterated_nodes(node)
             )
             for iterated_node in __all_iterated_nodes:
                 all_iterated_nodes.add(iterated_node.id)
             for o_node in __output_nodes:
                 output_nodes.add(o_node)
+            for nested_gen in __nested_generators:
+                nested_generators.add(nested_gen)
             
-            if len(collector_nodes) == 0 and len(output_nodes) == 0:
+            if len(collector_nodes) == 0 and len(output_nodes) == 0 and len(nested_generators) == 0:
                 return
             
             # Initialize collectors
@@ -819,6 +831,11 @@ class Executor:
                     self.node_cache.set(node.id, iter_output, StaticCaching)
                     
                     await self.__send_node_broadcast(node, iter_output.output)
+                
+                # Handle nested generators - iterate them for each parent value
+                if nested_generators:
+                    nested_gen_list = list(nested_generators)
+                    await self.__iterate_generator_nodes(nested_gen_list)
                 
                 # Execute leaf nodes (side effects)
                 for output_node in output_nodes:
@@ -908,7 +925,7 @@ class Executor:
             if isinstance(node, GeneratorNode):
                 # we first need to run generator nodes in topological order
                 generator_nodes.append(node)
-                collector_nodes, output_nodes, __all_iterated_nodes = (
+                collector_nodes, output_nodes, nested_generators, __all_iterated_nodes = (
                     self.__get_iterated_nodes(node)
                 )
                 for collector in collector_nodes:
