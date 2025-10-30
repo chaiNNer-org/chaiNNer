@@ -673,10 +673,17 @@ class Executor:
         self, node: GeneratorNode
     ) -> tuple[set[CollectorNode], set[FunctionNode], set[GeneratorNode], set[Node]]:
         """
-        Returns all collector, output, and nested generator nodes iterated by the given generator node.
+        Returns all collector, output, nested generator, and iterated nodes for the given generator node.
 
-        This now supports nested iteration - when a generator is found downstream,
+        This supports nested iteration - when a generator is found downstream,
         it will be treated as a nested iterator that processes each value from the parent.
+
+        Returns:
+            tuple containing:
+            - set of CollectorNode: collectors that consume from this generator
+            - set of FunctionNode: output nodes with side effects
+            - set of GeneratorNode: nested generators that will iterate for each parent value
+            - set of Node: all nodes that are iterated by this generator
         """
         collectors: set[CollectorNode] = set()
         output_nodes: set[FunctionNode] = set()
@@ -739,11 +746,12 @@ class Executor:
 
     async def __iterate_generator_nodes(self, generator_nodes: list[GeneratorNode]):
         """
-        New bottom-up, pull-based iteration system with nested iteration support.
+        Enhanced iteration system with nested iteration support.
 
-        Instead of pushing values from generators to consumers, we pull values
-        from leaf nodes (collectors and nodes with side effects), which in turn
-        pull from their dependencies, creating a natural bottom-up flow.
+        This implementation extends the existing iteration logic to support nested
+        generators while maintaining backward compatibility. Instead of the traditional
+        top-down push of values from generators, this enables a more flexible approach
+        where generators can consume from other generators, creating nested loops.
 
         Supports nested iteration where a generator can consume from another generator.
         """
