@@ -731,26 +731,32 @@ class Executor:
         return output
 
     async def __iterate_generator_nodes(self, generator_nodes: list[GeneratorNode]):
+        """
+        New bottom-up, pull-based iteration system.
+        
+        Instead of pushing values from generators to consumers, we pull values
+        from leaf nodes (collectors and nodes with side effects), which in turn
+        pull from their dependencies, creating a natural bottom-up flow.
+        """
         await self.progress.suspend()
 
-        num_generators = len(generator_nodes)
-        expected_lengths = {}
+        # Collect all nodes involved in iteration
         collectors: list[tuple[Collector, _Timer, CollectorNode]] = []
         output_nodes: set[FunctionNode] = set()
         all_iterated_nodes: set[NodeId] = set()
-
+        
+        # Track generator state
         generator_suppliers: dict[NodeId, typing.Iterator[Output | Exception]] = {}
-
-        # timing iterations
+        expected_lengths: dict[NodeId, int] = {}
         iter_timers: dict[NodeId, _IterationTimer] = {}
-
-        # run the generator nodes before anything else
+        
+        # Initialize generators and find downstream nodes
         for node in generator_nodes:
             generator_output = await self.process_generator_node(node)
             generator_suppliers[node.id] = (
                 generator_output.generator.supplier().__iter__()
             )
-
+            
             collector_nodes, __output_nodes, __all_iterated_nodes = (
                 self.__get_iterated_nodes(node)
             )
@@ -758,13 +764,11 @@ class Executor:
                 all_iterated_nodes.add(iterated_node.id)
             for o_node in __output_nodes:
                 output_nodes.add(o_node)
-
+            
             if len(collector_nodes) == 0 and len(output_nodes) == 0:
-                # unusual, but this can happen
-                # since we don't need to actually iterate the iterator, we can stop here
                 return
-
-            # run each of the collector nodes
+            
+            # Initialize collectors
             for collector_node in collector_nodes:
                 await self.progress.suspend()
                 timer = _Timer()
@@ -772,54 +776,55 @@ class Executor:
                     collector_output = await self.process_collector_node(collector_node)
                 assert isinstance(collector_output, CollectorOutput)
                 collectors.append((collector_output.collector, timer, collector_node))
-
+            
             expected_length = generator_output.generator.expected_length
             expected_lengths[node.id] = expected_length
-
+            
             iter_times = _IterationTimer(self.progress)
             iter_timers[node.id] = iter_times
-
+            
             self.__send_node_progress(node, [], 0, expected_length)
-
-        # Assert that all expected lengths are the same
+        
+        # Validate all generators have same length
         if not len(set(expected_lengths.values())) <= 1:
             raise AssertionError(
                 "Expected all connected iterators to have the same length"
             )
-
+        
+        # Track iteration state
         total_stopiters = 0
+        num_generators = len(generator_nodes)
         deferred_errors: list[str] = []
-        # iterate
+        
+        # Main iteration loop - pull-based execution
         while True:
             generator_output = None
             try:
-                # iterate each iterator
+                # Pull values from all generators for this iteration
                 for node in generator_nodes:
                     generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
-
+                    
                     values = next(generator_supplier)
-
-                    # Check if the generator yielded an exception
+                    
                     if isinstance(values, Exception):
                         raise values
-
-                    # write current values to cache
+                    
+                    # Cache the current iteration value
                     iter_output = RegularOutput(
                         self.__generator_fill_partial_output(
                             node, generator_output.partial_output, values
                         )
                     )
                     self.node_cache.set(node.id, iter_output, StaticCaching)
-
-                    # broadcast
+                    
                     await self.__send_node_broadcast(node, iter_output.output)
-
-                # run each of the output nodes
+                
+                # Execute leaf nodes (side effects)
                 for output_node in output_nodes:
                     await self.process_regular_node(output_node)
-
-                # run each of the collector nodes
+                
+                # Feed values to collectors
                 for collector, timer, collector_node in collectors:
                     await self.progress.suspend()
                     iterate_inputs = await self.__gather_collector_inputs(
@@ -828,9 +833,11 @@ class Executor:
                     await self.progress.suspend()
                     with timer.run():
                         run_collector_iterate(collector_node, iterate_inputs, collector)
-
+                
+                # Clear iteration cache
                 self.node_cache.delete_many(all_iterated_nodes)
-
+                
+                # Update progress
                 await self.progress.suspend()
                 for node in generator_nodes:
                     iter_times = iter_timers[node.id]
@@ -842,11 +849,9 @@ class Executor:
                         iterations,
                         max(expected_lengths[node.id], iterations),
                     )
-                # cooperative yield so the event loop can run
-                # https://stackoverflow.com/questions/36647825/cooperative-yield-in-asyncio
                 await asyncio.sleep(0)
                 await self.progress.suspend()
-
+            
             except Aborted:
                 raise
             except StopIteration:
@@ -858,39 +863,34 @@ class Executor:
                     raise e
                 else:
                     deferred_errors.append(str(e))
-
-        # reset cached value
+        
+        # Finalize: reset cache and complete collectors
         self.node_cache.delete_many(all_iterated_nodes)
         for node in generator_nodes:
             generator_output = await self.process_generator_node(node)
             self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
-
-            # re-broadcast final value
-            # TODO: Why?
+            
             await self.__send_node_broadcast(node, generator_output.partial_output)
-
-            # finish generator
+            
             self.__send_node_progress_done(node, iter_timers[node.id].iterations)
             self.__send_node_finish(node, iter_timers[node.id].get_time_since_start())
-
-        # finalize collectors
+        
         for collector, timer, collector_node in collectors:
             await self.progress.suspend()
             with timer.run():
                 collector_output = enforce_output(
                     collector.on_complete(), collector_node.data
                 )
-
+            
             await self.__send_node_broadcast(collector_node, collector_output.output)
-            # TODO: execution time
             self.__send_node_finish(collector_node, timer.duration)
-
+            
             self.node_cache.set(
                 collector_node.id,
                 collector_output,
                 self.cache_strategy[collector_node.id],
             )
-
+        
         if len(deferred_errors) > 0:
             error_string = "- " + "\n- ".join(deferred_errors)
             raise Exception(f"Errors occurred during iteration:\n{error_string}")
