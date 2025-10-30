@@ -863,7 +863,7 @@ class Executor:
         output_nodes: set[FunctionNode],
         collectors: list[tuple[Collector, _Timer, CollectorNode]],
         all_iterated_nodes: set[NodeId],
-    ) -> None:
+    ) -> bool:
         """
         Run a single iteration step.
 
@@ -879,11 +879,20 @@ class Executor:
             output_nodes: Set of output nodes to execute
             collectors: List of collectors to update
             all_iterated_nodes: Set of node IDs to clear from cache
+
+        Returns:
+            True if fail_fast is enabled for any generator, False otherwise
         """
+        fail_fast_enabled = False
+
         # Advance each generator and cache its values
         for node in generator_nodes:
             generator_output = await self.process_generator_node(node)
             generator_supplier = generator_suppliers[node.id]
+
+            # Track fail_fast setting
+            if generator_output.generator.fail_fast:
+                fail_fast_enabled = True
 
             values = next(generator_supplier)
 
@@ -916,6 +925,8 @@ class Executor:
 
         # Clear cached iteration values (they'll be recomputed next iteration)
         self.node_cache.delete_many(all_iterated_nodes)
+
+        return fail_fast_enabled
 
     async def __finalize_iteration(
         self,
@@ -1012,11 +1023,9 @@ class Executor:
         deferred_errors: list[str] = []
 
         while True:
-            generator_output = None
-
             try:
-                # Run one iteration step
-                await self.__run_single_iteration(
+                # Run one iteration step and get fail_fast setting
+                fail_fast = await self.__run_single_iteration(
                     generator_nodes,
                     generator_suppliers,
                     output_nodes,
@@ -1050,17 +1059,11 @@ class Executor:
                     break
             except Exception as e:
                 # Handle errors based on fail_fast setting
-                # Note: we need to get the generator output to check fail_fast
-                try:
-                    for node in generator_nodes:
-                        generator_output = await self.process_generator_node(node)
-                        if generator_output.generator.fail_fast:
-                            raise e
-                except Exception as check_error:
-                    # If we can't determine fail_fast, raise the original error
-                    raise e from check_error
+                # If any generator has fail_fast enabled, raise immediately
+                if fail_fast:
+                    raise
 
-                # Collect error for deferred handling
+                # Otherwise, collect error for deferred handling
                 deferred_errors.append(str(e))
 
         # Finalize iteration
