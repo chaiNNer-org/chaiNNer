@@ -674,7 +674,7 @@ class Executor:
     ) -> tuple[set[CollectorNode], set[FunctionNode], set[GeneratorNode], set[Node]]:
         """
         Returns all collector, output, and nested generator nodes iterated by the given generator node.
-        
+
         This now supports nested iteration - when a generator is found downstream,
         it will be treated as a nested iterator that processes each value from the parent.
         """
@@ -740,11 +740,11 @@ class Executor:
     async def __iterate_generator_nodes(self, generator_nodes: list[GeneratorNode]):
         """
         New bottom-up, pull-based iteration system with nested iteration support.
-        
+
         Instead of pushing values from generators to consumers, we pull values
         from leaf nodes (collectors and nodes with side effects), which in turn
         pull from their dependencies, creating a natural bottom-up flow.
-        
+
         Supports nested iteration where a generator can consume from another generator.
         """
         await self.progress.suspend()
@@ -754,19 +754,19 @@ class Executor:
         output_nodes: set[FunctionNode] = set()
         nested_generators: set[GeneratorNode] = set()
         all_iterated_nodes: set[NodeId] = set()
-        
+
         # Track generator state
         generator_suppliers: dict[NodeId, typing.Iterator[Output | Exception]] = {}
         expected_lengths: dict[NodeId, int] = {}
         iter_timers: dict[NodeId, _IterationTimer] = {}
-        
+
         # Initialize generators and find downstream nodes
         for node in generator_nodes:
             generator_output = await self.process_generator_node(node)
             generator_suppliers[node.id] = (
                 generator_output.generator.supplier().__iter__()
             )
-            
+
             collector_nodes, __output_nodes, __nested_generators, __all_iterated_nodes = (
                 self.__get_iterated_nodes(node)
             )
@@ -776,10 +776,10 @@ class Executor:
                 output_nodes.add(o_node)
             for nested_gen in __nested_generators:
                 nested_generators.add(nested_gen)
-            
+
             if len(collector_nodes) == 0 and len(output_nodes) == 0 and len(nested_generators) == 0:
                 return
-            
+
             # Initialize collectors
             for collector_node in collector_nodes:
                 await self.progress.suspend()
@@ -788,26 +788,26 @@ class Executor:
                     collector_output = await self.process_collector_node(collector_node)
                 assert isinstance(collector_output, CollectorOutput)
                 collectors.append((collector_output.collector, timer, collector_node))
-            
+
             expected_length = generator_output.generator.expected_length
             expected_lengths[node.id] = expected_length
-            
+
             iter_times = _IterationTimer(self.progress)
             iter_timers[node.id] = iter_times
-            
+
             self.__send_node_progress(node, [], 0, expected_length)
-        
+
         # Validate all generators have same length
         if not len(set(expected_lengths.values())) <= 1:
             raise AssertionError(
                 "Expected all connected iterators to have the same length"
             )
-        
+
         # Track iteration state
         total_stopiters = 0
         num_generators = len(generator_nodes)
         deferred_errors: list[str] = []
-        
+
         # Main iteration loop - pull-based execution
         while True:
             generator_output = None
@@ -816,12 +816,12 @@ class Executor:
                 for node in generator_nodes:
                     generator_output = await self.process_generator_node(node)
                     generator_supplier = generator_suppliers[node.id]
-                    
+
                     values = next(generator_supplier)
-                    
+
                     if isinstance(values, Exception):
                         raise values
-                    
+
                     # Cache the current iteration value
                     iter_output = RegularOutput(
                         self.__generator_fill_partial_output(
@@ -829,18 +829,18 @@ class Executor:
                         )
                     )
                     self.node_cache.set(node.id, iter_output, StaticCaching)
-                    
+
                     await self.__send_node_broadcast(node, iter_output.output)
-                
+
                 # Handle nested generators - iterate them for each parent value
                 if nested_generators:
                     nested_gen_list = list(nested_generators)
                     await self.__iterate_generator_nodes(nested_gen_list)
-                
+
                 # Execute leaf nodes (side effects)
                 for output_node in output_nodes:
                     await self.process_regular_node(output_node)
-                
+
                 # Feed values to collectors
                 for collector, timer, collector_node in collectors:
                     await self.progress.suspend()
@@ -850,10 +850,10 @@ class Executor:
                     await self.progress.suspend()
                     with timer.run():
                         run_collector_iterate(collector_node, iterate_inputs, collector)
-                
+
                 # Clear iteration cache
                 self.node_cache.delete_many(all_iterated_nodes)
-                
+
                 # Update progress
                 await self.progress.suspend()
                 for node in generator_nodes:
@@ -868,7 +868,7 @@ class Executor:
                     )
                 await asyncio.sleep(0)
                 await self.progress.suspend()
-            
+
             except Aborted:
                 raise
             except StopIteration:
@@ -880,34 +880,34 @@ class Executor:
                     raise e
                 else:
                     deferred_errors.append(str(e))
-        
+
         # Finalize: reset cache and complete collectors
         self.node_cache.delete_many(all_iterated_nodes)
         for node in generator_nodes:
             generator_output = await self.process_generator_node(node)
             self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
-            
+
             await self.__send_node_broadcast(node, generator_output.partial_output)
-            
+
             self.__send_node_progress_done(node, iter_timers[node.id].iterations)
             self.__send_node_finish(node, iter_timers[node.id].get_time_since_start())
-        
+
         for collector, timer, collector_node in collectors:
             await self.progress.suspend()
             with timer.run():
                 collector_output = enforce_output(
                     collector.on_complete(), collector_node.data
                 )
-            
+
             await self.__send_node_broadcast(collector_node, collector_output.output)
             self.__send_node_finish(collector_node, timer.duration)
-            
+
             self.node_cache.set(
                 collector_node.id,
                 collector_output,
                 self.cache_strategy[collector_node.id],
             )
-        
+
         if len(deferred_errors) > 0:
             error_string = "- " + "\n- ".join(deferred_errors)
             raise Exception(f"Errors occurred during iteration:\n{error_string}")
@@ -930,11 +930,11 @@ class Executor:
                 collector_nodes, output_nodes, nested_generators, __all_iterated_nodes = (
                     self.__get_iterated_nodes(node)
                 )
-                
+
                 # Track all nested generators to exclude them from top-level processing
                 for nested_gen in nested_generators:
                     all_nested_generators.add(nested_gen.id)
-                
+
                 for collector in collector_nodes:
                     if gens_by_outs.get(collector.id, None) is not None:
                         gens_by_outs[collector.id].add(node.id)
