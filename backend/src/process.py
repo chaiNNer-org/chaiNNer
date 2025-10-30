@@ -916,9 +916,11 @@ class Executor:
         self.__send_chain_start()
 
         generator_nodes: list[GeneratorNode] = []
+        all_nested_generators: set[NodeId] = set()
 
         # Group nodes to run by shared lineage
-        # TODO: there's probably a better way of doing this
+        # Note: Nested generators are handled recursively within __iterate_generator_nodes
+        # and should not be included in the same group as their parents
         gens_by_outs: dict[NodeId, set[NodeId]] = {}
         for node_id in self.chain.topological_order():
             node = self.chain.nodes[node_id]
@@ -928,6 +930,11 @@ class Executor:
                 collector_nodes, output_nodes, nested_generators, __all_iterated_nodes = (
                     self.__get_iterated_nodes(node)
                 )
+                
+                # Track all nested generators to exclude them from top-level processing
+                for nested_gen in nested_generators:
+                    all_nested_generators.add(nested_gen.id)
+                
                 for collector in collector_nodes:
                     if gens_by_outs.get(collector.id, None) is not None:
                         gens_by_outs[collector.id].add(node.id)
@@ -942,14 +949,18 @@ class Executor:
         groups: list[set[NodeId]] = list(gens_by_outs.values())
         combined_groups = combine_sets(groups)
 
-        # TODO: Look for a way to avoid duplicating this work
+        # Process generator groups, excluding nested generators
         for group in combined_groups:
             nodes_to_run: list[GeneratorNode] = []
             for node_id in group:
+                # Skip nested generators as they're handled recursively
+                if node_id in all_nested_generators:
+                    continue
                 generator_node = self.chain.nodes[node_id]
                 if isinstance(generator_node, GeneratorNode):
                     nodes_to_run.append(generator_node)
-            await self.__iterate_generator_nodes(nodes_to_run)
+            if nodes_to_run:
+                await self.__iterate_generator_nodes(nodes_to_run)
 
         # now the output nodes outside of iterators
 
