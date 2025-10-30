@@ -420,7 +420,38 @@ class _ExecutorNodeContext(NodeContext):
 
 class Executor:
     """
-    Class for executing chaiNNer's processing logic
+    Class for executing chaiNNer's processing logic.
+
+    The Executor handles chain execution with support for:
+    - Regular nodes (standard function nodes)
+    - Generator nodes (produce sequences of values)
+    - Collector nodes (accumulate values from sequences)
+
+    Current Architecture:
+    ---------------------
+    Regular execution uses a bottom-up (depth-first) approach where leaf nodes
+    (nodes with side effects) trigger computation of their dependencies.
+
+    Iteration uses a hybrid approach:
+    1. Generators are processed first to create iterators
+    2. The executor loops through all iterations
+    3. For each iteration, values are cached and pushed to downstream nodes
+    4. Output nodes and collectors consume the values
+
+    Future Direction:
+    -----------------
+    To support nested iteration and transformer nodes, the architecture should
+    move to a pure pull-based model where:
+    - All nodes become iterators
+    - Leaf nodes pull values from parents via next()
+    - Static nodes yield the same value repeatedly
+    - Generators yield different values per iteration
+    - Multi-consumer nodes cache values per iteration
+
+    This would enable:
+    - Nested iteration (e.g., processing videos within folders)
+    - Transformer nodes (filtering, limiting, combining sequences)
+    - More intuitive iteration semantics
     """
 
     def __init__(
@@ -673,7 +704,18 @@ class Executor:
         self, node: GeneratorNode
     ) -> tuple[set[CollectorNode], set[FunctionNode], set[Node]]:
         """
-        Returns all collector and output nodes iterated by the given generator node
+        Returns all collector and output nodes iterated by the given generator node.
+
+        This method traverses the graph from the generator node following only
+        iterator outputs to find all downstream nodes that need to be executed
+        during iteration.
+
+        Note: Nested iteration is not currently supported. To support it, the
+        execution model would need to be changed to a pull-based architecture
+        where nested generators can be consumed by parent generators.
+
+        Returns:
+            Tuple of (collectors, output_nodes, all_visited_nodes)
         """
         collectors: set[CollectorNode] = set()
         output_nodes: set[FunctionNode] = set()
@@ -688,6 +730,9 @@ class Executor:
             if isinstance(n, CollectorNode):
                 collectors.add(n)
             elif isinstance(n, GeneratorNode):
+                # TODO: Support nested iteration by implementing a pull-based
+                # architecture where parent generators request values from
+                # nested generators using Python's iterator protocol
                 raise ValueError("Nested sequences are not supported")
             else:
                 assert isinstance(n, FunctionNode)
