@@ -959,6 +959,8 @@ class Executor:
             self.node_cache.set(node.id, generator_output, self.cache_strategy[node.id])
 
             # Re-broadcast final value
+            # This broadcasts the partial (non-iterable) outputs of the generator
+            # which may be needed by downstream nodes that aren't in the iteration
             await self.__send_node_broadcast(node, generator_output.partial_output)
 
             # Send completion events
