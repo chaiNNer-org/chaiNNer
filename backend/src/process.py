@@ -689,15 +689,20 @@ class Executor:
         self, node: Node, only_ids: set[InputId] | None = None
     ) -> list[object]:
         values: list[object] = []
+
         for node_input in node.data.inputs:
+            # skip inputs we're not currently resolving (collectors do this)
             if only_ids is not None and node_input.id not in only_ids:
                 continue
 
             edge = self.chain.edge_to(node.id, node_input.id)
             if edge is not None:
+                # pull from upstream
                 src_id = edge.source.id
                 output_id = edge.source.output_id
                 src_node = self.chain.nodes[src_id]
+
+                # find output index on source node
                 try:
                     src_index = next(
                         i
@@ -705,17 +710,34 @@ class Executor:
                         if o.id == output_id
                     )
                 except StopIteration:
-                    raise ValueError("Output id not found in source node.")
+                    raise ValueError(
+                        f"Output id {output_id} not found on source node {src_id}"
+                    )
+
                 upstream_rt = self._runtimes[src_id]
                 out = next(upstream_rt)
+
+                # if the source didn't produce that output this iteration,
+                # treat it as source exhaustion and bubble up
                 if src_index >= len(out):
                     raise StopIteration
+
                 values.append(out[src_index])
             else:
+                # no edge: try chain-provided literal / UI value
                 v = self.chain.inputs.get(node.id, node_input.id)
+
                 if v is None:
-                    v = node_input.default
+                    if node_input.optional:
+                        values.append(None)
+                        continue
+                    # required input is missing -> this is a chain definition error
+                    raise ValueError(
+                        f"Required input '{node_input.label}' (id {node_input.id}) on node {node.id} has no edge and no provided value."
+                    )
+
                 values.append(v)
+
         return values
 
     # ------------------------------------------------------------------
