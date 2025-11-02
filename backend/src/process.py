@@ -473,81 +473,138 @@ class CollectorRuntimeNode(RuntimeNode):
         executor: Executor,
         inner: Collector | None,
         iterative: bool,
-        fanout: int,
     ):
         super().__init__(node, executor, iterative)
         self._collector = inner
-        self._fanout = fanout
-        self._serving_final = False
+        # when we finally have a result to hand to downstream, we park it here
         self._final_output: Output | None = None
-        self._served_final = 0
 
     def __next__(self) -> Output:
         self._ensure_started()
 
-        # if we're in "serving final value" mode, just hand it out
-        if self._serving_final:
-            if self._served_final >= self._fanout:
-                self._finish()
-                raise StopIteration
-            assert self._final_output is not None
-            self._served_final += 1
-            self._iter_timer.add()
-            self._send_progress()
-            return self._final_output
+        # if we've already produced the final value, hand it out once and finish
+        if self._final_output is not None:
+            out = self._final_output
+            self._final_output = None
+            self._finish()
+            return out
 
         if self._finished:
             raise StopIteration
 
         iterable_input = self.node.data.single_iterable_input
 
-        # 1) try to pull next item(s) for on_iterate
-        try:
-            iter_values = self.executor.runtime_inputs_for(
-                self.node, only_ids=set(iterable_input.inputs)
-            )
-        except StopIteration:
-            # upstream is exhausted -> finalize collector
-            self._finalize_and_switch_to_serving()
-            # now we are in serving mode; serve first copy
-            return self.__next__()
-
-        # 2) if we don't have a collector object yet, create it
-        if self._collector is None:
-            all_inputs = self.executor.runtime_inputs_for(self.node)
-            ctx = self.executor._get_node_context(self.node)
-            raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
-            assert isinstance(raw, CollectorOutput)
-            self._collector = raw.collector
-
-        # 3) enforce the iterable inputs we just pulled
-        enforced_inputs: list[object] = []
-        for inp in self.node.data.inputs:
-            if inp.id in iterable_input.inputs:
-                enforced_inputs.append(inp.enforce_(iter_values.pop(0)))
-        iter_arg = (
-            enforced_inputs[0] if len(enforced_inputs) == 1 else tuple(enforced_inputs)
-        )
-
-        # 4) run on_iterate
-        try:
-            self._collector.on_iterate(iter_arg)
-        except StopIteration:
-            # collector wants to stop now -> finalize and serve final
-            self._finalize_and_switch_to_serving()
-            return self.__next__()
-
-        # 5) iterative collectors keep going; static ones finalize right away
-        self._iter_timer.add()
-        self._send_progress()
-
+        # ------------------------------------------------------------
+        # CASE 1: collector is in a STATIC lineage (not under a generator)
+        # -> run exactly once, old behavior
+        # ------------------------------------------------------------
         if not self.iterative:
-            # static-lineage: run once → finalize → serve final to downstream
-            self._finalize_and_switch_to_serving()
-            return self.__next__()
+            try:
+                iter_values = self.executor.runtime_inputs_for(
+                    self.node, only_ids=set(iterable_input.inputs)
+                )
+            except StopIteration:
+                # nothing to iterate -> still need to init + complete
+                all_inputs = self.executor.runtime_inputs_for(self.node)
+                ctx = self.executor._get_node_context(self.node)
+                raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                assert isinstance(raw, CollectorOutput)
+                self._collector = raw.collector
+                final = self._collector.on_complete()
+                enforced = enforce_output(final, self.node.data)
+                self.executor._send_node_broadcast(self.node, enforced.output)
+                self._finish()
+                return enforced.output
 
-        # iterative: nothing to return to downstream at this iteration
-        return []
+            # ensure collector created
+            if self._collector is None:
+                all_inputs = self.executor.runtime_inputs_for(self.node)
+                ctx = self.executor._get_node_context(self.node)
+                raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                assert isinstance(raw, CollectorOutput)
+                self._collector = raw.collector
+
+            # single iterate
+            enforced_inputs: list[object] = []
+            for inp in self.node.data.inputs:
+                if inp.id in iterable_input.inputs:
+                    enforced_inputs.append(inp.enforce_(iter_values.pop(0)))
+            iter_arg = (
+                enforced_inputs[0]
+                if len(enforced_inputs) == 1
+                else tuple(enforced_inputs)
+            )
+            self._collector.on_iterate(iter_arg)
+
+            # and complete immediately
+            final = self._collector.on_complete()
+            enforced = enforce_output(final, self.node.data)
+            self.executor._send_node_broadcast(self.node, enforced.output)
+            self._iter_timer.add()
+            self._send_progress()
+            self._finish()
+            return enforced.output
+
+        # ------------------------------------------------------------
+        # CASE 2: collector is in an ITERATIVE lineage (under a generator)
+        # -> drive the WHOLE collection right here, do NOT hand out [] in between
+        # ------------------------------------------------------------
+        while True:
+            # try to pull one iteration worth of inputs
+            try:
+                iter_values = self.executor.runtime_inputs_for(
+                    self.node, only_ids=set(iterable_input.inputs)
+                )
+            except StopIteration:
+                # upstream is exhausted -> finalize and yield once
+                if self._collector is None:
+                    # need to create it once so on_complete exists
+                    all_inputs = self.executor.runtime_inputs_for(self.node)
+                    ctx = self.executor._get_node_context(self.node)
+                    raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                    assert isinstance(raw, CollectorOutput)
+                    self._collector = raw.collector
+
+                final = self._collector.on_complete()
+                enforced = enforce_output(final, self.node.data)
+                self.executor._send_node_broadcast(self.node, enforced.output)
+                self._final_output = enforced.output
+                # now actually return it
+                return self.__next__()
+
+            # ensure collector exists
+            if self._collector is None:
+                all_inputs = self.executor.runtime_inputs_for(self.node)
+                ctx = self.executor._get_node_context(self.node)
+                raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                assert isinstance(raw, CollectorOutput)
+                self._collector = raw.collector
+
+            # enforce iterable inputs for this step
+            enforced_inputs: list[object] = []
+            for inp in self.node.data.inputs:
+                if inp.id in iterable_input.inputs:
+                    enforced_inputs.append(inp.enforce_(iter_values.pop(0)))
+            iter_arg = (
+                enforced_inputs[0]
+                if len(enforced_inputs) == 1
+                else tuple(enforced_inputs)
+            )
+
+            # one step of collection
+            try:
+                self._collector.on_iterate(iter_arg)
+            except StopIteration:
+                final = self._collector.on_complete()
+                enforced = enforce_output(final, self.node.data)
+                self.executor._send_node_broadcast(self.node, enforced.output)
+                self._final_output = enforced.output
+                return self.__next__()
+
+            # we collected one item; record timing, but DO NOT return to downstream yet
+            self._iter_timer.add()
+            self._send_progress()
+            # loop to pull next upstream item
 
     def _finalize_and_switch_to_serving(self):
         if self._serving_final:
@@ -735,11 +792,7 @@ class Executor:
             elif isinstance(node, CollectorNode):
                 fanout = self._downstream_counts[node.id]
                 self._runtimes[node.id] = CollectorRuntimeNode(
-                    node,
-                    self,
-                    inner=None,
-                    iterative=iterative,
-                    fanout=fanout,
+                    node, self, inner=None, iterative=iterative
                 )
             elif isinstance(node, FunctionNode):
                 if is_leaf and node.has_side_effects():
