@@ -52,6 +52,30 @@ class CollectorNotReady(Exception):
     """Raised when a collector hasn't finished yet but a downstream node wants its value."""
 
 
+class NodeExecutionError(Exception):
+    """
+    Raised when a node fails to run.
+
+    Contains:
+    - node_id: for identification
+    - node_data: schema
+    - cause: original message
+    - inputs: best-effort input inspection
+    """
+
+    def __init__(
+        self,
+        node_id: NodeId,
+        node_data: NodeData,
+        cause: str,
+        inputs: InputsDict,
+    ):
+        super().__init__(cause)
+        self.node_id: NodeId = node_id
+        self.node_data: NodeData = node_data
+        self.inputs: InputsDict = inputs
+
+
 # ======================================================================
 # helpers
 # ======================================================================
@@ -60,6 +84,12 @@ def collect_input_information(
     inputs: list[object | Lazy[object]],
     enforced: bool = True,
 ) -> InputsDict:
+    """
+    Build a serializable view of the inputs for error reporting.
+
+    If an input is still lazy, it is marked as {"type": "pending"}.
+    If value enforcement fails and enforced=False, it is logged and the best-effort value is used.
+    """
     try:
         input_dict: InputsDict = {}
 
@@ -76,23 +106,25 @@ def collect_input_information(
                     value = node_input.enforce_(value)
                 except Exception:
                     logger.exception(
-                        "Error enforcing input %s (id %s)",
+                        "Error enforcing input %s (id %s) for node %s",
                         node_input.label,
                         node_input.id,
+                        node.name,
                     )
 
             try:
                 input_dict[node_input.id] = node_input.get_error_value(value)
             except Exception:
                 logger.exception(
-                    "Error getting error value for input %s (id %s)",
+                    "Error getting error value for input %s (id %s) on node %s",
                     node_input.label,
                     node_input.id,
+                    node.name,
                 )
 
         return input_dict
     except Exception:
-        logger.exception("Error collecting input information.")
+        logger.exception("Error collecting input information for node %s.", node.name)
         return {}
 
 
@@ -102,8 +134,15 @@ def enforce_inputs(
     node_id: NodeId,
     ignored_inputs: list[InputId],
 ) -> list[object]:
+    """
+    Enforce all inputs of a node.
+
+    ignored_inputs: inputs that must stay lazy or get None (collectors' iterable inputs).
+    """
+
     def enforce(i: BaseInput, value: object) -> object:
         if i.id in ignored_inputs:
+            # keep shape, but value is ignored for run() call
             return None
 
         if i.lazy:
@@ -122,23 +161,38 @@ def enforce_inputs(
         return enforced_inputs
     except Exception as e:
         input_dict = collect_input_information(node, inputs, enforced=False)
+        logger.exception("Error enforcing inputs for node %s (%s)", node.name, node_id)
         raise NodeExecutionError(node_id, node, str(e), input_dict) from e
 
 
 def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
-    l = len(node.outputs)
+    """
+    Normalize and enforce a function node's output according to its schema.
 
-    if l == 0:
-        assert raw_output is None, f"Expected all {node.name} nodes to return None."
+    - 0 outputs -> must return None
+    - 1 output -> single value
+    - N outputs -> iterable of length N
+    """
+    output_count = len(node.outputs)
+
+    if output_count == 0:
+        if raw_output is not None:
+            raise RuntimeError(
+                f"Node {node.name} declares 0 outputs but returned a value of type {type(raw_output).__name__}."
+            )
         output: Output = []
-    elif l == 1:
+    elif output_count == 1:
         output = [raw_output]
     else:
-        assert isinstance(raw_output, (tuple, list))
+        if not isinstance(raw_output, (tuple, list)):
+            raise TypeError(
+                f"Node {node.name} declares {output_count} outputs but returned non-iterable {type(raw_output).__name__}."
+            )
         output = list(raw_output)
-        assert (
-            len(output) == l
-        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+        if len(output) != output_count:
+            raise ValueError(
+                f"Node {node.name} declares {output_count} outputs but returned {len(output)}."
+            )
 
     for i, o in enumerate(node.outputs):
         output[i] = o.enforce(output[i])
@@ -147,29 +201,59 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
 
 
 def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOutput:
-    l = len(node.outputs)
+    """
+    Normalize and enforce a generator node's output.
+
+    Two valid shapes:
+    1. generator only, when the node has exactly the iterable outputs
+    2. (generator, *static_outputs) when the node has extra non-iterable outputs
+    """
+    output_count = len(node.outputs)
     generator_output = node.single_iterable_output
+    partial: list[object] = [None] * output_count
 
-    partial: list[object] = [None] * l
-
-    if l == len(generator_output.outputs):
-        assert isinstance(raw_output, Generator)
+    # case 1: number of node outputs equals the iterable ones
+    if output_count == len(generator_output.outputs):
+        if not isinstance(raw_output, Generator):
+            raise TypeError(
+                f"Generator node {node.name} was expected to return a Generator but returned {type(raw_output).__name__}."
+            )
         return GeneratorOutput(
             info=generator_output,
             generator=raw_output,
             partial_output=partial,
         )
 
-    assert l > len(generator_output.outputs)
-    assert isinstance(raw_output, (tuple, list))
+    # case 2: generator plus extra static outputs
+    if output_count <= len(generator_output.outputs):
+        raise RuntimeError(
+            f"Generator node {node.name} has inconsistent output configuration."
+        )
+
+    if not isinstance(raw_output, (tuple, list)):
+        raise TypeError(
+            f"Generator node {node.name} was expected to return (Generator, ...) but returned {type(raw_output).__name__}."
+        )
 
     iterator, *rest = raw_output
-    assert isinstance(iterator, Generator)
-    assert len(rest) == l - len(generator_output.outputs)
+    if not isinstance(iterator, Generator):
+        raise TypeError(
+            f"Generator node {node.name} first element must be a Generator but got {type(iterator).__name__}."
+        )
+    if len(rest) != output_count - len(generator_output.outputs):
+        raise ValueError(
+            f"Generator node {node.name} expected {output_count - len(generator_output.outputs)} static outputs but got {len(rest)}."
+        )
 
     for i, o in enumerate(node.outputs):
         if o.id not in generator_output.outputs:
-            partial[i] = o.enforce(rest.pop(0))
+            try:
+                value = rest.pop(0)
+            except IndexError as exc:
+                raise RuntimeError(
+                    f"Generator node {node.name} ran out of static outputs while enforcing."
+                ) from exc
+            partial[i] = o.enforce(value)
 
     return GeneratorOutput(
         info=generator_output,
@@ -179,6 +263,9 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
 
 
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
+    """
+    Convert node outputs to broadcast payloads and types.
+    """
     data: dict[OutputId, BroadcastData | None] = {}
     types: dict[OutputId, navi.ExpressionJson | None] = {}
     for index, node_output in enumerate(node_outputs):
@@ -188,37 +275,35 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
                 data[node_output.id] = node_output.get_broadcast_data(value)
                 types[node_output.id] = node_output.get_broadcast_type(value)
         except Exception as e:
-            logger.error("Error broadcasting output: %s", e)
+            logger.error(
+                "Error broadcasting output %s (%s): %s",
+                node_output.id,
+                node_output.label,
+                e,
+            )
     return data, types
 
 
 def compute_sequence_broadcast(
     generators: Iterable[Generator], node_iter_outputs: Iterable[IteratorOutputInfo]
 ):
+    """
+    Compute broadcast information for iterable outputs.
+    """
     sequence_types: dict[IterOutputId, navi.ExpressionJson] = {}
     item_types: dict[OutputId, navi.ExpressionJson] = {}
     for g, iter_output in zip(generators, node_iter_outputs, strict=False):
         try:
             sequence_types[iter_output.id] = iter_output.get_broadcast_sequence_type(g)
-            for output_id, type in iter_output.get_broadcast_item_types(g).items():
-                item_types[output_id] = type
+            for output_id, type_ in iter_output.get_broadcast_item_types(g).items():
+                item_types[output_id] = type_
         except Exception as e:
-            logger.error("Error broadcasting output: %s", e)
+            logger.error(
+                "Error broadcasting iterable output %s: %s",
+                iter_output.id,
+                e,
+            )
     return sequence_types, item_types
-
-
-class NodeExecutionError(Exception):
-    def __init__(
-        self,
-        node_id: NodeId,
-        node_data: NodeData,
-        cause: str,
-        inputs: InputsDict,
-    ):
-        super().__init__(cause)
-        self.node_id: NodeId = node_id
-        self.node_data: NodeData = node_data
-        self.inputs: InputsDict = inputs
 
 
 @dataclass(frozen=True)
@@ -245,6 +330,10 @@ NodeOutput = RegularOutput | GeneratorOutput
 # timers
 # ======================================================================
 class _IterationTimer:
+    """
+    Measure time between iterations while accounting for pauses.
+    """
+
     def __init__(self, progress: ProgressController) -> None:
         self.times: list[float] = []
         self.progress = progress
@@ -263,7 +352,7 @@ class _IterationTimer:
         current_paused = max(0, paused - self._start_paused)
         return now - self._start_time - current_paused
 
-    def add(self):
+    def add(self) -> None:
         now = time.monotonic()
         paused = self.progress.time_paused
         current_paused = max(0, paused - self._last_paused)
@@ -276,6 +365,15 @@ class _IterationTimer:
 # NodeContext
 # ======================================================================
 class _ExecutorNodeContext(NodeContext):
+    """
+    NodeContext used during executor runtime.
+
+    Holds:
+    - progress token (abort, pause)
+    - package settings
+    - per-node and per-chain cleanup sets
+    """
+
     def __init__(
         self, progress: ProgressToken, settings: SettingsParser, storage_dir: Path
     ) -> None:
@@ -330,22 +428,22 @@ class RuntimeNode(Iterator[Output]):
         # 0 means "no meaningful expected length"
         self._expected_len = 0
 
-    def _ensure_started(self):
+    def _ensure_started(self) -> None:
         if not self._started:
             self.executor._send_node_start(self.node)
             self._started = True
 
-    def _send_progress(self):
-        # NEW: only broadcast progress if we actually know the length
+    def _send_progress(self) -> None:
+        # only broadcast progress if we actually know the length
         if not self._expected_len:
             return
         idx = self._iter_timer.iterations
         total = self._expected_len
         self.executor._send_node_progress(self.node, self._iter_timer.times, idx, total)
 
-    def _finish(self):
+    def _finish(self) -> None:
         if not self._finished:
-            # NEW: only send progress-done if we sent progress at all
+            # only send progress-done if we sent progress at all
             if self._expected_len:
                 self.executor._send_node_progress_done(
                     self.node, self._iter_timer.iterations
@@ -387,7 +485,10 @@ class StaticRuntimeNode(RuntimeNode):
             inputs = self.executor.runtime_inputs_for(self.node)
             ctx = self.executor._get_node_context(self.node)
             raw = self.executor._run_node_immediate(self.node, ctx, inputs)
-            assert isinstance(raw, RegularOutput)
+            if not isinstance(raw, RegularOutput):
+                raise RuntimeError(
+                    f"StaticRuntimeNode for {self.node.id} expected RegularOutput but received {type(raw).__name__}."
+                )
             self.executor._send_node_broadcast(self.node, raw.output)
             self._current_value = raw.output
 
@@ -420,44 +521,62 @@ class GeneratorRuntimeNode(RuntimeNode):
         executor: Executor,
         fanout: int,
     ):
-        super().__init__(node, executor, iterative=True)  # always iterative
+        # generator runtime nodes are always iterative
+        super().__init__(node, executor, iterative=True)
         self.fanout = fanout
         self._current_served = 0
         self._current_value: Output | None = None
         self._gen_iter: Iterator | None = None
         self._partial: Output | None = None
 
-    def _ensure_iter(self):
+    def _ensure_iter(self) -> None:
         if self._gen_iter is not None:
             return
         inputs = self.executor.runtime_inputs_for(self.node)
         ctx = self.executor._get_node_context(self.node)
         out = self.executor._run_node_immediate(self.node, ctx, inputs)
-        assert isinstance(out, GeneratorOutput)
+        if not isinstance(out, GeneratorOutput):
+            raise RuntimeError(
+                f"GeneratorRuntimeNode for {self.node.id} expected GeneratorOutput but received {type(out).__name__}."
+            )
         self._partial = out.partial_output
         self._gen_iter = out.generator.supplier().__iter__()
         self._expected_len = out.generator.expected_length or 0
 
     def _advance(self) -> Output:
         self._ensure_iter()
-        assert self._gen_iter is not None
+        if self._gen_iter is None:
+            raise RuntimeError(
+                f"GeneratorRuntimeNode for {self.node.id} failed to initialize iterator."
+            )
         try:
             values = next(self._gen_iter)
         except StopIteration:
             self._finish()
             raise
 
-        assert self._partial is not None
+        if self._partial is None:
+            raise RuntimeError(
+                f"GeneratorRuntimeNode for {self.node.id} has no partial output to merge."
+            )
+
         iterable_output = self.node.data.single_iterable_output
         if len(iterable_output.outputs) == 1:
             seq_vals = [values]
         else:
-            assert isinstance(values, (tuple, list))
+            if not isinstance(values, (tuple, list)):
+                raise RuntimeError(
+                    f"GeneratorRuntimeNode for {self.node.id} expected iterable value from generator."
+                )
             seq_vals = list(values)
 
         full_out = self._partial.copy()
         for idx, o in enumerate(self.node.data.outputs):
             if o.id in iterable_output.outputs:
+                if not seq_vals:
+                    raise RuntimeError(
+                        f"GeneratorRuntimeNode for {self.node.id} ran out of sequence values while enforcing."
+                    )
                 full_out[idx] = o.enforce(seq_vals.pop(0))
 
         self.executor._send_node_broadcast(self.node, full_out)
@@ -501,15 +620,17 @@ class CollectorRuntimeNode(RuntimeNode):
         # fanout is NOT used to clear the value anymore
         self._fanout = fanout
 
-    # downstream uses this
     def is_done(self) -> bool:
         return self._final_output is not None
 
     def final_output(self) -> Output:
-        assert self._final_output is not None
+        if self._final_output is None:
+            raise RuntimeError(
+                f"CollectorRuntimeNode for {self.node.id} was asked for final output but is not done."
+            )
         return self._final_output
 
-    def _set_final(self, value: Output):
+    def _set_final(self, value: Output) -> None:
         self._final_output = value
         # broadcast once
         self.executor._send_node_broadcast(self.node, value)
@@ -538,7 +659,10 @@ class CollectorRuntimeNode(RuntimeNode):
                 all_inputs = self.executor.runtime_inputs_for(self.node)
                 ctx = self.executor._get_node_context(self.node)
                 raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
-                assert isinstance(raw, CollectorOutput)
+                if not isinstance(raw, CollectorOutput):
+                    raise RuntimeError(
+                        f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
+                    )
                 self._collector = raw.collector
                 final = self._collector.on_complete()
                 enforced = enforce_output(final, self.node.data)
@@ -553,7 +677,10 @@ class CollectorRuntimeNode(RuntimeNode):
                 all_inputs = self.executor.runtime_inputs_for(self.node)
                 ctx = self.executor._get_node_context(self.node)
                 raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
-                assert isinstance(raw, CollectorOutput)
+                if not isinstance(raw, CollectorOutput):
+                    raise RuntimeError(
+                        f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
+                    )
                 self._collector = raw.collector
 
             # consume exactly one item
@@ -611,7 +738,10 @@ class CollectorRuntimeNode(RuntimeNode):
                         full_inputs.append(next(non_it, None))
                 ctx = self.executor._get_node_context(self.node)
                 raw = self.executor._run_node_immediate(self.node, ctx, full_inputs)
-                assert isinstance(raw, CollectorOutput)
+                if not isinstance(raw, CollectorOutput):
+                    raise RuntimeError(
+                        f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
+                    )
                 self._collector = raw.collector
 
             final = self._collector.on_complete()
@@ -642,7 +772,10 @@ class CollectorRuntimeNode(RuntimeNode):
                     full_inputs.append(next(it_non, None))
             ctx = self.executor._get_node_context(self.node)
             raw = self.executor._run_node_immediate(self.node, ctx, full_inputs)
-            assert isinstance(raw, CollectorOutput)
+            if not isinstance(raw, CollectorOutput):
+                raise RuntimeError(
+                    f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
+                )
             self._collector = raw.collector
 
         # one incremental iterate
@@ -777,10 +910,8 @@ class Executor:
         Mark every node that is in an iterator lineage.
 
         1. Start from all generator nodes.
-        2. Go **downstream** following iterator outputs -> everything you reach is iterative.
-        3. Then go **upstream**: if an iterative node has an input coming from X, then X must
-        also be iterative (otherwise the iterative node couldn't keep pulling).
-        4. Repeat upstream propagation until stable.
+        2. Go downstream following iterator outputs.
+        3. Go upstream to make parents iterative too.
         """
         iterative: set[NodeId] = set()
 
@@ -808,20 +939,16 @@ class Executor:
                             continue
                     stack.append(edge.target.id)
 
-        # 3) upstream closure:
-        # keep adding parents of iterative nodes until no new ones appear
+        # 3) upstream closure
         changed = True
         while changed:
             changed = False
-            for node_id, node in self.chain.nodes.items():
+            for node_id, _node in self.chain.nodes.items():
                 if node_id in iterative:
                     continue
-                # check: does this node feed any iterative node?
-                feeds_iterative = False
-                for e in self.chain.edges_from(node_id):
-                    if e.target.id in iterative:
-                        feeds_iterative = True
-                        break
+                feeds_iterative = any(
+                    e.target.id in iterative for e in self.chain.edges_from(node_id)
+                )
                 if feeds_iterative:
                     iterative.add(node_id)
                     changed = True
@@ -831,7 +958,7 @@ class Executor:
     # ------------------------------------------------------------------
     # build runtimes
     # ------------------------------------------------------------------
-    def _build_runtimes(self):
+    def _build_runtimes(self) -> None:
         for node in self.chain.nodes.values():
             fanout = self._downstream_counts[node.id]
             iterative = node.id in self._iterative_nodes
@@ -847,7 +974,7 @@ class Executor:
                     inner=None,
                     iterative=iterative,
                     has_downstream=has_downstream,
-                    fanout=fanout,  # <<< new
+                    fanout=fanout,
                 )
             elif isinstance(node, FunctionNode):
                 if is_leaf and node.has_side_effects():
@@ -859,7 +986,7 @@ class Executor:
                         node, self, fanout, iterative=iterative
                     )
             else:
-                raise ValueError("Unknown node type")
+                raise ValueError(f"Unknown node type for node {node.id}")
 
     # ------------------------------------------------------------------
     # input resolution
@@ -867,6 +994,9 @@ class Executor:
     def runtime_inputs_for(
         self, node: Node, only_ids: set[InputId] | None = None
     ) -> list[object]:
+        """
+        Resolve all inputs for a node by pulling from upstream runtimes or from chain inputs.
+        """
         values: list[object] = []
         for node_input in node.data.inputs:
             if only_ids is not None and node_input.id not in only_ids:
@@ -885,18 +1015,16 @@ class Executor:
                         for i, o in enumerate(src_node.data.outputs)
                         if o.id == output_id
                     )
-                except StopIteration:
+                except StopIteration as exc:
                     raise ValueError(
                         f"Output id {output_id} not found in source node {src_id}"
-                    )
+                    ) from exc
 
                 upstream_rt = self._runtimes[src_id]
 
-                # SPECIAL CASE: if the upstream is a collector that is NOT done yet,
-                # we do NOT pull it from here; the root loop will advance it.
+                # collector that is not done yet must be driven by the root loop
                 if isinstance(upstream_rt, CollectorRuntimeNode):
                     if not upstream_rt.is_done():
-                        # collector not ready yet; the global bottom-up loop must advance it
                         raise CollectorNotReady
                     out = upstream_rt.final_output()
                     if src_index >= len(out):
@@ -904,7 +1032,6 @@ class Executor:
                     values.append(out[src_index])
                     continue
 
-                # normal path: pull from upstream
                 out = next(upstream_rt)
                 if src_index >= len(out):
                     raise StopIteration
@@ -939,13 +1066,17 @@ class Executor:
             else:
                 raw = node.data.run(*enforced_inputs)
             if node.data.kind == "collector":
-                assert isinstance(raw, Collector)
+                if not isinstance(raw, Collector):
+                    raise RuntimeError(
+                        f"Collector node {node.id} returned {type(raw).__name__} instead of Collector."
+                    )
                 return CollectorOutput(raw)
             if node.data.kind == "generator":
                 return enforce_generator_output(raw, node.data)
             return enforce_output(raw, node.data)
         except Exception as e:
             info = collect_input_information(node.data, enforced_inputs)
+            logger.exception("Error running node %s (%s)", node.data.name, node.id)
             raise NodeExecutionError(node.id, node.data, str(e), info) from e
 
     def _get_node_context(self, node: Node) -> _ExecutorNodeContext:
@@ -960,7 +1091,7 @@ class Executor:
     # ------------------------------------------------------------------
     # run
     # ------------------------------------------------------------------
-    async def run(self):
+    async def run(self) -> None:
         logger.debug("Running executor %s", self.id)
         self._send_chain_start()
         try:
@@ -968,29 +1099,31 @@ class Executor:
         finally:
             gc.collect()
 
-    async def _run_collectors_bottom_up(self):
+    async def _run_collectors_bottom_up(self) -> None:
+        """
+        Drive all roots in a round-robin loop until no progress can be made.
+        Roots:
+        - collectors
+        - leaf side-effect nodes
+        - leaf static nodes
+        """
         roots: list[RuntimeNode] = []
 
         for rt in self._runtimes.values():
             node_id = rt.node.id
             is_leaf = self._raw_downstream_counts[node_id] == 0
 
-            # 1) real collectors are always roots
             if isinstance(rt, CollectorRuntimeNode):
                 roots.append(rt)
                 continue
 
-            # 2) leaf side-effect nodes are roots
             if isinstance(rt, SideEffectLeafRuntimeNode):
                 roots.append(rt)
                 continue
 
-            # 3) any other leaf (typically a plain FunctionNode or a leaf static node)
-            #    must also be driven, or downstream-of-collector work will never run
             if is_leaf:
                 roots.append(rt)
 
-        # global round-robin drive
         while True:
             any_progress = False
             for rt in roots:
@@ -1008,9 +1141,8 @@ class Executor:
 
         await self._finalize_chain()
 
-    async def _finalize_chain(self):
+    async def _finalize_chain(self) -> None:
         # 1) force-finish every runtime that was started but not finished
-        #    this sends node-progress-done and node-finish
         for rt in self._runtimes.values():
             if rt._started and not rt._finished:
                 rt._finish()
@@ -1032,16 +1164,16 @@ class Executor:
     # ------------------------------------------------------------------
     # events
     # ------------------------------------------------------------------
-    def _send_chain_start(self):
+    def _send_chain_start(self) -> None:
         nodes = list(self.chain.nodes.keys())
         self.queue.put({"event": "chain-start", "data": {"nodes": nodes}})
 
-    def _send_node_start(self, node: Node):
+    def _send_node_start(self, node: Node) -> None:
         self.queue.put({"event": "node-start", "data": {"nodeId": node.id}})
 
     def _send_node_progress(
         self, node: Node, times: list[float], index: int, length: int
-    ):
+    ) -> None:
         def get_eta(ts: list[float]) -> float:
             if not ts:
                 return 0.0
@@ -1064,7 +1196,7 @@ class Executor:
             }
         )
 
-    def _send_node_progress_done(self, node: Node, length: int):
+    def _send_node_progress_done(self, node: Node, length: int) -> None:
         self.queue.put(
             {
                 "event": "node-progress",
@@ -1083,7 +1215,7 @@ class Executor:
         node: Node,
         output: Output,
         generators: Iterable[Generator] | None = None,
-    ):
+    ) -> None:
         if not self.send_broadcast_data or not node.data.outputs:
             return
 
@@ -1115,7 +1247,7 @@ class Executor:
 
         self.__broadcast_tasks.append(self.loop.create_task(send()))
 
-    def _send_node_finish(self, node: Node, execution_time: float):
+    def _send_node_finish(self, node: Node, execution_time: float) -> None:
         self.queue.put(
             {
                 "event": "node-finish",
@@ -1127,7 +1259,6 @@ class Executor:
         for node_input in node.data.inputs:
             edge = self.chain.edge_to(node.id, node_input.id)
             if edge is None:
-                # input not wired, so we cannot say it's “final collector only”
                 return False
             upstream_rt = self._runtimes[edge.source.id]
             if not (
