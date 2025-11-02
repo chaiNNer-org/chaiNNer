@@ -48,6 +48,10 @@ Output = list[object]
 ExecutionId = NewType("ExecutionId", str)
 
 
+class CollectorNotReady(Exception):
+    """Raised when a collector hasn't finished yet but a downstream node wants its value."""
+
+
 # ======================================================================
 # helpers
 # ======================================================================
@@ -473,16 +477,25 @@ class CollectorRuntimeNode(RuntimeNode):
         executor: Executor,
         inner: Collector | None,
         iterative: bool,
+        has_downstream: bool,
     ):
         super().__init__(node, executor, iterative)
         self._collector = inner
-        # when we finally have a result to hand to downstream, we park it here
         self._final_output: Output | None = None
+        self.has_downstream = has_downstream
+
+    # helper for runtime_inputs_for to query
+    def is_done(self) -> bool:
+        return self._final_output is not None or self._finished
+
+    def final_output(self) -> Output:
+        assert self._final_output is not None
+        return self._final_output
 
     def __next__(self) -> Output:
         self._ensure_started()
 
-        # if we've already produced the final value, hand it out once and finish
+        # if we already have final output, just finish and hand it out once
         if self._final_output is not None:
             out = self._final_output
             self._final_output = None
@@ -493,18 +506,18 @@ class CollectorRuntimeNode(RuntimeNode):
             raise StopIteration
 
         iterable_input = self.node.data.single_iterable_input
+        iterable_ids = set(iterable_input.inputs)
 
         # ------------------------------------------------------------
-        # CASE 1: collector is in a STATIC lineage (not under a generator)
-        # -> run exactly once, old behavior
+        # NON-ITERATIVE COLLECTOR (not under generator): run once
         # ------------------------------------------------------------
         if not self.iterative:
             try:
                 iter_values = self.executor.runtime_inputs_for(
-                    self.node, only_ids=set(iterable_input.inputs)
+                    self.node, only_ids=iterable_ids
                 )
             except StopIteration:
-                # nothing to iterate -> still need to init + complete
+                # create + complete
                 all_inputs = self.executor.runtime_inputs_for(self.node)
                 ctx = self.executor._get_node_context(self.node)
                 raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
@@ -516,7 +529,6 @@ class CollectorRuntimeNode(RuntimeNode):
                 self._finish()
                 return enforced.output
 
-            # ensure collector created
             if self._collector is None:
                 all_inputs = self.executor.runtime_inputs_for(self.node)
                 ctx = self.executor._get_node_context(self.node)
@@ -524,10 +536,10 @@ class CollectorRuntimeNode(RuntimeNode):
                 assert isinstance(raw, CollectorOutput)
                 self._collector = raw.collector
 
-            # single iterate
+            # one iterate
             enforced_inputs: list[object] = []
             for inp in self.node.data.inputs:
-                if inp.id in iterable_input.inputs:
+                if inp.id in iterable_ids:
                     enforced_inputs.append(inp.enforce_(iter_values.pop(0)))
             iter_arg = (
                 enforced_inputs[0]
@@ -536,7 +548,7 @@ class CollectorRuntimeNode(RuntimeNode):
             )
             self._collector.on_iterate(iter_arg)
 
-            # and complete immediately
+            # and complete right away (non-iterative)
             final = self._collector.on_complete()
             enforced = enforce_output(final, self.node.data)
             self.executor._send_node_broadcast(self.node, enforced.output)
@@ -546,65 +558,89 @@ class CollectorRuntimeNode(RuntimeNode):
             return enforced.output
 
         # ------------------------------------------------------------
-        # CASE 2: collector is in an ITERATIVE lineage (under a generator)
-        # -> drive the WHOLE collection right here, do NOT hand out [] in between
+        # ITERATIVE COLLECTOR (under generator): incremental
+        # take exactly ONE upstream item per __next__
         # ------------------------------------------------------------
-        while True:
-            # try to pull one iteration worth of inputs
-            try:
-                iter_values = self.executor.runtime_inputs_for(
-                    self.node, only_ids=set(iterable_input.inputs)
-                )
-            except StopIteration:
-                # upstream is exhausted -> finalize and yield once
-                if self._collector is None:
-                    # need to create it once so on_complete exists
-                    all_inputs = self.executor.runtime_inputs_for(self.node)
-                    ctx = self.executor._get_node_context(self.node)
-                    raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
-                    assert isinstance(raw, CollectorOutput)
-                    self._collector = raw.collector
-
-                final = self._collector.on_complete()
-                enforced = enforce_output(final, self.node.data)
-                self.executor._send_node_broadcast(self.node, enforced.output)
-                self._final_output = enforced.output
-                # now actually return it
-                return self.__next__()
-
-            # ensure collector exists
+        try:
+            iter_values = self.executor.runtime_inputs_for(
+                self.node, only_ids=iterable_ids
+            )
+        except StopIteration:
+            # upstream finished -> finalize
             if self._collector is None:
-                all_inputs = self.executor.runtime_inputs_for(self.node)
+                # need to create using non-iterable inputs only
+                non_iter_ids = {
+                    inp.id
+                    for inp in self.node.data.inputs
+                    if inp.id not in iterable_ids
+                }
+                if non_iter_ids:
+                    non_iter_vals = self.executor.runtime_inputs_for(
+                        self.node, only_ids=non_iter_ids
+                    )
+                else:
+                    non_iter_vals = []
+                full_inputs: list[object] = []
+                non_it = iter(non_iter_vals)
+                for inp in self.node.data.inputs:
+                    if inp.id in iterable_ids:
+                        full_inputs.append(None)
+                    else:
+                        full_inputs.append(next(non_it))
                 ctx = self.executor._get_node_context(self.node)
-                raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                raw = self.executor._run_node_immediate(self.node, ctx, full_inputs)
                 assert isinstance(raw, CollectorOutput)
                 self._collector = raw.collector
 
-            # enforce iterable inputs for this step
-            enforced_inputs: list[object] = []
-            for inp in self.node.data.inputs:
-                if inp.id in iterable_input.inputs:
-                    enforced_inputs.append(inp.enforce_(iter_values.pop(0)))
-            iter_arg = (
-                enforced_inputs[0]
-                if len(enforced_inputs) == 1
-                else tuple(enforced_inputs)
-            )
-
-            # one step of collection
-            try:
-                self._collector.on_iterate(iter_arg)
-            except StopIteration:
-                final = self._collector.on_complete()
-                enforced = enforce_output(final, self.node.data)
-                self.executor._send_node_broadcast(self.node, enforced.output)
-                self._final_output = enforced.output
-                return self.__next__()
-
-            # we collected one item; record timing, but DO NOT return to downstream yet
+            final = self._collector.on_complete()
+            enforced = enforce_output(final, self.node.data)
+            self.executor._send_node_broadcast(self.node, enforced.output)
+            # store for downstream
+            self._final_output = enforced.output
+            # DON'T finish yet; next() will hand it out
             self._iter_timer.add()
             self._send_progress()
-            # loop to pull next upstream item
+            return []
+
+        # ensure collector exists WITHOUT pulling another generator item
+        if self._collector is None:
+            non_iter_ids = {
+                inp.id for inp in self.node.data.inputs if inp.id not in iterable_ids
+            }
+            if non_iter_ids:
+                non_iter_vals = self.executor.runtime_inputs_for(
+                    self.node, only_ids=non_iter_ids
+                )
+            else:
+                non_iter_vals = []
+            full_inputs: list[object] = []
+            it_iter = iter(iter_values)
+            it_non = iter(non_iter_vals)
+            for inp in self.node.data.inputs:
+                if inp.id in iterable_ids:
+                    full_inputs.append(next(it_iter))
+                else:
+                    full_inputs.append(next(it_non))
+            ctx = self.executor._get_node_context(self.node)
+            raw = self.executor._run_node_immediate(self.node, ctx, full_inputs)
+            assert isinstance(raw, CollectorOutput)
+            self._collector = raw.collector
+
+        # one on_iterate for this tick
+        enforced_inputs: list[object] = []
+        it_vals = iter(iter_values)
+        for inp in self.node.data.inputs:
+            if inp.id in iterable_ids:
+                enforced_inputs.append(inp.enforce_(next(it_vals)))
+        iter_arg = (
+            enforced_inputs[0] if len(enforced_inputs) == 1 else tuple(enforced_inputs)
+        )
+        self._collector.on_iterate(iter_arg)
+
+        # progress, but no final value yet
+        self._iter_timer.add()
+        self._send_progress()
+        return []
 
     def _finalize_and_switch_to_serving(self):
         if self._serving_final:
@@ -790,9 +826,13 @@ class Executor:
             if isinstance(node, GeneratorNode):
                 self._runtimes[node.id] = GeneratorRuntimeNode(node, self, fanout)
             elif isinstance(node, CollectorNode):
-                fanout = self._downstream_counts[node.id]
+                has_downstream = self._raw_downstream_counts[node.id] > 0
                 self._runtimes[node.id] = CollectorRuntimeNode(
-                    node, self, inner=None, iterative=iterative
+                    node,
+                    self,
+                    inner=None,
+                    iterative=iterative,
+                    has_downstream=has_downstream,
                 )
             elif isinstance(node, FunctionNode):
                 if is_leaf and node.has_side_effects():
@@ -815,20 +855,17 @@ class Executor:
         self, node: Node, only_ids: set[InputId] | None = None
     ) -> list[object]:
         values: list[object] = []
-
         for node_input in node.data.inputs:
-            # skip inputs we're not currently resolving (collectors do this)
             if only_ids is not None and node_input.id not in only_ids:
                 continue
 
             edge = self.chain.edge_to(node.id, node_input.id)
             if edge is not None:
-                # pull from upstream
                 src_id = edge.source.id
                 output_id = edge.source.output_id
                 src_node = self.chain.nodes[src_id]
 
-                # find output index on source node
+                # find output index
                 try:
                     src_index = next(
                         i
@@ -837,33 +874,43 @@ class Executor:
                     )
                 except StopIteration:
                     raise ValueError(
-                        f"Output id {output_id} not found on source node {src_id}"
+                        f"Output id {output_id} not found in source node {src_id}"
                     )
 
                 upstream_rt = self._runtimes[src_id]
-                out = next(upstream_rt)
 
-                # if the source didn't produce that output this iteration,
-                # treat it as source exhaustion and bubble up
+                # SPECIAL CASE: if the upstream is a collector that is NOT done yet,
+                # we do NOT pull it from here; the root loop will advance it.
+                if (
+                    isinstance(upstream_rt, CollectorRuntimeNode)
+                    and upstream_rt.iterative
+                ):
+                    if not upstream_rt.is_done():
+                        # tell caller: try again later
+                        raise CollectorNotReady
+                    # collector is done -> just read the stored final output
+                    out = upstream_rt.final_output()
+                    if src_index >= len(out):
+                        raise StopIteration
+                    values.append(out[src_index])
+                    continue
+
+                # normal path: pull from upstream
+                out = next(upstream_rt)
                 if src_index >= len(out):
                     raise StopIteration
-
                 values.append(out[src_index])
             else:
-                # no edge: try chain-provided literal / UI value
                 v = self.chain.inputs.get(node.id, node_input.id)
-
                 if v is None:
                     if node_input.optional:
                         values.append(None)
-                        continue
-                    # required input is missing -> this is a chain definition error
-                    raise ValueError(
-                        f"Required input '{node_input.label}' (id {node_input.id}) on node {node.id} has no edge and no provided value."
-                    )
-
-                values.append(v)
-
+                    else:
+                        raise ValueError(
+                            f"Required input '{node_input.label}' (id {node_input.id}) on node {node.id} has no edge and no provided value."
+                        )
+                else:
+                    values.append(v)
         return values
 
     # ------------------------------------------------------------------
@@ -941,6 +988,9 @@ class Executor:
                 try:
                     _ = next(rt)
                     any_progress = True
+                except CollectorNotReady:
+                    # downstream asked too early; that's fine
+                    pass
                 except StopIteration:
                     pass
             await asyncio.sleep(0)
