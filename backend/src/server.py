@@ -32,7 +32,13 @@ from events import EventConsumer, EventQueue, ExecutionErrorData
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
 from logger import logger, setup_logger
-from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
+from process import (
+    ExecutionId,
+    Executor,
+    NodeExecutionError,
+    NodeOutput,
+    RegularOutput,
+)
 from progress_controller import Aborted
 from response import (
     already_running_response,
@@ -372,8 +378,8 @@ async def run_individual(request: Request):
                 output = await executor.run_individual_node(node)
 
                 # keep current behavior: cache only non-generator results
-                if node_data.kind != "generator":
-                    ctx.cache[node_id] = output
+                if node_data.kind != "generator" and output is not None:
+                    ctx.cache[node_id] = RegularOutput(output)
 
             finally:
                 if ctx.individual_executors.get(execution_id, None) == executor:

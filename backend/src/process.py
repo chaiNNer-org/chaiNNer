@@ -1438,7 +1438,9 @@ class Executor:
                 )
             elif isinstance(node, TransformerNode):
                 self.runtimes[node.id] = TransformerRuntimeNode(node, self, fanout)
-            elif isinstance(node, FunctionNode):
+            else:
+                # node must be FunctionNode after checking other types
+                assert isinstance(node, FunctionNode), "Expected FunctionNode"
                 if is_leaf and node.has_side_effects():
                     self.runtimes[node.id] = SideEffectLeafRuntimeNode(
                         node, self, iterative=iterative
@@ -1447,8 +1449,6 @@ class Executor:
                     self.runtimes[node.id] = StaticRuntimeNode(
                         node, self, fanout, iterative=iterative
                     )
-            else:
-                raise ValueError(f"Unknown node type for node {node.id}")
 
     # ------------------------------------------------------------------
     # input resolution
@@ -1655,7 +1655,7 @@ class Executor:
     # events
     # ------------------------------------------------------------------
     def _send_chain_start(self) -> None:
-        nodes = list(self.chain.nodes.keys())
+        nodes: list[str] = [str(nid) for nid in self.chain.nodes.keys()]
         self.queue.put({"event": "chain-start", "data": {"nodes": nodes}})
 
     def send_node_start(self, node: Node) -> None:
