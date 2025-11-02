@@ -309,7 +309,6 @@ async def run_individual(request: Request):
         ctx.cache.pop(node_id, None)
 
         schema_data = api.registry.nodes.get(full_data["schemaId"])
-
         if schema_data is None:
             raise ValueError(
                 f"Invalid node {full_data['schemaId']} attempted to run individually"
@@ -324,9 +323,12 @@ async def run_individual(request: Request):
             raise ValueError(
                 f"Invalid node kind {node_data.kind} attempted to run individually"
             )
+
+        # build 1-node chain
         chain = Chain()
         chain.add_node(node)
 
+        # set provided inputs
         for index, i in enumerate(full_data["inputs"]):
             chain.inputs.set(node_id, node.data.inputs[index].id, i)
 
@@ -349,26 +351,54 @@ async def run_individual(request: Request):
 
         with run_individual_counter:
             try:
+                # kill previous one for the same id
                 if execution_id in ctx.individual_executors:
-                    # kill the previous executor (if any)
                     old_executor = ctx.individual_executors[execution_id]
-                    old_executor.kill()
+                    # old_executor.kill()  ->  new API
+                    old_executor.progress.abort()
 
                 ctx.individual_executors[execution_id] = executor
+
+                # we need the runtimes built by the executor
+                # executor already builds them in __init__
+                runtime = executor._runtimes[node_id]
+
+                # send chain-start because we are not calling executor.run()
+                executor._send_chain_start()
+
                 if node_data.kind == "generator":
-                    assert isinstance(node, GeneratorNode)
-                    output = await executor.process_generator_node(node)
-                elif node_data.kind == "regularNode":
-                    assert isinstance(node, FunctionNode)
-                    output = await executor.process_regular_node(node)
+                    # NEW: manual "process_generator_node"
+                    rows: list[list[object]] = []
+                    while True:
+                        try:
+                            out = next(runtime)
+                            rows.append(out)
+                        except StopIteration:
+                            break
+                    # finalize chain so broadcasts and cleanups finish
+                    await executor._finalize_chain()
+                    output = rows
                 else:
-                    raise ValueError(
-                        f"Invalid node kind {node_data.kind} attempted to run individually"
-                    )
-                if not isinstance(node, GeneratorNode):
+                    # NEW: manual "process_regular_node"
+                    last: list[object] | None = None
+                    try:
+                        out = next(runtime)
+                        last = out
+                    except StopIteration:
+                        last = None
+                    # some function nodes may be iterative, drive once more to be sure
+                    while True:
+                        try:
+                            _ = next(runtime)
+                        except StopIteration:
+                            break
+                    await executor._finalize_chain()
+                    output = last
+
+                # keep current behavior: cache only non-generator results
+                if node_data.kind != "generator":
                     ctx.cache[node_id] = output
-            except Aborted:
-                pass
+
             finally:
                 if ctx.individual_executors.get(execution_id, None) == executor:
                     ctx.individual_executors.pop(execution_id, None)

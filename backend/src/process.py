@@ -521,7 +521,6 @@ class GeneratorRuntimeNode(RuntimeNode):
         executor: Executor,
         fanout: int,
     ):
-        # generator runtime nodes are always iterative
         super().__init__(node, executor, iterative=True)
         self.fanout = fanout
         self._current_served = 0
@@ -529,54 +528,117 @@ class GeneratorRuntimeNode(RuntimeNode):
         self._gen_iter: Iterator | None = None
         self._partial: Output | None = None
 
-    def _ensure_iter(self) -> None:
-        if self._gen_iter is not None:
-            return
-        inputs = self.executor.runtime_inputs_for(self.node)
+    # ---------- helpers ----------
+
+    def _has_truly_iterative_parent(self) -> bool:
+        """
+        Return True iff at least one upstream can actually produce
+        more than one item over time.
+
+        We count as "truly iterative":
+          - upstream is a GeneratorNode
+          - upstream is a CollectorNode whose runtime is iterative
+        Everything else (static function, chain input) is not enough to
+        justify reinitializing this generator forever.
+        """
+        for inp in self.node.data.inputs:
+            edge = self.executor.chain.edge_to(self.node.id, inp.id)
+            if edge is None:
+                # chain input -> static
+                continue
+            src_id = edge.source.id
+            src_node = self.executor.chain.nodes[src_id]
+
+            if isinstance(src_node, GeneratorNode):
+                return True
+
+            if isinstance(src_node, CollectorNode):
+                rt = self.executor._runtimes[src_id]
+                if isinstance(rt, CollectorRuntimeNode) and rt.iterative:
+                    return True
+
+            # NOTE: we deliberately do NOT treat regular FunctionNode
+            # as "truly iterative" here, because only a generator or an
+            # iterative collector can keep feeding us forever. A function
+            # may be iterative indirectly (because *it* pulls from a generator),
+            # but in that case runtime_inputs_for(...) below will succeed again,
+            # so we will re-init anyway.
+        return False
+
+    def _init_new_inner(self) -> bool:
+        """
+        Pull fresh inputs and create a new inner iterator.
+
+        Returns:
+            True  -> new inner iterator created
+            False -> upstream exhausted, no more data
+        """
+        try:
+            inputs = self.executor.runtime_inputs_for(self.node)
+        except CollectorNotReady:
+            # bubble up, executor loop will drive the collector
+            raise
+        except StopIteration:
+            # real upstream exhaustion
+            return False
+
         ctx = self.executor._get_node_context(self.node)
         out = self.executor._run_node_immediate(self.node, ctx, inputs)
-        if not isinstance(out, GeneratorOutput):
-            raise RuntimeError(
-                f"GeneratorRuntimeNode for {self.node.id} expected GeneratorOutput but received {type(out).__name__}."
-            )
+        assert isinstance(out, GeneratorOutput)
+
         self._partial = out.partial_output
         self._gen_iter = out.generator.supplier().__iter__()
         self._expected_len = out.generator.expected_length or 0
+        return True
+
+    # ---------- main logic ----------
 
     def _advance(self) -> Output:
-        self._ensure_iter()
-        if self._gen_iter is None:
-            raise RuntimeError(
-                f"GeneratorRuntimeNode for {self.node.id} failed to initialize iterator."
-            )
-        try:
-            values = next(self._gen_iter)
-        except StopIteration:
-            self._finish()
-            raise
+        """
+        Get one item for this generator.
 
-        if self._partial is None:
-            raise RuntimeError(
-                f"GeneratorRuntimeNode for {self.node.id} has no partial output to merge."
-            )
+        If the current inner is exhausted:
+          - if we have a truly iterative parent, re-init and continue
+          - else, finish
+        """
+        while True:
+            if self._gen_iter is None:
+                ok = self._init_new_inner()
+                if not ok:
+                    # upstream can't give us more -> we're done
+                    self._finish()
+                    raise StopIteration
 
+            assert self._gen_iter is not None
+            try:
+                values = next(self._gen_iter)
+            except StopIteration:
+                # inner exhausted
+                self._gen_iter = None
+                self._partial = None
+
+                # check if we should re-init or stop
+                if not self._has_truly_iterative_parent():
+                    self._finish()
+                    raise StopIteration
+
+                # else: loop around, try to build new inner
+                continue
+
+            # we got a value from current inner
+            break
+
+        assert self._partial is not None
         iterable_output = self.node.data.single_iterable_output
         if len(iterable_output.outputs) == 1:
             seq_vals = [values]
         else:
-            if not isinstance(values, (tuple, list)):
-                raise RuntimeError(
-                    f"GeneratorRuntimeNode for {self.node.id} expected iterable value from generator."
-                )
+            assert isinstance(values, (tuple, list))
             seq_vals = list(values)
 
         full_out = self._partial.copy()
         for idx, o in enumerate(self.node.data.outputs):
             if o.id in iterable_output.outputs:
-                if not seq_vals:
-                    raise RuntimeError(
-                        f"GeneratorRuntimeNode for {self.node.id} ran out of sequence values while enforcing."
-                    )
                 full_out[idx] = o.enforce(seq_vals.pop(0))
 
         self.executor._send_node_broadcast(self.node, full_out)
