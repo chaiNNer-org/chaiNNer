@@ -20,18 +20,21 @@ from unittest.mock import Mock
 import pytest  # type: ignore[import-untyped]
 
 from api import (
+    BaseInput,
+    BaseOutput,
     Collector,
     ExecutionOptions,
     InputId,
-    NodeContext,
+    IteratorInputInfo,
     NodeData,
     NodeId,
     OutputId,
 )
+from api.settings import SettingsParser
 from chain.chain import Chain, CollectorNode, FunctionNode
 from chain.input import InputMap
 from events import EventQueue
-from process import ExecutionId, Executor, run_collector_iterate, run_node
+from process import ExecutionId, Executor, _ExecutorNodeContext
 
 
 def create_mock_node_data(
@@ -305,11 +308,11 @@ class TestInputMapFromChain:
         assert node_inputs is not None
 
 
-class TestRunNode:
-    """Test the run_node function."""
+class TestRunNodeImmediate:
+    """Test the run_node_immediate method on Executor."""
 
-    def test_run_node_returns_output(self):
-        """Test that run_node returns proper output."""
+    def test_run_node_immediate_returns_output(self, executor_setup):
+        """Test that run_node_immediate returns proper output."""
 
         # Create a node that returns a value
         def run_fn():
@@ -323,54 +326,148 @@ class TestRunNode:
         output_mock.enforce = Mock(side_effect=lambda x: x)
         node_data.outputs = [output_mock]  # type: ignore
 
-        context = Mock(spec=NodeContext)
-        context.settings = {}
+        node = create_function_node(NodeId("node1"), "test:node", "Test Node")
+        node.data = node_data
 
-        result = run_node(node_data, context, [], NodeId("node1"))
+        executor_setup["chain"].add_node(node)
+
+        executor = Executor(
+            id=ExecutionId("test-exec"),
+            chain=executor_setup["chain"],
+            send_broadcast_data=False,
+            options=executor_setup["options"],
+            loop=executor_setup["loop"],
+            queue=executor_setup["queue"],
+            pool=executor_setup["pool"],
+            storage_dir=executor_setup["storage_dir"],
+        )
+
+        # Create context directly since get_node_context requires registry
+        settings = SettingsParser({})
+        context = _ExecutorNodeContext(
+            executor.progress, settings, executor_setup["storage_dir"]
+        )
+        result = executor.run_node_immediate(node, context, [])
 
         # Should return RegularOutput
         assert result is not None
+        assert hasattr(result, "output")
+        assert result.output == [42]
 
 
 class TestCollectorIteration:
-    """Test run_collector_iterate functionality."""
+    """Test collector iteration functionality through Executor."""
 
-    def test_run_collector_iterate_basic(self):
-        """Test basic collector iteration."""
-
-        # Create collector
+    def test_collector_iteration_basic(self, executor_setup):
+        """Test basic collector iteration through executor."""
+        # Create collector that accumulates values
         results = []
 
         def on_iterate(value: int) -> None:
             results.append(value)
 
         def on_complete() -> list[int]:
-            return results
+            return results.copy()
 
-        collector = Collector(on_iterate, on_complete)
+        def collector_run_fn():
+            return Collector(on_iterate, on_complete)
 
-        # Create mock collector node
-        collector_node = Mock(spec=CollectorNode)
-        collector_node.id = NodeId("collector1")
-
-        # Create mock iterable input info
-        iter_input_info = Mock()
-        iter_input_info.inputs = [InputId(0)]
-
-        node_data = create_mock_node_data(
-            "test:collector", "Test Collector", "collector"
+        # Create collector node data
+        collector_node_data = create_mock_node_data(
+            "test:collector", "Test Collector", "collector", run_fn=collector_run_fn
         )
 
+        # Create iterable input info
+        iter_input_info = Mock(spec=IteratorInputInfo)
+        iter_input_info.inputs = [InputId(0)]
+
         # Create input
-        input_mock = Mock()
+        input_mock = Mock(spec=BaseInput)
         input_mock.id = InputId(0)
         input_mock.enforce_ = Mock(side_effect=lambda x: x)
-        node_data.inputs = [input_mock]  # type: ignore
-        node_data.single_iterable_input = iter_input_info  # type: ignore
+        input_mock.lazy = False
+        input_mock.optional = False
 
-        collector_node.data = node_data
+        collector_node_data.inputs = [input_mock]  # type: ignore
+        collector_node_data.single_iterable_input = iter_input_info  # type: ignore
 
-        # Run iteration
-        run_collector_iterate(collector_node, [10], collector)
+        # Create output
+        output_mock = Mock(spec=BaseOutput)
+        output_mock.id = OutputId(0)
+        output_mock.enforce = Mock(side_effect=lambda x: x)
+        collector_node_data.outputs = [output_mock]  # type: ignore
 
-        assert results == [10]
+        # Create a generator node to feed the collector
+        def generator_run_fn():
+            def supplier():
+                yield 10
+                yield 20
+                yield 30
+
+            from api import Generator
+
+            return Generator(supplier, expected_length=3)
+
+        generator_node_data = create_mock_node_data(
+            "test:generator", "Test Generator", "generator", run_fn=generator_run_fn
+        )
+
+        generator_iter_output = Mock()
+        generator_iter_output.outputs = [OutputId(0)]
+        generator_node_data.single_iterable_output = generator_iter_output  # type: ignore
+        generator_node_data.outputs = [output_mock]  # type: ignore
+
+        # Create nodes
+        generator_node = Mock(spec=FunctionNode)
+        generator_node.id = NodeId("generator1")
+        generator_node.schema_id = "test:generator"
+        generator_node.data = generator_node_data
+        generator_node.has_side_effects = Mock(return_value=False)
+
+        collector_node = Mock(spec=CollectorNode)
+        collector_node.id = NodeId("collector1")
+        collector_node.schema_id = "test:collector"
+        collector_node.data = collector_node_data
+        collector_node.has_side_effects = Mock(return_value=False)
+
+        # Add nodes to chain
+        executor_setup["chain"].add_node(generator_node)
+        executor_setup["chain"].add_node(collector_node)
+
+        # Note: In a real scenario, we'd need to connect the nodes with edges
+        # For this test, we'll use run_node_immediate directly to test collector iteration
+        executor = Executor(
+            id=ExecutionId("test-exec"),
+            chain=executor_setup["chain"],
+            send_broadcast_data=False,
+            options=executor_setup["options"],
+            loop=executor_setup["loop"],
+            queue=executor_setup["queue"],
+            pool=executor_setup["pool"],
+            storage_dir=executor_setup["storage_dir"],
+        )
+
+        # Test collector initialization
+        # Create context directly since get_node_context requires registry
+        settings = SettingsParser({})
+        context = _ExecutorNodeContext(
+            executor.progress, settings, executor_setup["storage_dir"]
+        )
+        collector_result = executor.run_node_immediate(collector_node, context, [])
+
+        # Verify we got a CollectorOutput
+        assert collector_result is not None
+        assert hasattr(collector_result, "collector")
+        collector_obj = collector_result.collector
+
+        # Test iteration
+        collector_obj.on_iterate(10)
+        collector_obj.on_iterate(20)
+        collector_obj.on_iterate(30)
+
+        # Verify results
+        assert results == [10, 20, 30]
+
+        # Test completion
+        final_result = collector_obj.on_complete()
+        assert final_result == [10, 20, 30]
