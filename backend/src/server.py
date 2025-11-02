@@ -6,7 +6,6 @@ import importlib
 import logging
 import sys
 import tempfile
-import time
 import traceback
 import uuid
 from concurrent.futures import ThreadPoolExecutor
@@ -33,13 +32,7 @@ from events import EventConsumer, EventQueue, ExecutionErrorData
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
 from logger import logger, setup_logger
-from process import (
-    ExecutionId,
-    Executor,
-    GeneratorOutput,
-    NodeExecutionError,
-    NodeOutput,
-)
+from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
     already_running_response,
@@ -375,60 +368,8 @@ async def run_individual(request: Request):
 
                 ctx.individual_executors[execution_id] = executor
 
-                # send chain-start because we are not calling executor.run()
-                executor._send_chain_start()
-
-                if node_data.kind == "generator":
-                    # For generators, only initialize to get Generator object
-                    # and type info. Do NOT iterate through outputs.
-                    start_time = time.perf_counter()
-                    executor._send_node_start(node)
-
-                    # Get inputs and run node to get GeneratorOutput
-                    inputs = executor.runtime_inputs_for(node)
-                    node_ctx = executor._get_node_context(node)
-                    gen_output = executor._run_node_immediate(node, node_ctx, inputs)
-                    if not isinstance(gen_output, GeneratorOutput):
-                        raise RuntimeError(
-                            f"Generator node {node_id} expected GeneratorOutput"
-                        )
-
-                    # Send broadcast with partial outputs and Generator
-                    # for type info
-                    executor._send_node_broadcast(
-                        node,
-                        gen_output.partial_output,
-                        generators=[gen_output.generator],
-                    )
-
-                    # Send node-finish event
-                    execution_time = time.perf_counter() - start_time
-                    executor._send_node_finish(node, execution_time)
-
-                    # Finalize chain so broadcasts and cleanups finish
-                    await executor._finalize_chain()
-                    output = None  # Generators are not cached
-                else:
-                    # Runtime nodes are built in executor.__init__
-                    runtime = executor._runtimes[node_id]
-
-                    # Manually iterate regular node runtime
-                    # Get the first output, then drain any remaining iterations
-                    last: list[object] | None = None
-                    try:
-                        out = next(runtime)
-                        last = out
-                    except StopIteration:
-                        last = None
-                    # Some function nodes may be iterative; drain remaining
-                    # iterations
-                    while True:
-                        try:
-                            _ = next(runtime)
-                        except StopIteration:
-                            break
-                    await executor._finalize_chain()
-                    output = last
+                # Execute the individual node
+                output = await executor.run_individual_node(node)
 
                 # keep current behavior: cache only non-generator results
                 if node_data.kind != "generator":

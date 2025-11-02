@@ -1730,3 +1730,67 @@ class Executor:
             ):
                 return False
         return True
+
+    async def run_individual_node(self, node: Node) -> Output | None:
+        """
+        Run a single node individually.
+
+        Assumes the executor's chain already contains the node and its inputs are set.
+        Handles both generator and regular node execution paths.
+
+        Returns:
+            Output | None: The output for regular nodes, None for generators.
+        """
+        # Send chain-start because we are not calling executor.run()
+        self._send_chain_start()
+
+        node_data = node.data
+        if node_data.kind == "generator":
+            # For generators, only initialize to get Generator object
+            # and type info. Do NOT iterate through outputs.
+            start_time = time.perf_counter()
+            self._send_node_start(node)
+
+            # Get inputs and run node to get GeneratorOutput
+            inputs = self.runtime_inputs_for(node)
+            node_ctx = self._get_node_context(node)
+            gen_output = self._run_node_immediate(node, node_ctx, inputs)
+            if not isinstance(gen_output, GeneratorOutput):
+                raise RuntimeError(f"Generator node {node.id} expected GeneratorOutput")
+
+            # Send broadcast with partial outputs and Generator
+            # for type info
+            self._send_node_broadcast(
+                node,
+                gen_output.partial_output,
+                generators=[gen_output.generator],
+            )
+
+            # Send node-finish event
+            execution_time = time.perf_counter() - start_time
+            self._send_node_finish(node, execution_time)
+
+            # Finalize chain so broadcasts and cleanups finish
+            await self._finalize_chain()
+            return None  # Generators are not cached
+        else:
+            # Runtime nodes are built in executor.__init__
+            runtime = self._runtimes[node.id]
+
+            # Manually iterate regular node runtime
+            # Get the first output, then drain any remaining iterations
+            last: Output | None = None
+            try:
+                out = next(runtime)
+                last = out
+            except StopIteration:
+                last = None
+            # Some function nodes may be iterative; drain remaining
+            # iterations
+            while True:
+                try:
+                    _ = next(runtime)
+                except StopIteration:
+                    break
+            await self._finalize_chain()
+            return last
