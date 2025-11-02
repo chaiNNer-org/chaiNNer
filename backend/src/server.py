@@ -322,6 +322,16 @@ async def run_individual(request: Request):
             )
 
         node_data, _ = schema_data
+        if node_data.kind == "collector":
+            raise ValueError(
+                f"Collector nodes cannot be run individually "
+                f"(node {full_data['schemaId']})"
+            )
+        if node_data.kind == "transformer":
+            raise ValueError(
+                f"Transformer nodes cannot be run individually "
+                f"(node {full_data['schemaId']})"
+            )
         if node_data.kind == "generator":
             node = GeneratorNode(node_id, full_data["schemaId"])
         elif node_data.kind == "regularNode":
