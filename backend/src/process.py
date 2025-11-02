@@ -40,7 +40,7 @@ from chain.chain import (
 )
 from events import EventConsumer, InputsDict, NodeBroadcastData
 from logger import logger
-from progress_controller import ProgressController, ProgressToken
+from progress_controller import Aborted, ProgressController, ProgressToken
 
 Output = list[object]
 ExecutionId = NewType("ExecutionId", str)
@@ -1318,6 +1318,21 @@ class Executor:
         self._build_runtimes()
 
     # ------------------------------------------------------------------
+    # pause/resume/kill control
+    # ------------------------------------------------------------------
+    def pause(self) -> None:
+        """Pause the current execution."""
+        self.progress.pause()
+
+    def resume(self) -> None:
+        """Resume the current execution."""
+        self.progress.resume()
+
+    def kill(self) -> None:
+        """Kill (abort) the current execution."""
+        self.progress.abort()
+
+    # ------------------------------------------------------------------
     # downstream counts
     # ------------------------------------------------------------------
     def _compute_downstream_counts(self) -> tuple[dict[NodeId, int], dict[NodeId, int]]:
@@ -1586,6 +1601,17 @@ class Executor:
 
         # Round-robin execution loop
         while True:
+            # Check for abort state - exit early if killed
+            if self.progress.aborted:
+                break
+
+            # Wait for resume if paused (will raise Aborted if killed while paused)
+            try:
+                await self.progress.suspend()
+            except Aborted:
+                # Execution was killed, exit loop
+                break
+
             any_progress = False
             for rt in roots:
                 try:
