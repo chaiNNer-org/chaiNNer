@@ -93,15 +93,17 @@ def collect_input_information(
 
         for value, node_input in zip(inputs, node.inputs, strict=False):
             if isinstance(value, Lazy) and value.has_value:
-                value = value.value
+                processed_value = value.value
+            else:
+                processed_value = value
 
-            if isinstance(value, Lazy):
+            if isinstance(processed_value, Lazy):
                 input_dict[node_input.id] = {"type": "pending"}
                 continue
 
             if not enforced:
                 try:
-                    value = node_input.enforce_(value)
+                    processed_value = node_input.enforce_(processed_value)
                 except Exception:
                     logger.exception(
                         "Error enforcing input %s (id %s) for node %s",
@@ -111,7 +113,7 @@ def collect_input_information(
                     )
 
             try:
-                input_dict[node_input.id] = node_input.get_error_value(value)
+                input_dict[node_input.id] = node_input.get_error_value(processed_value)
             except Exception:
                 logger.exception(
                     "Error getting error value for input %s (id %s) on node %s",
@@ -182,7 +184,7 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     elif output_count == 1:
         output = [raw_output]
     else:
-        if not isinstance(raw_output, (tuple, list)):
+        if not isinstance(raw_output, tuple | list):
             raise TypeError(
                 f"Node {node.name} declares {output_count} outputs but returned non-iterable {type(raw_output).__name__}."
             )
@@ -228,7 +230,7 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
             f"Generator node {node.name} has inconsistent output configuration."
         )
 
-    if not isinstance(raw_output, (tuple, list)):
+    if not isinstance(raw_output, tuple | list):
         raise TypeError(
             f"Generator node {node.name} was expected to return (Generator, ...) but returned {type(raw_output).__name__}."
         )
@@ -290,7 +292,7 @@ def enforce_transformer_output(raw_output: object, node: NodeData) -> Transforme
             f"Transformer node {node.name} has inconsistent output configuration."
         )
 
-    if not isinstance(raw_output, (tuple, list)):
+    if not isinstance(raw_output, tuple | list):
         raise TypeError(
             f"Transformer node {node.name} was expected to return (Transformer, ...) but returned {type(raw_output).__name__}."
         )
@@ -690,7 +692,7 @@ class GeneratorRuntimeNode(RuntimeNode):
                 # check if we should re-init or stop
                 if not self._has_truly_iterative_parent():
                     self._finish()
-                    raise StopIteration
+                    raise StopIteration from None
 
                 # else: loop around, try to build new inner
                 continue
@@ -703,7 +705,7 @@ class GeneratorRuntimeNode(RuntimeNode):
         if len(iterable_output.outputs) == 1:
             seq_vals = [values]
         else:
-            assert isinstance(values, (tuple, list))
+            assert isinstance(values, tuple | list)
             seq_vals = list(values)
 
         full_out = self._partial.copy()
@@ -786,7 +788,7 @@ class CollectorRuntimeNode(RuntimeNode):
         if not self.iterative:
             try:
                 _ = self.executor.runtime_inputs_for(self.node, only_ids=iterable_ids)
-            except StopIteration:
+            except StopIteration as err:
                 # finalize immediately
                 all_inputs = self.executor.runtime_inputs_for(self.node)
                 ctx = self.executor._get_node_context(self.node)
@@ -794,7 +796,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
-                    )
+                    ) from err
                 self._collector = raw.collector
                 final = self._collector.on_complete()
                 enforced = enforce_output(final, self.node.data)
@@ -846,7 +848,7 @@ class CollectorRuntimeNode(RuntimeNode):
             iter_values = self.executor.runtime_inputs_for(
                 self.node, only_ids=iterable_ids
             )
-        except StopIteration:
+        except StopIteration as err:
             # upstream exhausted -> finalize
             if self._collector is None:
                 # create from non-iterable inputs
@@ -873,7 +875,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
-                    )
+                    ) from err
                 self._collector = raw.collector
 
             final = self._collector.on_complete()
@@ -1117,7 +1119,7 @@ class TransformerRuntimeNode(RuntimeNode):
                     ):
                         # We've produced all expected items, finish
                         self._finish()
-                        raise StopIteration
+                        raise StopIteration from None
 
             # Check if we've already produced enough items
             if self._expected_len > 0 and self._items_produced >= self._expected_len:
@@ -1139,7 +1141,7 @@ class TransformerRuntimeNode(RuntimeNode):
 
                 # Input exhausted means upstream is done, so we're done too
                 self._finish()
-                raise StopIteration
+                raise StopIteration from None
 
             # Transform the input item to get output iterator
             self._current_output_iter = iter(self._transformer.on_iterate(input_item))
@@ -1150,7 +1152,7 @@ class TransformerRuntimeNode(RuntimeNode):
         if len(iterable_output.outputs) == 1:
             seq_vals = [values]
         else:
-            assert isinstance(values, (tuple, list))
+            assert isinstance(values, tuple | list)
             seq_vals = list(values)
 
         full_out = self._partial.copy()
