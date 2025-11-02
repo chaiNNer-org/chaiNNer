@@ -185,9 +185,9 @@ export const checkAssignedLineage = (
             break;
         }
         case 'generator': {
-            // if (sourceLineage) {
-            //     return nonIteratorInput();
-            // }
+            if (sourceLineage) {
+                return nonIteratorInput();
+            }
             break;
         }
         case 'collector': {
