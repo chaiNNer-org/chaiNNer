@@ -473,28 +473,46 @@ class CollectorRuntimeNode(RuntimeNode):
         executor: Executor,
         inner: Collector | None,
         iterative: bool,
+        fanout: int,
     ):
         super().__init__(node, executor, iterative)
         self._collector = inner
+        self._fanout = fanout
+        self._serving_final = False
+        self._final_output: Output | None = None
+        self._served_final = 0
 
     def __next__(self) -> Output:
         self._ensure_started()
+
+        # if we're in "serving final value" mode, just hand it out
+        if self._serving_final:
+            if self._served_final >= self._fanout:
+                self._finish()
+                raise StopIteration
+            assert self._final_output is not None
+            self._served_final += 1
+            self._iter_timer.add()
+            self._send_progress()
+            return self._final_output
+
         if self._finished:
             raise StopIteration
 
         iterable_input = self.node.data.single_iterable_input
+
+        # 1) try to pull next item(s) for on_iterate
         try:
             iter_values = self.executor.runtime_inputs_for(
                 self.node, only_ids=set(iterable_input.inputs)
             )
         except StopIteration:
-            if self._collector is not None:
-                final = self._collector.on_complete()
-                enforced = enforce_output(final, self.node.data)
-                self.executor._send_node_broadcast(self.node, enforced.output)
-            self._finish()
-            raise
+            # upstream is exhausted -> finalize collector
+            self._finalize_and_switch_to_serving()
+            # now we are in serving mode; serve first copy
+            return self.__next__()
 
+        # 2) if we don't have a collector object yet, create it
         if self._collector is None:
             all_inputs = self.executor.runtime_inputs_for(self.node)
             ctx = self.executor._get_node_context(self.node)
@@ -502,6 +520,7 @@ class CollectorRuntimeNode(RuntimeNode):
             assert isinstance(raw, CollectorOutput)
             self._collector = raw.collector
 
+        # 3) enforce the iterable inputs we just pulled
         enforced_inputs: list[object] = []
         for inp in self.node.data.inputs:
             if inp.id in iterable_input.inputs:
@@ -510,27 +529,42 @@ class CollectorRuntimeNode(RuntimeNode):
             enforced_inputs[0] if len(enforced_inputs) == 1 else tuple(enforced_inputs)
         )
 
+        # 4) run on_iterate
         try:
             self._collector.on_iterate(iter_arg)
         except StopIteration:
-            final = self._collector.on_complete()
-            enforced = enforce_output(final, self.node.data)
-            self.executor._send_node_broadcast(self.node, enforced.output)
-            self._finish()
-            return enforced.output
+            # collector wants to stop now -> finalize and serve final
+            self._finalize_and_switch_to_serving()
+            return self.__next__()
 
+        # 5) iterative collectors keep going; static ones finalize right away
         self._iter_timer.add()
         self._send_progress()
 
         if not self.iterative:
-            # static-lineage collector: run once, then complete
-            final = self._collector.on_complete()
-            enforced = enforce_output(final, self.node.data)
-            self.executor._send_node_broadcast(self.node, enforced.output)
-            self._finish()
-            return enforced.output
+            # static-lineage: run once → finalize → serve final to downstream
+            self._finalize_and_switch_to_serving()
+            return self.__next__()
 
+        # iterative: nothing to return to downstream at this iteration
         return []
+
+    def _finalize_and_switch_to_serving(self):
+        if self._serving_final:
+            return
+
+        final_raw = None
+        if self._collector is not None:
+            final_raw = self._collector.on_complete()
+
+        # collectors declare outputs in the schema, so enforce
+        enforced = enforce_output(final_raw, self.node.data)
+        self.executor._send_node_broadcast(self.node, enforced.output)
+
+        # now we will serve this value to every downstream consumer
+        self._final_output = enforced.output
+        self._serving_final = True
+        self._served_final = 0
 
 
 class SideEffectLeafRuntimeNode(RuntimeNode):
@@ -632,11 +666,25 @@ class Executor:
     # mark nodes that belong to a generator-driven lineage
     # ------------------------------------------------------------------
     def _compute_iterative_nodes(self) -> set[NodeId]:
+        """
+        Mark every node that is in an iterator lineage.
+
+        1. Start from all generator nodes.
+        2. Go **downstream** following iterator outputs -> everything you reach is iterative.
+        3. Then go **upstream**: if an iterative node has an input coming from X, then X must
+        also be iterative (otherwise the iterative node couldn't keep pulling).
+        4. Repeat upstream propagation until stable.
+        """
         iterative: set[NodeId] = set()
-        for node in self.chain.nodes.values():
-            if not isinstance(node, GeneratorNode):
-                continue
-            stack: list[NodeId] = [node.id]
+
+        # 1) seed: all generators
+        gen_ids = [
+            n.id for n in self.chain.nodes.values() if isinstance(n, GeneratorNode)
+        ]
+
+        # 2) downstream from each generator (only iterator outputs from generators)
+        for gid in gen_ids:
+            stack = [gid]
             while stack:
                 nid = stack.pop()
                 if nid in iterative:
@@ -645,12 +693,32 @@ class Executor:
                 for edge in self.chain.edges_from(nid):
                     src_node = self.chain.nodes[edge.source.id]
                     if isinstance(src_node, GeneratorNode):
+                        # only follow the iterable outputs
                         if (
                             edge.source.output_id
                             not in src_node.data.single_iterable_output.outputs
                         ):
                             continue
                     stack.append(edge.target.id)
+
+        # 3) upstream closure:
+        # keep adding parents of iterative nodes until no new ones appear
+        changed = True
+        while changed:
+            changed = False
+            for node_id, node in self.chain.nodes.items():
+                if node_id in iterative:
+                    continue
+                # check: does this node feed any iterative node?
+                feeds_iterative = False
+                for e in self.chain.edges_from(node_id):
+                    if e.target.id in iterative:
+                        feeds_iterative = True
+                        break
+                if feeds_iterative:
+                    iterative.add(node_id)
+                    changed = True
+
         return iterative
 
     # ------------------------------------------------------------------
@@ -665,8 +733,13 @@ class Executor:
             if isinstance(node, GeneratorNode):
                 self._runtimes[node.id] = GeneratorRuntimeNode(node, self, fanout)
             elif isinstance(node, CollectorNode):
+                fanout = self._downstream_counts[node.id]
                 self._runtimes[node.id] = CollectorRuntimeNode(
-                    node, self, inner=None, iterative=iterative
+                    node,
+                    self,
+                    inner=None,
+                    iterative=iterative,
+                    fanout=fanout,
                 )
             elif isinstance(node, FunctionNode):
                 if is_leaf and node.has_side_effects():
@@ -787,15 +860,28 @@ class Executor:
             gc.collect()
 
     async def _run_collectors_bottom_up(self):
+        # roots = things the executor must drive itself
         roots: list[RuntimeNode] = []
         for rt in self._runtimes.values():
             n = rt.node
-            if isinstance(rt, (CollectorRuntimeNode, SideEffectLeafRuntimeNode)):
-                roots.append(rt)
-            elif isinstance(n, FunctionNode) and n.has_side_effects():
-                # non-leaf, side-effect node: must still be pulled
-                roots.append(rt)
 
+            # 1) real collectors
+            if isinstance(rt, CollectorRuntimeNode):
+                roots.append(rt)
+                continue
+
+            # 2) leaf side-effect nodes (we wrapped these as SideEffectLeafRuntimeNode)
+            if isinstance(rt, SideEffectLeafRuntimeNode):
+                # these really are leaves, we detected that in _build_runtimes
+                roots.append(rt)
+                continue
+
+            # 3) everything else: DO NOT add here
+            #    non-leaf side-effect nodes will be pulled by their downstream
+            #    nodes (e.g. generators) and will therefore stop when those
+            #    downstream nodes stop.
+
+        # now run until none of the roots can make progress
         while True:
             any_progress = False
             for rt in roots:
