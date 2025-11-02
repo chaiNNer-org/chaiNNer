@@ -15,7 +15,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest  # type: ignore[import-untyped]
 
@@ -175,19 +175,25 @@ class TestExecutorBasicExecution:
 
         executor_setup["chain"].add_node(node)
 
-        executor = Executor(
-            id=ExecutionId("test-exec"),
-            chain=executor_setup["chain"],
-            send_broadcast_data=False,
-            options=executor_setup["options"],
-            loop=executor_setup["loop"],
-            queue=executor_setup["queue"],
-            pool=executor_setup["pool"],
-            storage_dir=executor_setup["storage_dir"],
-        )
+        # Mock the registry to allow the test node schema
+        from api.api import registry
 
-        # Should not raise an error
-        await executor.run()
+        mock_package = Mock()
+        mock_package.id = "test:package"
+        with patch.object(registry, "get_package", return_value=mock_package):
+            executor = Executor(
+                id=ExecutionId("test-exec"),
+                chain=executor_setup["chain"],
+                send_broadcast_data=False,
+                options=executor_setup["options"],
+                loop=executor_setup["loop"],
+                queue=executor_setup["queue"],
+                pool=executor_setup["pool"],
+                storage_dir=executor_setup["storage_dir"],
+            )
+
+            # Should not raise an error
+            await executor.run()
 
 
 class TestExecutorProgressControl:
