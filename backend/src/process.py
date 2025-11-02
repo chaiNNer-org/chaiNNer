@@ -26,19 +26,17 @@ from api import (
     NodeId,
     OutputId,
     SettingsParser,
+    Transformer,
     registry,
 )
-from chain.cache import (
-    CacheStrategy,
-    OutputCache,
-    get_cache_strategies,
-)
+from chain.cache import CacheStrategy, OutputCache, get_cache_strategies
 from chain.chain import (
     Chain,
     CollectorNode,
     FunctionNode,
     GeneratorNode,
     Node,
+    TransformerNode,
 )
 from events import EventConsumer, InputsDict, NodeBroadcastData
 from logger import logger
@@ -262,6 +260,68 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     )
 
 
+def enforce_transformer_output(raw_output: object, node: NodeData) -> TransformerOutput:
+    """
+    Normalize and enforce a transformer node's output.
+
+    Two valid shapes:
+    1. transformer only, when the node has exactly the iterable outputs
+    2. (transformer, *static_outputs) when the node has extra non-iterable outputs
+    """
+    output_count = len(node.outputs)
+    transformer_output = node.single_iterable_output
+    partial: list[object] = [None] * output_count
+
+    # case 1: number of node outputs equals the iterable ones
+    if output_count == len(transformer_output.outputs):
+        if not isinstance(raw_output, Transformer):
+            raise TypeError(
+                f"Transformer node {node.name} was expected to return a Transformer but returned {type(raw_output).__name__}."
+            )
+        return TransformerOutput(
+            info=transformer_output,
+            transformer=raw_output,
+            partial_output=partial,
+        )
+
+    # case 2: transformer plus extra static outputs
+    if output_count <= len(transformer_output.outputs):
+        raise RuntimeError(
+            f"Transformer node {node.name} has inconsistent output configuration."
+        )
+
+    if not isinstance(raw_output, (tuple, list)):
+        raise TypeError(
+            f"Transformer node {node.name} was expected to return (Transformer, ...) but returned {type(raw_output).__name__}."
+        )
+
+    iterator, *rest = raw_output
+    if not isinstance(iterator, Transformer):
+        raise TypeError(
+            f"Transformer node {node.name} first element must be a Transformer but got {type(iterator).__name__}."
+        )
+    if len(rest) != output_count - len(transformer_output.outputs):
+        raise ValueError(
+            f"Transformer node {node.name} expected {output_count - len(transformer_output.outputs)} static outputs but got {len(rest)}."
+        )
+
+    for i, o in enumerate(node.outputs):
+        if o.id not in transformer_output.outputs:
+            try:
+                value = rest.pop(0)
+            except IndexError as exc:
+                raise RuntimeError(
+                    f"Transformer node {node.name} ran out of static outputs while enforcing."
+                ) from exc
+            partial[i] = o.enforce(value)
+
+    return TransformerOutput(
+        info=transformer_output,
+        transformer=iterator,
+        partial_output=partial,
+    )
+
+
 def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
     """
     Convert node outputs to broadcast payloads and types.
@@ -323,7 +383,14 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = RegularOutput | GeneratorOutput
+@dataclass(frozen=True)
+class TransformerOutput:
+    info: IteratorOutputInfo
+    transformer: Transformer
+    partial_output: Output
+
+
+NodeOutput = RegularOutput | GeneratorOutput | TransformerOutput
 
 
 # ======================================================================
@@ -552,13 +619,16 @@ class GeneratorRuntimeNode(RuntimeNode):
             if isinstance(src_node, GeneratorNode):
                 return True
 
+            if isinstance(src_node, TransformerNode):
+                return True
+
             if isinstance(src_node, CollectorNode):
                 rt = self.executor._runtimes[src_id]
                 if isinstance(rt, CollectorRuntimeNode) and rt.iterative:
                     return True
 
             # NOTE: we deliberately do NOT treat regular FunctionNode
-            # as "truly iterative" here, because only a generator or an
+            # as "truly iterative" here, because only a generator, transformer, or an
             # iterative collector can keep feeding us forever. A function
             # may be iterative indirectly (because *it* pulls from a generator),
             # but in that case runtime_inputs_for(...) below will succeed again,
@@ -856,6 +926,262 @@ class CollectorRuntimeNode(RuntimeNode):
         return []
 
 
+class TransformerRuntimeNode(RuntimeNode):
+    def __init__(
+        self,
+        node: TransformerNode,
+        executor: Executor,
+        fanout: int,
+    ):
+        super().__init__(node, executor, iterative=True)
+        self.fanout = fanout
+        self._current_served = 0
+        self._current_value: Output | None = None
+        self._transformer: Transformer[object, object] | None = None
+        self._input_iterator: Iterator[object] | None = None
+        self._current_output_iter: Iterator[object] | None = None
+        self._partial: Output | None = None
+        self._items_produced = 0
+
+    # ---------- helpers ----------
+
+    def _has_truly_iterative_parent(self) -> bool:
+        """
+        Return True iff at least one upstream can actually produce
+        more than one item over time.
+
+        We count as "truly iterative":
+          - upstream is a GeneratorNode
+          - upstream is a TransformerNode
+          - upstream is a CollectorNode whose runtime is iterative
+        Everything else (static function, chain input) is not enough to
+        justify reinitializing this transformer forever.
+        """
+        iterable_input = self.node.data.single_iterable_input
+        iterable_ids = set(iterable_input.inputs)
+
+        for inp_id in iterable_ids:
+            edge = self.executor.chain.edge_to(self.node.id, inp_id)
+            if edge is None:
+                # chain input -> static
+                continue
+            src_id = edge.source.id
+            src_node = self.executor.chain.nodes[src_id]
+
+            if isinstance(src_node, GeneratorNode):
+                return True
+
+            if isinstance(src_node, TransformerNode):
+                return True
+
+            if isinstance(src_node, CollectorNode):
+                rt = self.executor._runtimes[src_id]
+                if isinstance(rt, CollectorRuntimeNode) and rt.iterative:
+                    return True
+
+            # NOTE: we deliberately do NOT treat regular FunctionNode
+            # as "truly iterative" here, because only a generator, transformer, or an
+            # iterative collector can keep feeding us forever. A function
+            # may be iterative indirectly (because *it* pulls from a generator),
+            # but in that case runtime_inputs_for(...) below will succeed again,
+            # so we will re-init anyway.
+        return False
+
+    def _init_new_inner(self) -> bool:
+        """
+        Pull fresh inputs from upstream iterator and create a new inner iterator.
+
+        Returns:
+            True  -> new inner iterator created
+            False -> upstream exhausted, no more data
+        """
+        iterable_input = self.node.data.single_iterable_input
+        iterable_ids = set(iterable_input.inputs)
+
+        # Find the upstream runtime for the iterator input
+        # We need to create a lazy iterator that pulls from it
+        if not iterable_ids:
+            return False
+        iterator_input_id = next(iter(iterable_ids))
+        edge = self.executor.chain.edge_to(self.node.id, iterator_input_id)
+        if edge is None:
+            # Chain input - not supported for iterator inputs
+            return False
+
+        src_id = edge.source.id
+        src_node = self.executor.chain.nodes[src_id]
+        upstream_rt = self.executor._runtimes[src_id]
+
+        # Find the output index
+        try:
+            src_index = next(
+                i
+                for i, o in enumerate(src_node.data.outputs)
+                if o.id == edge.source.output_id
+            )
+        except StopIteration:
+            return False
+
+        # Create a lazy iterator that pulls from upstream
+        def upstream_iterator():
+            """Iterator that pulls items from upstream runtime"""
+            while True:
+                try:
+                    upstream_output = next(upstream_rt)
+                    if src_index >= len(upstream_output):
+                        break
+                    yield upstream_output[src_index]
+                except StopIteration:
+                    break
+
+        # Get non-iterable inputs if any
+        non_iter_ids = {
+            inp.id for inp in self.node.data.inputs if inp.id not in iterable_ids
+        }
+        if non_iter_ids:
+            try:
+                non_iter_vals = self.executor.runtime_inputs_for(
+                    self.node, only_ids=non_iter_ids
+                )
+            except StopIteration:
+                non_iter_vals = []
+        else:
+            non_iter_vals = []
+
+        # Combine iterable and non-iterable inputs
+        full_inputs: list[object] = []
+        it_non = iter(non_iter_vals)
+        for inp in self.node.data.inputs:
+            if inp.id == iterator_input_id:
+                # Pass the lazy iterator for the sequence input
+                full_inputs.append(upstream_iterator())
+            else:
+                full_inputs.append(next(it_non, None))
+
+        ctx = self.executor._get_node_context(self.node)
+        out = self.executor._run_node_immediate(self.node, ctx, full_inputs)
+        assert isinstance(out, TransformerOutput)
+
+        self._partial = out.partial_output
+        self._transformer = out.transformer
+        self._input_iterator = upstream_iterator()
+        self._current_output_iter = None
+        self._items_produced = 0
+        self._expected_len = (
+            out.transformer.expected_length
+            if out.transformer.expected_length is not None
+            else 0
+        )
+        return True
+
+    # ---------- main logic ----------
+
+    def _advance(self) -> Output:
+        """
+        Get one item for this transformer.
+
+        The transformer's on_iterate is called for each input item and
+        yields output items. We pull from the input iterator and yield
+        from the transformer's output iterator.
+
+        If the current output iterator is exhausted, we move to the next
+        input item. If the input iterator is exhausted:
+          - if we have a truly iterative parent, re-init and continue
+          - else, finish
+        """
+        while True:
+            if self._transformer is None:
+                ok = self._init_new_inner()
+                if not ok:
+                    # upstream can't give us more -> we're done
+                    self._finish()
+                    raise StopIteration
+
+            assert self._transformer is not None
+            assert self._input_iterator is not None
+
+            # Try to get the next output from current input item
+            if self._current_output_iter is not None:
+                try:
+                    values = next(self._current_output_iter)
+                    # Got a value from current output iterator
+                    self._items_produced += 1
+                    break
+                except StopIteration:
+                    # Current output iterator exhausted, move to next input
+                    self._current_output_iter = None
+                    # If we've reached expected length and got nothing, we're done
+                    if (
+                        self._expected_len > 0
+                        and self._items_produced >= self._expected_len
+                    ):
+                        # We've produced all expected items, finish
+                        self._finish()
+                        raise StopIteration
+
+            # Check if we've already produced enough items
+            if self._expected_len > 0 and self._items_produced >= self._expected_len:
+                # We've produced all expected items, finish
+                self._finish()
+                raise StopIteration
+
+            # Get next input item and create output iterator from it
+            try:
+                input_item = next(self._input_iterator)
+            except StopIteration:
+                # Input iterator exhausted - no more input items
+                # Finish regardless of whether we reached expected length
+                self._transformer = None
+                self._input_iterator = None
+                self._current_output_iter = None
+                self._partial = None
+                self._items_produced = 0
+
+                # Input exhausted means upstream is done, so we're done too
+                self._finish()
+                raise StopIteration
+
+            # Transform the input item to get output iterator
+            self._current_output_iter = iter(self._transformer.on_iterate(input_item))
+            # Continue loop to get first output from this input
+
+        assert self._partial is not None
+        iterable_output = self.node.data.single_iterable_output
+        if len(iterable_output.outputs) == 1:
+            seq_vals = [values]
+        else:
+            assert isinstance(values, (tuple, list))
+            seq_vals = list(values)
+
+        full_out = self._partial.copy()
+        for idx, o in enumerate(self.node.data.outputs):
+            if o.id in iterable_output.outputs:
+                full_out[idx] = o.enforce(seq_vals.pop(0))
+
+        self.executor._send_node_broadcast(self.node, full_out)
+        return full_out
+
+    def __next__(self) -> Output:
+        self._ensure_started()
+        if self._finished:
+            raise StopIteration
+
+        if self._current_value is None:
+            self._current_value = self._advance()
+            self._current_served = 0
+
+        out = self._current_value
+        self._current_served += 1
+        self._iter_timer.add()
+        self._send_progress()
+
+        if self._current_served >= self.fanout:
+            self._current_value = None
+            self._current_served = 0
+
+        return out
+
+
 class SideEffectLeafRuntimeNode(RuntimeNode):
     def __init__(
         self,
@@ -954,9 +1280,9 @@ class Executor:
     # downstream counts
     # ------------------------------------------------------------------
     def _compute_downstream_counts(self) -> tuple[dict[NodeId, int], dict[NodeId, int]]:
-        raw: dict[NodeId, int] = {nid: 0 for nid in self.chain.nodes}
+        raw: dict[NodeId, int] = dict.fromkeys(self.chain.nodes, 0)
         for nid in self.chain.nodes:
-            for e in self.chain.edges_from(nid):
+            for _e in self.chain.edges_from(nid):
                 raw[nid] += 1
         # fanout counts used by runtime to serve downstreams
         fanout: dict[NodeId, int] = {}
@@ -971,15 +1297,18 @@ class Executor:
         """
         Mark every node that is in an iterator lineage.
 
-        1. Start from all generator nodes.
+        1. Start from all generator nodes and transformer nodes.
         2. Go downstream following iterator outputs.
         3. Go upstream to make parents iterative too.
         """
         iterative: set[NodeId] = set()
 
-        # 1) seed: all generators
+        # 1) seed: all generators and transformers
         gen_ids = [
             n.id for n in self.chain.nodes.values() if isinstance(n, GeneratorNode)
+        ]
+        trans_ids = [
+            n.id for n in self.chain.nodes.values() if isinstance(n, TransformerNode)
         ]
 
         # 2) downstream from each generator (only iterator outputs from generators)
@@ -993,6 +1322,39 @@ class Executor:
                 for edge in self.chain.edges_from(nid):
                     src_node = self.chain.nodes[edge.source.id]
                     if isinstance(src_node, GeneratorNode):
+                        # only follow the iterable outputs
+                        if (
+                            edge.source.output_id
+                            not in src_node.data.single_iterable_output.outputs
+                        ):
+                            continue
+                    elif isinstance(src_node, TransformerNode):
+                        # only follow the iterable outputs
+                        if (
+                            edge.source.output_id
+                            not in src_node.data.single_iterable_output.outputs
+                        ):
+                            continue
+                    stack.append(edge.target.id)
+
+        # 2b) downstream from each transformer (only iterator outputs from transformers)
+        for tid in trans_ids:
+            stack = [tid]
+            while stack:
+                nid = stack.pop()
+                if nid in iterative:
+                    continue
+                iterative.add(nid)
+                for edge in self.chain.edges_from(nid):
+                    src_node = self.chain.nodes[edge.source.id]
+                    if isinstance(src_node, GeneratorNode):
+                        # only follow the iterable outputs
+                        if (
+                            edge.source.output_id
+                            not in src_node.data.single_iterable_output.outputs
+                        ):
+                            continue
+                    elif isinstance(src_node, TransformerNode):
                         # only follow the iterable outputs
                         if (
                             edge.source.output_id
@@ -1038,6 +1400,8 @@ class Executor:
                     has_downstream=has_downstream,
                     fanout=fanout,
                 )
+            elif isinstance(node, TransformerNode):
+                self._runtimes[node.id] = TransformerRuntimeNode(node, self, fanout)
             elif isinstance(node, FunctionNode):
                 if is_leaf and node.has_side_effects():
                     self._runtimes[node.id] = SideEffectLeafRuntimeNode(
@@ -1116,8 +1480,10 @@ class Executor:
     # ------------------------------------------------------------------
     def _run_node_immediate(
         self, node: Node, context: _ExecutorNodeContext, inputs: list[object]
-    ) -> NodeOutput | CollectorOutput:
+    ) -> NodeOutput | CollectorOutput | TransformerOutput:
         if node.data.kind == "collector":
+            ignored = node.data.single_iterable_input.inputs
+        elif node.data.kind == "transformer":
             ignored = node.data.single_iterable_input.inputs
         else:
             ignored = []
@@ -1135,6 +1501,8 @@ class Executor:
                 return CollectorOutput(raw)
             if node.data.kind == "generator":
                 return enforce_generator_output(raw, node.data)
+            if node.data.kind == "transformer":
+                return enforce_transformer_output(raw, node.data)
             return enforce_output(raw, node.data)
         except Exception as e:
             info = collect_input_information(node.data, enforced_inputs)

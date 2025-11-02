@@ -71,3 +71,26 @@ R = TypeVar("R")
 class Collector(Generic[N, R]):
     on_iterate: Callable[[N], None]
     on_complete: Callable[[], R]
+
+
+I_in = TypeVar("I_in")
+O_out = TypeVar("O_out")
+
+
+@dataclass
+class Transformer(Generic[I_in, O_out]):
+    """
+    A transformer takes an input item and yields one or more output items.
+
+    The on_iterate function is called for each input item and should yield
+    zero or more output items. This allows transformers to change the length
+    of sequences at runtime.
+    """
+
+    on_iterate: Callable[[I_in], Iterable[O_out | Exception]]
+    expected_length: int | None = None
+    metadata: object | None = None
+
+    def with_metadata(self, metadata: object):
+        self.metadata = metadata
+        return self
