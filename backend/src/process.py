@@ -495,8 +495,8 @@ class RuntimeNode(Iterator[Output]):
         self._started = False
         self._finished = False
         self._iter_timer = _IterationTimer(executor.progress)
-        # 0 means "no meaningful expected length"
-        self._expected_len = 0
+        # None means "no meaningful expected length", 0 means "expected length is 0"
+        self._expected_len: int | None = None
 
     def _ensure_started(self) -> None:
         if not self._started:
@@ -505,7 +505,7 @@ class RuntimeNode(Iterator[Output]):
 
     def _send_progress(self) -> None:
         # only broadcast progress if we actually know the length
-        if not self._expected_len:
+        if self._expected_len is None:
             return
         idx = self._iter_timer.iterations
         total = self._expected_len
@@ -514,7 +514,7 @@ class RuntimeNode(Iterator[Output]):
     def _finish(self) -> None:
         if not self._finished:
             # only send progress-done if we sent progress at all
-            if self._expected_len:
+            if self._expected_len is not None:
                 self.executor.send_node_progress_done(
                     self.node, self._iter_timer.iterations
                 )
@@ -666,7 +666,7 @@ class GeneratorRuntimeNode(RuntimeNode):
         self._partial = out.partial_output
         # Create iterator from the generator's supplier function
         self._gen_iter = out.generator.supplier().__iter__()
-        self._expected_len = out.generator.expected_length or 0
+        self._expected_len = out.generator.expected_length
         return True
 
     # ---------- main logic ----------
@@ -1108,11 +1108,7 @@ class TransformerRuntimeNode(RuntimeNode):
         self._input_iterator = upstream_iterator()
         self._current_output_iter = None
         self._items_produced = 0
-        self._expected_len = (
-            out.transformer.expected_length
-            if out.transformer.expected_length is not None
-            else 0
-        )
+        self._expected_len = out.transformer.expected_length
         return True
 
     # ---------- main logic ----------
@@ -1161,7 +1157,11 @@ class TransformerRuntimeNode(RuntimeNode):
 
             # Check if we've already produced enough items before getting next input
             # This handles the case where expected_length is set and we've reached it
-            if self._expected_len > 0 and self._items_produced >= self._expected_len:
+            if (
+                self._expected_len is not None
+                and self._expected_len > 0
+                and self._items_produced >= self._expected_len
+            ):
                 # We've produced all expected items, finish
                 self._finish()
                 raise StopIteration
