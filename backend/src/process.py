@@ -1319,6 +1319,11 @@ class Executor:
                 if nid in iterative:
                     continue
                 iterative.add(nid)
+                # Check if this node is a collector - collectors break iterator lineage
+                current_node = self.chain.nodes[nid]
+                if isinstance(current_node, CollectorNode):
+                    # Don't follow edges from collectors - they produce final outputs
+                    continue
                 for edge in self.chain.edges_from(nid):
                     src_node = self.chain.nodes[edge.source.id]
                     if isinstance(src_node, GeneratorNode):
@@ -1345,6 +1350,11 @@ class Executor:
                 if nid in iterative:
                     continue
                 iterative.add(nid)
+                # Check if this node is a collector - collectors break iterator lineage
+                current_node = self.chain.nodes[nid]
+                if isinstance(current_node, CollectorNode):
+                    # Don't follow edges from collectors - they produce final outputs
+                    continue
                 for edge in self.chain.edges_from(nid):
                     src_node = self.chain.nodes[edge.source.id]
                     if isinstance(src_node, GeneratorNode):
