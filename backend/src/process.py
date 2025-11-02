@@ -327,6 +327,7 @@ class RuntimeNode(Iterator[Output]):
         self._started = False
         self._finished = False
         self._iter_timer = _IterationTimer(executor.progress)
+        # 0 means "no meaningful expected length"
         self._expected_len = 0
 
     def _ensure_started(self):
@@ -335,15 +336,20 @@ class RuntimeNode(Iterator[Output]):
             self._started = True
 
     def _send_progress(self):
+        # NEW: only broadcast progress if we actually know the length
+        if not self._expected_len:
+            return
         idx = self._iter_timer.iterations
-        total = self._expected_len if self._expected_len else idx
+        total = self._expected_len
         self.executor._send_node_progress(self.node, self._iter_timer.times, idx, total)
 
     def _finish(self):
         if not self._finished:
-            self.executor._send_node_progress_done(
-                self.node, self._iter_timer.iterations
-            )
+            # NEW: only send progress-done if we sent progress at all
+            if self._expected_len:
+                self.executor._send_node_progress_done(
+                    self.node, self._iter_timer.iterations
+                )
             self.executor._send_node_finish(
                 self.node, self._iter_timer.get_time_since_start()
             )
@@ -1003,6 +1009,13 @@ class Executor:
         await self._finalize_chain()
 
     async def _finalize_chain(self):
+        # 1) force-finish every runtime that was started but not finished
+        #    this sends node-progress-done and node-finish
+        for rt in self._runtimes.values():
+            if rt._started and not rt._finished:
+                rt._finish()
+
+        # 2) run chain-level cleanups
         for ctx in self.__context_cache.values():
             for fn in ctx.chain_cleanup_fns:
                 try:
@@ -1010,15 +1023,11 @@ class Executor:
                 except Exception as e:
                     logger.error("Error running cleanup function: %s", e)
 
+        # 3) wait for all outstanding broadcasts
         tasks = self.__broadcast_tasks
         self.__broadcast_tasks = []
         for t in tasks:
             await t
-
-        # NEW: force-finish any started-but-unfinished runtime
-        for rt in self._runtimes.values():
-            if rt._started and not rt._finished:
-                rt._finish()
 
     # ------------------------------------------------------------------
     # events
