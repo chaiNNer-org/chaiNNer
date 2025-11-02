@@ -34,7 +34,13 @@ from api.settings import SettingsParser
 from chain.chain import Chain, CollectorNode, FunctionNode
 from chain.input import InputMap
 from events import EventQueue
-from process import ExecutionId, Executor, _ExecutorNodeContext
+from process import (
+    CollectorOutput,
+    ExecutionId,
+    Executor,
+    RegularOutput,
+    _ExecutorNodeContext,
+)
 
 
 def create_mock_node_data(
@@ -357,7 +363,7 @@ class TestRunNodeImmediate:
 
         # Should return RegularOutput
         assert result is not None
-        assert hasattr(result, "output")
+        assert isinstance(result, RegularOutput)
         assert result.output == [42]
 
 
@@ -463,7 +469,7 @@ class TestCollectorIteration:
 
         # Verify we got a CollectorOutput
         assert collector_result is not None
-        assert hasattr(collector_result, "collector")
+        assert isinstance(collector_result, CollectorOutput)
         collector_obj = collector_result.collector
 
         # Test iteration
