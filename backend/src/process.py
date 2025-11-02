@@ -500,7 +500,7 @@ class RuntimeNode(Iterator[Output]):
 
     def _ensure_started(self) -> None:
         if not self._started:
-            self.executor._send_node_start(self.node)
+            self.executor.send_node_start(self.node)
             self._started = True
 
     def _send_progress(self) -> None:
@@ -509,16 +509,16 @@ class RuntimeNode(Iterator[Output]):
             return
         idx = self._iter_timer.iterations
         total = self._expected_len
-        self.executor._send_node_progress(self.node, self._iter_timer.times, idx, total)
+        self.executor.send_node_progress(self.node, self._iter_timer.times, idx, total)
 
     def _finish(self) -> None:
         if not self._finished:
             # only send progress-done if we sent progress at all
             if self._expected_len:
-                self.executor._send_node_progress_done(
+                self.executor.send_node_progress_done(
                     self.node, self._iter_timer.iterations
                 )
-            self.executor._send_node_finish(
+            self.executor.send_node_finish(
                 self.node, self._iter_timer.get_time_since_start()
             )
             self._finished = True
@@ -543,9 +543,9 @@ class StaticRuntimeNode(RuntimeNode):
             raise StopIteration
 
         # leaf fed only by final collectors? only run once
-        if self.executor._raw_downstream_counts[self.node.id] == 0:
+        if self.executor.raw_downstream_counts[self.node.id] == 0:
             if (
-                self.executor._all_inputs_from_final_collectors(self.node)
+                self.executor.all_inputs_from_final_collectors(self.node)
                 and self._ran_on_final_collectors
             ):
                 self._finish()
@@ -553,17 +553,17 @@ class StaticRuntimeNode(RuntimeNode):
 
         if self._current_value is None:
             inputs = self.executor.runtime_inputs_for(self.node)
-            ctx = self.executor._get_node_context(self.node)
-            raw = self.executor._run_node_immediate(self.node, ctx, inputs)
+            ctx = self.executor.get_node_context(self.node)
+            raw = self.executor.run_node_immediate(self.node, ctx, inputs)
             if not isinstance(raw, RegularOutput):
                 raise RuntimeError(
                     f"StaticRuntimeNode for {self.node.id} expected RegularOutput but received {type(raw).__name__}."
                 )
-            self.executor._send_node_broadcast(self.node, raw.output)
+            self.executor.send_node_broadcast(self.node, raw.output)
             self._current_value = raw.output
 
             # mark that we have run once on finalized collectors
-            if self.executor._all_inputs_from_final_collectors(self.node):
+            if self.executor.all_inputs_from_final_collectors(self.node):
                 self._ran_on_final_collectors = True
 
         out = self._current_value
@@ -576,9 +576,9 @@ class StaticRuntimeNode(RuntimeNode):
             self._current_served = 0
             if not self.iterative:
                 self._finish()
-            elif self.executor._raw_downstream_counts[
+            elif self.executor.raw_downstream_counts[
                 self.node.id
-            ] == 0 and self.executor._all_inputs_from_final_collectors(self.node):
+            ] == 0 and self.executor.all_inputs_from_final_collectors(self.node):
                 self._finish()
 
         return out
@@ -626,7 +626,7 @@ class GeneratorRuntimeNode(RuntimeNode):
                 return True
 
             if isinstance(src_node, CollectorNode):
-                rt = self.executor._runtimes[src_id]
+                rt = self.executor.runtimes[src_id]
                 if isinstance(rt, CollectorRuntimeNode) and rt.iterative:
                     return True
 
@@ -659,8 +659,8 @@ class GeneratorRuntimeNode(RuntimeNode):
             # Real upstream exhaustion - no more data available
             return False
 
-        ctx = self.executor._get_node_context(self.node)
-        out = self.executor._run_node_immediate(self.node, ctx, inputs)
+        ctx = self.executor.get_node_context(self.node)
+        out = self.executor.run_node_immediate(self.node, ctx, inputs)
         assert isinstance(out, GeneratorOutput)
 
         self._partial = out.partial_output
@@ -725,7 +725,7 @@ class GeneratorRuntimeNode(RuntimeNode):
             if o.id in iterable_output.outputs:
                 full_out[idx] = o.enforce(seq_vals.pop(0))
 
-        self.executor._send_node_broadcast(self.node, full_out)
+        self.executor.send_node_broadcast(self.node, full_out)
         return full_out
 
     def __next__(self) -> Output:
@@ -777,7 +777,7 @@ class CollectorRuntimeNode(RuntimeNode):
     def _set_final(self, value: Output) -> None:
         self._final_output = value
         # broadcast once
-        self.executor._send_node_broadcast(self.node, value)
+        self.executor.send_node_broadcast(self.node, value)
 
     def __next__(self) -> Output:
         self._ensure_started()
@@ -803,8 +803,8 @@ class CollectorRuntimeNode(RuntimeNode):
             except StopIteration as err:
                 # No iterable inputs available - finalize immediately with empty collection
                 all_inputs = self.executor.runtime_inputs_for(self.node)
-                ctx = self.executor._get_node_context(self.node)
-                raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                ctx = self.executor.get_node_context(self.node)
+                raw = self.executor.run_node_immediate(self.node, ctx, all_inputs)
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -821,8 +821,8 @@ class CollectorRuntimeNode(RuntimeNode):
             # There was at least one iterable item - initialize collector if needed
             if self._collector is None:
                 all_inputs = self.executor.runtime_inputs_for(self.node)
-                ctx = self.executor._get_node_context(self.node)
-                raw = self.executor._run_node_immediate(self.node, ctx, all_inputs)
+                ctx = self.executor.get_node_context(self.node)
+                raw = self.executor.run_node_immediate(self.node, ctx, all_inputs)
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -884,8 +884,8 @@ class CollectorRuntimeNode(RuntimeNode):
                         full_inputs.append(None)  # Exhausted iterable input
                     else:
                         full_inputs.append(next(non_it, None))
-                ctx = self.executor._get_node_context(self.node)
-                raw = self.executor._run_node_immediate(self.node, ctx, full_inputs)
+                ctx = self.executor.get_node_context(self.node)
+                raw = self.executor.run_node_immediate(self.node, ctx, full_inputs)
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -919,8 +919,8 @@ class CollectorRuntimeNode(RuntimeNode):
                     init_inputs.append(next(it_iter))
                 else:
                     init_inputs.append(next(it_non, None))
-            ctx = self.executor._get_node_context(self.node)
-            raw = self.executor._run_node_immediate(self.node, ctx, init_inputs)
+            ctx = self.executor.get_node_context(self.node)
+            raw = self.executor.run_node_immediate(self.node, ctx, init_inputs)
             if not isinstance(raw, CollectorOutput):
                 raise RuntimeError(
                     f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -996,7 +996,7 @@ class TransformerRuntimeNode(RuntimeNode):
                 return True
 
             if isinstance(src_node, CollectorNode):
-                rt = self.executor._runtimes[src_id]
+                rt = self.executor.runtimes[src_id]
                 if isinstance(rt, CollectorRuntimeNode) and rt.iterative:
                     return True
 
@@ -1037,7 +1037,7 @@ class TransformerRuntimeNode(RuntimeNode):
 
         src_id = edge.source.id
         src_node = self.executor.chain.nodes[src_id]
-        upstream_rt = self.executor._runtimes[src_id]
+        upstream_rt = self.executor.runtimes[src_id]
 
         # Find the output index that corresponds to this edge
         try:
@@ -1095,8 +1095,8 @@ class TransformerRuntimeNode(RuntimeNode):
             else:
                 full_inputs.append(next(it_non, None))
 
-        ctx = self.executor._get_node_context(self.node)
-        out = self.executor._run_node_immediate(self.node, ctx, full_inputs)
+        ctx = self.executor.get_node_context(self.node)
+        out = self.executor.run_node_immediate(self.node, ctx, full_inputs)
         assert isinstance(out, TransformerOutput)
 
         self._partial = out.partial_output
@@ -1199,7 +1199,7 @@ class TransformerRuntimeNode(RuntimeNode):
             if o.id in iterable_output.outputs:
                 full_out[idx] = o.enforce(seq_vals.pop(0))
 
-        self.executor._send_node_broadcast(self.node, full_out)
+        self.executor.send_node_broadcast(self.node, full_out)
         return full_out
 
     def __next__(self) -> Output:
@@ -1241,7 +1241,7 @@ class SideEffectLeafRuntimeNode(RuntimeNode):
 
         # if all parents are final collectors and we already ran once, stop
         if (
-            self.executor._all_inputs_from_final_collectors(self.node)
+            self.executor.all_inputs_from_final_collectors(self.node)
             and self._ran_on_final_collectors
         ):
             self._finish()
@@ -1259,17 +1259,17 @@ class SideEffectLeafRuntimeNode(RuntimeNode):
             raise
 
         # run node
-        ctx = self.executor._get_node_context(self.node)
-        out = self.executor._run_node_immediate(self.node, ctx, inputs)
+        ctx = self.executor.get_node_context(self.node)
+        out = self.executor.run_node_immediate(self.node, ctx, inputs)
 
         if isinstance(out, RegularOutput):
-            self.executor._send_node_broadcast(self.node, out.output)
+            self.executor.send_node_broadcast(self.node, out.output)
 
         self._iter_timer.add()
         self._send_progress()
 
         # if all parents are final collectors, mark and finish next time
-        if self.executor._all_inputs_from_final_collectors(self.node):
+        if self.executor.all_inputs_from_final_collectors(self.node):
             self._ran_on_final_collectors = True
 
         # if this leaf was not supposed to be iterative, end right now
@@ -1310,11 +1310,11 @@ class Executor:
         self.__broadcast_tasks: list[asyncio.Task[None]] = []
 
         (
-            self._raw_downstream_counts,
+            self.raw_downstream_counts,
             self._downstream_counts,
         ) = self._compute_downstream_counts()
         self._iterative_nodes = self._compute_iterative_nodes()
-        self._runtimes: dict[NodeId, RuntimeNode] = {}
+        self.runtimes: dict[NodeId, RuntimeNode] = {}
         self._build_runtimes()
 
     # ------------------------------------------------------------------
@@ -1407,13 +1407,13 @@ class Executor:
         for node in self.chain.nodes.values():
             fanout = self._downstream_counts[node.id]
             iterative = node.id in self._iterative_nodes
-            is_leaf = self._raw_downstream_counts[node.id] == 0
+            is_leaf = self.raw_downstream_counts[node.id] == 0
 
             if isinstance(node, GeneratorNode):
-                self._runtimes[node.id] = GeneratorRuntimeNode(node, self, fanout)
+                self.runtimes[node.id] = GeneratorRuntimeNode(node, self, fanout)
             elif isinstance(node, CollectorNode):
-                has_downstream = self._raw_downstream_counts[node.id] > 0
-                self._runtimes[node.id] = CollectorRuntimeNode(
+                has_downstream = self.raw_downstream_counts[node.id] > 0
+                self.runtimes[node.id] = CollectorRuntimeNode(
                     node,
                     self,
                     inner=None,
@@ -1422,14 +1422,14 @@ class Executor:
                     fanout=fanout,
                 )
             elif isinstance(node, TransformerNode):
-                self._runtimes[node.id] = TransformerRuntimeNode(node, self, fanout)
+                self.runtimes[node.id] = TransformerRuntimeNode(node, self, fanout)
             elif isinstance(node, FunctionNode):
                 if is_leaf and node.has_side_effects():
-                    self._runtimes[node.id] = SideEffectLeafRuntimeNode(
+                    self.runtimes[node.id] = SideEffectLeafRuntimeNode(
                         node, self, iterative=iterative
                     )
                 else:
-                    self._runtimes[node.id] = StaticRuntimeNode(
+                    self.runtimes[node.id] = StaticRuntimeNode(
                         node, self, fanout, iterative=iterative
                     )
             else:
@@ -1467,7 +1467,7 @@ class Executor:
                         f"Output id {output_id} not found in source node {src_id}"
                     ) from exc
 
-                upstream_rt = self._runtimes[src_id]
+                upstream_rt = self.runtimes[src_id]
 
                 # collector that is not done yet must be driven by the root loop
                 if isinstance(upstream_rt, CollectorRuntimeNode):
@@ -1499,7 +1499,7 @@ class Executor:
     # ------------------------------------------------------------------
     # immediate node run
     # ------------------------------------------------------------------
-    def _run_node_immediate(
+    def run_node_immediate(
         self, node: Node, context: _ExecutorNodeContext, inputs: list[object]
     ) -> NodeOutput | CollectorOutput | TransformerOutput:
         if node.data.kind == "collector":
@@ -1530,7 +1530,7 @@ class Executor:
             logger.exception("Error running node %s (%s)", node.data.name, node.id)
             raise NodeExecutionError(node.id, node.data, str(e), info) from e
 
-    def _get_node_context(self, node: Node) -> _ExecutorNodeContext:
+    def get_node_context(self, node: Node) -> _ExecutorNodeContext:
         ctx = self.__context_cache.get(node.schema_id)
         if ctx is None:
             pkg = registry.get_package(node.schema_id)
@@ -1569,9 +1569,9 @@ class Executor:
         roots: list[RuntimeNode] = []
 
         # Identify all root nodes that need to be driven
-        for rt in self._runtimes.values():
+        for rt in self.runtimes.values():
             node_id = rt.node.id
-            is_leaf = self._raw_downstream_counts[node_id] == 0
+            is_leaf = self.raw_downstream_counts[node_id] == 0
 
             if isinstance(rt, CollectorRuntimeNode):
                 roots.append(rt)
@@ -1607,7 +1607,7 @@ class Executor:
 
     async def _finalize_chain(self) -> None:
         # 1) force-finish every runtime that was started but not finished
-        for rt in self._runtimes.values():
+        for rt in self.runtimes.values():
             if rt._started and not rt._finished:
                 rt._finish()
 
@@ -1632,10 +1632,10 @@ class Executor:
         nodes = list(self.chain.nodes.keys())
         self.queue.put({"event": "chain-start", "data": {"nodes": nodes}})
 
-    def _send_node_start(self, node: Node) -> None:
+    def send_node_start(self, node: Node) -> None:
         self.queue.put({"event": "node-start", "data": {"nodeId": node.id}})
 
-    def _send_node_progress(
+    def send_node_progress(
         self, node: Node, times: list[float], index: int, length: int
     ) -> None:
         def get_eta(ts: list[float]) -> float:
@@ -1660,7 +1660,7 @@ class Executor:
             }
         )
 
-    def _send_node_progress_done(self, node: Node, length: int) -> None:
+    def send_node_progress_done(self, node: Node, length: int) -> None:
         self.queue.put(
             {
                 "event": "node-progress",
@@ -1674,7 +1674,7 @@ class Executor:
             }
         )
 
-    def _send_node_broadcast(
+    def send_node_broadcast(
         self,
         node: Node,
         output: Output,
@@ -1711,7 +1711,7 @@ class Executor:
 
         self.__broadcast_tasks.append(self.loop.create_task(send()))
 
-    def _send_node_finish(self, node: Node, execution_time: float) -> None:
+    def send_node_finish(self, node: Node, execution_time: float) -> None:
         self.queue.put(
             {
                 "event": "node-finish",
@@ -1719,12 +1719,12 @@ class Executor:
             }
         )
 
-    def _all_inputs_from_final_collectors(self, node: Node) -> bool:
+    def all_inputs_from_final_collectors(self, node: Node) -> bool:
         for node_input in node.data.inputs:
             edge = self.chain.edge_to(node.id, node_input.id)
             if edge is None:
                 return False
-            upstream_rt = self._runtimes[edge.source.id]
+            upstream_rt = self.runtimes[edge.source.id]
             if not (
                 isinstance(upstream_rt, CollectorRuntimeNode) and upstream_rt.is_done()
             ):
@@ -1749,18 +1749,18 @@ class Executor:
             # For generators, only initialize to get Generator object
             # and type info. Do NOT iterate through outputs.
             start_time = time.perf_counter()
-            self._send_node_start(node)
+            self.send_node_start(node)
 
             # Get inputs and run node to get GeneratorOutput
             inputs = self.runtime_inputs_for(node)
-            node_ctx = self._get_node_context(node)
-            gen_output = self._run_node_immediate(node, node_ctx, inputs)
+            node_ctx = self.get_node_context(node)
+            gen_output = self.run_node_immediate(node, node_ctx, inputs)
             if not isinstance(gen_output, GeneratorOutput):
                 raise RuntimeError(f"Generator node {node.id} expected GeneratorOutput")
 
             # Send broadcast with partial outputs and Generator
             # for type info
-            self._send_node_broadcast(
+            self.send_node_broadcast(
                 node,
                 gen_output.partial_output,
                 generators=[gen_output.generator],
@@ -1768,14 +1768,14 @@ class Executor:
 
             # Send node-finish event
             execution_time = time.perf_counter() - start_time
-            self._send_node_finish(node, execution_time)
+            self.send_node_finish(node, execution_time)
 
             # Finalize chain so broadcasts and cleanups finish
             await self._finalize_chain()
             return None  # Generators are not cached
         else:
             # Runtime nodes are built in executor.__init__
-            runtime = self._runtimes[node.id]
+            runtime = self.runtimes[node.id]
 
             # Manually iterate regular node runtime
             # Get the first output, then drain any remaining iterations
