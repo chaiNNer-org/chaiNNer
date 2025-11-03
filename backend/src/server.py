@@ -370,7 +370,7 @@ async def run_individual(request: Request):
                 # kill previous one for the same id
                 if execution_id in ctx.individual_executors:
                     old_executor = ctx.individual_executors[execution_id]
-                    old_executor.progress.abort()
+                    old_executor.kill()
 
                 ctx.individual_executors[execution_id] = executor
 
