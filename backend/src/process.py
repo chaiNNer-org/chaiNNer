@@ -524,7 +524,7 @@ class RuntimeNode(Iterator[Output]):
             # only send progress-done if we sent progress at all
             if self._expected_len is not None:
                 self.executor.send_node_progress_done(
-                    self.node, self._iter_timer.iterations
+                    self.node, self._iter_timer.iterations, self._expected_len
                 )
             self.executor.send_node_finish(
                 self.node, self._iter_timer.get_time_since_start()
@@ -1206,9 +1206,10 @@ class TransformerRuntimeNode(RuntimeNode):
                 self._input_iterator = None
                 self._current_output_iter = None
                 self._partial = None
-                self._items_produced = 0
-
+                # Don't reset _items_produced before _finish() -
+                # it needs the count for final progress
                 self._finish()
+                self._items_produced = 0
                 raise StopIteration from None
 
             # Transform the input item to get output iterator
@@ -1231,6 +1232,34 @@ class TransformerRuntimeNode(RuntimeNode):
 
         self.executor.send_node_broadcast(self.node, full_out)
         return full_out
+
+    def _send_progress(self) -> None:
+        """
+        Override to use _items_produced instead of _iter_timer.iterations.
+        This ensures progress doesn't exceed expected_length when fanout > 1.
+        """
+        # only broadcast progress if we actually know the length
+        if self._expected_len is None:
+            return
+        idx = self._items_produced
+        total = self._expected_len
+        self.executor.send_node_progress(self.node, self._iter_timer.times, idx, total)
+
+    def _finish(self) -> None:
+        """
+        Override to use _items_produced instead of _iter_timer.iterations.
+        This ensures the final progress shows the correct number of items produced.
+        """
+        if not self._finished:
+            # only send progress-done if we sent progress at all
+            if self._expected_len is not None:
+                self.executor.send_node_progress_done(
+                    self.node, self._items_produced, self._expected_len
+                )
+            self.executor.send_node_finish(
+                self.node, self._iter_timer.get_time_since_start()
+            )
+            self._finished = True
 
     def __next__(self) -> Output:
         self._ensure_started()
@@ -1716,15 +1745,15 @@ class Executor:
             }
         )
 
-    def send_node_progress_done(self, node: Node, length: int) -> None:
+    def send_node_progress_done(self, node: Node, index: int, total: int) -> None:
         self.queue.put(
             {
                 "event": "node-progress",
                 "data": {
                     "nodeId": node.id,
                     "progress": 1,
-                    "index": length,
-                    "total": length,
+                    "index": index,
+                    "total": total,
                     "eta": 0,
                 },
             }
