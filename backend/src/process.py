@@ -505,6 +505,9 @@ class RuntimeNode(Iterator[Output]):
         self._iter_timer = _IterationTimer(executor.progress)
         # None means "no meaningful expected length", 0 means "expected length is 0"
         self._expected_len: int | None = None
+        # For generators/transformers: tracks actual items produced (vs iterations with fanout)
+        # For other nodes: None means use _iter_timer.iterations instead
+        self._items_produced: int | None = None
 
     def _ensure_started(self) -> None:
         if not self._started:
@@ -515,7 +518,12 @@ class RuntimeNode(Iterator[Output]):
         # only broadcast progress if we actually know the length
         if self._expected_len is None:
             return
-        idx = self._iter_timer.iterations
+        # Use _items_produced if available (generators/transformers), otherwise iterations
+        idx = (
+            self._items_produced
+            if self._items_produced is not None
+            else self._iter_timer.iterations
+        )
         total = self._expected_len
         self.executor.send_node_progress(self.node, self._iter_timer.times, idx, total)
 
@@ -523,8 +531,14 @@ class RuntimeNode(Iterator[Output]):
         if not self._finished:
             # only send progress-done if we sent progress at all
             if self._expected_len is not None:
+                # Use _items_produced if available (generators/transformers), otherwise iterations
+                idx = (
+                    self._items_produced
+                    if self._items_produced is not None
+                    else self._iter_timer.iterations
+                )
                 self.executor.send_node_progress_done(
-                    self.node, self._iter_timer.iterations, self._expected_len
+                    self.node, idx, self._expected_len
                 )
             self.executor.send_node_finish(
                 self.node, self._iter_timer.get_time_since_start()
@@ -628,6 +642,7 @@ class GeneratorRuntimeNode(RuntimeNode):
         self._current_value: Output | None = None
         self._gen_iter: Iterator | None = None
         self._partial: Output | None = None
+        self._items_produced = 0
 
     # ---------- helpers ----------
 
@@ -698,6 +713,7 @@ class GeneratorRuntimeNode(RuntimeNode):
         # Create iterator from the generator's supplier function
         self._gen_iter = out.generator.supplier().__iter__()
         self._expected_len = out.generator.expected_length
+        self._items_produced = 0
         return True
 
     # ---------- main logic ----------
@@ -730,6 +746,9 @@ class GeneratorRuntimeNode(RuntimeNode):
                 # Inner iterator exhausted - need to decide whether to restart
                 self._gen_iter = None
                 self._partial = None
+                # Don't reset _items_produced before _finish() -
+                # it needs the count for final progress
+                # Reset will happen in _init_new_inner() if we re-init
 
                 # Check if we should re-init or stop
                 # Only re-init if we have a truly iterative parent that can feed us more
@@ -742,6 +761,10 @@ class GeneratorRuntimeNode(RuntimeNode):
 
             # Successfully got a value from current inner iterator
             break
+
+        # Increment items produced counter when we successfully get an item
+        assert self._items_produced is not None
+        self._items_produced += 1
 
         assert self._partial is not None
         iterable_output = self.node.data.single_iterable_output
@@ -1178,6 +1201,7 @@ class TransformerRuntimeNode(RuntimeNode):
                 try:
                     values = next(self._current_output_iter)
                     # Successfully got a value from current output iterator
+                    assert self._items_produced is not None
                     self._items_produced += 1
                     break
                 except StopIteration:
@@ -1187,6 +1211,7 @@ class TransformerRuntimeNode(RuntimeNode):
 
             # Check if we've already produced enough items before getting next input
             # This handles the case where expected_length is set and we've reached it
+            assert self._items_produced is not None
             if (
                 self._expected_len is not None
                 and self._expected_len > 0
@@ -1232,34 +1257,6 @@ class TransformerRuntimeNode(RuntimeNode):
 
         self.executor.send_node_broadcast(self.node, full_out)
         return full_out
-
-    def _send_progress(self) -> None:
-        """
-        Override to use _items_produced instead of _iter_timer.iterations.
-        This ensures progress doesn't exceed expected_length when fanout > 1.
-        """
-        # only broadcast progress if we actually know the length
-        if self._expected_len is None:
-            return
-        idx = self._items_produced
-        total = self._expected_len
-        self.executor.send_node_progress(self.node, self._iter_timer.times, idx, total)
-
-    def _finish(self) -> None:
-        """
-        Override to use _items_produced instead of _iter_timer.iterations.
-        This ensures the final progress shows the correct number of items produced.
-        """
-        if not self._finished:
-            # only send progress-done if we sent progress at all
-            if self._expected_len is not None:
-                self.executor.send_node_progress_done(
-                    self.node, self._items_produced, self._expected_len
-                )
-            self.executor.send_node_finish(
-                self.node, self._iter_timer.get_time_since_start()
-            )
-            self._finished = True
 
     def __next__(self) -> Output:
         self._ensure_started()
