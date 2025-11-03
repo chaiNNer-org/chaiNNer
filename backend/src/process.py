@@ -1089,9 +1089,10 @@ class TransformerRuntimeNode(RuntimeNode):
         it_non = iter(non_iter_vals)
         for inp in self.node.data.inputs:
             if inp.id == iterator_input_id:
-                # Pass the lazy iterator for the sequence input to the node's run() method
-                # This allows the transformer to see the full sequence
-                full_inputs.append(upstream_iterator())
+                # Pass None for the iterable input - transformers don't receive
+                # the iterator in their run() method. The iterator is only used
+                # during execution via on_iterate()
+                full_inputs.append(None)
             else:
                 full_inputs.append(next(it_non, None))
 
@@ -1101,10 +1102,8 @@ class TransformerRuntimeNode(RuntimeNode):
 
         self._partial = out.partial_output
         self._transformer = out.transformer
-        # Create a fresh iterator for our internal use to pull items incrementally
-        # Note: we call upstream_iterator() again here because the first call was
-        # consumed by the node's run() method. We need a new iterator to actually
-        # iterate over items during execution.
+        # Create the iterator for incremental execution - items will be pulled
+        # one at a time via on_iterate() during the _advance() method
         self._input_iterator = upstream_iterator()
         self._current_output_iter = None
         self._items_produced = 0

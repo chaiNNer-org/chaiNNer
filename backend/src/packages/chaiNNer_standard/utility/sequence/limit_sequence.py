@@ -40,19 +40,9 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="Input1"),
 )
 def limit_sequence_node(
-    sequence: Iterable[T],  # Unused - transformer receives items via on_iterate
+    _: None,
     limit: int,
 ) -> Transformer[T, T]:
-    """
-    Limits a sequence to the specified number of items.
-
-    Args:
-        sequence: The input sequence to limit (passed by runtime as iterator)
-        limit: Maximum number of items to return
-
-    Returns:
-        A Transformer that yields at most `limit` items from the input sequence
-    """
     limit = max(limit, 0)
     count = [0]  # Use list to allow modification in nested function
 
