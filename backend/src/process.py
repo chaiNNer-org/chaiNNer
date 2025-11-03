@@ -552,15 +552,38 @@ class StaticRuntimeNode(RuntimeNode):
                 raise StopIteration
 
         if self._current_value is None:
-            inputs = self.executor.runtime_inputs_for(self.node)
-            ctx = self.executor.get_node_context(self.node)
-            raw = self.executor.run_node_immediate(self.node, ctx, inputs)
-            if not isinstance(raw, RegularOutput):
-                raise RuntimeError(
-                    f"StaticRuntimeNode for {self.node.id} expected RegularOutput but received {type(raw).__name__}."
-                )
-            self.executor.send_node_broadcast(self.node, raw.output)
-            self._current_value = raw.output
+            # Check cache before computing
+            cached_result: NodeOutput | None = None
+            strategy = self.executor.cache_strategy.get(self.node.id)
+
+            # First check parent_cache (cross-execution persistence)
+            if self.executor.node_cache.parent is not None:
+                cached_result = self.executor.node_cache.parent.get(self.node.id)
+
+            # Then check current execution cache
+            if cached_result is None:
+                cached_result = self.executor.node_cache.get(self.node.id)
+
+            # Use cached result if available and valid
+            if cached_result is not None and isinstance(cached_result, RegularOutput):
+                self._current_value = cached_result.output
+            else:
+                # Compute fresh result
+                inputs = self.executor.runtime_inputs_for(self.node)
+                ctx = self.executor.get_node_context(self.node)
+                raw = self.executor.run_node_immediate(self.node, ctx, inputs)
+                if not isinstance(raw, RegularOutput):
+                    raise RuntimeError(
+                        f"StaticRuntimeNode for {self.node.id} "
+                        f"expected RegularOutput but received "
+                        f"{type(raw).__name__}."
+                    )
+                self.executor.send_node_broadcast(self.node, raw.output)
+                self._current_value = raw.output
+
+                # Store in cache if caching is enabled
+                if strategy is not None and not strategy.no_caching:
+                    self.executor.node_cache.set(self.node.id, raw, strategy)
 
             # mark that we have run once on finalized collectors
             if self.executor.all_inputs_from_final_collectors(self.node):
