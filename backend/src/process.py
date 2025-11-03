@@ -145,13 +145,14 @@ def enforce_inputs(
             # keep shape, but value is ignored for run() call
             return None
 
+        # we generally assume that enforcing a value is cheap, so we do it as soon as possible
         if i.lazy:
             if isinstance(value, Lazy):
                 return Lazy(lambda: i.enforce_(value.value))
             return Lazy.ready(i.enforce_(value))
 
         if isinstance(value, Lazy):
-            value = value.value
+            value = value.value  # compute lazy value
         return i.enforce_(value)
 
     try:
@@ -194,6 +195,7 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
                 f"Node {node.name} declares {output_count} outputs but returned {len(output)}."
             )
 
+    # output-specific validations
     for i, o in enumerate(node.outputs):
         output[i] = o.enforce(output[i])
 
@@ -459,13 +461,18 @@ class _ExecutorNodeContext(NodeContext):
 
     @property
     def paused(self) -> bool:
-        # Yield to other tasks to allow pause state to be checked
+        # Python is single-threaded, so it's necessary for this thread to yield, so other threads can do some work.
+        # This is necessary because the thread for accepting the `/pause` endpoint would not be able to accept requests otherwise.
+        # This in turn would mean that `self.progress.paused` would never be set to True.
+        # For more information, see https://github.com/chaiNNer-org/chaiNNer/pull/2853
         time.sleep(0)
         return self.progress.paused
 
     def set_progress(self, progress: float) -> None:
         # we emit progress via executor events instead
         self.check_aborted()
+
+        # TODO: send progress event
 
     @property
     def settings(self) -> SettingsParser:
@@ -481,6 +488,7 @@ class _ExecutorNodeContext(NodeContext):
         if after == "chain":
             self.chain_cleanup_fns.add(fn)
         else:
+            assert after == "node", "after must be 'node' or 'chain'"
             self.node_cleanup_fns.add(fn)
 
 
