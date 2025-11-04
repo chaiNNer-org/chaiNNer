@@ -29,6 +29,10 @@ export interface InvokeChannels {
         FileSaveResult,
         [saveData: SaveData, defaultPath: string | undefined]
     >;
+    'file-autosave': ChannelInfo<void, [saveData: SaveData]>;
+    'file-has-autosave': ChannelInfo<boolean>;
+    'file-load-autosave': ChannelInfo<SaveData | null>;
+    'file-delete-autosave': ChannelInfo<void>;
     'get-auto-open': ChannelInfo<FileOpenResult<ParsedSaveData> | undefined>;
     'owns-backend': ChannelInfo<boolean>;
     'restart-backend': ChannelInfo<void>;
