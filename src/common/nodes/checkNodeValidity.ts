@@ -201,6 +201,17 @@ export const checkAssignedLineage = (
             }
             break;
         }
+        case 'transformer': {
+            const isIterated = schema.iteratorInputs[0].inputs.includes(inputId);
+            if (isIterated) {
+                if (!sourceLineage) {
+                    return invalid(`Input ${input.label} expects a sequence.`);
+                }
+            } else if (sourceLineage) {
+                return nonIteratorInput();
+            }
+            break;
+        }
         default:
             return assertNever(schema.kind);
     }
