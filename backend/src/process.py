@@ -1621,27 +1621,60 @@ class Executor:
         finally:
             gc.collect()
 
-    async def _run_collectors_bottom_up(self) -> None:
+    def _identify_lineages(self) -> list[set[NodeId]]:
         """
-        Drive all roots in a round-robin loop until no progress can be made.
+        Group nodes into connected components (lineages) based on edges.
 
-        This is the main execution loop. It runs all root nodes (nodes with no
-        downstream dependencies) in a round-robin fashion, allowing each to make
-        progress. The loop continues until no root can make progress.
+        Returns a list of sets, where each set contains the node IDs
+        in one lineage. Nodes that are connected through edges belong
+        to the same lineage.
+        """
+        visited: set[NodeId] = set()
+        lineages: list[set[NodeId]] = []
 
-        Roots include:
-        - collectors (which need to be driven to completion)
-        - leaf side-effect nodes (nodes with side effects and no outputs)
-        - leaf static nodes (regular function nodes with no downstream)
+        def dfs(node_id: NodeId, lineage: set[NodeId]) -> None:
+            """Depth-first search to find all connected nodes."""
+            if node_id in visited:
+                return
+            visited.add(node_id)
+            lineage.add(node_id)
 
-        The round-robin approach ensures fairness and allows collectors to
-        accumulate data incrementally from multiple upstream sources.
+            # Follow edges in both directions (upstream and downstream)
+            # Downstream: nodes that this node feeds into
+            for edge in self.chain.edges_from(node_id):
+                dfs(edge.target.id, lineage)
+            # Upstream: nodes that feed into this node
+            for edge in self.chain.edges_to(node_id):
+                dfs(edge.source.id, lineage)
+
+        # Find all connected components
+        for node_id in self.chain.nodes.keys():
+            if node_id not in visited:
+                lineage: set[NodeId] = set()
+                dfs(node_id, lineage)
+                lineages.append(lineage)
+
+        return lineages
+
+    async def _run_lineage_to_completion(self, lineage_nodes: set[NodeId]) -> None:
+        """
+        Run a single lineage to completion.
+
+        Identifies root nodes within the lineage and runs them in
+        round-robin until the entire lineage is exhausted.
+
+        Args:
+            lineage_nodes: Set of node IDs belonging to this lineage
         """
         roots: list[RuntimeNode] = []
 
-        # Identify all root nodes that need to be driven
+        # Identify root nodes within this lineage
         for rt in self.runtimes.values():
             node_id = rt.node.id
+            # Only consider nodes that belong to this lineage
+            if node_id not in lineage_nodes:
+                continue
+
             is_leaf = self.raw_downstream_counts[node_id] == 0
 
             if isinstance(rt, CollectorRuntimeNode):
@@ -1655,13 +1688,14 @@ class Executor:
             if is_leaf:
                 roots.append(rt)
 
-        # Round-robin execution loop
+        # Round-robin execution loop for this lineage
         while True:
             # Check for abort state - exit early if killed
             if self.progress.aborted:
                 break
 
-            # Wait for resume if paused (will raise Aborted if killed while paused)
+            # Wait for resume if paused
+            # (will raise Aborted if killed while paused)
             try:
                 await self.progress.suspend()
             except Aborted:
@@ -1674,15 +1708,49 @@ class Executor:
                     _ = next(rt)
                     any_progress = True
                 except CollectorNotReady:
-                    # Upstream collector not done yet - skip for now, try again next iteration
+                    # Upstream collector not done yet - skip for now,
+                    # try again next iteration
                     pass
                 except StopIteration:
-                    # This root is exhausted - it will naturally stop being called
+                    # This root is exhausted - it will naturally
+                    # stop being called
                     pass
-            # Yield to event loop to allow other tasks to run (pauses, aborts, etc.)
+            # Yield to event loop to allow other tasks to run
+            # (pauses, aborts, etc.)
             await asyncio.sleep(0)
             if not any_progress:
-                # No root made progress this round - we're done
+                # No root made progress this round - lineage is done
+                break
+
+    async def _run_collectors_bottom_up(self) -> None:
+        """
+        Run each unconnected lineage to completion sequentially.
+
+        This is the main execution loop. It identifies all connected
+        components (lineages) in the chain and runs each one to completion
+        before moving to the next. This ensures that lineages don't depend
+        on each other and can complete independently.
+
+        Each lineage runs its roots in a round-robin fashion until
+        exhausted. Roots include:
+        - collectors (which need to be driven to completion)
+        - leaf side-effect nodes (nodes with side effects and no outputs)
+        - leaf static nodes (regular function nodes with no downstream)
+        """
+        # Identify all connected components (lineages)
+        lineages = self._identify_lineages()
+
+        # Run each lineage to completion sequentially
+        for lineage_nodes in lineages:
+            # Check for abort state between lineages
+            if self.progress.aborted:
+                break
+
+            # Run this lineage to completion
+            await self._run_lineage_to_completion(lineage_nodes)
+
+            # Check for abort state after lineage completion
+            if self.progress.aborted:
                 break
 
         await self._finalize_chain()
