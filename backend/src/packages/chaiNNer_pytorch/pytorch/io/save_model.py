@@ -66,7 +66,7 @@ def save_model_node(
         dummy_input = torch.rand(1, model.input_channels, size, size)
         dummy_input = dummy_input.to(model.device)
 
-        trace = torch.jit.trace(model.model, example_inputs=dummy_input)
+        trace: torch.jit.ScriptModule = torch.jit.trace(model.model, example_inputs=dummy_input)
         trace.save(full_path)
     else:
         raise ValueError(f"Unknown weight format: {weight_format}")
