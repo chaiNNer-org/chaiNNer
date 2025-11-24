@@ -6,6 +6,7 @@ import math
 
 from navi import (
     Color,
+    Dict,
     Image,
     field,
     fn,
@@ -324,3 +325,9 @@ def test_color_with_channels_as():
             "channels": {"type": "field-access", "of": "input", "field": "channels"}
         },
     }
+
+
+def test_dict():
+    """Test Dict helper function."""
+    result = Dict()
+    assert result == {"type": "named", "name": "Dict", "fields": None}
