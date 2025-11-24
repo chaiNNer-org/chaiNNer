@@ -312,7 +312,12 @@ export const GlobalProvider = memo(
         const [effectivelyDisabledNodes, setEffectivelyDisabledNodes] =
             useState<ReadonlySet<string>>(EMPTY_SET);
         useEffect(() => {
-            const newEffectivelyDisabled = getEffectivelyDisabledNodes(getNodes(), getEdges())
+            const newEffectivelyDisabled = getEffectivelyDisabledNodes(
+                getNodes(),
+                getEdges(),
+                schemata,
+                typeState
+            )
                 .map((n) => n.id)
                 .sort();
             setEffectivelyDisabledNodes((prev) => {
@@ -323,7 +328,7 @@ export const GlobalProvider = memo(
                 }
                 return new Set(newEffectivelyDisabled);
             });
-        }, [edgeChanges, nodeChanges, getNodes, getEdges]);
+        }, [edgeChanges, nodeChanges, getNodes, getEdges, schemata, typeState]);
 
         const [savePath, setSavePathInternal] = useSessionStorage<string | null>('save-path', null);
         const [openRecent, pushOpenPath, removeRecentPath] = useOpenRecent();
