@@ -88,6 +88,7 @@ ignore-names = ["*Input", "*Output", "*Dropdown"]
 
 [tool.ruff.lint.per-file-ignores]
 "backend/tests/*.py" = ["ANN001", "ANN002"]
+"backend/src/process.py" = ["SLF001"]
 
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]

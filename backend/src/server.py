@@ -32,7 +32,13 @@ from events import EventConsumer, EventQueue, ExecutionErrorData
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
 from logger import logger, setup_logger
-from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
+from process import (
+    ExecutionId,
+    Executor,
+    NodeExecutionError,
+    NodeOutput,
+    RegularOutput,
+)
 from progress_controller import Aborted
 from response import (
     already_running_response,
@@ -309,13 +315,22 @@ async def run_individual(request: Request):
         ctx.cache.pop(node_id, None)
 
         schema_data = api.registry.nodes.get(full_data["schemaId"])
-
         if schema_data is None:
             raise ValueError(
                 f"Invalid node {full_data['schemaId']} attempted to run individually"
             )
 
         node_data, _ = schema_data
+        if node_data.kind == "collector":
+            raise ValueError(
+                f"Collector nodes cannot be run individually "
+                f"(node {full_data['schemaId']})"
+            )
+        if node_data.kind == "transformer":
+            raise ValueError(
+                f"Transformer nodes cannot be run individually "
+                f"(node {full_data['schemaId']})"
+            )
         if node_data.kind == "generator":
             node = GeneratorNode(node_id, full_data["schemaId"])
         elif node_data.kind == "regularNode":
@@ -324,9 +339,12 @@ async def run_individual(request: Request):
             raise ValueError(
                 f"Invalid node kind {node_data.kind} attempted to run individually"
             )
+
+        # build 1-node chain
         chain = Chain()
         chain.add_node(node)
 
+        # set provided inputs
         for index, i in enumerate(full_data["inputs"]):
             chain.inputs.set(node_id, node.data.inputs[index].id, i)
 
@@ -349,26 +367,20 @@ async def run_individual(request: Request):
 
         with run_individual_counter:
             try:
+                # kill previous one for the same id
                 if execution_id in ctx.individual_executors:
-                    # kill the previous executor (if any)
                     old_executor = ctx.individual_executors[execution_id]
                     old_executor.kill()
 
                 ctx.individual_executors[execution_id] = executor
-                if node_data.kind == "generator":
-                    assert isinstance(node, GeneratorNode)
-                    output = await executor.process_generator_node(node)
-                elif node_data.kind == "regularNode":
-                    assert isinstance(node, FunctionNode)
-                    output = await executor.process_regular_node(node)
-                else:
-                    raise ValueError(
-                        f"Invalid node kind {node_data.kind} attempted to run individually"
-                    )
-                if not isinstance(node, GeneratorNode):
-                    ctx.cache[node_id] = output
-            except Aborted:
-                pass
+
+                # Execute the individual node
+                output = await executor.run_individual_node(node)
+
+                # keep current behavior: cache only non-generator results
+                if node_data.kind != "generator" and output is not None:
+                    ctx.cache[node_id] = RegularOutput(output)
+
             finally:
                 if ctx.individual_executors.get(execution_id, None) == executor:
                     ctx.individual_executors.pop(execution_id, None)
