@@ -421,6 +421,12 @@ export const GlobalProvider = memo(
                         setSavePath(result.path);
                     }
                     setLastSavedChanges([nodeChangesRef.current, edgeChangesRef.current]);
+
+                    // Delete autosave file after successful save
+                    await ipcRenderer.invoke('file-delete-autosave').catch((error) => {
+                        log.warn('Failed to delete autosave file after save', error);
+                    });
+
                     return SaveResult.Saved;
                 } catch (error) {
                     log.error(error);
@@ -525,6 +531,37 @@ export const GlobalProvider = memo(
                     })
                     .catch(log.error);
             }, [performSave])
+        );
+
+        // Autosave functionality
+        const performAutosave = useCallback(async () => {
+            // Only autosave if there are unsaved changes and nodes exist
+            if (hasRelevantUnsavedChangesRef.current && getNodes().length > 0) {
+                try {
+                    const saveData = dumpState();
+                    await ipcRenderer.invoke('file-autosave', saveData);
+                    log.debug('Autosave completed');
+                } catch (error) {
+                    log.error('Autosave failed', error);
+                }
+            }
+        }, [dumpState, getNodes]);
+
+        // Set up periodic autosave (every 3 minutes)
+        useEffect(() => {
+            const intervalId = setInterval(() => {
+                performAutosave().catch(log.error);
+            }, 3 * 60 * 1000); // 3 minutes
+
+            return () => clearInterval(intervalId);
+        }, [performAutosave]);
+
+        // Autosave on window blur
+        useIpcRendererListener(
+            'window-blur',
+            useCallback(() => {
+                performAutosave().catch(log.error);
+            }, [performAutosave])
         );
 
         const setStateFromJSON = useCallback(
@@ -664,9 +701,40 @@ export const GlobalProvider = memo(
                             message: `Unable to open file ${result.path}`,
                         });
                     }
+                } else {
+                    // Check for autosave file (crash recovery)
+                    const hasAutosave = await ipcRenderer.invoke('file-has-autosave');
+                    if (hasAutosave) {
+                        const response = await showAlert({
+                            type: AlertType.WARN,
+                            title: 'Recover Unsaved Work',
+                            message:
+                                'chaiNNer did not close properly last time. Would you like to recover your unsaved work?',
+                            buttons: ['Recover', 'Discard'],
+                            defaultId: 0,
+                            cancelId: 1,
+                        });
+
+                        if (response === 0) {
+                            // User chose to recover
+                            const autosaveData = await ipcRenderer.invoke('file-load-autosave');
+                            if (autosaveData) {
+                                await setStateFromJSONRef.current(
+                                    autosaveData as ParsedSaveData,
+                                    'Recovered',
+                                    true
+                                );
+                                // Mark as having unsaved changes since this is recovered data
+                                setHasRelevantUnsavedChanges(true);
+                            }
+                        }
+
+                        // Delete the autosave file regardless of user choice
+                        await ipcRenderer.invoke('file-delete-autosave');
+                    }
                 }
             },
-            [removeRecentPath, sendAlert]
+            [removeRecentPath, sendAlert, showAlert, setHasRelevantUnsavedChanges]
         );
 
         // Register Open File event handler
