@@ -234,6 +234,7 @@ def deps_to_dep_info(deps: list[api.Dependency]) -> list[DependencyInfo]:
             display_name=dep.display_name,
             version=dep.version,
             extra_index_url=dep.extra_index_url,
+            size_estimate=dep.size_estimate,
         )
         for dep in deps
     ]
