@@ -19,7 +19,7 @@ from nodes.properties.outputs import (
 from nodes.utils.utils import alphanumeric_sort
 
 from .. import batch_processing_group
-from ..io.load_image import load_image_node
+from ..io.load_image.load_image import load_image_node
 
 
 def extension_filter(lst: list[str]) -> str:

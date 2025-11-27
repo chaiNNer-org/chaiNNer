@@ -41,6 +41,7 @@ from response import (
     success_response,
 )
 from server_config import ServerConfig
+from translations.translation_loader import TranslationLoader
 
 
 class AppContext:
@@ -51,6 +52,12 @@ class AppContext:
         global logger
         log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
         logger = setup_logger("worker", log_dir=log_dir, dev_mode=self.config.dev_mode)
+
+        # Initialize translation loader with the configured language
+        self.translation_loader: Final[TranslationLoader] = TranslationLoader(
+            language=self.config.language
+        )
+        logger.info("Loaded translations for language: %s", self.config.language)
 
         self.executor: Executor | None = None
         self.individual_executors: dict[ExecutionId, Executor] = {}
@@ -101,9 +108,7 @@ CORS(app)
 class SSEFilter(logging.Filter):
     def filter(self, record):  # noqa: ANN001
         request = record.request  # type: ignore
-        return not (
-            (request.endswith("/sse")) and record.status == 200  # type: ignore
-        )
+        return not ((request.endswith("/sse")) and record.status == 200)  # type: ignore
 
 
 class ZeroCounter:
@@ -146,6 +151,9 @@ async def nodes(_request: Request):
     await nodes_available()
     logger.debug(api.registry.categories)
 
+    ctx = AppContext.get(app)
+    translation_loader = ctx.translation_loader
+
     node_list = []
     for node, sub in api.registry.nodes.values():
         node_dict = {
@@ -170,6 +178,9 @@ async def nodes(_request: Request):
             "deprecated": node.deprecated,
             "features": node.features,
         }
+
+        translation_loader.translate_node_schema(node_dict)
+
         node_list.append(node_dict)
 
     return json(
