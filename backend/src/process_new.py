@@ -1736,8 +1736,8 @@ class Executor:
     async def _finalize_chain(self) -> None:
         # 1) force-finish every runtime that was started but not finished
         for rt in self.runtimes.values():
-            if rt._started and not rt._finished:
-                rt._finish()
+            if rt._started and not rt._finished:  # noqa: SLF001
+                rt._finish()  # noqa: SLF001
 
         # 2) run chain-level cleanups
         for ctx in self.__context_cache.values():
