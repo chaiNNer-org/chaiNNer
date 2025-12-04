@@ -226,6 +226,7 @@ const useNodes = (
         forgetLastErrorAlert,
         t,
         experimentalFeatures,
+        previousExperimentalFeatures,
     ]);
 
     useEffect(() => {
