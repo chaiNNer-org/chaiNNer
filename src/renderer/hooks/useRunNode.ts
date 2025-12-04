@@ -22,7 +22,7 @@ export const useRunNode = (
     const { sendToast } = useContext(AlertBoxContext);
     const { addIndividuallyRunning, removeIndividuallyRunning } = useContext(GlobalContext);
     const { schemata, backend } = useContext(BackendContext);
-    const { packageSettings } = useSettings();
+    const { packageSettings, experimentalFeatures } = useSettings();
 
     const [reloadCounter, setReloadCounter] = useState(0);
     const reload = useCallback(() => setReloadCounter((c) => c + 1), []);
@@ -64,6 +64,7 @@ export const useRunNode = (
                     id,
                     inputs,
                     options: packageSettings,
+                    useExperimentalFeatures: experimentalFeatures,
                 });
                 removeIndividuallyRunning(id);
 

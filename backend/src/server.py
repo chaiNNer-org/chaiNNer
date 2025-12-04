@@ -193,6 +193,7 @@ class RunRequest(TypedDict):
     data: list[JsonNode]
     options: JsonExecutionOptions
     sendBroadcastData: bool
+    useExternalFeatures: bool | None
 
 
 @app.route("/run", methods=["POST"])
@@ -238,8 +239,7 @@ async def run(request: Request):
 
         logger.info("Running new executor...")
 
-        use_new_executor = True
-
+        use_new_executor = full_data.get("useExternalFeatures", False)
         if use_new_executor:
             executor = NewExecutor(
                 id=executor_id,
@@ -373,7 +373,7 @@ async def run_individual(request: Request):
 
         execution_id = ExecutionId("individual-executor " + node_id)
 
-        use_new_executor = True
+        use_new_executor = full_data.get("useExternalFeatures", False)
         if use_new_executor:
             executor = NewExecutor(
                 id=execution_id,

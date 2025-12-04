@@ -180,7 +180,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
         categories,
         passthrough,
     } = useContext(BackendContext);
-    const { packageSettings } = useSettings();
+    const { packageSettings, experimentalFeatures } = useSettings();
 
     const { sendAlert, sendToast } = useContext(AlertBoxContext);
     const nodeChanges = useContextSelector(GlobalVolatileContext, (c) => c.nodeChanges);
@@ -482,6 +482,7 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
                 data,
                 options: packageSettings,
                 sendBroadcastData: true,
+                useExperimentalFeatures: experimentalFeatures,
             });
             if (response.type === 'error') {
                 // no need to alert here, because the error has already been handled by the queue
