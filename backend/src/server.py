@@ -33,11 +33,13 @@ from events import EventConsumer, EventQueue, ExecutionErrorData
 # For now, use a fallback logger
 from logger import logger, setup_logger
 from process import (
-    ExecutionId,
     Executor,
     NodeExecutionError,
-    NodeOutput,
     RegularOutput,
+)
+from process_common import ExecutionId, NodeOutput
+from process_new import (
+    Executor as NewExecutor,
 )
 from progress_controller import Aborted
 from response import (
@@ -58,8 +60,8 @@ class AppContext:
         log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
         logger = setup_logger("worker", log_dir=log_dir, dev_mode=self.config.dev_mode)
 
-        self.executor: Executor | None = None
-        self.individual_executors: dict[ExecutionId, Executor] = {}
+        self.executor: Executor | NewExecutor | None = None
+        self.individual_executors: dict[ExecutionId, Executor | NewExecutor] = {}
         self.cache: dict[NodeId, NodeOutput] = {}
         self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
 
@@ -235,17 +237,33 @@ async def run(request: Request):
                     ctx.cache.pop(node.id)
 
         logger.info("Running new executor...")
-        executor = Executor(
-            id=executor_id,
-            chain=chain,
-            send_broadcast_data=full_data["sendBroadcastData"],
-            options=ExecutionOptions.parse(full_data["options"]),
-            loop=app.loop,
-            queue=ctx.queue,
-            pool=ctx.pool,
-            storage_dir=ctx.storage_dir,
-            parent_cache=OutputCache(static_data=ctx.cache.copy()),
-        )
+
+        use_new_executor = True
+
+        if use_new_executor:
+            executor = NewExecutor(
+                id=executor_id,
+                chain=chain,
+                send_broadcast_data=full_data["sendBroadcastData"],
+                options=ExecutionOptions.parse(full_data["options"]),
+                loop=app.loop,
+                queue=ctx.queue,
+                pool=ctx.pool,
+                storage_dir=ctx.storage_dir,
+                parent_cache=OutputCache(static_data=ctx.cache.copy()),
+            )
+        else:
+            executor = Executor(
+                id=executor_id,
+                chain=chain,
+                send_broadcast_data=full_data["sendBroadcastData"],
+                options=ExecutionOptions.parse(full_data["options"]),
+                loop=app.loop,
+                queue=ctx.queue,
+                pool=ctx.pool,
+                storage_dir=ctx.storage_dir,
+                parent_cache=OutputCache(static_data=ctx.cache.copy()),
+            )
         try:
             ctx.executor = executor
             await executor.run()
@@ -354,16 +372,30 @@ async def run_individual(request: Request):
         )
 
         execution_id = ExecutionId("individual-executor " + node_id)
-        executor = Executor(
-            id=execution_id,
-            chain=chain,
-            send_broadcast_data=True,
-            options=ExecutionOptions.parse(full_data["options"]),
-            loop=app.loop,
-            queue=queue,
-            storage_dir=ctx.storage_dir,
-            pool=ctx.pool,
-        )
+
+        use_new_executor = True
+        if use_new_executor:
+            executor = NewExecutor(
+                id=execution_id,
+                chain=chain,
+                send_broadcast_data=True,
+                options=ExecutionOptions.parse(full_data["options"]),
+                loop=app.loop,
+                queue=queue,
+                storage_dir=ctx.storage_dir,
+                pool=ctx.pool,
+            )
+        else:
+            executor = Executor(
+                id=execution_id,
+                chain=chain,
+                send_broadcast_data=True,
+                options=ExecutionOptions.parse(full_data["options"]),
+                loop=app.loop,
+                queue=queue,
+                storage_dir=ctx.storage_dir,
+                pool=ctx.pool,
+            )
 
         with run_individual_counter:
             try:
@@ -375,12 +407,30 @@ async def run_individual(request: Request):
                 ctx.individual_executors[execution_id] = executor
 
                 # Execute the individual node
-                output = await executor.run_individual_node(node)
+                if use_new_executor:
+                    assert isinstance(executor, NewExecutor)
+                    output = await executor.run_individual_node(node)
 
-                # keep current behavior: cache only non-generator results
-                if node_data.kind != "generator" and output is not None:
-                    ctx.cache[node_id] = RegularOutput(output)
+                    # keep current behavior: cache only non-generator results
+                    if node_data.kind != "generator" and output is not None:
+                        ctx.cache[node_id] = RegularOutput(output)
+                else:
+                    assert isinstance(executor, Executor)
+                    if node_data.kind == "generator":
+                        assert isinstance(node, GeneratorNode)
+                        output = await executor.process_generator_node(node)
+                    elif node_data.kind == "regularNode":
+                        assert isinstance(node, FunctionNode)
+                        output = await executor.process_regular_node(node)
+                    else:
+                        raise ValueError(
+                            f"Invalid node kind {node_data.kind} attempted to run individually"
+                        )
+                    if not isinstance(node, GeneratorNode):
+                        ctx.cache[node_id] = output
 
+            except Aborted:
+                pass
             finally:
                 if ctx.individual_executors.get(execution_id, None) == executor:
                     ctx.individual_executors.pop(execution_id, None)
