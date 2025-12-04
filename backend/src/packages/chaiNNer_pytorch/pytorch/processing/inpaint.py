@@ -45,16 +45,13 @@ def inpaint(
 
             result = model(d_img, d_mask)
             result = tensor2np(
-                result.detach().cpu().detach(),
+                result.detach().cpu(),
                 change_range=False,
                 imtype=np.float32,
             )
 
-            del d_img
-            del d_mask
-
             return result
-        except RuntimeError:
+        finally:
             # Collect garbage (clear VRAM)
             if d_img is not None:
                 try:
@@ -68,10 +65,9 @@ def inpaint(
                 except Exception:
                     pass
                 del d_mask
+
             gc.collect()
             safe_cuda_cache_empty()
-
-            raise
 
 
 @processing_group.register(
@@ -109,9 +105,9 @@ def inpaint_node(
     mask: np.ndarray,
     model: MaskedImageModelDescriptor,
 ) -> np.ndarray:
-    assert (
-        img.shape[:2] == mask.shape[:2]
-    ), "Input image and mask must have the same resolution"
+    assert img.shape[:2] == mask.shape[:2], (
+        "Input image and mask must have the same resolution"
+    )
 
     exec_options = get_settings(context)
     context.add_cleanup(

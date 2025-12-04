@@ -96,7 +96,7 @@ def text_to_image_node(
     )
     result = decode_base64_image(response["images"][0])
     h, w, _ = get_h_w_c(result)
-    assert (
-        (w, h) == (width, height)
-    ), f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+    assert (w, h) == (width, height), (
+        f"Expected the returned image to be {width}x{height}px but found {w}x{h}px instead "
+    )
     return result

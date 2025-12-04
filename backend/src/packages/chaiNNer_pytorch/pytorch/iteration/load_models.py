@@ -3,10 +3,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from sanic.log import logger
 from spandrel import ModelDescriptor
 
 from api import Generator, IteratorOutputInfo, NodeContext
+from logger import logger
 from nodes.properties.inputs import DirectoryInput
 from nodes.properties.inputs.generic_inputs import BoolInput
 from nodes.properties.outputs import DirectoryOutput, NumberOutput, TextOutput
@@ -51,7 +51,7 @@ def load_models_node(
     directory: Path,
     fail_fast: bool,
 ) -> tuple[Generator[tuple[ModelDescriptor, str, str, int]], Path]:
-    logger.debug(f"Iterating over models in directory: {directory}")
+    logger.debug("Iterating over models in directory: %s", directory)
 
     def load_model(path: Path, index: int):
         model, dirname, basename = load_model_node(context, path)

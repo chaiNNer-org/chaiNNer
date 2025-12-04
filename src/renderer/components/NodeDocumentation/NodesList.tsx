@@ -1,5 +1,6 @@
 import { Box, Center, HStack, Text, VStack } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useContext } from 'use-context-selector';
 import { SchemaId } from '../../../common/common-types';
 import { groupBy } from '../../../common/util';
@@ -25,6 +26,7 @@ export const NodesList = memo(
         setSearchQuery,
         searchScores,
     }: NodesListProps) => {
+        const { t } = useTranslation();
         const { isOpen } = useContext(NodeDocumentationContext);
         const { schemata, categories } = useContext(BackendContext);
 
@@ -100,7 +102,7 @@ export const NodesList = memo(
                             />
                         </Box>
                         {filteredSchema.length === 0 ? (
-                            <Text>No nodes found</Text>
+                            <Text>{t('nodeDocumentation.nodesList.noNodesFound')}</Text>
                         ) : (
                             sortedCategories.map((category) => {
                                 const categoryNodes = byCategories.get(category.id);

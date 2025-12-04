@@ -181,7 +181,7 @@ class LargeImageOutput(ImageOutput):
 
         start_index = len(preview_sizes) - 1
         for i, size in enumerate(preview_sizes):
-            if size <= image_size and image_size <= size * preview_size_grace:
+            if size <= image_size <= size * preview_size_grace:
                 # this preview size will perfectly fit the image
                 start_index = i
                 break

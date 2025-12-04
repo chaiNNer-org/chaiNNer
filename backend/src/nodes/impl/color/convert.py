@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from typing import Callable, Generic, Iterable, TypeVar
+from typing import Generic, TypeVar
 
 import numpy as np
-from sanic.log import logger
+
+from logger import logger
 
 from .convert_data import color_spaces, color_spaces_or_detectors, conversions
 from .convert_model import (
@@ -34,7 +36,7 @@ T = TypeVar("T")
 
 
 @dataclass(order=True)
-class __ProcessingItem(Generic[T]):  # noqa: N801
+class __ProcessingItem(Generic[T]):
     cost: int
     path: list[T] = field(compare=False)
 
@@ -112,7 +114,9 @@ def convert(
     if path is None:
         raise ValueError(f"Conversion {input_.name} -> {output.name} is not possible.")
 
-    logger.debug(f"Converting color using the path {' -> '.join(x.name for x in path)}")
+    logger.debug(
+        "Converting color using the path %s", " -> ".join(x.name for x in path)
+    )
 
     for i in range(1, len(path)):
         curr_in = path[i - 1]

@@ -1,7 +1,9 @@
-from typing import Callable, NewType
+from collections.abc import Callable
+from typing import NewType
 
 import numpy as np
-from sanic.log import logger
+
+from logger import logger
 
 from ...utils.utils import get_h_w_c
 from .tiler import MaxTileSize, NoTiling, Tiler
@@ -23,11 +25,13 @@ def estimate_tile_size(
     # the largest power-of-2 tile_size such that tile_size**2 < tile_pixels
     tile_size = 2 ** (int(tile_pixels**0.5).bit_length() - 1)
 
-    required_mem = f"{mem_required_estimation/GB_AMT:.2f}"
-    budget_mem = f"{budget/GB_AMT:.2f}"
+    required_mem = f"{mem_required_estimation / GB_AMT:.2f}"
+    budget_mem = f"{budget / GB_AMT:.2f}"
     logger.debug(
-        f"Estimating memory required: {required_mem} GB, {budget_mem} GB free."
-        f" Estimated tile size: {tile_size}"
+        "Estimating memory required: %s GB, %s GB free. Estimated tile size: %s",
+        required_mem,
+        budget_mem,
+        tile_size,
     )
 
     return tile_size

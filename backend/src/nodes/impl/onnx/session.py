@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, Union
+from typing import Any
 from weakref import WeakKeyDictionary
 
 import onnxruntime as ort
@@ -8,7 +8,7 @@ import onnxruntime as ort
 from .model import OnnxModel
 from .utils import OnnxParsedTensorShape, parse_onnx_shape
 
-ProviderDesc = Union[str, Tuple[str, Dict[Any, Any]]]
+ProviderDesc = str | tuple[str, dict[Any, Any]]
 
 
 def create_inference_session(
@@ -25,10 +25,19 @@ def create_inference_session(
             "trt_engine_cache_enable": tensorrt_cache_path is not None,
             "trt_engine_cache_path": tensorrt_cache_path,
             "trt_fp16_enable": should_tensorrt_fp16,
+            "trt_dump_subgraphs": tensorrt_cache_path is not None,
+            "trt_timing_cache_enable": tensorrt_cache_path is not None,
+            "trt_timing_cache_path": tensorrt_cache_path,
         },
     )
     cuda: ProviderDesc = (
         "CUDAExecutionProvider",
+        {
+            "device_id": gpu_index,
+        },
+    )
+    dml: ProviderDesc = (
+        "DmlExecutionProvider",
         {
             "device_id": gpu_index,
         },
@@ -39,6 +48,8 @@ def create_inference_session(
         providers = [tensorrt, cuda, cpu]
     elif execution_provider == "CUDAExecutionProvider":
         providers = [cuda, cpu]
+    elif execution_provider == "DmlExecutionProvider":
+        providers = [dml, cpu]
     else:
         providers = [execution_provider, cpu]
 

@@ -64,8 +64,24 @@ const registerEventHandlerPreSetup = (
     args: OpenArguments,
     settings: ChainnerSettings
 ) => {
-    ipcMain.handle('get-app-version', () => version);
-    ipcMain.handle('get-appdata', () => getRootDir());
+    // Synchronous handlers for preload script
+    ipcMain.on('get-app-version-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = version;
+    });
+    ipcMain.on('get-is-mac-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = isMac;
+    });
+    ipcMain.on('get-is-arm-mac-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = isArmMac;
+    });
+    ipcMain.on('get-appdata-sync', (event) => {
+        // eslint-disable-next-line no-param-reassign
+        event.returnValue = getRootDir();
+    });
+
     ipcMain.handle('refresh-nodes', () => args.refresh);
 
     // settings
@@ -159,8 +175,6 @@ const registerEventHandlerPreSetup = (
     });
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
-    ipcMain.handle('get-is-mac', () => isMac);
-    ipcMain.handle('get-is-arm-mac', () => isArmMac);
     ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none

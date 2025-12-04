@@ -2,6 +2,7 @@ import { NeverType } from '@chainner/navi';
 import { DeleteIcon } from '@chakra-ui/icons';
 import { Box, Center, MenuItem, MenuList } from '@chakra-ui/react';
 import { memo, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Handle, Position, useReactFlow } from 'reactflow';
 import { useContext, useContextSelector } from 'use-context-selector';
 import { EdgeData, NodeData, OutputId } from '../../../common/common-types';
@@ -12,6 +13,7 @@ import { useTypeColor } from '../../hooks/useTypeColor';
 
 const useBreakPointMenu = (id: string): UseContextMenu => {
     const { removeNodesById, removeEdgeBreakpoint } = useContext(GlobalContext);
+    const { t } = useTranslation();
 
     return useContextMenu(() => (
         <MenuList className="nodrag">
@@ -21,7 +23,7 @@ const useBreakPointMenu = (id: string): UseContextMenu => {
                     removeEdgeBreakpoint(id);
                 }}
             >
-                Remove Breakpoint
+                {t('breakpoint.removeBreakpoint', 'Remove Breakpoint')}
             </MenuItem>
             <MenuItem
                 icon={<DeleteIcon />}
@@ -29,7 +31,7 @@ const useBreakPointMenu = (id: string): UseContextMenu => {
                     removeNodesById([id]);
                 }}
             >
-                Remove Edge
+                {t('breakpoint.removeEdge', 'Remove Edge')}
             </MenuItem>
         </MenuList>
     ));

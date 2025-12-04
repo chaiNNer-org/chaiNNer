@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import time
 from asyncio import AbstractEventLoop
-from typing import Any, Callable, Coroutine, Generic, TypeVar
+from collections.abc import Callable, Coroutine
+from typing import Any, Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -54,7 +55,7 @@ class Lazy(Generic[T]):
     @staticmethod
     def ready(value: T) -> Lazy[T]:
         lazy = Lazy(lambda: value)
-        lazy._value = _Result.ok(value)  # noqa: SLF001
+        lazy._value = _Result.ok(value)
         return lazy
 
     @staticmethod

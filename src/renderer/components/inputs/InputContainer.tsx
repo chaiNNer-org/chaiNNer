@@ -2,6 +2,7 @@ import { Type } from '@chainner/navi';
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Box, Center, HStack, Text, Tooltip } from '@chakra-ui/react';
 import React, { memo, useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Connection } from 'reactflow';
 import { useContext } from 'use-context-selector';
 import { InputId, LabelStyle } from '../../../common/common-types';
@@ -132,6 +133,7 @@ interface WithLabelProps {
 }
 
 export const WithLabel = memo(({ input, children }: React.PropsWithChildren<WithLabelProps>) => {
+    const { t } = useTranslation();
     const { conditionallyInactive } = useContext(InputContext);
 
     const { label, optional = false, hint = false, description } = input;
@@ -188,7 +190,7 @@ export const WithLabel = memo(({ input, children }: React.PropsWithChildren<With
                                 h="1rem"
                                 verticalAlign="middle"
                             >
-                                <TypeTag isOptional>optional</TypeTag>
+                                <TypeTag isOptional>{t('typeTags.optional')}</TypeTag>
                             </Center>
                         )}
                     </HStack>

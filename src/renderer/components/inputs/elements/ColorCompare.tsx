@@ -1,5 +1,6 @@
 import { Button, ButtonGroup, Tooltip } from '@chakra-ui/react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getCssBackground, getTextColor } from '../../../../common/color-json-util';
 import { ColorJson } from '../../../../common/common-types';
 
@@ -11,6 +12,7 @@ interface ColorCompareProps {
 }
 export const ColorCompare = memo(
     ({ oldColor, newColor, onOldClick, onNewClick }: ColorCompareProps) => {
+        const { t } = useTranslation();
         return (
             <ButtonGroup
                 isAttached
@@ -23,7 +25,7 @@ export const ColorCompare = memo(
                     closeOnPointerDown
                     hasArrow
                     borderRadius={8}
-                    label="Reset to old color"
+                    label={t('color.resetToOld', 'Reset to old color')}
                     openDelay={1000}
                 >
                     <Button
@@ -36,7 +38,7 @@ export const ColorCompare = memo(
                         w="full"
                         onClick={onOldClick}
                     >
-                        old
+                        {t('inputs.colorCompare.old')}
                     </Button>
                 </Tooltip>
                 <Tooltip
@@ -44,7 +46,7 @@ export const ColorCompare = memo(
                     closeOnPointerDown
                     hasArrow
                     borderRadius={8}
-                    label="Accept new color"
+                    label={t('color.acceptNew', 'Accept new color')}
                     openDelay={1000}
                 >
                     <Button
@@ -56,7 +58,7 @@ export const ColorCompare = memo(
                         w="full"
                         onClick={onNewClick}
                     >
-                        new
+                        {t('inputs.colorCompare.new')}
                     </Button>
                 </Tooltip>
             </ButtonGroup>

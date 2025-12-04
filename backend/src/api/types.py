@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Literal, NewType
+from collections.abc import Callable
+from typing import Any, Literal, NewType
 
 NodeId = NewType("NodeId", str)
 InputId = NewType("InputId", int)

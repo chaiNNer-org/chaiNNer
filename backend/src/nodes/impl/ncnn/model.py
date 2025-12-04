@@ -7,7 +7,8 @@ from json import load as jload
 from pathlib import Path
 
 import numpy as np
-from sanic.log import logger
+
+from logger import logger
 
 from ...utils.checked_cast import checked_cast
 
@@ -202,7 +203,9 @@ class NcnnParamCollection:
             try:
                 param = param_dict[idstr]
             except KeyError:
-                logger.error(f"Op {self.op} does not have param {pid}, please report")
+                logger.error(
+                    "Op %s does not have param %s, please report", self.op, pid
+                )
                 raise
 
             default_value = param["defaultValue"]
@@ -229,7 +232,7 @@ class NcnnParamCollection:
         try:
             param = param_dict[idstr]
         except KeyError:
-            logger.error(f"Op {self.op} does not have param {idstr}, please report")
+            logger.error("Op %s does not have param %s, please report", self.op, idstr)
             raise
         name = param["paramPhase"]
         def_val = param["defaultValue"]
@@ -402,9 +405,9 @@ class NcnnModel:
         layer_bytes = b""
 
         if weights_a:
-            assert len(weights_a) == len(
-                weights_b
-            ), "All corresponding nodes must have same number of weights"
+            assert len(weights_a) == len(weights_b), (
+                "All corresponding nodes must have same number of weights"
+            )
 
             layer_bytes_list = []
             for weight_name, weight_a in weights_a.items():
@@ -412,17 +415,17 @@ class NcnnModel:
                     weight_b = weights_b[weight_name]
                 except KeyError:
                     logger.error(
-                        f"Weights in node {a.name} and {b.name} do not correspond"
+                        "Weights in node %s and %s do not correspond", a.name, b.name
                     )
                     raise
 
-                assert (
-                    weight_a.shape == weight_b.shape
-                ), "Corresponding weights must have the same size and shape"
+                assert weight_a.shape == weight_b.shape, (
+                    "Corresponding weights must have the same size and shape"
+                )
 
-                assert len(weight_a.quantize_tag) == len(
-                    weight_b.quantize_tag
-                ), "Weights must either both have or both not have a quantize tag"
+                assert len(weight_a.quantize_tag) == len(weight_b.quantize_tag), (
+                    "Weights must either both have or both not have a quantize tag"
+                )
 
                 if (
                     weight_a.quantize_tag == DTYPE_FP16
@@ -699,12 +702,12 @@ class NcnnModel:
             (i, l) for i, l in enumerate(model_b.layers) if l.weight_data
         ]
 
-        assert len(layer_a_weights) == len(
-            layer_b_weights
-        ), "Models must have same number of layers containing weights"
+        assert len(layer_a_weights) == len(layer_b_weights), (
+            "Models must have same number of layers containing weights"
+        )
 
         weight_bytes_list = []
-        for layer_a, layer_b in zip(layer_a_weights, layer_b_weights):
+        for layer_a, layer_b in zip(layer_a_weights, layer_b_weights, strict=False):
             interp_layer, layer_bytes = NcnnModel.interp_layers(
                 layer_a[1], layer_b[1], alpha
             )
@@ -773,9 +776,9 @@ class NcnnModelWrapper:
                 scale *= checked_cast(int, layer.params[3].value)
                 current_conv = layer
 
-        assert (
-            current_conv is not None
-        ), "Cannot broadcast; model has no Convolution layers"
+        assert current_conv is not None, (
+            "Cannot broadcast; model has no Convolution layers"
+        )
 
         out_nc = checked_cast(int, current_conv.params[0].value) // pixel_shuffle**2
 

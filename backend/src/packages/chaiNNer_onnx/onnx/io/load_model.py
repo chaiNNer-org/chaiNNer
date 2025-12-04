@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 
 import onnx
-from sanic.log import logger
 
+from logger import logger
 from nodes.impl.onnx.load import load_onnx_model
 from nodes.impl.onnx.model import OnnxModel
 from nodes.properties.inputs import OnnxFileInput
@@ -40,7 +40,7 @@ def load_model_node(path: Path) -> tuple[OnnxModel, Path, str]:
 
     assert os.path.isfile(path), f"Path {path} is not a file"
 
-    logger.debug(f"Reading onnx model from path: {path}")
+    logger.debug("Reading onnx model from path: %s", path)
     model = onnx.load_model(str(path))
 
     dirname, basename, _ = split_file_path(path)

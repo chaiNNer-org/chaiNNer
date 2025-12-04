@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/icons';
 import { HStack, MenuDivider, MenuItem, MenuList, Spacer, Text } from '@chakra-ui/react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BsFillJournalBookmarkFill } from 'react-icons/bs';
 import { IoMdFastforward } from 'react-icons/io';
 import { MdPlayArrow, MdPlayDisabled } from 'react-icons/md';
@@ -39,6 +40,7 @@ export const useNodeMenu = (
         reload,
     }: UseNodeMenuOptions = {}
 ): UseContextMenu => {
+    const { t } = useTranslation();
     const { openNodeDocumentation } = useContext(NodeDocumentationContext);
     const { id, isLocked = false, schemaId } = data;
 
@@ -65,7 +67,7 @@ export const useNodeMenu = (
                     }
                 }}
             >
-                Copy
+                {t('nodeMenu.copy', 'Copy')}
             </MenuItem>
             <MenuItem
                 icon={<CopyIcon />}
@@ -73,7 +75,7 @@ export const useNodeMenu = (
                     duplicateNodes([id]);
                 }}
             >
-                Duplicate
+                {t('nodeMenu.duplicate', 'Duplicate')}
             </MenuItem>
             <MenuDivider />
             <MenuItem
@@ -84,7 +86,7 @@ export const useNodeMenu = (
                 ref={resetMenuParentRef}
             >
                 <HStack>
-                    <Text>Reset Node</Text>
+                    <Text>{t('nodeMenu.resetNode', 'Reset Node')}</Text>
                     <Spacer />
                     <ChevronRightIcon />
                 </HStack>
@@ -102,7 +104,7 @@ export const useNodeMenu = (
                             resetInputs([id]);
                         }}
                     >
-                        Reset Inputs
+                        {t('nodeMenu.resetInputs', 'Reset Inputs')}
                     </MenuItem>
                     <MenuItem
                         icon={<CloseIcon />}
@@ -110,7 +112,7 @@ export const useNodeMenu = (
                             resetConnections([id]);
                         }}
                     >
-                        Reset Connections
+                        {t('nodeMenu.resetConnections', 'Reset Connections')}
                     </MenuItem>
                     <MenuItem
                         icon={<CloseIcon />}
@@ -119,7 +121,7 @@ export const useNodeMenu = (
                             resetConnections([id]);
                         }}
                     >
-                        Reset All
+                        {t('nodeMenu.resetAll', 'Reset All')}
                     </MenuItem>
                 </MenuList>
             </div>
@@ -134,7 +136,7 @@ export const useNodeMenu = (
                                 setIsPassthrough(false);
                             }}
                         >
-                            Enable
+                            {t('nodeMenu.enable', 'Enable')}
                         </MenuItem>
                     )}
                     {!isDirectlyDisabled && (
@@ -145,7 +147,7 @@ export const useNodeMenu = (
                                 setIsPassthrough(false);
                             }}
                         >
-                            Disable
+                            {t('nodeMenu.disable', 'Disable')}
                         </MenuItem>
                     )}
                     {canPassthrough && (isDirectlyDisabled || !isPassthrough) && (
@@ -156,7 +158,7 @@ export const useNodeMenu = (
                                 setIsPassthrough(true);
                             }}
                         >
-                            Skip
+                            {t('nodeMenu.skip', 'Skip')}
                         </MenuItem>
                     )}
                 </>
@@ -169,7 +171,7 @@ export const useNodeMenu = (
                         toggleNodeLock(id);
                     }}
                 >
-                    {isLocked ? 'Unlock' : 'Lock'}
+                    {isLocked ? t('nodeMenu.unlock', 'Unlock') : t('nodeMenu.lock', 'Lock')}
                 </MenuItem>
             )}
 
@@ -178,7 +180,7 @@ export const useNodeMenu = (
                     icon={<RepeatIcon />}
                     onClick={reload}
                 >
-                    Refresh Preview
+                    {t('nodeMenu.refreshPreview', 'Refresh Preview')}
                 </MenuItem>
             )}
 
@@ -188,7 +190,7 @@ export const useNodeMenu = (
                     removeNodesById([id]);
                 }}
             >
-                Delete
+                {t('nodeMenu.delete', 'Delete')}
             </MenuItem>
             <MenuDivider />
             <MenuItem
@@ -197,7 +199,7 @@ export const useNodeMenu = (
                     openNodeDocumentation(schemaId);
                 }}
             >
-                Open Documentation
+                {t('nodeMenu.openDocumentation', 'Open Documentation')}
             </MenuItem>
         </MenuList>
     ));

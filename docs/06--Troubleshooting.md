@@ -55,5 +55,3 @@
 ## Integrated Python downloaded, but failed to start up after installing dependencies
 
 - If you are on an older macOS version, such as any version below 10.15, this is unavoidable and you currently cannot use chaiNNer. This is due to a dependency (opencv) that we simply cannot work around at this time.
-
-- If you are on Windows 7, you can try following the advice for the above message related to forcing system Python, and just install Python 3.8. However, we do not officially support Windows 7 and we recommend you upgrade to at least 10.

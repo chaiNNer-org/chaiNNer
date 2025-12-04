@@ -95,8 +95,8 @@ def box_blur_node(
 
     if use_optimized_int:
         # we can use an optimized box blur implementation
-        radius_x = int(round(radius_x))
-        radius_y = int(round(radius_y))
+        radius_x = round(radius_x)
+        radius_y = round(radius_y)
         return cv2.blur(
             img, (radius_x * 2 + 1, radius_y * 2 + 1), borderType=cv2.BORDER_REFLECT_101
         )

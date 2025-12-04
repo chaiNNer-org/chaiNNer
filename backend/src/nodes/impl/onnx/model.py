@@ -81,4 +81,4 @@ class OnnxRemBg:
 
 
 OnnxModels = (OnnxGeneric, OnnxRemBg)
-OnnxModel = Union[OnnxGeneric, OnnxRemBg]
+OnnxModel = Union[OnnxGeneric, OnnxRemBg]  # noqa: UP007

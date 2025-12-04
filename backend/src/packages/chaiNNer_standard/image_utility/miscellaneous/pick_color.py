@@ -89,7 +89,7 @@ def pick_color_node(
 
     assert x < w and y < h, (
         "The given coordinates (X, Y) are outside the image."
-        f" Expect X={x} to be to 0 to {w-1} and Y={y} to be to 0 to {h-1}."
+        f" Expect X={x} to be to 0 to {w - 1} and Y={y} to be to 0 to {h - 1}."
     )
 
     if c == 1:

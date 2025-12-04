@@ -6,12 +6,12 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
-from sanic.log import logger
 
-Size = Tuple[int, int]
+from logger import logger
+
+Size = tuple[int, int]
 """
 The width and height (in that order) of an image.
 """
@@ -96,7 +96,7 @@ def split_file_path(path: Path | str) -> tuple[Path, str, str]:
 
 def walk_error_handler(exception_instance: Exception):
     logger.warning(
-        f"Exception occurred during walk: {exception_instance} Continuing..."
+        "Exception occurred during walk: %s Continuing...", exception_instance
     )
 
 

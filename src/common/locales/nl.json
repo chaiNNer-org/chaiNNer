@@ -1,0 +1,421 @@
+{
+    "alert": {
+        "button": {
+            "ok": "OK",
+            "cancel": "Annuleren",
+            "openLogsFolder": "Logs Map Openen",
+            "exitApplication": "Applicatie Afsluiten",
+            "copyToClipboard": "Kopieer naar Klembord"
+        },
+        "stackTrace": "Stack Trace",
+        "title": {
+            "systemInformation": "Systeeminformatie"
+        }
+    },
+    "common": {
+        "cancel": "Annuleren",
+        "close": "Sluiten",
+        "open": "Openen",
+        "settings": "Instellingen"
+    },
+    "error": {
+        "error": "Fout",
+        "message": {
+            "criticalBackend": "Er is een kritieke fout opgetreden bij het verwerken van de knooppuntgegevens die door de backend zijn geretourneerd."
+        },
+        "title": {
+            "unableToProcessNodes": "Backend-knooppunten kunnen niet worden verwerkt."
+        }
+    },
+    "header": {
+        "alpha": "Alpha",
+        "pause": "Pauzeren",
+        "pauseButton": "Pauzeerknop",
+        "resume": "Hervatten",
+        "run": "Uitvoeren",
+        "runButton": "Uitvoerknop",
+        "stop": "Stoppen",
+        "stopButton": "Stopknop",
+        "updateAvailable": "Update beschikbaar ({{version}})",
+        "updateAvailableAria": "Update beschikbaar",
+        "updateChangelog": "Update Changelog",
+        "updateAvailableTitle": "Update Beschikbaar ({{version}})",
+        "updateAvailableMessage": "Er is een update beschikbaar voor versie {{version}}. Wilt u de changelog bekijken?",
+        "viewReleaseOnGitHub": "Bekijk release op GitHub",
+        "downloadFromWebsite": "Download van chaiNNer.app",
+        "ignoreUpdate": "Update Negeren",
+        "viewUpdate": "Update Bekijken"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Invoer Overschrijf ID Kopiëren",
+        "inputOverrideId": "Invoer Overschrijf ID",
+        "inputOverrideIdCopied": "Invoer Overschrijf ID gekopieerd naar klembord",
+        "inputOverrideIdTooltip": "Unieke identifier voor deze invoer. Gebruikt voor het overschrijven van invoer in de keten.",
+        "directory": {
+            "clear": "Wissen",
+            "copyFullDirectoryPath": "Volledig Directorypad Kopiëren",
+            "openInFileExplorer": "Openen in Bestandsverkenner",
+            "selectDirectory": "Selecteer een directory...",
+            "clickToSelect": "Klik om te selecteren..."
+        },
+        "extractValueIntoNode": "Waarde extraheren naar knooppunt",
+        "file": {
+            "clear": "Wissen",
+            "copyFileName": "Bestandsnaam Kopiëren",
+            "copyFullFilePath": "Volledig Bestandspad Kopiëren",
+            "openInFileExplorer": "Openen in Bestandsverkenner",
+            "selectFile": "Selecteer een bestand...",
+            "clickToSelectFile": "Klik om een bestand te selecteren..."
+        },
+        "number": {
+            "copyText": "Nummer Kopiëren",
+            "paste": "Plakken"
+        },
+        "text": {
+            "copyText": "Tekst Kopiëren",
+            "paste": "Plakken",
+            "invalidCharacter": "Ongeldig teken '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Invoer Toevoegen",
+        "colorCompare": {
+            "old": "oud",
+            "new": "nieuw"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Afbeelding niet beschikbaar.",
+            "imagePreviewFailed": "Afbeelding voorvertoning kon niet laden, waarschijnlijk niet-ondersteund bestandstype."
+        },
+        "model": {
+            "modelNotAvailable": "Modelgegevens niet beschikbaar."
+        }
+    },
+    "settings": {
+        "title": "Instellingen",
+        "restartChaiNNer": "chaiNNer herstarten",
+        "tabs": {
+            "appearance": "Uiterlijk",
+            "environment": "Omgeving",
+            "python": "Python",
+            "advanced": "Geavanceerd"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Kleurenthema",
+                "description": "Kies het thema voor het uiterlijk van chaiNNer.",
+                "options": {
+                    "dark": "Donker",
+                    "light": "Licht",
+                    "system": "Systeem",
+                    "charcoal": "Houtskool",
+                    "coffee": "Koffie",
+                    "blueberry": "Bosbes",
+                    "dusk": "Schemering",
+                    "oled": "OLED",
+                    "cyberpunk": "Cyberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Taal (herstart vereist)",
+                "description": "Kies de taal voor de chaiNNer-interface."
+            },
+            "chainAnimation": {
+                "label": "Ketenanimatie",
+                "description": "Schakel animaties in die de verwerkingsstatus van de keten tonen."
+            },
+            "minimap": {
+                "label": "Minimap",
+                "description": "Schakel een minimap van de huidige keten in de rechterbenedenhoek van de knooppunteditor in."
+            },
+            "snapToGrid": {
+                "label": "Uitlijnen op raster",
+                "description": "Schakel knooppunt rasteruitlijning in."
+            },
+            "snapToGridAmount": {
+                "label": "Rasteruitlijning hoeveelheid",
+                "description": "De hoeveelheid om het raster op uit te lijnen."
+            },
+            "viewportExportPadding": {
+                "label": "Viewport PNG export opvulling",
+                "description": "De hoeveelheid opvulling voor de viewport PNG export."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Opstarttemplate",
+                "description": "Stel een ketentemplate in om standaard te gebruiken wanneer chaiNNer opstart.",
+                "placeholder": "Selecteer een bestand...",
+                "clear": "Wissen",
+                "pickFile": "Kies opstarttemplate bestand"
+            },
+            "selectChain": "Selecteer Keten"
+        },
+        "python": {
+            "general": "Algemeen",
+            "useSystemPython": {
+                "label": "Systeem Python gebruiken (herstart vereist)",
+                "description": "Gebruik systeem Python voor chaiNNer's verwerking in plaats van de gebundelde Python (niet aanbevolen)"
+            },
+            "systemPythonLocation": {
+                "label": "Systeem Python locatie (optioneel)",
+                "description": "Gebruik indien gewenst een specifiek python binaire in plaats van de standaard die wordt aangeroepen door 'python3' of 'python'. Dit is handig als je meerdere python versies hebt geïnstalleerd en een specifieke wilt kiezen.",
+                "placeholder": "Selecteer een bestand...",
+                "clear": "Wissen",
+                "pickFile": "Kies systeem python locatie"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Controleer op Updates bij Opstarten",
+                "description": "Schakelt het controleren op updates bij opstarten in/uit."
+            },
+            "experimentalFeatures": {
+                "label": "Experimentele functies inschakelen",
+                "description": "Schakel experimentele functies in om ze uit te proberen voordat ze voltooid zijn."
+            },
+            "hardwareAcceleration": {
+                "label": "Hardwareversnelling inschakelen (herstart vereist)",
+                "description": "Schakel GPU-rendering in voor de GUI. Gebruik voorzichtig, omdat dit de GPU-prestaties voor beeldverwerking ernstig kan verminderen."
+            },
+            "allowMultipleInstances": {
+                "label": "Meerdere gelijktijdige instanties toestaan",
+                "description": "Schakel meerdere gelijktijdige instanties van chaiNNer in. Dit wordt niet aanbevolen, maar als je keten niet genoeg van je systeembronnen gebruikt, vind je dit misschien handig voor het gelijktijdig uitvoeren van dingen."
+            }
+        },
+        "noOptionsFound": "Geen opties gevonden.",
+        "clearCache": "Cache Wissen"
+    },
+    "setup": {
+        "checkingPort": "Controleren op beschikbare poort...",
+        "checkingPython": "Systeemomgeving controleren op geldige Python...",
+        "downloadingPython": "Geïntegreerde Python downloaden...",
+        "extractingPython": "Gedownloade bestanden uitpakken...",
+        "loading": "Laden...",
+        "startingBackend": "Backend proces opstarten..."
+    },
+    "typeTags": {
+        "optional": "optioneel"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Willekeurig zaad",
+            "randomSeedAria": "Willekeurig Zaad"
+        }
+    },
+    "logo": {
+        "background": "achtergrond",
+        "front": "voorgrond"
+    },
+    "timer": {
+        "executionTook": "Uitvoering duurde ongeveer {{duration}}.",
+        "hour_one": "uur",
+        "hour_other": "uren",
+        "minute_one": "minuut",
+        "minute_other": "minuten",
+        "second_one": "seconde",
+        "second_other": "seconden"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "De waarden van {{inputs}} zijn momenteel gekoppeld aan dezelfde waarde. Klik hier om deze koppeling ongedaan te maken.",
+        "clickToLink": "Klik hier om {{inputs}} te koppelen aan dezelfde waarde."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "Zoeken...",
+        "missingNodes": "Ontbrekende knooppunten? Klik om de afhankelijkheidsmanager te openen!",
+        "noCompatibleNodes": "Geen compatibele knooppunten gevonden."
+    },
+    "favorites": {
+        "title": "Favorieten",
+        "noFavorites": "Geen Favorieten.",
+        "addFavoritesTooltip": "Voeg Favorieten toe door met de rechtermuisknop op knooppunten te klikken en 'Toevoegen aan Favorieten' te selecteren.",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Voeg Favorieten toe door over knooppunten te zweven en op het",
+            "afterIcon": "pictogram te klikken, of door met de rechtermuisknop te klikken en 'Toevoegen aan Favorieten' te selecteren."
+        },
+        "addToFavorites": "Toevoegen aan Favorieten",
+        "removeFromFavorites": "Verwijderen uit Favorieten"
+    },
+    "documentation": {
+        "title": "Knooppunt Documentatie",
+        "openDocumentation": "Documentatie Openen"
+    },
+    "dependencyManager": {
+        "title": "Afhankelijkheidsmanager",
+        "manageDependencies": "Afhankelijkheden Beheren",
+        "updatesAvailable": "Updates Beschikbaar",
+        "updatesAvailableDescription_one": "Er is {{count}} pakket met beschikbare afhankelijkheidsupdates.",
+        "updatesAvailableDescription_other": "Er zijn {{count}} pakketten met beschikbare afhankelijkheidsupdates.",
+        "openDependencyManager": "Afhankelijkheidsmanager Openen",
+        "packages": "Pakketten",
+        "features": "Functies",
+        "refresh": "Vernieuwen",
+        "install": "Installeren",
+        "update": "Bijwerken",
+        "uninstall": "Verwijderen",
+        "close": "Sluiten",
+        "missing": "Ontbrekend",
+        "outdated": "Verouderd",
+        "unavailable": "Niet beschikbaar",
+        "enabled": "Ingeschakeld",
+        "disabled": "Uitgeschakeld",
+        "python": "Python",
+        "system": "Systeem",
+        "integrated": "Geïntegreerd",
+        "advanced": "Geavanceerd",
+        "installationMode": "Installatiemodus",
+        "normal": "Normaal",
+        "manualCopy": "Handmatig/Kopiëren",
+        "consoleOutput": "Console output:",
+        "commandCopied": "Commando gekopieerd naar klembord",
+        "commandCopiedDescription": "Open een externe terminal, plak het commando en voer het uit. Wanneer het klaar is met uitvoeren, herstart chaiNNer handmatig.",
+        "uninstallTitle": "Verwijderen",
+        "uninstallMessage": "Weet je zeker dat je {{name}} wilt verwijderen?",
+        "unsavedChanges": "Niet-opgeslagen Wijzigingen",
+        "unsavedChangesMessage": "Je zou je niet-opgeslagen wijzigingen kunnen verliezen door {{name}} te verwijderen.\n\nWeet je zeker dat je {{name}} wilt verwijderen?",
+        "cancel": "Annuleren",
+        "installing": "{{name}} installeren...",
+        "uninstalling": "{{name}} verwijderen...",
+        "copyPythonPath": "Python pad kopiëren naar klembord",
+        "pythonPath": "Python pad is:",
+        "installAllPackages": "{{operations}} Alle Pakketten ({{size}})",
+        "package_one": "pakket",
+        "package_other": "pakketten",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Bewerkingsmodus",
+        "editContent": "Inhoud Bewerken",
+        "markdownMode": "Markdown Modus",
+        "viewMarkdown": "Markdown Bekijken"
+    },
+    "node": {
+        "disableHint": "Hint: Gebruik Ctrl+Click om door opties te bladeren.",
+        "note": {
+            "placeholder": "Notitie Tekst"
+        },
+        "implementationError": "Implementatiefout",
+        "implementationErrorMessage": "Kan geen sleutelinformatie bepalen voor knooppunt {{nodeName}} ({{schemaId}}).",
+        "enable": "Inschakelen",
+        "disable": "Uitschakelen",
+        "skip": "Overslaan",
+        "eta": "ETA:",
+        "outdated": "Verouderd"
+    },
+    "color": {
+        "resetToOld": "Terugzetten naar oude kleur",
+        "acceptNew": "Nieuwe kleur accepteren"
+    },
+    "support": {
+        "koFiTooltip": "Ondersteun chaiNNer op Ko-fi",
+        "koFiAria": "Ondersteun chaiNNer",
+        "koFiButton": "Ondersteun chaiNNer"
+    },
+    "edge": {
+        "removeEdge": "Rand verwijderen knop"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Breekpunt Verwijderen",
+        "removeEdge": "Rand Verwijderen"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Dubbelklik of sleep om knooppunten toe te voegen aan het canvas.",
+        "collapseExpandCategories": "Categorieën In-/Uitklappen"
+    },
+    "nodeMenu": {
+        "copy": "Kopiëren",
+        "duplicate": "Dupliceren",
+        "resetNode": "Knooppunt Resetten",
+        "resetInputs": "Invoeren Resetten",
+        "resetConnections": "Verbindingen Resetten",
+        "resetAll": "Alles Resetten",
+        "enable": "Inschakelen",
+        "disable": "Uitschakelen",
+        "skip": "Overslaan",
+        "unlock": "Ontgrendelen",
+        "lock": "Vergrendelen",
+        "refreshPreview": "Voorvertoning Vernieuwen",
+        "delete": "Verwijderen",
+        "openDocumentation": "Documentatie Openen"
+    },
+    "nodesMenu": {
+        "copy": "Kopiëren",
+        "duplicate": "Dupliceren",
+        "resetNodes": "Knooppunten Resetten",
+        "resetInputs": "Invoeren Resetten",
+        "resetConnections": "Verbindingen Resetten",
+        "resetAll": "Alles Resetten",
+        "enableAll": "Alles Inschakelen",
+        "disableAll": "Alles Uitschakelen",
+        "delete": "Verwijderen"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Breekpunt Toevoegen",
+        "delete": "Verwijderen"
+    },
+    "nodeSelector": {
+        "favorites": "Favorieten",
+        "missingDependencies": "Ontbrekende afhankelijkheden.",
+        "unableToImport": "Kan knooppunt(en) niet importeren.",
+        "clickToInstall": "Klik om de afhankelijkheidsmanager te openen om {{packageName}} te installeren.",
+        "criticalImportError": "Er is een kritieke importfout opgetreden met een afhankelijkheid in pakket: {{packageName}}.",
+        "nodes": "Knooppunten"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "is",
+            "isNot": "is niet",
+            "oneOf": "een van",
+            "ofType": "van type",
+            "allOf": "Alle",
+            "atLeastOneOf": "Ten minste een van",
+            "followingConditions": "moeten de volgende voorwaarden worden voldaan:",
+            "condition": "Voorwaarde:"
+        },
+        "nodeDocs": {
+            "optional": "optioneel",
+            "sequenced": "(Gesequenced)",
+            "supportedFileTypes": "Ondersteunde bestandstypen:",
+            "primaryInputDescription": "Deze invoer is de primaire invoer voor zijn ondersteunde bestandstypen. Dit betekent dat je ondersteunde bestanden in chaiNNer kunt slepen en neerzetten, en het zal een knooppunt maken met deze invoer automatisch ingevuld.",
+            "options": "Opties:",
+            "type": "Type:",
+            "inputs": "Invoeren",
+            "noInputs": "Dit knooppunt heeft geen invoeren.",
+            "outputs": "Uitvoeren",
+            "noOutputs": "Dit knooppunt heeft geen uitvoeren.",
+            "seeAlso": "Zie ook",
+            "character_one": "teken",
+            "character_other": "tekens"
+        },
+        "nodesList": {
+            "noNodesFound": "Geen knooppunten gevonden"
+        }
+    }
+}

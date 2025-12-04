@@ -10,7 +10,7 @@ from ...utils.format import format_color_with_channels
 from ...utils.seed import Seed
 
 
-class NumberOutput(BaseOutput[Union[int, float]]):
+class NumberOutput(BaseOutput[int | float]):
     def __init__(
         self,
         label: str,
@@ -19,14 +19,14 @@ class NumberOutput(BaseOutput[Union[int, float]]):
         super().__init__(
             navi.intersect_with_error("number", output_type),
             label,
-            associated_type=Union[int, float],
+            associated_type=Union[int, float],  # noqa: UP007
         )
 
     def get_broadcast_type(self, value: int | float):
         return navi.literal(value)
 
     def enforce(self, value: object) -> int | float:
-        assert isinstance(value, (int, float))
+        assert isinstance(value, int | float)
         return value
 
 

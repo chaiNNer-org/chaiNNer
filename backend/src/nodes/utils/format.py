@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Callable, Iterable, Literal, TypeVar
+from collections.abc import Callable, Iterable
+from typing import Literal, TypeVar
 
 T = TypeVar("T")
 Conj = Literal["and", "or"]
