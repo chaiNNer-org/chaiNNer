@@ -245,3 +245,6 @@ dmypy.json
 
 # traces
 backend/traces
+
+# Generated node documentation
+docs/nodes/
