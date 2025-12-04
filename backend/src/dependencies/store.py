@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from collections.abc import Iterable
@@ -29,6 +30,59 @@ ENV = {
     "PYTHONNOUSERSITE": "1",
 }
 
+# Buffer for extraction, temporary files, and overhead (100 MB)
+# This is added on top of the actual dependency sizes
+DISK_SPACE_BUFFER = 100 * 1024 * 1024
+
+
+def calculate_required_disk_space(dependencies: list[DependencyInfo]) -> float:
+    """
+    Calculate the required disk space for installing dependencies.
+    Returns the total size in bytes, including a buffer for extraction and overhead.
+    """
+    total_size = 0.0
+
+    for dep in dependencies:
+        if dep.size_estimate is not None:
+            # Use the provided size estimate
+            total_size += dep.size_estimate
+        elif dep.from_file is not None:
+            # Check the actual file size for local wheel files
+            whl_file = f"{dir_path}/whls/{dep.package_name}/{dep.from_file}"
+            if os.path.isfile(whl_file):
+                try:
+                    total_size += os.path.getsize(whl_file)
+                except Exception:
+                    # If we can't get the file size, use a conservative estimate
+                    total_size += 10 * 1024 * 1024  # 10 MB default
+            else:
+                # File doesn't exist, use conservative estimate
+                total_size += 10 * 1024 * 1024  # 10 MB default
+        else:
+            # No size information available, use conservative estimate
+            total_size += 10 * 1024 * 1024  # 10 MB default
+
+    # Add buffer for extraction, temporary files, and pip overhead
+    # Pip often needs 2-3x the package size during installation
+    return total_size * 3 + DISK_SPACE_BUFFER
+
+
+def check_disk_space(path: str | None = None) -> tuple[int, int]:
+    """
+    Check available disk space at the given path.
+    Returns a tuple of (total, free) disk space in bytes.
+    """
+    if path is None:
+        path = dir_path
+
+    try:
+        stat = shutil.disk_usage(path)
+        return stat.total, stat.free
+    except Exception:
+        # If we can't check disk space, assume it's available
+        # This prevents breaking the installation on systems where disk_usage fails
+        return 0, DISK_SPACE_BUFFER + 1
+
 
 @dataclass(frozen=True)
 class DependencyInfo:
@@ -37,6 +91,7 @@ class DependencyInfo:
     display_name: str | None = None
     from_file: str | None = None
     extra_index_url: str | None = None
+    size_estimate: int | float | None = None
 
 
 def pin(dependency: DependencyInfo) -> str:
@@ -88,6 +143,18 @@ def install_dependencies_sync(
     if len(dependencies_to_install) == 0:
         return 0
 
+    # Check available disk space before installing
+    _total_space, free_space = check_disk_space()
+    required_space = calculate_required_disk_space(dependencies_to_install)
+
+    if free_space < required_space:
+        free_mb = free_space / (1024 * 1024)
+        required_mb = required_space / (1024 * 1024)
+        raise OSError(
+            f"Insufficient disk space. Available: {free_mb:.1f} MB, Required: {required_mb:.1f} MB. "
+            "Please free up disk space and try again."
+        )
+
     extra_index_urls = {
         dep_info.extra_index_url
         for dep_info in dependencies_to_install
@@ -98,21 +165,30 @@ def install_dependencies_sync(
     if len(extra_index_urls) > 0:
         extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
 
-    exit_code = subprocess.check_call(
-        [
-            python_path,
-            "-m",
-            "pip",
-            "install",
-            *[pin(dep_info) for dep_info in dependencies_to_install],
-            "--disable-pip-version-check",
-            "--no-warn-script-location",
-            *extra_index_args,
-        ],
-        env=ENV,
-    )
-    if exit_code != 0:
-        raise ValueError("An error occurred while installing dependencies.")
+    try:
+        exit_code = subprocess.check_call(
+            [
+                python_path,
+                "-m",
+                "pip",
+                "install",
+                *[pin(dep_info) for dep_info in dependencies_to_install],
+                "--disable-pip-version-check",
+                "--no-warn-script-location",
+                *extra_index_args,
+            ],
+            env=ENV,
+        )
+        if exit_code != 0:
+            raise ValueError("An error occurred while installing dependencies.")
+    except OSError as e:
+        # Handle disk space errors during installation
+        if "No space left on device" in str(e) or e.errno == 28:
+            raise OSError(
+                "Disk space ran out during dependency installation. "
+                "Please free up disk space and try again."
+            ) from e
+        raise
 
     for dep_info in dependencies_to_install:
         installed_packages[dep_info.package_name] = dep_info.version
@@ -132,6 +208,18 @@ async def install_dependencies(
     dependencies_to_install = filter_necessary_to_install(dependencies)
     if len(dependencies_to_install) == 0:
         return 0
+
+    # Check available disk space before installing
+    _total_space, free_space = check_disk_space()
+    required_space = calculate_required_disk_space(dependencies_to_install)
+
+    if free_space < required_space:
+        free_mb = free_space / (1024 * 1024)
+        required_mb = required_space / (1024 * 1024)
+        raise OSError(
+            f"Insufficient disk space. Available: {free_mb:.1f} MB, Required: {required_mb:.1f} MB. "
+            "Please free up disk space and try again."
+        )
 
     dependency_name_map = {
         dep_info.package_name: dep_info.display_name or dep_info.package_name
@@ -159,26 +247,36 @@ async def install_dependencies(
     # Used to increment by a small amount between collect and download
     dep_small_incr = (DEP_MAX_PROGRESS / deps_count) / 2
 
-    process = subprocess.Popen(
-        [
-            python_path,
-            "-m",
-            # TODO: Change this back to "pip" once pip updates with my changes
-            "chainner_pip",
-            "install",
-            *[pin(dep_info) for dep_info in dependencies_to_install],
-            "--disable-chainner_pip-version-check",
-            "--no-warn-script-location",
-            "--progress-bar=json",
-            "--no-cache-dir",
-            *extra_index_args,
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        encoding="utf-8",
-        env=ENV,
-    )
+    try:
+        process = subprocess.Popen(
+            [
+                python_path,
+                "-m",
+                # TODO: Change this back to "pip" once pip updates with my changes
+                "chainner_pip",
+                "install",
+                *[pin(dep_info) for dep_info in dependencies_to_install],
+                "--disable-chainner_pip-version-check",
+                "--no-warn-script-location",
+                "--progress-bar=json",
+                "--no-cache-dir",
+                *extra_index_args,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            encoding="utf-8",
+            env=ENV,
+        )
+    except OSError as e:
+        # Handle disk space errors when starting the process
+        if "No space left on device" in str(e) or e.errno == 28:
+            raise OSError(
+                "Disk space ran out during dependency installation. "
+                "Please free up disk space and try again."
+            ) from e
+        raise
     installing_name = "Unknown"
+    error_output = []
     while True:
         nextline = process.stdout.readline()  # type: ignore
         if process.poll() is not None:
@@ -189,6 +287,19 @@ async def install_dependencies(
 
         if logger is not None and not line.startswith("Progress:"):
             logger.info(line)
+
+        # Check for disk space errors in the output
+        if "No space left on device" in line or "OSError: [Errno 28]" in line:
+            process.kill()
+            process.wait()
+            raise OSError(
+                "Disk space ran out during dependency installation. "
+                "Please free up disk space and try again."
+            )
+
+        # Collect error messages for better error reporting
+        if "ERROR:" in line or "error:" in line.lower():
+            error_output.append(line)
 
         # The Collecting step of pip. It tells us what package is being installed.
         if "Collecting" in line:
@@ -237,7 +348,20 @@ async def install_dependencies(
 
     exit_code = process.wait()
     if exit_code != 0:
-        raise ValueError("An error occurred while installing dependencies.")
+        # Check if any disk space errors were collected
+        for error_line in error_output:
+            if "No space left" in error_line or "disk" in error_line.lower():
+                raise OSError(
+                    "Disk space ran out during dependency installation. "
+                    "Please free up disk space and try again."
+                )
+
+        # Provide detailed error message if available
+        error_msg = "An error occurred while installing dependencies."
+        if error_output:
+            error_details = "\n".join(error_output[:3])  # Show first 3 error lines
+            error_msg = f"{error_msg}\nDetails: {error_details}"
+        raise ValueError(error_msg)
 
     await update_progress_cb("Finished installing dependencies...", 1, None)
 
