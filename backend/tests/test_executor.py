@@ -34,7 +34,7 @@ from api.settings import SettingsParser
 from chain.chain import Chain, CollectorNode, FunctionNode
 from chain.input import InputMap
 from events import EventQueue
-from process import (
+from process_new import (
     CollectorOutput,
     ExecutionId,
     Executor,
