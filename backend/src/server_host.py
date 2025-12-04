@@ -8,11 +8,12 @@ from dataclasses import asdict, dataclass
 from functools import cached_property
 from json import dumps as stringify
 from json import loads as json_parse
+from pathlib import Path
 from typing import Final
 
 import psutil
 from sanic import Sanic
-from sanic.log import access_logger, logger
+from sanic.log import access_logger
 from sanic.request import Request
 from sanic.response import json
 from sanic_cors import CORS
@@ -28,6 +29,10 @@ from dependencies.store import (
 )
 from events import EventQueue
 from gpu import nvidia
+
+# Logger will be initialized when AppContext is created
+# For now, use a fallback logger
+from logger import logger, setup_logger
 from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
@@ -37,12 +42,21 @@ class AppContext:
     def __init__(self):
         self.config: Final[ServerConfig] = ServerConfig.parse_argv()
 
+        # Re-initialize logger with logs directory from config
+        global logger
+        log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
+        logger = setup_logger("host", log_dir=log_dir, dev_mode=self.config.dev_mode)
+
         # flags to pass along to the worker
         worker_flags: list[str] = []
         if self.config.storage_dir is not None:
             worker_flags.extend(["--storage-dir", self.config.storage_dir])
+        if self.config.logs_dir is not None:
+            worker_flags.extend(["--logs-dir", self.config.logs_dir])
         if self.config.trace:
             worker_flags.append("--trace")
+        if self.config.dev_mode:
+            worker_flags.append("--dev")
 
         self._worker: Final[WorkerServer] = WorkerServer(worker_flags)
         self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
@@ -87,6 +101,12 @@ class SSEFilter(logging.Filter):
 
 
 access_logger.addFilter(SSEFilter())
+
+
+@app.route("/health")
+async def health(_request: Request):
+    """Simple health check endpoint that doesn't require full setup"""
+    return json({"status": "ok"})
 
 
 @app.route("/nodes")
@@ -226,7 +246,7 @@ def create_update_progress(ctx: AppContext) -> UpdateProgressFn:
         progress: float,
         status_progress: float | None = None,
     ):
-        logger.info(f"Progress: {message} {progress} {status_progress}")
+        logger.info("Progress: %s %s %s", message, progress, status_progress)
         return ctx.setup_queue.put_and_wait(
             {
                 "event": "package-install-status",
@@ -279,7 +299,7 @@ async def uninstall_dependencies_request(request: Request):
 
         return json({"status": "ok"})
     except Exception as ex:
-        logger.error(f"Error uninstalling dependencies: {ex}", exc_info=True)
+        logger.exception("Error uninstalling dependencies: %s", ex)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
@@ -319,7 +339,7 @@ async def install_dependencies_request(request: Request):
                 await worker.start()
         return json({"status": "ok"})
     except Exception as ex:
-        logger.error(f"Error installing dependencies: {ex}", exc_info=True)
+        logger.exception("Error installing dependencies: %s", ex)
         return json({"status": "error", "message": str(ex)}, status=500)
 
 
@@ -398,7 +418,7 @@ async def import_packages(
 
     to_install: list[api.Dependency] = []
     for package in packages:
-        logger.info(f"Checking dependencies for {package.name}...")
+        logger.info("Checking dependencies for %s...", package.name)
 
         if config.install_builtin_packages:
             to_install.extend(package.dependencies)
@@ -429,7 +449,7 @@ async def import_packages(
         else:
             logger.info("No dependencies to install. Skipping worker restart.")
     except Exception as ex:
-        logger.error(f"Error installing dependencies: {ex}", exc_info=True)
+        logger.exception("Error installing dependencies: %s", ex)
         if config.close_after_start:
             raise ValueError("Error installing dependencies") from ex
 
@@ -495,7 +515,7 @@ async def close_server(sanic_app: Sanic):
         if setup_task is not None:
             await setup_task
     except Exception as ex:
-        logger.error(f"Error waiting for server to start: {ex}")
+        logger.error("Error waiting for server to start: %s", ex)
 
     worker = AppContext.get(sanic_app).get_worker_unmanaged()
     await worker.stop()

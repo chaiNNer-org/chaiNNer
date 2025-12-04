@@ -39,6 +39,7 @@ export interface SpawnOptions {
     port: number;
     python: PythonInfo;
     storageDir?: string;
+    logsDir?: string;
     env?: Env;
 }
 
@@ -90,6 +91,10 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             args.push('--storage-dir', options.storageDir);
         }
 
+        if (options.logsDir) {
+            args.push('--logs-dir', options.logsDir);
+        }
+
         const backend = spawn(options.python.python, args, {
             env: {
                 ...sanitizedEnv,
@@ -97,22 +102,8 @@ export class OwnedBackendProcess implements BaseBackendProcess {
             },
         });
 
-        const removedTrailingNewLine = (s: string) => s.replace(/\r?\n$/, '');
-        backend.stdout.on('data', (data) => {
-            const dataString = String(data);
-            // Remove unneeded timestamp
-            const fixedData = dataString.split('] ').slice(1).join('] ');
-            const message = removedTrailingNewLine(fixedData);
-            if (message) {
-                log.info(`Backend: ${message}`);
-            }
-        });
-        backend.stderr.on('data', (data) => {
-            const message = removedTrailingNewLine(String(data));
-            if (message) {
-                log.error(`Backend: ${message}`);
-            }
-        });
+        // Backend handles its own logging - we don't capture stdout/stderr
+        // Each process logs to its own files independently
 
         return backend;
     }

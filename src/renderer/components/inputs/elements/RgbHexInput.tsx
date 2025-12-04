@@ -1,5 +1,6 @@
 import { HStack, Input, Spacer, Text } from '@chakra-ui/react';
 import { memo, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Color } from '../../../helpers/color';
 
 interface RgbHexInputProps {
@@ -7,6 +8,7 @@ interface RgbHexInputProps {
     onChange: (value: Color) => void;
 }
 export const RgbHexInput = memo(({ rgb, onChange }: RgbHexInputProps) => {
+    const { t } = useTranslation();
     const currentHex = rgb.hex();
 
     const [inputString, setInputString] = useState<string>(currentHex);
@@ -39,7 +41,7 @@ export const RgbHexInput = memo(({ rgb, onChange }: RgbHexInputProps) => {
 
     return (
         <HStack w="full">
-            <Text>Hex</Text>
+            <Text>{t('inputs.rgbHex.hex')}</Text>
             <Spacer />
             <Input
                 borderRadius="md"

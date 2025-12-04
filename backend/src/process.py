@@ -5,13 +5,12 @@ import functools
 import gc
 import time
 import typing
+from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, List, Literal, NewType, Sequence, Union
-
-from sanic.log import logger
+from typing import Literal, NewType
 
 import navi
 from api import (
@@ -36,10 +35,11 @@ from chain.cache import CacheStrategy, OutputCache, StaticCaching, get_cache_str
 from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict, NodeBroadcastData
+from logger import logger
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
 
-Output = List[object]
+Output = list[object]
 
 
 def collect_input_information(
@@ -50,7 +50,7 @@ def collect_input_information(
     try:
         input_dict: InputsDict = {}
 
-        for value, node_input in zip(inputs, node.inputs):
+        for value, node_input in zip(inputs, node.inputs, strict=False):
             if isinstance(value, Lazy) and value.has_value:
                 value = value.value  # noqa: PLW2901
 
@@ -63,24 +63,26 @@ def collect_input_information(
                 try:
                     value = node_input.enforce_(value)  # noqa
                 except Exception:
-                    logger.error(
-                        f"Error enforcing input {node_input.label} (id {node_input.id})",
-                        exc_info=True,
+                    logger.exception(
+                        "Error enforcing input %s (id %s)",
+                        node_input.label,
+                        node_input.id,
                     )
                     # We'll just try using the un-enforced value. Maybe it'll work.
 
             try:
                 input_dict[node_input.id] = node_input.get_error_value(value)
             except Exception:
-                logger.error(
-                    f"Error getting error value for input {node_input.label} (id {node_input.id})",
-                    exc_info=True,
+                logger.exception(
+                    "Error getting error value for input %s (id %s)",
+                    node_input.label,
+                    node_input.id,
                 )
 
         return input_dict
     except Exception:
         # this method must not throw
-        logger.error("Error collecting input information.", exc_info=True)
+        logger.exception("Error collecting input information.")
         return {}
 
 
@@ -124,11 +126,11 @@ def enforce_output(raw_output: object, node: NodeData) -> RegularOutput:
     elif l == 1:
         output = [raw_output]
     else:
-        assert isinstance(raw_output, (tuple, list))
+        assert isinstance(raw_output, tuple | list)
         output = list(raw_output)
-        assert (
-            len(output) == l
-        ), f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+        assert len(output) == l, (
+            f"Expected all {node.name} nodes to have {l} output(s) but found {len(output)}."
+        )
 
     # output-specific validations
     for i, o in enumerate(node.outputs):
@@ -144,9 +146,9 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
     partial: list[object] = [None] * l
 
     if l == len(generator_output.outputs):
-        assert isinstance(
-            raw_output, Generator
-        ), "Expected the output to be a generator"
+        assert isinstance(raw_output, Generator), (
+            "Expected the output to be a generator"
+        )
         return GeneratorOutput(
             info=generator_output,
             generator=raw_output,
@@ -154,12 +156,12 @@ def enforce_generator_output(raw_output: object, node: NodeData) -> GeneratorOut
         )
 
     assert l > len(generator_output.outputs)
-    assert isinstance(raw_output, (tuple, list))
+    assert isinstance(raw_output, tuple | list)
 
     iterator, *rest = raw_output
-    assert isinstance(
-        iterator, Generator
-    ), "Expected the first tuple element to be a generator"
+    assert isinstance(iterator, Generator), (
+        "Expected the first tuple element to be a generator"
+    )
     assert len(rest) == l - len(generator_output.outputs)
 
     # output-specific validations
@@ -308,7 +310,7 @@ def compute_broadcast(output: Output, node_outputs: Iterable[BaseOutput]):
                 data[node_output.id] = node_output.get_broadcast_data(value)
                 types[node_output.id] = node_output.get_broadcast_type(value)
         except Exception as e:
-            logger.error(f"Error broadcasting output: {e}")
+            logger.error("Error broadcasting output: %s", e)
     return data, types
 
 
@@ -317,13 +319,13 @@ def compute_sequence_broadcast(
 ):
     sequence_types: dict[IterOutputId, navi.ExpressionJson] = {}
     item_types: dict[OutputId, navi.ExpressionJson] = {}
-    for g, iter_output in zip(generators, node_iter_outputs):
+    for g, iter_output in zip(generators, node_iter_outputs, strict=False):
         try:
             sequence_types[iter_output.id] = iter_output.get_broadcast_sequence_type(g)
             for output_id, type in iter_output.get_broadcast_item_types(g).items():
                 item_types[output_id] = type
         except Exception as e:
-            logger.error(f"Error broadcasting output: {e}")
+            logger.error("Error broadcasting output: %s", e)
     return sequence_types, item_types
 
 
@@ -358,7 +360,7 @@ class CollectorOutput:
     collector: Collector
 
 
-NodeOutput = Union[RegularOutput, GeneratorOutput]
+NodeOutput = RegularOutput | GeneratorOutput
 
 ExecutionId = NewType("ExecutionId", str)
 
@@ -614,8 +616,8 @@ class Executor:
         not the actual iteration or collection.
         """
 
-        logger.debug(f"node: {node}")
-        logger.debug(f"Running node {node.id}")
+        logger.debug("node: %s", node)
+        logger.debug("Running node %s", node.id)
 
         inputs = await self.__gather_inputs(node)
         context = self.__get_node_context(node)
@@ -641,7 +643,7 @@ class Executor:
             try:
                 fn()
             except Exception as e:
-                logger.error(f"Error running cleanup function: {e}")
+                logger.error("Error running cleanup function: %s", e)
             finally:
                 context.node_cleanup_fns.remove(fn)
 
@@ -716,7 +718,7 @@ class Executor:
         if len(iterable_output.outputs) == 1:
             values_list.append(values)
         else:
-            assert isinstance(values, (tuple, list))
+            assert isinstance(values, tuple | list)
             values_list.extend(values)
 
         assert len(values_list) == len(iterable_output.outputs)
@@ -786,9 +788,9 @@ class Executor:
             )
 
         total_stopiters = 0
+        deferred_errors: list[str] = []
         # iterate
         while True:
-            deferred_errors: list[str] = []
             generator_output = None
             try:
                 # iterate each iterator
@@ -797,6 +799,10 @@ class Executor:
                     generator_supplier = generator_suppliers[node.id]
 
                     values = next(generator_supplier)
+
+                    # Check if the generator yielded an exception
+                    if isinstance(values, Exception):
+                        raise values
 
                     # write current values to cache
                     iter_output = RegularOutput(
@@ -949,7 +955,7 @@ class Executor:
                 try:
                     fn()
                 except Exception as e:
-                    logger.error(f"Error running cleanup function: {e}")
+                    logger.error("Error running cleanup function: %s", e)
 
         # await all broadcasts
         tasks = self.__broadcast_tasks
@@ -958,23 +964,23 @@ class Executor:
             await task
 
     async def run(self):
-        logger.debug(f"Running executor {self.id}")
+        logger.debug("Running executor %s", self.id)
         try:
             await self.__process_nodes()
         finally:
             gc.collect()
 
     def resume(self):
-        logger.debug(f"Resuming executor {self.id}")
+        logger.debug("Resuming executor %s", self.id)
         self.progress.resume()
 
     def pause(self):
-        logger.debug(f"Pausing executor {self.id}")
+        logger.debug("Pausing executor %s", self.id)
         self.progress.pause()
         gc.collect()
 
     def kill(self):
-        logger.debug(f"Killing executor {self.id}")
+        logger.debug("Killing executor %s", self.id)
         self.progress.abort()
 
     # events
@@ -1014,7 +1020,9 @@ class Executor:
 
                 # use a weighted average
                 weights = [max(1 / i, 0.9**i) for i in range(len(times), 0, -1)]
-                avg_time = sum(t * w for t, w in zip(times, weights)) / sum(weights)
+                avg_time = sum(
+                    t * w for t, w in zip(times, weights, strict=False)
+                ) / sum(weights)
 
             remaining = max(0, length - index)
             return avg_time * remaining

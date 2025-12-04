@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import math
-from typing import List, Literal, TypedDict, Union
+from typing import Literal, TypedDict, Union
 
-NumberJson = Union[int, float, Literal["inf"], Literal["-inf"], Literal["NaN"]]
+NumberJson = int | float | Literal["inf"] | Literal["-inf"] | Literal["NaN"]
 
 
 def to_number_json(n: int | float) -> NumberJson:
@@ -40,9 +40,9 @@ ExpressionJson = Union[
     "FieldAccessExpressionJson",
     "FunctionCallExpressionJson",
     "MatchExpressionJson",
-    List["ExpressionJson"],
-    List[int],
-    List[str],
+    list["ExpressionJson"],
+    list[int],
+    list[str],
 ]
 
 

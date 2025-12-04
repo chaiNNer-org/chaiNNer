@@ -1,6 +1,6 @@
 [project]
-# Support Python 3.8+.
-requires-python = ">=3.8"
+# Support Python 3.10+.
+requires-python = ">=3.10"
 
 [tool.ruff]
 # Same as Black.
@@ -46,6 +46,9 @@ extend-select = [
     # "SIM", # flake8-simplify
     # "TCH", # flake8-tidy-imports
     "NPY", # NumPy-specific rules
+    # "ERA", # Eradicate commented code
+    "YTT", # flake8-2020,
+    # "S",   # flake8-bandit
 ]
 ignore = [
     "E501",    # Line too long
@@ -62,6 +65,8 @@ ignore = [
     "N999",    # Invalid module name (which triggers for chaiNNer)
     "N818",    # Exception name should end in Error
     "ISC001",  # Implicit string concatenation, conflicts with formatter
+    "PLC0415", # Conditional import used --- conflicts with optional dependencies
+    "S101",    # Use of assert detected. The enclosed code will be removed when compiling to optimised bytecode.
 ]
 
 [tool.ruff.format]
@@ -81,6 +86,41 @@ line-ending = "auto"
 [tool.ruff.lint.pep8-naming]
 ignore-names = ["*Input", "*Output", "*Dropdown"]
 
+[tool.ruff.lint.per-file-ignores]
+"backend/tests/*.py" = ["ANN001", "ANN002"]
+
 [tool.pytest.ini_options]
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
 pythonpath = ["backend/src"]
+
+[tool.coverage.run]
+source = ["backend/src"]
+omit = [
+    "backend/src/packages/**",
+    "backend/src/nodes/**",
+    "backend/src/server.py",
+    "backend/src/server_host.py",
+    "backend/src/server_process_helper.py",
+    "backend/src/run.py",
+    "backend/src/dependencies/**",
+    "backend/src/texconv/**",
+    "backend/src/fonts/**",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+precision = 2
+show_missing = true
+skip_covered = false
+
+[tool.coverage.html]
+directory = "htmlcov"

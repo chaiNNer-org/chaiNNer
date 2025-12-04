@@ -5,15 +5,16 @@ import hashlib
 import os
 import tempfile
 import time
+from collections.abc import Iterable
 from enum import Enum
-from typing import Iterable, NewType
+from typing import NewType
 
 import numpy as np
-from sanic.log import logger
 
 from api import RunFn
+from logger import logger
 
-CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", 1024**3))  # default 1 GiB
+CACHE_MAX_BYTES = int(os.environ.get("CACHE_MAX_BYTES", str(1024**3)))  # default 1 GiB
 CACHE_REGISTRY: list[NodeOutputCache] = []
 
 
@@ -45,7 +46,7 @@ class NodeOutputCache:
     def _args_to_key(args: Iterable[object]) -> CacheKey:
         key = []
         for arg in args:
-            if isinstance(arg, (int, float, bool, str, bytes)):
+            if isinstance(arg, int | float | bool | str | bytes):
                 key.append(arg)
             elif arg is None:
                 key.append(None)
@@ -88,7 +89,9 @@ class NodeOutputCache:
         while True:
             total_bytes = sum([cache.size() for cache in CACHE_REGISTRY])
             logger.debug(
-                f"Cache size: {total_bytes} ({100*total_bytes/CACHE_MAX_BYTES:0.1f}% of limit)"
+                "Cache size: %d (%.1f%% of limit)",
+                total_bytes,
+                100 * total_bytes / CACHE_MAX_BYTES,
             )
             if total_bytes <= CACHE_MAX_BYTES:
                 return

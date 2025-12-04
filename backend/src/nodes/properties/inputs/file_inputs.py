@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Literal, Union
+from typing import Literal
 
 import navi
 from api import BaseInput
@@ -12,15 +12,15 @@ from ...impl.image_formats import get_available_image_formats
 from .generic_inputs import TextInput
 from .label import LabelStyle
 
-FileInputKind = Union[
-    Literal["bin"],
-    Literal["image"],
-    Literal["onnx"],
-    Literal["param"],
-    Literal["pt"],
-    Literal["pth"],
-    Literal["video"],
-]
+FileInputKind = (
+    Literal["bin"]
+    | Literal["image"]
+    | Literal["onnx"]
+    | Literal["param"]
+    | Literal["pt"]
+    | Literal["pth"]
+    | Literal["video"]
+)
 
 
 class FileInput(BaseInput):

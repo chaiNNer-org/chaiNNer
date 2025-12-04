@@ -10,9 +10,11 @@ import {
     Switch,
 } from '@chakra-ui/react';
 import path from 'path';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Setting } from '../../../common/common-types';
 import { log } from '../../../common/log';
+import { appDataPath } from '../../appConstants';
 import { getCacheLocation } from '../../env';
 import { ipcRenderer } from '../../safeIpc';
 import { SettingsProps } from './props';
@@ -36,6 +38,7 @@ export const ToggleSetting = memo(({ setting, value, setValue }: SettingsProps<'
 });
 
 export const DropdownSetting = memo(({ setting, value, setValue }: SettingsProps<'dropdown'>) => {
+    const { t } = useTranslation();
     const validValue = setting.options.some((o) => o.value === value);
     useEffect(() => {
         if (!validValue && !setting.disabled) {
@@ -65,7 +68,7 @@ export const DropdownSetting = memo(({ setting, value, setValue }: SettingsProps
                 }}
             >
                 {setting.options.length === 0 && (
-                    <option value={invalidKey}>No options found.</option>
+                    <option value={invalidKey}>{t('settings.noOptionsFound')}</option>
                 )}
                 {setting.options.map((o) => (
                     <option
@@ -111,11 +114,8 @@ export const NumberSetting = memo(({ setting, value, setValue }: SettingsProps<'
 });
 
 const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>) => {
-    const locationPromise = useMemo(async () => {
-        return ipcRenderer
-            .invoke('get-appdata')
-            .then((appDataPath) => getCacheLocation(appDataPath, setting.directory));
-    }, [setting.directory]);
+    const { t } = useTranslation();
+    const cacheLocation = getCacheLocation(appDataPath, setting.directory);
 
     return (
         <SettingContainer
@@ -127,22 +127,17 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     isDisabled={setting.disabled || !value}
                     visibility={value ? 'visible' : 'hidden'}
                     onClick={() => {
-                        locationPromise
-                            .then(async (cacheLocation) => {
-                                const files = await ipcRenderer.invoke('fs-readdir', cacheLocation);
-                                await Promise.all(
-                                    files.map((file) =>
-                                        ipcRenderer.invoke(
-                                            'fs-unlink',
-                                            path.join(cacheLocation, file)
-                                        )
-                                    )
-                                );
-                            })
-                            .catch(log.error);
+                        (async () => {
+                            const files = await ipcRenderer.invoke('fs-readdir', cacheLocation);
+                            await Promise.all(
+                                files.map((file) =>
+                                    ipcRenderer.invoke('fs-unlink', path.join(cacheLocation, file))
+                                )
+                            );
+                        })().catch(log.error);
                     }}
                 >
-                    Clear Cache
+                    {t('settings.clearCache')}
                 </Button>
 
                 <Switch
@@ -152,18 +147,16 @@ const CacheSetting = memo(({ setting, value, setValue }: SettingsProps<'cache'>)
                     onChange={() => {
                         if (!value) {
                             // Make sure the cache directory exists
-                            locationPromise
-                                .then(async (cacheLocation) => {
-                                    try {
-                                        await ipcRenderer.invoke('fs-access', cacheLocation);
-                                    } catch (error) {
-                                        await ipcRenderer.invoke('fs-mkdir', cacheLocation, {
-                                            recursive: true,
-                                        });
-                                    }
-                                    setValue(cacheLocation);
-                                })
-                                .catch(log.error);
+                            (async () => {
+                                try {
+                                    await ipcRenderer.invoke('fs-access', cacheLocation);
+                                } catch (error) {
+                                    await ipcRenderer.invoke('fs-mkdir', cacheLocation, {
+                                        recursive: true,
+                                    });
+                                }
+                                setValue(cacheLocation);
+                            })().catch(log.error);
                         } else {
                             setValue('');
                         }

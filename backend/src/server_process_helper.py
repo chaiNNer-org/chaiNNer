@@ -9,13 +9,13 @@ import subprocess
 import sys
 import threading
 import time
-from typing import Iterable
+from collections.abc import Iterable
 
 import aiohttp
 from sanic import HTTPResponse, Request
-from sanic.log import logger
 
 from api import Package
+from logger import logger
 
 
 def _find_free_port():
@@ -39,28 +39,39 @@ class _WorkerProcess:
         server_file = os.path.join(os.path.dirname(__file__), "server.py")
         python_location = sys.executable
 
+        # Check if dev mode is enabled
+        dev_mode = "--dev" in flags
+
         self._process = subprocess.Popen(
             [python_location, server_file, *flags],
             shell=False,
             stdin=None,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stdout=subprocess.PIPE if dev_mode else None,
+            stderr=subprocess.PIPE if dev_mode else None,
             encoding="utf-8",
             env=ENV,
         )
         self._stop_event = threading.Event()
+        self._dev_mode = dev_mode
 
-        # Create a separate thread to read and print the output of the subprocess
+        # Create a separate thread to read and print the output of the
+        # subprocess
+        # In dev mode, we pipe stdout/stderr and prefix with [Worker]
+        stdout_target = self._read_worker_stdout if dev_mode else self._read_stdout
+        stderr_target = self._read_worker_stderr if dev_mode else self._read_stderr
+        stdout_name = "worker stdout reader" if dev_mode else "stdout reader"
+        stderr_name = "worker stderr reader" if dev_mode else "stderr reader"
+
         self._stdout_thread = threading.Thread(
-            target=self._read_stdout,
+            target=stdout_target,
             daemon=True,
-            name="stdout reader",
+            name=stdout_name,
         )
         self._stdout_thread.start()
         self._stderr_thread = threading.Thread(
-            target=self._read_stderr,
+            target=stderr_target,
             daemon=True,
-            name="stderr reader",
+            name=stderr_name,
         )
         self._stderr_thread.start()
 
@@ -77,14 +88,70 @@ class _WorkerProcess:
             self._process.terminate()
             self._process.kill()
         except Exception:
-            logger.error("Failed to terminate worker process", exc_info=True)
+            logger.exception("Failed to terminate worker process")
         self._process = None
         atexit.unregister(self.close)
 
-        self._stdout_thread = None
-        self._stderr_thread = None
+        self._stdout_thread = None  # type: ignore
+        self._stderr_thread = None  # type: ignore
+
+    def _handle_worker_termination(self, stream_name: str):
+        """Handle worker process termination when a stream ends unexpectedly.
+
+        Args:
+            stream_name: Name of the stream that ended (for logging purposes)
+        """
+        stopped = self._stop_event.is_set()
+        if not stopped:
+            # the worker ended on its own, so it likely crashed
+            p = self._process
+            if p is not None:
+                returncode = p.wait()
+                if returncode == 0:
+                    logger.info("Worker process ended normally on %s", stream_name)
+                else:
+                    logger.error(
+                        "Worker process ended with non-zero return code %s on %s",
+                        returncode,
+                        stream_name,
+                    )
 
     def _read_stdout(self):
+        p = self._process
+        if p is None or p.stdout is None:
+            return
+
+        stopped = False
+        for _ in p.stdout:
+            stopped = self._stop_event.is_set()
+            if stopped:
+                break
+            # Worker handles its own logging - we don't capture stdout
+
+        cause = "stop event" if stopped else "stdout ending"
+        logger.debug("Stopped reading worker stdout due to %s", cause)
+
+        self._handle_worker_termination("stdout")
+
+    def _read_stderr(self):
+        p = self._process
+        if p is None or p.stderr is None:
+            return
+
+        stopped = False
+        for _ in p.stderr:
+            stopped = self._stop_event.is_set()
+            if stopped:
+                break
+            # Worker handles its own logging - we don't capture stderr
+
+        cause = "stop event" if stopped else "stderr ending"
+        logger.debug("Stopped reading worker stderr due to %s", cause)
+
+        self._handle_worker_termination("stderr")
+
+    def _read_worker_stdout(self):
+        """Read and print worker stdout with [Worker] prefix in dev mode."""
         p = self._process
         if p is None or p.stdout is None:
             return
@@ -94,42 +161,16 @@ class _WorkerProcess:
             stopped = self._stop_event.is_set()
             if stopped:
                 break
+            # Print worker stdout with [Worker] prefix
+            print(f"[Worker] {line.rstrip()}", flush=True)
 
-            stripped_line = line.rstrip()
-            match_obj = re.match(SANIC_LOG_REGEX, stripped_line)
-            if match_obj is not None:
-                log_level, message = match_obj.groups()
-                message = f"[Worker] {message}"
-                if log_level == "DEBUG":
-                    logger.debug(message)
-                elif log_level == "INFO":
-                    logger.info(message)
-                elif log_level == "WARNING":
-                    logger.warning(message)
-                elif log_level == "ERROR":
-                    logger.error(message)
-                elif log_level == "CRITICAL":
-                    logger.critical(message)
-                else:
-                    logger.info(message)
-            else:
-                logger.info(f"[Worker] {stripped_line}")
+        cause = "stop event" if stopped else "worker stdout ending"
+        logger.debug("Stopped reading worker stdout due to %s", cause)
 
-        cause = "stop event" if stopped else "stdout ending"
-        logger.info(f"Stopped reading worker stdout due to {cause}")
+        self._handle_worker_termination("worker stdout")
 
-        stopped = self._stop_event.is_set()
-        if not stopped:
-            # the worker ended on its own, so it likely crashed
-            returncode = p.wait()
-            if returncode == 0:
-                logger.info("Worker process ended normally")
-            else:
-                logger.error(
-                    f"Worker process ended with non-zero return code {returncode}"
-                )
-
-    def _read_stderr(self):
+    def _read_worker_stderr(self):
+        """Read and print worker stderr with [Worker] prefix in dev mode."""
         p = self._process
         if p is None or p.stderr is None:
             return
@@ -139,12 +180,13 @@ class _WorkerProcess:
             stopped = self._stop_event.is_set()
             if stopped:
                 break
+            # Print worker stderr with [Worker] prefix
+            print(f"[Worker] {line.rstrip()}", flush=True)
 
-            stripped_line = line.rstrip()
-            logger.error(f"[Worker] {stripped_line}")
+        cause = "stop event" if stopped else "worker stderr ending"
+        logger.debug("Stopped reading worker stderr due to %s", cause)
 
-        cause = "stop event" if stopped else "stderr ending"
-        logger.info(f"Stopped reading worker stderr due to {cause}")
+        self._handle_worker_termination("worker stderr")
 
 
 class WorkerServer:
@@ -160,7 +202,7 @@ class WorkerServer:
         self._manually_close: set[aiohttp.ClientResponse] = set()
 
     async def start(self, extra_flags: Iterable[str] = []):
-        logger.info(f"Starting worker process on port {self._port}...")
+        logger.info("Starting worker process on port %s...", self._port)
         self._process = _WorkerProcess([str(self._port), *self._flags, *extra_flags])
         self._session = aiohttp.ClientSession(base_url=self._base_url)
         self._is_ready = False
@@ -188,7 +230,7 @@ class WorkerServer:
             return
 
         async def test_connection(session: aiohttp.ClientSession):
-            async with session.get("/nodes", timeout=5) as resp:
+            async with session.get("/health", timeout=5) as resp:
                 resp.raise_for_status()
 
         start = time.time()
@@ -213,9 +255,9 @@ class WorkerServer:
                             self._is_ready = True
                         return
                     except asyncio.TimeoutError:
-                        logger.warn("Server not ready yet due to timeout")
+                        logger.warning("Server not ready yet due to timeout")
                     except Exception as e:
-                        logger.warn("Server not ready yet", exc_info=e)
+                        logger.warning("Server not ready yet", exc_info=e)
 
                 await asyncio.sleep(0.1)
 

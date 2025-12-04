@@ -13,9 +13,9 @@ except ImportError:
     from ncnn import ncnn  # type: ignore
 
     use_gpu = False
-from sanic.log import logger
 
 from api import NodeContext
+from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
 from nodes.impl.ncnn.model import NcnnModelWrapper

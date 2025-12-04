@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from typing import Awaitable, Callable, Union
+from collections.abc import Awaitable, Callable
 
-UpdateProgressFn = Callable[[str, float, Union[float, None]], Awaitable[None]]
+UpdateProgressFn = Callable[[str, float, float | None], Awaitable[None]]

@@ -5,8 +5,9 @@ import inspect
 import os
 import pathlib
 from collections import OrderedDict
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, NewType, Tuple, Union, cast, get_args
+from typing import Any, NewType, Union, cast, get_args
 
 from .node_context import NodeContext
 from .node_data import NodeData
@@ -53,7 +54,7 @@ TYPE_CHECK_LEVEL = _get_check_level("TYPE_CHECK_LEVEL", CHECK_LEVEL)
 
 
 class TypeTransformer(ast.NodeTransformer):
-    def visit_BinOp(self, node: ast.BinOp):  # noqa
+    def visit_BinOp(self, node: ast.BinOp):
         if isinstance(node.op, ast.BitOr):
             return ast.Subscript(
                 value=ast.Name(id="Union", ctx=ast.Load()),
@@ -71,7 +72,7 @@ class TypeTransformer(ast.NodeTransformer):
             )
         return super().visit_BinOp(node)
 
-    def visit_Subscript(self, node: ast.Subscript):  # noqa
+    def visit_Subscript(self, node: ast.Subscript):
         if isinstance(node.value, ast.Name) and node.value.id == "tuple":
             return ast.Subscript(
                 value=ast.Name(id="Tuple", ctx=ast.Load()),
@@ -94,7 +95,7 @@ def eval_type(t: str | _Ty, __globals: dict[str, Any], /):
     # `compile_type_string` adds `Union`, so we need it in scope
     local_scope = {
         "Union": Union,
-        "Tuple": Tuple,
+        "Tuple": tuple,
     }
 
     try:
@@ -108,7 +109,7 @@ def union_types(types: list[_Ty]) -> _Ty:
     assert len(types) > 0
     t: Any = types[0]
     for t2 in types[1:]:
-        t = Union[t, cast(Any, t2)]
+        t = t | cast(Any, t2)
     return t
 
 
@@ -182,7 +183,7 @@ def validate_return_type(return_type: _Ty, node: NodeData):
                 f"Return type '{return_type}' must have the same number of arguments as there are outputs"
             )
 
-        for o, return_arg in zip(outputs, return_args):
+        for o, return_arg in zip(outputs, return_args, strict=False):
             if o.associated_type is not None and not is_subset_of(
                 return_arg, o.associated_type
             ):
@@ -268,7 +269,7 @@ def check_schema_types(
         raise CheckFailedError(
             f"Number of inputs and arguments don't match: {len(ann)=} != {len(inputs)=}"
         )
-    for (a_name, a_type), i in zip(ann.items(), inputs):
+    for (a_name, a_type), i in zip(ann.items(), inputs, strict=False):
         associated_type = i.associated_type
         if (
             associated_type is not None
@@ -292,6 +293,8 @@ def check_naming_conventions(
         .replace("(", "")
         .replace(")", "")
         .replace("&", "and")
+        .replace("/", "_")
+        .replace("\\", "_")
     )
 
     func_name = wrapped_func.__name__

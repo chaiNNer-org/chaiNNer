@@ -1,8 +1,6 @@
 # pylint: disable=relative-beyond-top-level
 from __future__ import annotations
 
-from typing import Union
-
 import numpy as np
 
 import navi
@@ -45,7 +43,7 @@ class ImageInput(BaseInput):
         self.associated_type = np.ndarray
 
         if self.allow_colors:
-            self.associated_type = Union[np.ndarray, Color]
+            self.associated_type = np.ndarray | Color
 
     def enforce(self, value: object):
         if isinstance(value, Color):

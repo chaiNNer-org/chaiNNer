@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, TypedDict, Union
+from typing import TypedDict
 
-from sanic.log import logger
+from logger import logger
 
-SettingsJson = Dict[str, object]
-JsonExecutionOptions = Dict[str, SettingsJson]
+SettingsJson = dict[str, object]
+JsonExecutionOptions = dict[str, SettingsJson]
 
 
 class ExecutionOptions:
@@ -17,7 +17,7 @@ class ExecutionOptions:
         self.__settings = backend_settings
         self.__parsers: dict[str, SettingsParser] = {}
 
-        logger.info(f"Execution options: {self.__settings}")
+        logger.info("Execution options: %s", self.__settings)
 
     @staticmethod
     def parse(json: JsonExecutionOptions) -> ExecutionOptions:
@@ -114,4 +114,4 @@ class CacheSetting:
     type: str = "cache"
 
 
-Setting = Union[ToggleSetting, DropdownSetting, NumberSetting, CacheSetting]
+Setting = ToggleSetting | DropdownSetting | NumberSetting | CacheSetting

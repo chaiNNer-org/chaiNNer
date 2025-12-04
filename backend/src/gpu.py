@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable, Sequence
 
 import pynvml as nv
-from sanic.log import logger
+
+from logger import logger
 
 _FP16_ARCH_ABILITY_MAP = {
     nv.NVML_DEVICE_ARCH_KEPLER: False,
@@ -91,6 +92,23 @@ class NvInfo:
     def all_support_fp16(self) -> bool:
         return all(gpu.supports_fp16 for gpu in self.devices)
 
+    @property
+    def any_needs_legacy_cuda(self) -> bool:
+        """
+        Check if any device needs legacy CUDA version (12.6 instead of 12.8).
+        CUDA 12.8 dropped support for Pascal (GTX 1000 series) and older architectures.
+        """
+        for gpu in self.devices:
+            arch = gpu.architecture
+            # Pascal and older architectures need CUDA 12.6
+            if arch in (
+                nv.NVML_DEVICE_ARCH_PASCAL,
+                nv.NVML_DEVICE_ARCH_MAXWELL,
+                nv.NVML_DEVICE_ARCH_KEPLER,
+            ):
+                return True
+        return False
+
 
 def _try_nvml_init():
     try:
@@ -101,7 +119,7 @@ def _try_nvml_init():
             logger.info("No Nvidia GPU found, or invalid driver installed.")
         else:
             logger.info(
-                f"Unknown error occurred when trying to initialize Nvidia GPU: {e}"
+                "Unknown error occurred when trying to initialize Nvidia GPU: %s", e
             )
         return False
 
@@ -110,7 +128,7 @@ def _try_nvml_shutdown():
     try:
         nv.nvmlShutdown()
     except Exception:
-        logger.warn("Failed to shut down Nvidia GPU.", exc_info=True)
+        logger.warning("Failed to shut down Nvidia GPU.", exc_info=True)
 
 
 def _get_nvidia_info() -> NvInfo:
@@ -122,7 +140,9 @@ def _get_nvidia_info() -> NvInfo:
         devices = [NvDevice.from_index(i) for i in range(device_count)]
         return NvInfo(devices, _try_nvml_shutdown)
     except Exception as e:
-        logger.info(f"Unknown error occurred when trying to initialize Nvidia GPU: {e}")
+        logger.info(
+            "Unknown error occurred when trying to initialize Nvidia GPU: %s", e
+        )
         _try_nvml_shutdown()
         return NvInfo.unavailable()
 
@@ -130,4 +150,4 @@ def _get_nvidia_info() -> NvInfo:
 nvidia = _get_nvidia_info()
 
 
-__all__ = ["nvidia", "NvInfo", "NvDevice", "MemoryUsage"]
+__all__ = ["MemoryUsage", "NvDevice", "NvInfo", "nvidia"]

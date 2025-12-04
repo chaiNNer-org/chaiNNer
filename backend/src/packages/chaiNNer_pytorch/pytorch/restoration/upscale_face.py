@@ -4,11 +4,11 @@ import cv2
 import numpy as np
 import torch
 from facexlib.utils.face_restoration_helper import FaceRestoreHelper
-from sanic.log import logger
 from spandrel import ImageModelDescriptor
 from torchvision.transforms.functional import normalize as tv_normalize
 
 from api import KeyInfo, NodeContext
+from logger import logger
 from nodes.groups import Condition, if_group
 from nodes.impl.image_utils import to_uint8
 from nodes.impl.pytorch.utils import np2tensor, safe_cuda_cache_empty, tensor2np
@@ -77,7 +77,7 @@ def upscale(
             output = (output + 1) / 2
             restored_face = tensor2np(output.squeeze(0), rgb2bgr=True)
         except RuntimeError as error:
-            logger.error(f"\tFailed inference for Face Upscale: {error}.")
+            logger.error("\tFailed inference for Face Upscale: %s.", error)
             restored_face = cropped_face
 
         restored_face = restored_face.astype("uint8")
@@ -187,7 +187,7 @@ def upscale_face_node(
             return result
 
     except Exception as e:
-        logger.error(f"Face Upscale failed: {e}")
+        logger.error("Face Upscale failed: %s", e)
         face_helper = None
         del face_helper
         safe_cuda_cache_empty()

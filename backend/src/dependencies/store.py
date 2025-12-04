@@ -6,9 +6,9 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
 from logging import Logger
-from typing import Iterable
 
 from custom_types import UpdateProgressFn
 
@@ -22,7 +22,13 @@ UNINSTALLING_REGEX = re.compile(r"Uninstalling ([a-zA-Z0-9-_]+)-+")
 
 DEP_MAX_PROGRESS = 0.8
 
-ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+ENV = {
+    **os.environ,
+    "PYTHONIOENCODING": "utf-8",
+    # Disable user site-packages to prevent pip from using global Python packages
+    # This ensures packages are installed in chaiNNer's isolated environment
+    "PYTHONNOUSERSITE": "1",
+}
 
 # Buffer for extraction, temporary files, and overhead (100 MB)
 # This is added on top of the actual dependency sizes
@@ -479,6 +485,7 @@ async def uninstall_dependencies(
 
 
 __all__ = [
+    "ENV",
     "DependencyInfo",
     "install_dependencies",
     "install_dependencies_sync",

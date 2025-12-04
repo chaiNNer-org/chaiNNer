@@ -24,34 +24,23 @@ import {
     useDisclosure,
 } from '@chakra-ui/react';
 import { memo, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import semver from 'semver';
 import logo from '../../../public/icons/png/256x256.png';
+import { appVersion } from '../../appConstants';
 import { GitHubRelease, getLatestVersionIfUpdateAvailable } from '../../helpers/github';
-import { useAsyncEffect } from '../../hooks/useAsyncEffect';
 import { useSettings } from '../../hooks/useSettings';
 import { useStored } from '../../hooks/useStored';
-import { ipcRenderer } from '../../safeIpc';
 import { Markdown } from '../Markdown';
 
 export const AppInfo = memo(() => {
+    const { t } = useTranslation();
     const { checkForUpdatesOnStartup } = useSettings();
-
-    const [appVersion, setAppVersion] = useState<string | null>(null);
-    useAsyncEffect(
-        () => ({
-            supplier: () => ipcRenderer.invoke('get-app-version'),
-            successEffect: setAppVersion,
-        }),
-        []
-    );
 
     const [updateVersion, setUpdateVersion] = useState<GitHubRelease>();
     const [changelog, setChangelog] = useState<string>();
 
     useEffect(() => {
-        if (!appVersion) {
-            return;
-        }
         getLatestVersionIfUpdateAvailable(appVersion)
             .then((data) => {
                 if (data) {
@@ -60,7 +49,7 @@ export const AppInfo = memo(() => {
                 }
             })
             .catch(() => {});
-    }, [appVersion]);
+    }, []);
 
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
@@ -74,14 +63,14 @@ export const AppInfo = memo(() => {
 
     useEffect(() => {
         if (checkForUpdatesOnStartup) {
-            if (appVersion && updateVersion) {
+            if (updateVersion) {
                 if (lastIgnoredUpdate && semver.lte(lastIgnoredUpdate, updateVersion.tag_name)) {
                     return;
                 }
                 onAlertOpen();
             }
         }
-    }, [appVersion, lastIgnoredUpdate, checkForUpdatesOnStartup, onAlertOpen, updateVersion]);
+    }, [lastIgnoredUpdate, checkForUpdatesOnStartup, onAlertOpen, updateVersion]);
 
     return (
         <>
@@ -94,22 +83,26 @@ export const AppInfo = memo(() => {
                 <Heading
                     display={{ base: 'none', lg: 'inherit' }}
                     size="md"
+                    // eslint-disable-next-line i18next/no-literal-string
                 >
                     chaiNNer
                 </Heading>
-                <Tag display={{ base: 'none', lg: 'inherit' }}>Alpha</Tag>
-                <Tag>v{appVersion ?? '#.#.#'}</Tag>
+                <Tag display={{ base: 'none', lg: 'inherit' }}>{t('header.alpha', 'Alpha')}</Tag>
+                {/* eslint-disable-next-line i18next/no-literal-string */}
+                <Tag>v{appVersion}</Tag>
                 {updateVersion && (
                     <Tooltip
                         closeOnClick
                         closeOnMouseDown
                         borderRadius={8}
-                        label={`Update available (${updateVersion.tag_name})`}
+                        label={t('header.updateAvailable', 'Update available ({{version}})', {
+                            version: updateVersion.tag_name,
+                        })}
                         px={2}
                         py={1}
                     >
                         <IconButton
-                            aria-label="Update available"
+                            aria-label={t('header.updateAvailableAria', 'Update available')}
                             colorScheme="green"
                             icon={<DownloadIcon />}
                             variant="ghost"
@@ -134,7 +127,7 @@ export const AppInfo = memo(() => {
                     overflow="hidden"
                     w="calc(100% - 7.5rem)"
                 >
-                    <ModalHeader>Update Changelog</ModalHeader>
+                    <ModalHeader>{t('header.updateChangelog', 'Update Changelog')}</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody bgColor="var(--bg-900)">
                         <Markdown>{changelog ?? ''}</Markdown>
@@ -146,7 +139,7 @@ export const AppInfo = memo(() => {
                                 variant="ghost"
                                 onClick={onModalClose}
                             >
-                                Close
+                                {t('common.close', 'Close')}
                             </Button>
                             <Button
                                 isExternal
@@ -154,7 +147,7 @@ export const AppInfo = memo(() => {
                                 colorScheme="gray"
                                 href={updateVersion?.html_url}
                             >
-                                View release on GitHub
+                                {t('header.viewReleaseOnGitHub', 'View release on GitHub')}
                             </Button>
                             <Button
                                 isExternal
@@ -162,7 +155,7 @@ export const AppInfo = memo(() => {
                                 colorScheme="green"
                                 href="https://chaiNNer.app/download"
                             >
-                                Download from chaiNNer.app
+                                {t('header.downloadFromWebsite', 'Download from chaiNNer.app')}
                             </Button>
                         </HStack>
                     </ModalFooter>
@@ -180,12 +173,17 @@ export const AppInfo = memo(() => {
                             fontSize="lg"
                             fontWeight="bold"
                         >
-                            Update Available ({updateVersion?.tag_name})
+                            {t('header.updateAvailableTitle', 'Update Available ({{version}})', {
+                                version: updateVersion?.tag_name,
+                            })}
                         </AlertDialogHeader>
 
                         <AlertDialogBody>
-                            There is an update available for version {updateVersion?.tag_name}.
-                            Would you like to view the changelog?
+                            {t(
+                                'header.updateAvailableMessage',
+                                'There is an update available for version {{version}}. Would you like to view the changelog?',
+                                { version: updateVersion?.tag_name }
+                            )}
                         </AlertDialogBody>
 
                         <AlertDialogFooter>
@@ -195,7 +193,7 @@ export const AppInfo = memo(() => {
                                     variant="ghost"
                                     onClick={onAlertClose}
                                 >
-                                    Close
+                                    {t('common.close', 'Close')}
                                 </Button>
                                 <Button
                                     onClick={() => {
@@ -205,7 +203,7 @@ export const AppInfo = memo(() => {
                                         onAlertClose();
                                     }}
                                 >
-                                    Ignore Update
+                                    {t('header.ignoreUpdate', 'Ignore Update')}
                                 </Button>
                                 <Button
                                     colorScheme="green"
@@ -214,7 +212,7 @@ export const AppInfo = memo(() => {
                                         onAlertClose();
                                     }}
                                 >
-                                    View Update
+                                    {t('header.viewUpdate', 'View Update')}
                                 </Button>
                             </HStack>
                         </AlertDialogFooter>

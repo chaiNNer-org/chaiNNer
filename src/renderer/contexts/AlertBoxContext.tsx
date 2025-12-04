@@ -16,11 +16,14 @@ import {
     useDisclosure,
     useToast,
 } from '@chakra-ui/react';
+import i18n from 'i18next';
 import path from 'path';
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createContext, useContext, useContextSelector } from 'use-context-selector';
 import { log } from '../../common/log';
 import { assertNever, noop } from '../../common/util';
+import { appDataPath } from '../appConstants';
 import { useMemoObject } from '../hooks/useMemo';
 import { ipcRenderer } from '../safeIpc';
 import { ContextMenuContext } from './ContextMenuContext';
@@ -166,7 +169,7 @@ const getButtons = (
                         ref={cancelRef}
                         onClick={() => onClose(0)}
                     >
-                        OK
+                        {i18n.t('alert.button.ok', 'OK')}
                     </Button>
                 );
                 break;
@@ -180,20 +183,13 @@ const getButtons = (
                         ref={cancelRef}
                         onClick={() => {
                             ipcRenderer
-                                .invoke('get-appdata')
-                                .then((appDataPath) => {
-                                    ipcRenderer
-                                        .invoke('shell-openPath', path.join(appDataPath, 'logs'))
-                                        .catch(() => {
-                                            log.error('Failed to open logs folder');
-                                        });
-                                })
+                                .invoke('shell-openPath', path.join(appDataPath, 'logs'))
                                 .catch(() => {
-                                    log.error('Failed to get appdata path');
+                                    log.error('Failed to open logs folder');
                                 });
                         }}
                     >
-                        Open Logs Folder
+                        {i18n.t('alert.button.openLogsFolder', 'Open Logs Folder')}
                     </Button>
                 );
                 buttonElements.push(
@@ -210,7 +206,7 @@ const getButtons = (
                             });
                         }}
                     >
-                        Exit Application
+                        {i18n.t('alert.button.exitApplication', 'Exit Application')}
                     </Button>
                 );
                 break;
@@ -247,6 +243,7 @@ const AlertBoxDialog = memo(
         progressTotal,
         progressCurrent,
     }: AlertBoxDialogProps) => {
+        const { t } = useTranslation();
         const buttons = useMemo(() => {
             return getButtons(current ?? EMPTY_MESSAGE, onClose, cancelRef, ALERT_FOCUS_ID);
         }, [current, onClose, cancelRef]);
@@ -296,7 +293,9 @@ const AlertBoxDialog = memo(
                         {displayTrace && (
                             <Box mt={4}>
                                 <details>
-                                    <summary style={{ cursor: 'pointer' }}>Stack Trace</summary>
+                                    <summary style={{ cursor: 'pointer' }}>
+                                        {t('alert.stackTrace', 'Stack Trace')}
+                                    </summary>
                                     <Code
                                         display="block"
                                         overflow="auto"

@@ -11,6 +11,7 @@ import {
     VStack,
 } from '@chakra-ui/react';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import ReactTimeAgo from 'react-time-ago';
 import { useContext } from 'use-context-selector';
 import { getKeyInfo } from '../../../common/nodes/keyInfo';
@@ -30,6 +31,7 @@ interface IteratorProcessProps {
 }
 
 const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessProps) => {
+    const { t } = useTranslation();
     const { paused } = useContext(ExecutionStatusContext);
 
     const { progress, eta, index, total } = nodeProgress;
@@ -44,7 +46,7 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
     } else {
         etaText = (
             <>
-                ETA:{' '}
+                {t('node.eta')}{' '}
                 <ReactTimeAgo
                     future
                     date={etaDate}
@@ -102,6 +104,7 @@ interface KeyInfoLabelProps {
 }
 
 const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
+    const { t } = useTranslation();
     const { sendAlert } = useContext(AlertBoxContext);
 
     const { schema, inputData, type } = nodeState;
@@ -117,13 +120,18 @@ const KeyInfoLabel = memo(({ nodeState }: KeyInfoLabelProps) => {
         if (error) {
             sendAlert({
                 type: AlertType.ERROR,
-                title: 'Implementation Error',
-                message: `Unable to determine key info for node ${schema.name} (${
-                    schema.schemaId
-                }) due to an error in the implementation of the key info:\n\n${String(error)}`,
+                title: t('node.implementationError', 'Implementation Error'),
+                message: `${t(
+                    'node.implementationErrorMessage',
+                    'Unable to determine key info for node {{nodeName}} ({{schemaId}}).',
+                    {
+                        nodeName: schema.name,
+                        schemaId: schema.schemaId,
+                    }
+                )}\n\n${String(error)}`,
             });
         }
-    }, [schema, error, sendAlert]);
+    }, [schema, error, sendAlert, t]);
 
     // eslint-disable-next-line react/jsx-no-useless-fragment
     if (!info) return <></>;

@@ -99,9 +99,9 @@ def high_pass_node(
     elif mode == BlurMode.CUSTOM:
         assert blurred is not None, "Expected a blurred image to be given."
 
-    assert (
-        blurred.shape == img.shape
-    ), "Expected blurred image to have same shape as the input image."
+    assert blurred.shape == img.shape, (
+        "Expected blurred image to have same shape as the input image."
+    )
 
     img = contrast * (img - blurred) + 0.5
 
