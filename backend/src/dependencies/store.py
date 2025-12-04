@@ -35,12 +35,12 @@ ENV = {
 DISK_SPACE_BUFFER = 100 * 1024 * 1024
 
 
-def calculate_required_disk_space(dependencies: list[DependencyInfo]) -> int:
+def calculate_required_disk_space(dependencies: list[DependencyInfo]) -> float:
     """
     Calculate the required disk space for installing dependencies.
     Returns the total size in bytes, including a buffer for extraction and overhead.
     """
-    total_size = 0
+    total_size = 0.0
 
     for dep in dependencies:
         if dep.size_estimate is not None:
@@ -91,7 +91,7 @@ class DependencyInfo:
     display_name: str | None = None
     from_file: str | None = None
     extra_index_url: str | None = None
-    size_estimate: int | None = None
+    size_estimate: int | float | None = None
 
 
 def pin(dependency: DependencyInfo) -> str:
