@@ -1045,10 +1045,9 @@ class TransformerRuntimeNode(RuntimeNode):
         Pull fresh inputs from upstream iterator and create a new inner iterator.
 
         This method sets up the transformer for a new iteration cycle:
-        1. Finds the upstream runtime that provides the iterable input
-        2. Creates a lazy iterator that pulls from the upstream
-        3. Initializes the transformer with this iterator
-        4. Sets up internal state for iteration
+        1. Creates a lazy iterator that pulls from upstream(s)
+        2. Initializes the transformer with this iterator
+        3. Sets up internal state for iteration
 
         Returns:
             True  -> new inner iterator created successfully
@@ -1057,48 +1056,19 @@ class TransformerRuntimeNode(RuntimeNode):
         iterable_input = self.node.data.single_iterable_input
         iterable_ids = set(iterable_input.inputs)
 
-        # Find the upstream runtime for the iterator input
-        # Transformers need a lazy iterator that pulls from upstream incrementally
         if not iterable_ids:
-            return False
-        iterator_input_id = next(iter(iterable_ids))
-        edge = self.executor.chain.edge_to(self.node.id, iterator_input_id)
-        if edge is None:
-            # Chain input - transformers require upstream iterators, not chain inputs
-            return False
-
-        src_id = edge.source.id
-        src_node = self.executor.chain.nodes[src_id]
-        upstream_rt = self.executor.runtimes[src_id]
-
-        # Find the output index that corresponds to this edge
-        try:
-            src_index = next(
-                i
-                for i, o in enumerate(src_node.data.outputs)
-                if o.id == edge.source.output_id
-            )
-        except StopIteration:
-            # Edge references invalid output - configuration error
             return False
 
         # Create a lazy iterator that pulls from upstream
         def upstream_iterator():
             """
             Iterator that pulls items from upstream runtime.
-
-            This generator yields the appropriate output index from each upstream output.
-            The defensive check for src_index >= len(upstream_output) protects against
-            malformed upstream outputs that might not have the expected number of outputs.
             """
             while True:
                 try:
-                    upstream_output = next(upstream_rt)
-                    # Defensive check: ensure upstream output has enough elements
-                    # This protects against malformed nodes or edge cases
-                    if src_index >= len(upstream_output):
-                        break
-                    yield upstream_output[src_index]
+                    yield self.executor.runtime_inputs_for(
+                        self.node, only_ids=iterable_ids
+                    )
                 except StopIteration:
                     break
 
@@ -1116,11 +1086,11 @@ class TransformerRuntimeNode(RuntimeNode):
         else:
             non_iter_vals = []
 
-        # Combine iterable and non-iterable inputs
+        # Combine iterable (None placeholders) and non-iterable inputs for Transformer creation
         full_inputs: list[object] = []
         it_non = iter(non_iter_vals)
         for inp in self.node.data.inputs:
-            if inp.id == iterator_input_id:
+            if inp.id in iterable_ids:
                 # Pass None for the iterable input - transformers don't receive
                 # the iterator in their run() method. The iterator is only used
                 # during execution via on_iterate()
@@ -1201,7 +1171,7 @@ class TransformerRuntimeNode(RuntimeNode):
 
             # Get next input item and create output iterator from it
             try:
-                input_item = next(self._input_iterator)
+                input_items = next(self._input_iterator)
             except StopIteration:
                 # Input iterator exhausted - no more input items available
                 # Clean up state and finish (upstream is done, so we're done too)
@@ -1217,7 +1187,7 @@ class TransformerRuntimeNode(RuntimeNode):
 
             # Transform the input item to get output iterator
             # on_iterate() can yield zero or more outputs for this input
-            self._current_output_iter = iter(self._transformer.on_iterate(input_item))
+            self._current_output_iter = iter(self._transformer.on_iterate(*input_items))
             # Continue loop to get first output from this input
 
         assert self._partial is not None

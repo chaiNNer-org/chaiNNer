@@ -87,7 +87,7 @@ class Transformer(Generic[I_in, O_out]):
     of sequences at runtime.
     """
 
-    on_iterate: Callable[[I_in], Iterable[O_out | Exception]]
+    on_iterate: Callable[..., Iterable[O_out | Exception]]
     expected_length: int | None = None
     metadata: object | None = None
 
