@@ -240,7 +240,6 @@ async def run(request: Request):
         logger.info("Running new executor...")
 
         use_new_executor = full_data.get("useExperimentalFeatures", False)
-        logger.info(use_new_executor)
         if use_new_executor:
             executor = NewExecutor(
                 id=executor_id,
