@@ -23,9 +23,7 @@ T = TypeVar("T")
     kind="transformer",
     inputs=[
         AnyInput("Sequence").with_id(0),
-        BoolInput(
-            "Keep",
-        ).with_id(1),
+        BoolInput("Keep", has_handle=True).with_id(1),
     ],
     outputs=[
         AnyOutput("Sequence", output_type="Input0").with_id(0),
