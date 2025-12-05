@@ -39,6 +39,8 @@ import { FunctionDefinition } from '../../common/types/function';
 import { EMPTY_ARRAY, EMPTY_MAP, delay } from '../../common/util';
 import { useAsyncEffect } from '../hooks/useAsyncEffect';
 import { useMemoObject } from '../hooks/useMemo';
+import { usePrevious } from '../hooks/usePrevious';
+import { useSettings } from '../hooks/useSettings';
 import { ipcRenderer } from '../safeIpc';
 import { AlertBoxContext, AlertId, AlertType } from './AlertBoxContext';
 
@@ -85,8 +87,18 @@ interface NodesInfo {
     packages: Package[];
 }
 
-const processBackendResponse = (rawResponse: BackendData): NodesInfo => {
-    const { categories, categoriesMissingNodes, nodes } = rawResponse[0];
+const processBackendResponse = (
+    rawResponse: BackendData,
+    experimentalFeatures: boolean
+): NodesInfo => {
+    const { categories, categoriesMissingNodes } = rawResponse[0];
+    let { nodes } = rawResponse[0];
+
+    // Filter out transformer nodes if experimental features are disabled
+    if (!experimentalFeatures) {
+        nodes = nodes.filter((node) => node.kind !== 'transformer');
+    }
+
     const categoryMap = new CategoryMap(categories);
     const schemata = new SchemaMap(sortNodes(nodes, categoryMap));
 
@@ -171,17 +183,23 @@ const useNodes = (
         }
     }, [forgetAlert]);
 
+    const { experimentalFeatures } = useSettings();
+    const previousExperimentalFeatures = usePrevious(experimentalFeatures);
+
     useEffect(() => {
         if (nodesQuery.status === 'success') {
             forgetLastErrorAlert();
             const rawResponse = nodesQuery.data;
             setNodesInfo((prev) => {
-                if (isDeepEqual(prev?.rawResponse, rawResponse)) {
+                if (
+                    isDeepEqual(prev?.rawResponse, rawResponse) &&
+                    previousExperimentalFeatures === experimentalFeatures
+                ) {
                     return prev;
                 }
 
                 try {
-                    return processBackendResponse(rawResponse);
+                    return processBackendResponse(rawResponse, experimentalFeatures);
                 } catch (e) {
                     log.error(e);
                     forgetLastErrorAlert();
@@ -201,7 +219,15 @@ const useNodes = (
                 return prev;
             });
         }
-    }, [nodesQuery.status, nodesQuery.data, sendAlert, forgetLastErrorAlert, t]);
+    }, [
+        nodesQuery.status,
+        nodesQuery.data,
+        sendAlert,
+        forgetLastErrorAlert,
+        t,
+        experimentalFeatures,
+        previousExperimentalFeatures,
+    ]);
 
     useEffect(() => {
         if (nodeQueryError && !isBackendIntentionallyDown) {

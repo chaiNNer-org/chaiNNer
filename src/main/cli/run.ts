@@ -270,6 +270,7 @@ export const runChainInCli = async (args: RunArguments) => {
         data,
         options: settings.packageSettings,
         sendBroadcastData: false,
+        useExperimentalFeatures: settings.experimentalFeatures,
     });
     eventSource.close();
 

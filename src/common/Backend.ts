@@ -77,12 +77,14 @@ export interface BackendRunRequest {
     data: BackendJsonNode[];
     options: PackageSettings;
     sendBroadcastData: boolean;
+    useExperimentalFeatures?: boolean;
 }
 export interface BackendRunIndividualRequest {
     id: string;
     inputs: (InputValue | null)[];
     schemaId: SchemaId;
     options: PackageSettings;
+    useExperimentalFeatures?: boolean;
 }
 export interface BackendWorkerStatusResponse {
     executor: 'running' | 'killing' | 'paused' | 'ready';

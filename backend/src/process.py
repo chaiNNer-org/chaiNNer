@@ -8,9 +8,8 @@ import typing
 from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, NewType
+from typing import Literal
 
 import navi
 from api import (
@@ -36,10 +35,16 @@ from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, Node
 from chain.input import EdgeInput, Input, InputMap
 from events import EventConsumer, InputsDict, NodeBroadcastData
 from logger import logger
+from process_common import (
+    CollectorOutput,
+    ExecutionId,
+    GeneratorOutput,
+    NodeOutput,
+    Output,
+    RegularOutput,
+)
 from progress_controller import Aborted, ProgressController, ProgressToken
 from util import combine_sets, timed_supplier
-
-Output = list[object]
 
 
 def collect_input_information(
@@ -341,28 +346,6 @@ class NodeExecutionError(Exception):
         self.node_id: NodeId = node_id
         self.node_data: NodeData = node_data
         self.inputs: InputsDict = inputs
-
-
-@dataclass(frozen=True)
-class RegularOutput:
-    output: Output
-
-
-@dataclass(frozen=True)
-class GeneratorOutput:
-    info: IteratorOutputInfo
-    generator: Generator
-    partial_output: Output
-
-
-@dataclass(frozen=True)
-class CollectorOutput:
-    collector: Collector
-
-
-NodeOutput = RegularOutput | GeneratorOutput
-
-ExecutionId = NewType("ExecutionId", str)
 
 
 class _ExecutorNodeContext(NodeContext):
