@@ -556,13 +556,14 @@ class StaticRuntimeNode(RuntimeNode):
             cached_result: NodeOutput | None = None
             strategy = self.executor.cache_strategy.get(self.node.id)
 
-            # First check parent_cache (cross-execution persistence)
-            if self.executor.node_cache.parent is not None:
-                cached_result = self.executor.node_cache.parent.get(self.node.id)
+            if not self.iterative:
+                # First check parent_cache (cross-execution persistence)
+                if self.executor.node_cache.parent is not None:
+                    cached_result = self.executor.node_cache.parent.get(self.node.id)
 
-            # Then check current execution cache
-            if cached_result is None:
-                cached_result = self.executor.node_cache.get(self.node.id)
+                # Then check current execution cache
+                if cached_result is None:
+                    cached_result = self.executor.node_cache.get(self.node.id)
 
             # Use cached result if available and valid
             if cached_result is not None and isinstance(cached_result, RegularOutput):
