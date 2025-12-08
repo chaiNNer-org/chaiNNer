@@ -19,7 +19,7 @@ T = TypeVar("T")
         "Filters a sequence based on the supplied condition.",
         "The output sequence will contain only the items that meet the condition.",
     ],
-    icon="MdFilterList",
+    icon="MdFilterListAlt",
     kind="transformer",
     inputs=[
         AnyInput("Sequence").with_id(0),
