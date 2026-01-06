@@ -4,7 +4,7 @@ import { log } from '../../common/log';
 import { lazy } from '../../common/util';
 import { OpenArguments } from '../arguments';
 import { readSettings } from '../setting-storage';
-import { createMainWindow } from './main-window';
+import { createSimpleMainWindow } from './main-window-simple';
 
 const mdCodeBlock = (code: string): string => {
     return `\`\`\`\n${code}\n\`\`\``;
@@ -59,7 +59,7 @@ export const createGuiApp = (args: OpenArguments) => {
     }
 
     const createWindow = lazy(() => {
-        createMainWindow(args, settings).catch((error) => {
+        createSimpleMainWindow(args, settings).catch((error) => {
             log.error(error);
             // rethrow to let the global error handler deal with it
             return Promise.reject(error);
