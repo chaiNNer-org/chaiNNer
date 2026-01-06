@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import react from '@vitejs/plugin-react-swc';
+import vue from '@vitejs/plugin-vue';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig } from 'vite';
 import { pluginExposeRenderer } from './base.config';
@@ -27,7 +27,7 @@ export default defineConfig((env) => {
                 },
             },
         },
-        plugins: [pluginExposeRenderer(name), react()],
+        plugins: [pluginExposeRenderer(name), vue()],
         resolve: {
             preserveSymlinks: true,
             alias: {

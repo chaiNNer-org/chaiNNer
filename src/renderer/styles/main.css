@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Theme colors - Default dark theme */
+  --theme-50: #f0f9ff;
+  --theme-100: #e0f2fe;
+  --theme-200: #bae6fd;
+  --theme-300: #7dd3fc;
+  --theme-400: #38bdf8;
+  --theme-500: #0ea5e9;
+  --theme-600: #0284c7;
+  --theme-700: #0369a1;
+  --theme-800: #075985;
+  --theme-900: #0c4a6e;
+
+  /* Background colors */
+  --bg-0: #1a202c;
+  --bg-100: #2d3748;
+  --bg-200: #4a5568;
+  --bg-300: #718096;
+  --bg-400: #a0aec0;
+  --bg-500: #cbd5e0;
+  --bg-600: #e2e8f0;
+  --bg-700: #edf2f7;
+  --bg-800: #f7fafc;
+  --bg-900: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Open Sans', sans-serif;
+}
+
+body {
+  background-color: var(--bg-0);
+  color: var(--bg-900);
+}

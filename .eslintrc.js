@@ -1,17 +1,20 @@
 module.exports = {
     root: true,
-    parser: '@typescript-eslint/parser',
-    extends: ['airbnb', 'plugin:react/jsx-runtime', 'plugin:prettier/recommended'],
+    parser: 'vue-eslint-parser',
+    extends: ['plugin:vue/vue3-recommended', 'plugin:prettier/recommended'],
     plugins: [
         'prettier',
         '@typescript-eslint',
         'prefer-arrow-functions',
-        'eslint-plugin-react-memo',
         'unused-imports',
-        'react-refresh',
         'i18next',
         'i18n-validator',
     ],
+    parserOptions: {
+        parser: '@typescript-eslint/parser',
+        ecmaVersion: 2020,
+        sourceType: 'module',
+    },
     globals: {
         MAIN_WINDOW_VITE_DEV_SERVER_URL: true,
         MAIN_WINDOW_VITE_NAME: true,
@@ -22,23 +25,10 @@ module.exports = {
         browser: true,
         node: true,
     },
-    parserOptions: {
-        ecmaVersion: 2020,
-    },
     rules: {
         'max-classes-per-file': 'off',
         'no-use-before-define': 'off',
-        'react/jsx-sort-props': [
-            'error',
-            {
-                callbacksLast: true,
-                shorthandFirst: true,
-            },
-        ],
-        'react/jsx-max-props-per-line': ['error', { maximum: 1, when: 'always' }],
-        'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
         'import/extensions': 'off',
-        'react/prop-types': 'off',
         'prefer-arrow-functions/prefer-arrow-functions': [
             'warn',
             {
@@ -64,10 +54,9 @@ module.exports = {
                 alphabetize: { order: 'asc', caseInsensitive: true },
             },
         ],
-        'react/function-component-definition': 'off',
-        'react-memo/require-memo': ['error', { strict: true }],
         'unused-imports/no-unused-imports': 'error',
-        'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+        'vue/multi-word-component-names': 'off',
+        'vue/max-attributes-per-line': ['error', { singleline: 1, multiline: 1 }],
     },
     settings: {
         'import/core-modules': ['electron'],
@@ -87,11 +76,9 @@ module.exports = {
 
     overrides: [
         {
-            files: ['src/**/*.ts', 'src/**/*.tsx', 'tests/**/*.ts', 'tests/**/*.tsx'],
+            files: ['src/**/*.ts', 'src/**/*.vue', 'tests/**/*.ts', 'tests/**/*.vue'],
             extends: [
-                'airbnb',
-                'airbnb-typescript',
-                'plugin:react/jsx-runtime',
+                'plugin:vue/vue3-recommended',
                 'plugin:@typescript-eslint/recommended',
                 'plugin:@typescript-eslint/recommended-requiring-type-checking',
                 'plugin:prettier/recommended',
@@ -102,22 +89,21 @@ module.exports = {
                 '@typescript-eslint',
                 'prefer-arrow-functions',
                 'eslint-comments',
-                'eslint-plugin-react-memo',
-                'react-hooks',
                 'unused-imports',
                 'regexp',
-                'react-refresh',
                 'i18next',
                 'i18n-validator',
             ],
+            parser: 'vue-eslint-parser',
             parserOptions: {
+                parser: '@typescript-eslint/parser',
                 project: './tsconfig.json',
+                extraFileExtensions: ['.vue'],
             },
             rules: {
                 'consistent-return': 'off',
                 'max-classes-per-file': 'off',
                 'no-restricted-syntax': 'off',
-                'react/require-default-props': 'off',
                 '@typescript-eslint/no-non-null-assertion': 'off',
                 '@typescript-eslint/no-floating-promises': ['error', { ignoreIIFE: true }],
                 '@typescript-eslint/no-unnecessary-condition': 'warn',
@@ -125,13 +111,6 @@ module.exports = {
                 'eslint-comments/no-unused-disable': 'warn',
                 'import/prefer-default-export': 'off',
                 'import/no-default-export': 'error',
-                'react/jsx-sort-props': [
-                    'error',
-                    {
-                        callbacksLast: true,
-                        shorthandFirst: true,
-                    },
-                ],
                 'sort-imports': ['error', { ignoreDeclarationSort: true }],
                 'import/order': [
                     'error',
@@ -148,14 +127,10 @@ module.exports = {
                         alphabetize: { order: 'asc', caseInsensitive: true },
                     },
                 ],
-                'react/function-component-definition': 'off',
-                'react/hook-use-state': 'warn',
-                'react-memo/require-memo': ['error', { strict: true }],
-                'react-hooks/rules-of-hooks': 'error',
-                'react-hooks/exhaustive-deps': ['warn', { additionalHooks: '(useAsyncEffect)' }],
                 'unused-imports/no-unused-imports': 'error',
                 'regexp/prefer-d': ['warn', { insideCharacterClass: 'ignore' }],
-                'react-refresh/only-export-components': 'warn',
+                'vue/multi-word-component-names': 'off',
+                'vue/max-attributes-per-line': ['error', { singleline: 1, multiline: 1 }],
                 // i18n rules
                 'i18next/no-literal-string': 'warn',
                 'i18n-validator/json-key-exists': [
@@ -168,7 +143,7 @@ module.exports = {
             },
         },
         {
-            files: ['src/common/**/*.ts', 'src/renderer/**/*.ts', 'src/renderer/**/*.tsx'],
+            files: ['src/common/**/*.ts', 'src/renderer/**/*.ts', 'src/renderer/**/*.vue'],
             env: {
                 browser: true,
                 node: false,

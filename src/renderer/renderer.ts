@@ -1,5 +1,5 @@
 /**
- * This file will automatically be loaded by webpack and run in the "renderer" context.
+ * This file will automatically be loaded by Vite and run in the "renderer" context.
  * To learn more about the differences between the "main" and the "renderer" context in
  * Electron, visit:
  *
@@ -26,5 +26,4 @@
  * ```
  */
 
-import './global.scss';
-import './index';
+import './main';
