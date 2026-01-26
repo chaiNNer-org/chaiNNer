@@ -487,6 +487,8 @@ class RuntimeNode(AsyncIterator[Output]):
         # For generators/transformers: tracks actual items produced (vs iterations with fanout)
         # For other nodes: None means use _iter_timer.iterations instead
         self._items_produced: int | None = None
+        # Accumulated execution time for this node's own work (not upstream)
+        self._accumulated_exec_time: float = 0.0
 
     def _ensure_started(self) -> None:
         if not self._started:
@@ -520,7 +522,7 @@ class RuntimeNode(AsyncIterator[Output]):
                     self.node, idx, self._expected_len
                 )
             self.executor.send_node_finish(
-                self.node, self._iter_timer.get_time_since_start()
+                self.node, self._accumulated_exec_time
             )
             self._finished = True
 
@@ -576,6 +578,7 @@ class StaticRuntimeNode(RuntimeNode):
                 raw, _exec_time = await self.executor.run_node_async(
                     self.node, ctx, inputs
                 )
+                self._accumulated_exec_time += exec_time
                 if not isinstance(raw, RegularOutput):
                     raise RuntimeError(
                         f"StaticRuntimeNode for {self.node.id} "
@@ -688,7 +691,8 @@ class GeneratorRuntimeNode(RuntimeNode):
             return False
 
         ctx = self.executor.get_node_context(self.node)
-        out, _exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
+        out, exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
+        self._accumulated_exec_time += exec_time
         assert isinstance(out, GeneratorOutput)
 
         self._partial = out.partial_output
@@ -723,7 +727,9 @@ class GeneratorRuntimeNode(RuntimeNode):
 
             assert self._gen_iter is not None
             try:
+                iter_start = time.monotonic()
                 values = next(self._gen_iter)
+                self._accumulated_exec_time += time.monotonic() - iter_start
             except StopIteration:
                 # Inner iterator exhausted - need to decide whether to restart
                 self._gen_iter = None
@@ -845,12 +851,15 @@ class CollectorRuntimeNode(RuntimeNode):
                 raw, _exec_time = await self.executor.run_node_async(
                     self.node, ctx, all_inputs
                 )
+                self._accumulated_exec_time += exec_time
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
                     ) from err
                 self._collector = raw.collector
+                complete_start = time.monotonic()
                 final = self._collector.on_complete()
+                self._accumulated_exec_time += time.monotonic() - complete_start
                 enforced = enforce_output(final, self.node.data)
                 self._set_final(enforced.output)
                 self._iter_timer.add()
@@ -865,6 +874,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 raw, _exec_time = await self.executor.run_node_async(
                     self.node, ctx, all_inputs
                 )
+                self._accumulated_exec_time += exec_time
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -889,10 +899,14 @@ class CollectorRuntimeNode(RuntimeNode):
                 if len(enforced_inputs) == 1
                 else tuple(enforced_inputs)
             )
+            iterate_start = time.monotonic()
             self._collector.on_iterate(iter_arg)
+            self._accumulated_exec_time += time.monotonic() - iterate_start
 
             # complete right away for non-iterative
+            complete_start = time.monotonic()
             final = self._collector.on_complete()
+            self._accumulated_exec_time += time.monotonic() - complete_start
             enforced = enforce_output(final, self.node.data)
             self._set_final(enforced.output)
             self._iter_timer.add()
@@ -932,6 +946,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 raw, _exec_time = await self.executor.run_node_async(
                     self.node, ctx, full_inputs
                 )
+                self._accumulated_exec_time += exec_time
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -939,7 +954,9 @@ class CollectorRuntimeNode(RuntimeNode):
                 self._collector = raw.collector
 
             # Finalize and return the collected result
+            complete_start = time.monotonic()
             final = self._collector.on_complete()
+            self._accumulated_exec_time += time.monotonic() - complete_start
             enforced = enforce_output(final, self.node.data)
             self._set_final(enforced.output)
             self._iter_timer.add()
@@ -969,6 +986,7 @@ class CollectorRuntimeNode(RuntimeNode):
             raw, _exec_time = await self.executor.run_node_async(
                 self.node, ctx, init_inputs
             )
+            self._accumulated_exec_time += exec_time
             if not isinstance(raw, CollectorOutput):
                 raise RuntimeError(
                     f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -987,7 +1005,9 @@ class CollectorRuntimeNode(RuntimeNode):
             if len(iter_enforced_inputs) == 1
             else tuple(iter_enforced_inputs)
         )
+        iterate_start = time.monotonic()
         self._collector.on_iterate(iter_arg)
+        self._accumulated_exec_time += time.monotonic() - iterate_start
 
         self._iter_timer.add()
         self._send_progress()
@@ -1118,6 +1138,7 @@ class TransformerRuntimeNode(RuntimeNode):
         out, _exec_time = await self.executor.run_node_async(
             self.node, ctx, full_inputs
         )
+        self._accumulated_exec_time += exec_time
         assert isinstance(out, TransformerOutput)
 
         self._partial = out.partial_output
@@ -1205,7 +1226,9 @@ class TransformerRuntimeNode(RuntimeNode):
 
             # Transform the input item to get output iterator
             # on_iterate() can yield zero or more outputs for this input
+            iterate_start = time.monotonic()
             self._current_output_iter = iter(self._transformer.on_iterate(*input_items))
+            self._accumulated_exec_time += time.monotonic() - iterate_start
             # Continue loop to get first output from this input
 
         assert self._partial is not None
@@ -1282,7 +1305,8 @@ class SideEffectLeafRuntimeNode(RuntimeNode):
 
         # run node
         ctx = self.executor.get_node_context(self.node)
-        out, _exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
+        out, exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
+        self._accumulated_exec_time += exec_time
 
         if isinstance(out, RegularOutput):
             self.executor.send_node_broadcast(self.node, out.output)
@@ -1871,13 +1895,12 @@ class Executor:
         if node_data.kind == "generator":
             # For generators, only initialize to get Generator object
             # and type info. Do NOT iterate through outputs.
-            start_time = time.perf_counter()
             self.send_node_start(node)
 
             # Get inputs and run node to get GeneratorOutput
             inputs = await self.runtime_inputs_for_async(node)
             node_ctx = self.get_node_context(node)
-            gen_output, _exec_time = await self.run_node_async(node, node_ctx, inputs)
+            gen_output, exec_time = await self.run_node_async(node, node_ctx, inputs)
             if not isinstance(gen_output, GeneratorOutput):
                 raise RuntimeError(f"Generator node {node.id} expected GeneratorOutput")
 
@@ -1889,9 +1912,8 @@ class Executor:
                 generators=[gen_output.generator],
             )
 
-            # Send node-finish event
-            execution_time = time.perf_counter() - start_time
-            self.send_node_finish(node, execution_time)
+            # Send node-finish event with actual execution time (not including input fetching)
+            self.send_node_finish(node, exec_time)
 
             # Finalize chain so broadcasts and cleanups finish
             await self._finalize_chain()
