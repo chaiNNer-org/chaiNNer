@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import gc
 import time
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import AsyncIterator, Callable, Iterable, Iterator
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Literal
@@ -49,6 +49,7 @@ from process_common import (
     TransformerOutput,
 )
 from progress_controller import Aborted, ProgressController, ProgressToken
+from util import timed_supplier
 
 
 class CollectorNotReady(Exception):
@@ -473,7 +474,7 @@ class _ExecutorNodeContext(NodeContext):
 # ======================================================================
 # Runtime nodes
 # ======================================================================
-class RuntimeNode(Iterator[Output]):
+class RuntimeNode(AsyncIterator[Output]):
     def __init__(self, node: Node, executor: Executor, iterative: bool):
         self.node = node
         self.executor = executor
@@ -523,7 +524,7 @@ class RuntimeNode(Iterator[Output]):
             )
             self._finished = True
 
-    def __next__(self) -> Output:
+    async def __anext__(self) -> Output:
         raise NotImplementedError
 
 
@@ -537,10 +538,10 @@ class StaticRuntimeNode(RuntimeNode):
         self._current_value: Output | None = None
         self._ran_on_final_collectors = False
 
-    def __next__(self) -> Output:
+    async def __anext__(self) -> Output:
         self._ensure_started()
         if self._finished:
-            raise StopIteration
+            raise StopAsyncIteration
 
         # leaf fed only by final collectors? only run once
         if self.executor.raw_downstream_counts[self.node.id] == 0:
@@ -549,7 +550,7 @@ class StaticRuntimeNode(RuntimeNode):
                 and self._ran_on_final_collectors
             ):
                 self._finish()
-                raise StopIteration
+                raise StopAsyncIteration
 
         if self._current_value is None:
             # Check cache before computing
@@ -570,9 +571,9 @@ class StaticRuntimeNode(RuntimeNode):
                 self._current_value = cached_result.output
             else:
                 # Compute fresh result
-                inputs = self.executor.runtime_inputs_for(self.node)
+                inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw = self.executor.run_node_immediate(self.node, ctx, inputs)
+                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
                 if not isinstance(raw, RegularOutput):
                     raise RuntimeError(
                         f"StaticRuntimeNode for {self.node.id} "
@@ -663,7 +664,7 @@ class GeneratorRuntimeNode(RuntimeNode):
             # so we will re-init anyway.
         return False
 
-    def _init_new_inner(self) -> bool:
+    async def _init_new_inner(self) -> bool:
         """
         Pull fresh inputs and create a new inner iterator.
 
@@ -676,16 +677,16 @@ class GeneratorRuntimeNode(RuntimeNode):
             False -> upstream exhausted, no more data available
         """
         try:
-            inputs = self.executor.runtime_inputs_for(self.node)
+            inputs = await self.executor.runtime_inputs_for_async(self.node)
         except CollectorNotReady:
             # Bubble up to executor loop - it will drive the collector to completion
             raise
-        except StopIteration:
+        except StopAsyncIteration:
             # Real upstream exhaustion - no more data available
             return False
 
         ctx = self.executor.get_node_context(self.node)
-        out = self.executor.run_node_immediate(self.node, ctx, inputs)
+        out, _exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
         assert isinstance(out, GeneratorOutput)
 
         self._partial = out.partial_output
@@ -697,7 +698,7 @@ class GeneratorRuntimeNode(RuntimeNode):
 
     # ---------- main logic ----------
 
-    def _advance(self) -> Output:
+    async def _advance(self) -> Output:
         """
         Get one item for this generator.
 
@@ -712,11 +713,11 @@ class GeneratorRuntimeNode(RuntimeNode):
         """
         while True:
             if self._gen_iter is None:
-                ok = self._init_new_inner()
+                ok = await self._init_new_inner()
                 if not ok:
                     # Upstream can't give us more data -> we're done
                     self._finish()
-                    raise StopIteration
+                    raise StopAsyncIteration
 
             assert self._gen_iter is not None
             try:
@@ -733,7 +734,7 @@ class GeneratorRuntimeNode(RuntimeNode):
                 # Only re-init if we have a truly iterative parent that can feed us more
                 if not self._has_truly_iterative_parent():
                     self._finish()
-                    raise StopIteration from None
+                    raise StopAsyncIteration from None
 
                 # Loop around to try building a new inner iterator
                 continue
@@ -761,13 +762,13 @@ class GeneratorRuntimeNode(RuntimeNode):
         self.executor.send_node_broadcast(self.node, full_out)
         return full_out
 
-    def __next__(self) -> Output:
+    async def __anext__(self) -> Output:
         self._ensure_started()
         if self._finished:
-            raise StopIteration
+            raise StopAsyncIteration
 
         if self._current_value is None:
-            self._current_value = self._advance()
+            self._current_value = await self._advance()
             self._current_served = 0
 
         out = self._current_value
@@ -812,17 +813,17 @@ class CollectorRuntimeNode(RuntimeNode):
         # broadcast once
         self.executor.send_node_broadcast(self.node, value)
 
-    def __next__(self) -> Output:
+    async def __anext__(self) -> Output:
         self._ensure_started()
 
         # if we are already finalized as a root, we stop iterating
         if self._final_output is not None:
             # root loop: we made progress once already, now stop
             self._finish()
-            raise StopIteration
+            raise StopAsyncIteration
 
         if self._finished:
-            raise StopIteration
+            raise StopAsyncIteration
 
         iterable_input = self.node.data.single_iterable_input
         iterable_ids = set(iterable_input.inputs)
@@ -832,12 +833,12 @@ class CollectorRuntimeNode(RuntimeNode):
         if not self.iterative:
             try:
                 # Try to get iterable inputs - if this fails, we finalize immediately
-                _ = self.executor.runtime_inputs_for(self.node, only_ids=iterable_ids)
-            except StopIteration as err:
+                _ = await self.executor.runtime_inputs_for_async(self.node, only_ids=iterable_ids)
+            except StopAsyncIteration as err:
                 # No iterable inputs available - finalize immediately with empty collection
-                all_inputs = self.executor.runtime_inputs_for(self.node)
+                all_inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw = self.executor.run_node_immediate(self.node, ctx, all_inputs)
+                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, all_inputs)
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -853,9 +854,9 @@ class CollectorRuntimeNode(RuntimeNode):
 
             # There was at least one iterable item - initialize collector if needed
             if self._collector is None:
-                all_inputs = self.executor.runtime_inputs_for(self.node)
+                all_inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw = self.executor.run_node_immediate(self.node, ctx, all_inputs)
+                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, all_inputs)
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -868,9 +869,9 @@ class CollectorRuntimeNode(RuntimeNode):
                 if inp.id in iterable_ids:
                     enforced_inputs.append(
                         inp.enforce_(
-                            self.executor.runtime_inputs_for(
+                            (await self.executor.runtime_inputs_for_async(
                                 self.node, only_ids={inp.id}
-                            )[0]
+                            ))[0]
                         )
                     )
             iter_arg = (
@@ -891,10 +892,10 @@ class CollectorRuntimeNode(RuntimeNode):
         # ---------- iterative collector ----------
         # Iterative collectors accumulate items over multiple iterations
         try:
-            iter_values = self.executor.runtime_inputs_for(
+            iter_values = await self.executor.runtime_inputs_for_async(
                 self.node, only_ids=iterable_ids
             )
-        except StopIteration as err:
+        except StopAsyncIteration as err:
             # Upstream exhausted -> time to finalize the collection
             if self._collector is None:
                 # Create collector from non-iterable inputs only
@@ -905,7 +906,7 @@ class CollectorRuntimeNode(RuntimeNode):
                     if inp.id not in iterable_ids
                 }
                 if non_iter_ids:
-                    non_iter_vals = self.executor.runtime_inputs_for(
+                    non_iter_vals = await self.executor.runtime_inputs_for_async(
                         self.node, only_ids=non_iter_ids
                     )
                 else:
@@ -918,7 +919,7 @@ class CollectorRuntimeNode(RuntimeNode):
                     else:
                         full_inputs.append(next(non_it, None))
                 ctx = self.executor.get_node_context(self.node)
-                raw = self.executor.run_node_immediate(self.node, ctx, full_inputs)
+                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, full_inputs)
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -939,7 +940,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 inp.id for inp in self.node.data.inputs if inp.id not in iterable_ids
             }
             if non_iter_ids:
-                non_iter_vals = self.executor.runtime_inputs_for(
+                non_iter_vals = await self.executor.runtime_inputs_for_async(
                     self.node, only_ids=non_iter_ids
                 )
             else:
@@ -953,7 +954,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 else:
                     init_inputs.append(next(it_non, None))
             ctx = self.executor.get_node_context(self.node)
-            raw = self.executor.run_node_immediate(self.node, ctx, init_inputs)
+            raw, _exec_time = await self.executor.run_node_async(self.node, ctx, init_inputs)
             if not isinstance(raw, CollectorOutput):
                 raise RuntimeError(
                     f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -992,7 +993,7 @@ class TransformerRuntimeNode(RuntimeNode):
         self._current_served = 0
         self._current_value: Output | None = None
         self._transformer: Transformer[object, object] | None = None
-        self._input_iterator: Iterator[object] | None = None
+        self._input_async_gen: AsyncIterator[object] | None = None
         self._current_output_iter: Iterator[object] | None = None
         self._partial: Output | None = None
         self._items_produced = 0
@@ -1041,7 +1042,7 @@ class TransformerRuntimeNode(RuntimeNode):
             # so we will re-init anyway.
         return False
 
-    def _init_new_inner(self) -> bool:
+    async def _init_new_inner(self) -> bool:
         """
         Pull fresh inputs from upstream iterator and create a new inner iterator.
 
@@ -1060,17 +1061,17 @@ class TransformerRuntimeNode(RuntimeNode):
         if not iterable_ids:
             return False
 
-        # Create a lazy iterator that pulls from upstream
-        def upstream_iterator():
+        # Create an async generator that pulls from upstream
+        async def upstream_async_generator():
             """
-            Iterator that pulls items from upstream runtime.
+            Async generator that pulls items from upstream runtime.
             """
             while True:
                 try:
-                    yield self.executor.runtime_inputs_for(
+                    yield await self.executor.runtime_inputs_for_async(
                         self.node, only_ids=iterable_ids
                     )
-                except StopIteration:
+                except StopAsyncIteration:
                     break
 
         # Get non-iterable inputs if any
@@ -1079,10 +1080,10 @@ class TransformerRuntimeNode(RuntimeNode):
         }
         if non_iter_ids:
             try:
-                non_iter_vals = self.executor.runtime_inputs_for(
+                non_iter_vals = await self.executor.runtime_inputs_for_async(
                     self.node, only_ids=non_iter_ids
                 )
-            except StopIteration:
+            except StopAsyncIteration:
                 non_iter_vals = []
         else:
             non_iter_vals = []
@@ -1100,14 +1101,14 @@ class TransformerRuntimeNode(RuntimeNode):
                 full_inputs.append(next(it_non, None))
 
         ctx = self.executor.get_node_context(self.node)
-        out = self.executor.run_node_immediate(self.node, ctx, full_inputs)
+        out, _exec_time = await self.executor.run_node_async(self.node, ctx, full_inputs)
         assert isinstance(out, TransformerOutput)
 
         self._partial = out.partial_output
         self._transformer = out.transformer
-        # Create the iterator for incremental execution - items will be pulled
+        # Create the async generator for incremental execution - items will be pulled
         # one at a time via on_iterate() during the _advance() method
-        self._input_iterator = upstream_iterator()
+        self._input_async_gen = upstream_async_generator()
         self._current_output_iter = None
         self._items_produced = 0
         self._expected_len = out.transformer.expected_length
@@ -1115,7 +1116,7 @@ class TransformerRuntimeNode(RuntimeNode):
 
     # ---------- main logic ----------
 
-    def _advance(self) -> Output:
+    async def _advance(self) -> Output:
         """
         Get one output item for this transformer.
 
@@ -1136,14 +1137,14 @@ class TransformerRuntimeNode(RuntimeNode):
         """
         while True:
             if self._transformer is None:
-                ok = self._init_new_inner()
+                ok = await self._init_new_inner()
                 if not ok:
                     # Upstream can't give us more data -> we're done
                     self._finish()
-                    raise StopIteration
+                    raise StopAsyncIteration
 
             assert self._transformer is not None
-            assert self._input_iterator is not None
+            assert self._input_async_gen is not None
 
             # Try to get the next output from current input item's output iterator
             if self._current_output_iter is not None:
@@ -1168,23 +1169,23 @@ class TransformerRuntimeNode(RuntimeNode):
             ):
                 # We've produced all expected items, finish
                 self._finish()
-                raise StopIteration
+                raise StopAsyncIteration
 
             # Get next input item and create output iterator from it
             try:
-                input_items = next(self._input_iterator)
-            except StopIteration:
+                input_items = await self._input_async_gen.__anext__()
+            except StopAsyncIteration:
                 # Input iterator exhausted - no more input items available
                 # Clean up state and finish (upstream is done, so we're done too)
                 self._transformer = None
-                self._input_iterator = None
+                self._input_async_gen = None
                 self._current_output_iter = None
                 self._partial = None
                 # Don't reset _items_produced before _finish() -
                 # it needs the count for final progress
                 self._finish()
                 self._items_produced = 0
-                raise StopIteration from None
+                raise StopAsyncIteration from None
 
             # Transform the input item to get output iterator
             # on_iterate() can yield zero or more outputs for this input
@@ -1207,13 +1208,13 @@ class TransformerRuntimeNode(RuntimeNode):
         self.executor.send_node_broadcast(self.node, full_out)
         return full_out
 
-    def __next__(self) -> Output:
+    async def __anext__(self) -> Output:
         self._ensure_started()
         if self._finished:
-            raise StopIteration
+            raise StopAsyncIteration
 
         if self._current_value is None:
-            self._current_value = self._advance()
+            self._current_value = await self._advance()
             self._current_served = 0
 
         out = self._current_value
@@ -1239,10 +1240,10 @@ class SideEffectLeafRuntimeNode(RuntimeNode):
         # to avoid running twice on same final collector inputs
         self._ran_on_final_collectors = False
 
-    def __next__(self) -> Output:
+    async def __anext__(self) -> Output:
         self._ensure_started()
         if self._finished:
-            raise StopIteration
+            raise StopAsyncIteration
 
         # if all parents are final collectors and we already ran once, stop
         if (
@@ -1250,22 +1251,22 @@ class SideEffectLeafRuntimeNode(RuntimeNode):
             and self._ran_on_final_collectors
         ):
             self._finish()
-            raise StopIteration
+            raise StopAsyncIteration
 
         # pull inputs bottom-up
         try:
-            inputs = self.executor.runtime_inputs_for(self.node)
+            inputs = await self.executor.runtime_inputs_for_async(self.node)
         except CollectorNotReady:
             # collectors not ready yet
             raise
-        except StopIteration:
+        except StopAsyncIteration:
             # real upstream exhaustion
             self._finish()
             raise
 
         # run node
         ctx = self.executor.get_node_context(self.node)
-        out = self.executor.run_node_immediate(self.node, ctx, inputs)
+        out, _exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
 
         if isinstance(out, RegularOutput):
             self.executor.send_node_broadcast(self.node, out.output)
@@ -1458,12 +1459,10 @@ class Executor:
     # ------------------------------------------------------------------
     # input resolution
     # ------------------------------------------------------------------
-    def runtime_inputs_for(
+    async def runtime_inputs_for_async(
         self, node: Node, only_ids: set[InputId] | None = None
     ) -> list[object]:
-        """
-        Resolve all inputs for a node by pulling from upstream runtimes or from chain inputs.
-        """
+        """Async version of runtime_inputs_for that awaits upstream RuntimeNodes."""
         values: list[object] = []
         for node_input in node.data.inputs:
             if only_ids is not None and node_input.id not in only_ids:
@@ -1475,12 +1474,9 @@ class Executor:
                 output_id = edge.source.output_id
                 src_node = self.chain.nodes[src_id]
 
-                # find output index
                 try:
                     src_index = next(
-                        i
-                        for i, o in enumerate(src_node.data.outputs)
-                        if o.id == output_id
+                        i for i, o in enumerate(src_node.data.outputs) if o.id == output_id
                     )
                 except StopIteration as exc:
                     raise ValueError(
@@ -1489,19 +1485,22 @@ class Executor:
 
                 upstream_rt = self.runtimes[src_id]
 
-                # collector that is not done yet must be driven by the root loop
                 if isinstance(upstream_rt, CollectorRuntimeNode):
                     if not upstream_rt.is_done():
                         raise CollectorNotReady
                     out = upstream_rt.final_output()
                     if src_index >= len(out):
-                        raise StopIteration
+                        raise StopAsyncIteration
                     values.append(out[src_index])
                     continue
 
-                out = next(upstream_rt)
+                try:
+                    out = await upstream_rt.__anext__()
+                except StopAsyncIteration:
+                    raise
+
                 if src_index >= len(out):
-                    raise StopIteration
+                    raise StopAsyncIteration
                 values.append(out[src_index])
             else:
                 v = self.chain.inputs.get(node.id, node_input.id)
@@ -1517,38 +1516,45 @@ class Executor:
         return values
 
     # ------------------------------------------------------------------
-    # immediate node run
+    # async node run
     # ------------------------------------------------------------------
-    def run_node_immediate(
+    async def run_node_async(
         self, node: Node, context: _ExecutorNodeContext, inputs: list[object]
-    ) -> NodeOutput | CollectorOutput | TransformerOutput:
+    ) -> tuple[NodeOutput | CollectorOutput | TransformerOutput, float]:
+        """Run a node asynchronously in the thread pool. Returns (output, execution_time)."""
         if node.data.kind == "collector":
             ignored = node.data.single_iterable_input.inputs
         elif node.data.kind == "transformer":
             ignored = node.data.single_iterable_input.inputs
         else:
             ignored = []
+
         enforced_inputs = enforce_inputs(inputs, node.data, node.id, ignored)
-        try:
-            if node.data.node_context:
-                raw = node.data.run(context, *enforced_inputs)
-            else:
-                raw = node.data.run(*enforced_inputs)
-            if node.data.kind == "collector":
-                if not isinstance(raw, Collector):
-                    raise RuntimeError(
-                        f"Collector node {node.id} returned {type(raw).__name__} instead of Collector."
-                    )
-                return CollectorOutput(raw)
-            if node.data.kind == "generator":
-                return enforce_generator_output(raw, node.data)
-            if node.data.kind == "transformer":
-                return enforce_transformer_output(raw, node.data)
-            return enforce_output(raw, node.data)
-        except Exception as e:
-            info = collect_input_information(node.data, enforced_inputs)
-            logger.exception("Error running node %s (%s)", node.data.name, node.id)
-            raise NodeExecutionError(node.id, node.data, str(e), info) from e
+
+        def execute_node() -> NodeOutput | CollectorOutput | TransformerOutput:
+            try:
+                if node.data.node_context:
+                    raw = node.data.run(context, *enforced_inputs)
+                else:
+                    raw = node.data.run(*enforced_inputs)
+
+                if node.data.kind == "collector":
+                    if not isinstance(raw, Collector):
+                        raise RuntimeError(
+                            f"Collector node {node.id} returned {type(raw).__name__} instead of Collector."
+                        )
+                    return CollectorOutput(raw)
+                if node.data.kind == "generator":
+                    return enforce_generator_output(raw, node.data)
+                if node.data.kind == "transformer":
+                    return enforce_transformer_output(raw, node.data)
+                return enforce_output(raw, node.data)
+            except Exception as e:
+                info = collect_input_information(node.data, enforced_inputs)
+                logger.exception("Error running node %s (%s)", node.data.name, node.id)
+                raise NodeExecutionError(node.id, node.data, str(e), info) from e
+
+        return await self.loop.run_in_executor(self.pool, timed_supplier(execute_node))
 
     def get_node_context(self, node: Node) -> _ExecutorNodeContext:
         ctx = self.__context_cache.get(node.schema_id)
@@ -1654,13 +1660,13 @@ class Executor:
             any_progress = False
             for rt in roots:
                 try:
-                    _ = next(rt)
+                    _ = await rt.__anext__()
                     any_progress = True
                 except CollectorNotReady:
                     # Upstream collector not done yet - skip for now,
                     # try again next iteration
                     pass
-                except StopIteration:
+                except StopAsyncIteration:
                     # This root is exhausted - it will naturally
                     # stop being called
                     pass
@@ -1851,9 +1857,9 @@ class Executor:
             self.send_node_start(node)
 
             # Get inputs and run node to get GeneratorOutput
-            inputs = self.runtime_inputs_for(node)
+            inputs = await self.runtime_inputs_for_async(node)
             node_ctx = self.get_node_context(node)
-            gen_output = self.run_node_immediate(node, node_ctx, inputs)
+            gen_output, _exec_time = await self.run_node_async(node, node_ctx, inputs)
             if not isinstance(gen_output, GeneratorOutput):
                 raise RuntimeError(f"Generator node {node.id} expected GeneratorOutput")
 
@@ -1880,16 +1886,16 @@ class Executor:
             # Get the first output, then drain any remaining iterations
             last: Output | None = None
             try:
-                out = next(runtime)
+                out = await runtime.__anext__()
                 last = out
-            except StopIteration:
+            except StopAsyncIteration:
                 last = None
             # Some function nodes may be iterative; drain remaining
             # iterations
             while True:
                 try:
-                    _ = next(runtime)
-                except StopIteration:
+                    _ = await runtime.__anext__()
+                except StopAsyncIteration:
                     break
             await self._finalize_chain()
             return last

@@ -80,15 +80,7 @@ def create_function_node(node_id: NodeId, schema_id: str, name: str) -> Function
 
 
 @pytest.fixture
-def event_loop():
-    """Create an event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture
-def executor_setup(event_loop):
+def executor_setup():
     """Create basic executor setup for tests."""
     chain = Chain()
     queue = EventQueue()
@@ -98,16 +90,20 @@ def executor_setup(event_loop):
 
     options = ExecutionOptions(backend_settings={})
 
+    # For sync tests, create a new loop; for async tests, the test will override
+    loop = asyncio.new_event_loop()
+
     yield {
         "chain": chain,
         "queue": queue,
         "pool": pool,
         "storage_dir": storage_dir,
-        "loop": event_loop,
+        "loop": loop,
         "options": options,
     }
 
     pool.shutdown(wait=False)
+    loop.close()
 
 
 class TestExecutorCreation:
@@ -153,12 +149,14 @@ class TestExecutorBasicExecution:
     @pytest.mark.asyncio
     async def test_empty_chain_execution(self, executor_setup):
         """Test executing an empty chain."""
+        # Use the running event loop for async tests
+        loop = asyncio.get_running_loop()
         executor = Executor(
             id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
-            loop=executor_setup["loop"],
+            loop=loop,
             queue=executor_setup["queue"],
             pool=executor_setup["pool"],
             storage_dir=executor_setup["storage_dir"],
@@ -184,6 +182,8 @@ class TestExecutorBasicExecution:
         # Mock the registry to allow the test node schema
         from api.api import registry
 
+        # Use the running event loop for async tests
+        loop = asyncio.get_running_loop()
         mock_package = Mock()
         mock_package.id = "test:package"
         with patch.object(registry, "get_package", return_value=mock_package):
@@ -192,7 +192,7 @@ class TestExecutorBasicExecution:
                 chain=executor_setup["chain"],
                 send_broadcast_data=False,
                 options=executor_setup["options"],
-                loop=executor_setup["loop"],
+                loop=loop,
                 queue=executor_setup["queue"],
                 pool=executor_setup["pool"],
                 storage_dir=executor_setup["storage_dir"],
@@ -320,11 +320,12 @@ class TestInputMapFromChain:
         assert node_inputs is not None
 
 
-class TestRunNodeImmediate:
-    """Test the run_node_immediate method on Executor."""
+class TestRunNodeAsync:
+    """Test the run_node_async method on Executor."""
 
-    def test_run_node_immediate_returns_output(self, executor_setup):
-        """Test that run_node_immediate returns proper output."""
+    @pytest.mark.asyncio
+    async def test_run_node_async_returns_output(self, executor_setup):
+        """Test that run_node_async returns proper output."""
 
         # Create a node that returns a value
         def run_fn():
@@ -343,12 +344,14 @@ class TestRunNodeImmediate:
 
         executor_setup["chain"].add_node(node)
 
+        # Use the running event loop for async tests
+        loop = asyncio.get_running_loop()
         executor = Executor(
             id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
-            loop=executor_setup["loop"],
+            loop=loop,
             queue=executor_setup["queue"],
             pool=executor_setup["pool"],
             storage_dir=executor_setup["storage_dir"],
@@ -359,18 +362,20 @@ class TestRunNodeImmediate:
         context = _ExecutorNodeContext(
             executor.progress, settings, executor_setup["storage_dir"]
         )
-        result = executor.run_node_immediate(node, context, [])
+        result, exec_time = await executor.run_node_async(node, context, [])
 
-        # Should return RegularOutput
+        # Should return RegularOutput with execution time
         assert result is not None
         assert isinstance(result, RegularOutput)
         assert result.output == [42]
+        assert exec_time >= 0
 
 
 class TestCollectorIteration:
     """Test collector iteration functionality through Executor."""
 
-    def test_collector_iteration_basic(self, executor_setup):
+    @pytest.mark.asyncio
+    async def test_collector_iteration_basic(self, executor_setup):
         """Test basic collector iteration through executor."""
         # Create collector that accumulates values
         results = []
@@ -446,14 +451,16 @@ class TestCollectorIteration:
         executor_setup["chain"].add_node(generator_node)
         executor_setup["chain"].add_node(collector_node)
 
+        # Use the running event loop for async tests
+        loop = asyncio.get_running_loop()
         # Note: In a real scenario, we'd need to connect the nodes with edges
-        # For this test, we'll use run_node_immediate directly to test collector iteration
+        # For this test, we'll use run_node_async directly to test collector iteration
         executor = Executor(
             id=ExecutionId("test-exec"),
             chain=executor_setup["chain"],
             send_broadcast_data=False,
             options=executor_setup["options"],
-            loop=executor_setup["loop"],
+            loop=loop,
             queue=executor_setup["queue"],
             pool=executor_setup["pool"],
             storage_dir=executor_setup["storage_dir"],
@@ -465,7 +472,7 @@ class TestCollectorIteration:
         context = _ExecutorNodeContext(
             executor.progress, settings, executor_setup["storage_dir"]
         )
-        collector_result = executor.run_node_immediate(collector_node, context, [])
+        collector_result, _exec_time = await executor.run_node_async(collector_node, context, [])
 
         # Verify we got a CollectorOutput
         assert collector_result is not None
