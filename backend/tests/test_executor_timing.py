@@ -576,14 +576,15 @@ class TestTransformerNodeTiming:
     async def test_transformer_init_time_is_tracked(self, executor_setup):
         """Test that transformer initialization time is properly tracked."""
 
-        def slow_transformer_run(_iterable_input):
-            # Transformer run receives the iterable input (None placeholder)
+        def slow_transformer_run(iterable_input):
+            # Transformer run receives the collected list of items
             time.sleep(SLEEP_TIME)  # Simulate slow initialization
 
-            def on_iterate(value):
-                yield value * 2
+            def supplier():
+                for value in iterable_input:
+                    yield value * 2
 
-            return Transformer(on_iterate)
+            return Transformer(supplier=supplier)
 
         node = create_transformer_node(
             NodeId("trans1"), "test:trans", "Slow Transformer", slow_transformer_run
@@ -619,12 +620,13 @@ class TestTransformerNodeTiming:
     async def test_transformer_on_iterate_time_is_tracked(self, executor_setup):
         """Test that transformer on_iterate time is manually tracked."""
 
-        def transformer_with_slow_iterate(_iterable_input):
-            def on_iterate(value):
-                time.sleep(SLEEP_TIME)  # Slow transformation
-                yield value * 2
+        def transformer_with_slow_iterate(iterable_input):
+            def supplier():
+                for value in iterable_input:
+                    time.sleep(SLEEP_TIME)  # Slow transformation
+                    yield value * 2
 
-            return Transformer(on_iterate)
+            return Transformer(supplier=supplier)
 
         node = create_transformer_node(
             NodeId("trans1"),
