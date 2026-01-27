@@ -33,7 +33,6 @@ from api import (
     InputId,
     IteratorInputInfo,
     IteratorOutputInfo,
-    NodeData,
     NodeId,
     OutputId,
     Transformer,
@@ -72,8 +71,9 @@ def create_mock_node_data(
     name: str,
     kind: str = "regularNode",
     run_fn: Callable[..., Any] | None = None,
-) -> NodeData:
+) -> Any:
     """Create a mock NodeData for testing."""
+    # Use Mock without spec to avoid frozen dataclass issues
     node_data = Mock()
     node_data.schema_id = schema_id
     node_data.name = name
@@ -97,7 +97,7 @@ def create_function_node(
     name: str,
     run_fn: Callable[..., Any] | None = None,
     side_effects: bool = False,
-) -> FunctionNode:
+) -> Any:
     """Create a FunctionNode for testing."""
     node_data = create_mock_node_data(schema_id, name, "regularNode", run_fn)
     node_data.side_effects = side_effects
@@ -114,7 +114,7 @@ def create_generator_node(
     schema_id: str,
     name: str,
     run_fn: Callable[..., Any] | None = None,
-) -> GeneratorNode:
+) -> Any:
     """Create a GeneratorNode for testing."""
     node_data = create_mock_node_data(schema_id, name, "generator", run_fn)
 
@@ -142,7 +142,7 @@ def create_collector_node(
     schema_id: str,
     name: str,
     run_fn: Callable[..., Any] | None = None,
-) -> CollectorNode:
+) -> Any:
     """Create a CollectorNode for testing."""
     node_data = create_mock_node_data(schema_id, name, "collector", run_fn)
 
@@ -178,7 +178,7 @@ def create_transformer_node(
     schema_id: str,
     name: str,
     run_fn: Callable[..., Any] | None = None,
-) -> TransformerNode:
+) -> Any:
     """Create a TransformerNode for testing."""
     node_data = create_mock_node_data(schema_id, name, "transformer", run_fn)
 
@@ -882,6 +882,7 @@ class TestTimingDoesNotIncludeUpstreamWait:
             upstream_node, context, []
         )
         assert upstream_time >= SLEEP_TIME * 2 - TIMING_TOLERANCE
+        assert isinstance(upstream_result, RegularOutput)
 
         # Run downstream node with upstream's output
         _downstream_result, downstream_time = await executor.run_node_async(
