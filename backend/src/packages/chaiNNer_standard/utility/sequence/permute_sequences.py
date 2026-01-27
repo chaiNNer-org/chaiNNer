@@ -21,7 +21,7 @@ B = TypeVar("B")
         "Computes the Cartesian product of two sequences.",
         "For each item in sequence A and each item in sequence B, "
         "outputs the pair (A item, B item).",
-        "The output length is len(A) × len(B).",
+        "The output length is len(A) × len(B).",  # noqa: RUF001
     ],
     icon="MdGridOn",
     kind="transformer",

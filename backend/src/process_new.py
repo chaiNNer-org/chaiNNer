@@ -148,8 +148,10 @@ def enforce_inputs(
 
     def enforce(i: BaseInput, value: object) -> object:
         if i.id in ignored_inputs:
-            # keep shape, but value is ignored for run() call
-            return None
+            # Skip enforcement but pass through the value unchanged.
+            # For collectors, these values won't be used.
+            # For transformers, these are already-enforced lists that need to be passed through.
+            return value
 
         # we generally assume that enforcing a value is cheap, so we do it as soon as possible
         if i.lazy:
@@ -1534,8 +1536,13 @@ class Executor:
         """Run a node asynchronously in the thread pool. Returns (output, execution_time)."""
         if node.data.kind == "collector":
             ignored = node.data.single_iterable_input.inputs
+        elif node.data.kind == "transformer":
+            # Transformers receive lists for iterable inputs, but we still need to
+            # ignore them during enforcement because the input's enforce() method
+            # expects a single value, not a list. The individual items were already
+            # enforced when they were collected upstream.
+            ignored = node.data.single_iterable_input.inputs
         else:
-            # Transformers now receive lists for iterable inputs, so don't ignore them
             ignored = []
 
         enforced_inputs = enforce_inputs(inputs, node.data, node.id, ignored)
