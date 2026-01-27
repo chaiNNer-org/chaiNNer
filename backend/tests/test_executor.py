@@ -472,7 +472,9 @@ class TestCollectorIteration:
         context = _ExecutorNodeContext(
             executor.progress, settings, executor_setup["storage_dir"]
         )
-        collector_result, _exec_time = await executor.run_node_async(collector_node, context, [])
+        collector_result, _exec_time = await executor.run_node_async(
+            collector_node, context, []
+        )
 
         # Verify we got a CollectorOutput
         assert collector_result is not None

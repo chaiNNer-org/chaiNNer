@@ -573,7 +573,9 @@ class StaticRuntimeNode(RuntimeNode):
                 # Compute fresh result
                 inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, inputs)
+                raw, _exec_time = await self.executor.run_node_async(
+                    self.node, ctx, inputs
+                )
                 if not isinstance(raw, RegularOutput):
                     raise RuntimeError(
                         f"StaticRuntimeNode for {self.node.id} "
@@ -833,12 +835,16 @@ class CollectorRuntimeNode(RuntimeNode):
         if not self.iterative:
             try:
                 # Try to get iterable inputs - if this fails, we finalize immediately
-                _ = await self.executor.runtime_inputs_for_async(self.node, only_ids=iterable_ids)
+                _ = await self.executor.runtime_inputs_for_async(
+                    self.node, only_ids=iterable_ids
+                )
             except StopAsyncIteration as err:
                 # No iterable inputs available - finalize immediately with empty collection
                 all_inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, all_inputs)
+                raw, _exec_time = await self.executor.run_node_async(
+                    self.node, ctx, all_inputs
+                )
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -856,7 +862,9 @@ class CollectorRuntimeNode(RuntimeNode):
             if self._collector is None:
                 all_inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, all_inputs)
+                raw, _exec_time = await self.executor.run_node_async(
+                    self.node, ctx, all_inputs
+                )
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -869,9 +877,11 @@ class CollectorRuntimeNode(RuntimeNode):
                 if inp.id in iterable_ids:
                     enforced_inputs.append(
                         inp.enforce_(
-                            (await self.executor.runtime_inputs_for_async(
-                                self.node, only_ids={inp.id}
-                            ))[0]
+                            (
+                                await self.executor.runtime_inputs_for_async(
+                                    self.node, only_ids={inp.id}
+                                )
+                            )[0]
                         )
                     )
             iter_arg = (
@@ -919,7 +929,9 @@ class CollectorRuntimeNode(RuntimeNode):
                     else:
                         full_inputs.append(next(non_it, None))
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(self.node, ctx, full_inputs)
+                raw, _exec_time = await self.executor.run_node_async(
+                    self.node, ctx, full_inputs
+                )
                 if not isinstance(raw, CollectorOutput):
                     raise RuntimeError(
                         f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -954,7 +966,9 @@ class CollectorRuntimeNode(RuntimeNode):
                 else:
                     init_inputs.append(next(it_non, None))
             ctx = self.executor.get_node_context(self.node)
-            raw, _exec_time = await self.executor.run_node_async(self.node, ctx, init_inputs)
+            raw, _exec_time = await self.executor.run_node_async(
+                self.node, ctx, init_inputs
+            )
             if not isinstance(raw, CollectorOutput):
                 raise RuntimeError(
                     f"Collector node {self.node.id} was expected to return CollectorOutput but got {type(raw).__name__}."
@@ -1101,7 +1115,9 @@ class TransformerRuntimeNode(RuntimeNode):
                 full_inputs.append(next(it_non, None))
 
         ctx = self.executor.get_node_context(self.node)
-        out, _exec_time = await self.executor.run_node_async(self.node, ctx, full_inputs)
+        out, _exec_time = await self.executor.run_node_async(
+            self.node, ctx, full_inputs
+        )
         assert isinstance(out, TransformerOutput)
 
         self._partial = out.partial_output
@@ -1476,7 +1492,9 @@ class Executor:
 
                 try:
                     src_index = next(
-                        i for i, o in enumerate(src_node.data.outputs) if o.id == output_id
+                        i
+                        for i, o in enumerate(src_node.data.outputs)
+                        if o.id == output_id
                     )
                 except StopIteration as exc:
                     raise ValueError(
