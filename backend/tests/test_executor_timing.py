@@ -280,7 +280,7 @@ class TestStaticNodeTiming:
         assert isinstance(runtime, StaticRuntimeNode)
 
         # Initial accumulated time should be 0
-        assert runtime._accumulated_exec_time == 0.0
+        assert runtime._accumulated_exec_time == 0.0  # noqa: SLF001
 
         # Run the node
         settings = SettingsParser({})
@@ -429,7 +429,7 @@ class TestGeneratorNodeTiming:
         assert isinstance(runtime, GeneratorRuntimeNode)
 
         # Initial accumulated time should be 0
-        assert runtime._accumulated_exec_time == 0.0
+        assert runtime._accumulated_exec_time == 0.0  # noqa: SLF001
 
 
 class TestCollectorNodeTiming:
@@ -523,7 +523,7 @@ class TestCollectorNodeTiming:
         assert isinstance(runtime, CollectorRuntimeNode)
 
         # Initial accumulated time should be 0
-        assert runtime._accumulated_exec_time == 0.0
+        assert runtime._accumulated_exec_time == 0.0  # noqa: SLF001
 
     @pytest.mark.asyncio
     async def test_collector_on_complete_time_is_tracked(self, executor_setup):
@@ -566,7 +566,7 @@ class TestCollectorNodeTiming:
         assert isinstance(runtime, CollectorRuntimeNode)
 
         # Initial accumulated time should be 0
-        assert runtime._accumulated_exec_time == 0.0
+        assert runtime._accumulated_exec_time == 0.0  # noqa: SLF001
 
 
 class TestTransformerNodeTiming:
@@ -652,7 +652,7 @@ class TestTransformerNodeTiming:
         assert isinstance(runtime, TransformerRuntimeNode)
 
         # Initial accumulated time should be 0
-        assert runtime._accumulated_exec_time == 0.0
+        assert runtime._accumulated_exec_time == 0.0  # noqa: SLF001
 
 
 class TestSideEffectNodeTiming:
@@ -698,7 +698,7 @@ class TestSideEffectNodeTiming:
         assert isinstance(runtime, SideEffectLeafRuntimeNode)
 
         # Initial accumulated time should be 0
-        assert runtime._accumulated_exec_time == 0.0
+        assert runtime._accumulated_exec_time == 0.0  # noqa: SLF001
 
 
 class TestNodeFinishEvent:
@@ -796,7 +796,7 @@ class TestRuntimeNodeAccumulatedTime:
 
         # Check all runtimes have zero initial accumulated time
         for node_id, runtime in executor.runtimes.items():
-            assert runtime._accumulated_exec_time == 0.0, (
+            assert runtime._accumulated_exec_time == 0.0, (  # noqa: SLF001
                 f"RuntimeNode for {node_id} should have 0.0 initial accumulated time"
             )
 
