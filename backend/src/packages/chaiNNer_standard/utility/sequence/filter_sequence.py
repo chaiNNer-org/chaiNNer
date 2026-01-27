@@ -32,12 +32,12 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
 def filter_sequence_node(
-    _: None,
-    __: None,
+    sequence: list[T],
+    keep_flags: list[bool],
 ) -> Transformer[T, T]:
-    def on_iterate(item: T, keep: bool) -> Iterable[T]:
-        """Yield the item if we are to keep it"""
-        if keep:
-            yield item
+    def supplier() -> Iterable[T]:
+        for item, keep in zip(sequence, keep_flags, strict=False):
+            if keep:
+                yield item
 
-    return Transformer(on_iterate=on_iterate)
+    return Transformer(supplier=supplier)
