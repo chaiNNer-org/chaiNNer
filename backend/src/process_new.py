@@ -521,9 +521,7 @@ class RuntimeNode(AsyncIterator[Output]):
                 self.executor.send_node_progress_done(
                     self.node, idx, self._expected_len
                 )
-            self.executor.send_node_finish(
-                self.node, self._accumulated_exec_time
-            )
+            self.executor.send_node_finish(self.node, self._accumulated_exec_time)
             self._finished = True
 
     async def __anext__(self) -> Output:
@@ -1135,9 +1133,7 @@ class TransformerRuntimeNode(RuntimeNode):
                 full_inputs.append(next(it_non, None))
 
         ctx = self.executor.get_node_context(self.node)
-        out, exec_time = await self.executor.run_node_async(
-            self.node, ctx, full_inputs
-        )
+        out, exec_time = await self.executor.run_node_async(self.node, ctx, full_inputs)
         self._accumulated_exec_time += exec_time
         assert isinstance(out, TransformerOutput)
 

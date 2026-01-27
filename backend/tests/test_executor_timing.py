@@ -39,23 +39,28 @@ from api import (
     Transformer,
 )
 from api.settings import SettingsParser
-from chain.chain import Chain, CollectorNode, FunctionNode, GeneratorNode, TransformerNode
+from chain.chain import (
+    Chain,
+    CollectorNode,
+    FunctionNode,
+    GeneratorNode,
+    TransformerNode,
+)
 from events import EventQueue
 from process_new import (
     CollectorOutput,
+    CollectorRuntimeNode,
     ExecutionId,
     Executor,
     GeneratorOutput,
-    RegularOutput,
-    TransformerOutput,
-    _ExecutorNodeContext,
-    StaticRuntimeNode,
     GeneratorRuntimeNode,
-    CollectorRuntimeNode,
-    TransformerRuntimeNode,
+    RegularOutput,
     SideEffectLeafRuntimeNode,
+    StaticRuntimeNode,
+    TransformerOutput,
+    TransformerRuntimeNode,
+    _ExecutorNodeContext,
 )
-
 
 # Test constants
 SLEEP_TIME = 0.05  # 50ms - enough to measure but not too slow
@@ -252,7 +257,9 @@ class TestStaticNodeTiming:
         output_mock.enforce = Mock(side_effect=lambda x: x)
         node_data.outputs = [output_mock]
 
-        node = create_function_node(NodeId("node1"), "test:slow", "Slow Node", slow_run_fn)
+        node = create_function_node(
+            NodeId("node1"), "test:slow", "Slow Node", slow_run_fn
+        )
         node.data = node_data
 
         executor_setup["chain"].add_node(node)
@@ -280,7 +287,7 @@ class TestStaticNodeTiming:
         context = _ExecutorNodeContext(
             executor.progress, settings, executor_setup["storage_dir"]
         )
-        result, exec_time = await executor.run_node_async(node, context, [])
+        _result, exec_time = await executor.run_node_async(node, context, [])
 
         # Execution time should be approximately SLEEP_TIME
         assert exec_time >= SLEEP_TIME - TIMING_TOLERANCE
@@ -294,13 +301,17 @@ class TestStaticNodeTiming:
             time.sleep(SLEEP_TIME)
             return "result"
 
-        node_data = create_mock_node_data("test:timed", "Timed Node", run_fn=timed_run_fn)
+        node_data = create_mock_node_data(
+            "test:timed", "Timed Node", run_fn=timed_run_fn
+        )
         output_mock = Mock()
         output_mock.id = OutputId(0)
         output_mock.enforce = Mock(side_effect=lambda x: x)
         node_data.outputs = [output_mock]
 
-        node = create_function_node(NodeId("node1"), "test:timed", "Timed Node", timed_run_fn)
+        node = create_function_node(
+            NodeId("node1"), "test:timed", "Timed Node", timed_run_fn
+        )
         node.data = node_data
 
         executor_setup["chain"].add_node(node)
@@ -342,9 +353,11 @@ class TestGeneratorNodeTiming:
 
         def slow_generator_run():
             time.sleep(SLEEP_TIME)  # Simulate slow initialization
+
             def supplier():
                 yield 1
                 yield 2
+
             return Generator(supplier, expected_length=2)
 
         node = create_generator_node(
@@ -387,10 +400,14 @@ class TestGeneratorNodeTiming:
                 yield 1
                 time.sleep(SLEEP_TIME)
                 yield 2
+
             return Generator(supplier, expected_length=2)
 
         node = create_generator_node(
-            NodeId("gen1"), "test:gen", "Slow Yield Generator", generator_with_slow_yield
+            NodeId("gen1"),
+            "test:gen",
+            "Slow Yield Generator",
+            generator_with_slow_yield,
         )
         node.data.run = generator_with_slow_yield
 
@@ -481,7 +498,10 @@ class TestCollectorNodeTiming:
             return Collector(on_iterate, on_complete)
 
         node = create_collector_node(
-            NodeId("col1"), "test:col", "Slow Iterate Collector", collector_with_slow_iterate
+            NodeId("col1"),
+            "test:col",
+            "Slow Iterate Collector",
+            collector_with_slow_iterate,
         )
         node.data.run = collector_with_slow_iterate
 
@@ -521,7 +541,10 @@ class TestCollectorNodeTiming:
             return Collector(on_iterate, on_complete)
 
         node = create_collector_node(
-            NodeId("col1"), "test:col", "Slow Complete Collector", collector_with_slow_complete
+            NodeId("col1"),
+            "test:col",
+            "Slow Complete Collector",
+            collector_with_slow_complete,
         )
         node.data.run = collector_with_slow_complete
 
@@ -604,7 +627,10 @@ class TestTransformerNodeTiming:
             return Transformer(on_iterate)
 
         node = create_transformer_node(
-            NodeId("trans1"), "test:trans", "Slow Iterate Transformer", transformer_with_slow_iterate
+            NodeId("trans1"),
+            "test:trans",
+            "Slow Iterate Transformer",
+            transformer_with_slow_iterate,
         )
         node.data.run = transformer_with_slow_iterate
 
@@ -638,14 +664,19 @@ class TestSideEffectNodeTiming:
 
         def slow_side_effect_fn():
             time.sleep(SLEEP_TIME)
-            return None
 
-        node_data = create_mock_node_data("test:side", "Side Effect Node", run_fn=slow_side_effect_fn)
+        node_data = create_mock_node_data(
+            "test:side", "Side Effect Node", run_fn=slow_side_effect_fn
+        )
         node_data.side_effects = True
         node_data.outputs = []  # No outputs for side effect node
 
         node = create_function_node(
-            NodeId("side1"), "test:side", "Side Effect Node", slow_side_effect_fn, side_effects=True
+            NodeId("side1"),
+            "test:side",
+            "Side Effect Node",
+            slow_side_effect_fn,
+            side_effects=True,
         )
         node.data = node_data
 
@@ -692,7 +723,9 @@ class TestNodeFinishEvent:
         output_mock.enforce = Mock(side_effect=lambda x: x)
         node_data.outputs = [output_mock]
 
-        node = create_function_node(NodeId("node1"), "test:slow", "Slow Node", slow_run_fn)
+        node = create_function_node(
+            NodeId("node1"), "test:slow", "Slow Node", slow_run_fn
+        )
         node.data = node_data
 
         executor_setup["chain"].add_node(node)
@@ -732,10 +765,14 @@ class TestRuntimeNodeAccumulatedTime:
     def test_runtime_node_initial_accumulated_time_is_zero(self, executor_setup):
         """Test that all RuntimeNode types start with zero accumulated time."""
         # Create various node types
-        static_node = create_function_node(NodeId("static1"), "test:static", "Static Node")
+        static_node = create_function_node(
+            NodeId("static1"), "test:static", "Static Node"
+        )
         gen_node = create_generator_node(NodeId("gen1"), "test:gen", "Generator Node")
         col_node = create_collector_node(NodeId("col1"), "test:col", "Collector Node")
-        trans_node = create_transformer_node(NodeId("trans1"), "test:trans", "Transformer Node")
+        trans_node = create_transformer_node(
+            NodeId("trans1"), "test:trans", "Transformer Node"
+        )
         side_node = create_function_node(
             NodeId("side1"), "test:side", "Side Effect Node", side_effects=True
         )
@@ -786,7 +823,9 @@ class TestTimingDoesNotIncludeUpstreamWait:
             return value * 2
 
         # Create upstream node
-        upstream_data = create_mock_node_data("test:upstream", "Upstream", run_fn=slow_upstream_fn)
+        upstream_data = create_mock_node_data(
+            "test:upstream", "Upstream", run_fn=slow_upstream_fn
+        )
         output_mock = Mock()
         output_mock.id = OutputId(0)
         output_mock.enforce = Mock(side_effect=lambda x: x)
@@ -798,7 +837,9 @@ class TestTimingDoesNotIncludeUpstreamWait:
         upstream_node.data = upstream_data
 
         # Create downstream node
-        downstream_data = create_mock_node_data("test:downstream", "Downstream", run_fn=fast_downstream_fn)
+        downstream_data = create_mock_node_data(
+            "test:downstream", "Downstream", run_fn=fast_downstream_fn
+        )
         input_mock = Mock(spec=BaseInput)
         input_mock.id = InputId(0)
         input_mock.enforce_ = Mock(side_effect=lambda x: x)
@@ -837,11 +878,13 @@ class TestTimingDoesNotIncludeUpstreamWait:
         )
 
         # Run upstream node and verify its timing
-        upstream_result, upstream_time = await executor.run_node_async(upstream_node, context, [])
+        upstream_result, upstream_time = await executor.run_node_async(
+            upstream_node, context, []
+        )
         assert upstream_time >= SLEEP_TIME * 2 - TIMING_TOLERANCE
 
         # Run downstream node with upstream's output
-        downstream_result, downstream_time = await executor.run_node_async(
+        _downstream_result, downstream_time = await executor.run_node_async(
             downstream_node, context, [upstream_result.output[0]]
         )
 
