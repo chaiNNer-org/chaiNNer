@@ -575,7 +575,7 @@ class StaticRuntimeNode(RuntimeNode):
                 # Compute fresh result
                 inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(
+                raw, exec_time = await self.executor.run_node_async(
                     self.node, ctx, inputs
                 )
                 self._accumulated_exec_time += exec_time
@@ -848,7 +848,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 # No iterable inputs available - finalize immediately with empty collection
                 all_inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(
+                raw, exec_time = await self.executor.run_node_async(
                     self.node, ctx, all_inputs
                 )
                 self._accumulated_exec_time += exec_time
@@ -871,7 +871,7 @@ class CollectorRuntimeNode(RuntimeNode):
             if self._collector is None:
                 all_inputs = await self.executor.runtime_inputs_for_async(self.node)
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(
+                raw, exec_time = await self.executor.run_node_async(
                     self.node, ctx, all_inputs
                 )
                 self._accumulated_exec_time += exec_time
@@ -943,7 +943,7 @@ class CollectorRuntimeNode(RuntimeNode):
                     else:
                         full_inputs.append(next(non_it, None))
                 ctx = self.executor.get_node_context(self.node)
-                raw, _exec_time = await self.executor.run_node_async(
+                raw, exec_time = await self.executor.run_node_async(
                     self.node, ctx, full_inputs
                 )
                 self._accumulated_exec_time += exec_time
@@ -983,7 +983,7 @@ class CollectorRuntimeNode(RuntimeNode):
                 else:
                     init_inputs.append(next(it_non, None))
             ctx = self.executor.get_node_context(self.node)
-            raw, _exec_time = await self.executor.run_node_async(
+            raw, exec_time = await self.executor.run_node_async(
                 self.node, ctx, init_inputs
             )
             self._accumulated_exec_time += exec_time
@@ -1135,7 +1135,7 @@ class TransformerRuntimeNode(RuntimeNode):
                 full_inputs.append(next(it_non, None))
 
         ctx = self.executor.get_node_context(self.node)
-        out, _exec_time = await self.executor.run_node_async(
+        out, exec_time = await self.executor.run_node_async(
             self.node, ctx, full_inputs
         )
         self._accumulated_exec_time += exec_time
