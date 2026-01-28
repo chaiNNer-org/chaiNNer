@@ -80,14 +80,13 @@ O_out = TypeVar("O_out")
 @dataclass
 class Transformer(Generic[I_in, O_out]):
     """
-    A transformer takes an input item and yields one or more output items.
+    A transformer processes input sequences and yields output items.
 
-    The on_iterate function is called for each input item and should yield
-    zero or more output items. This allows transformers to change the length
-    of sequences at runtime.
+    The supplier function captures input sequence(s) via closure and yields
+    output items when called. This mirrors Generator.supplier.
     """
 
-    on_iterate: Callable[..., Iterable[O_out | Exception]]
+    supplier: Callable[[], Iterable[O_out | Exception]]
     expected_length: int | None = None
     metadata: object | None = None
 

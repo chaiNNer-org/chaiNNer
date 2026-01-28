@@ -40,16 +40,16 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="Input1"),
 )
 def limit_sequence_node(
-    _: None,
+    sequence: list[T],
     limit: int,
 ) -> Transformer[T, T]:
     limit = max(limit, 0)
-    count = [0]  # Use list to allow modification in nested function
+    actual_length = min(limit, len(sequence))
 
-    def on_iterate(item: T) -> Iterable[T]:
-        """Yield the item if we haven't reached the limit"""
-        if count[0] < limit:
-            count[0] += 1
+    def supplier() -> Iterable[T]:
+        for i, item in enumerate(sequence):
+            if i >= limit:
+                break
             yield item
 
-    return Transformer(on_iterate=on_iterate, expected_length=limit)
+    return Transformer(supplier=supplier, expected_length=actual_length)
