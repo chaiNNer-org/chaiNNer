@@ -18,6 +18,7 @@ T = TypeVar("T")
     description=[
         "Repeats a sequence the specified number of times.",
         "The items are repeated in order: [A, B, C] repeated 2 times becomes [A, B, C, A, B, C].",
+        "Note: The sequence must be buffered in memory to repeat it.",
     ],
     icon="MdRepeat",
     kind="transformer",
@@ -37,14 +38,15 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
 def repeat_sequence_node(
-    sequence: list[T],
+    sequence: Iterable[T],
     times: int,
 ) -> Transformer[T, T]:
     times = max(times, 0)
-    expected_length = len(sequence) * times
 
     def supplier() -> Iterable[T]:
+        # Buffer the sequence since we need to iterate multiple times
+        items = list(sequence)
         for _ in range(times):
-            yield from sequence
+            yield from items
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+    return Transformer(supplier=supplier)

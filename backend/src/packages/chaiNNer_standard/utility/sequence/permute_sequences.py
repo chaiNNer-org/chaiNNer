@@ -37,12 +37,11 @@ B = TypeVar("B")
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="uint"),
 )
 def permute_sequences_node(
-    sequence_a: list[A],
-    sequence_b: list[B],
+    sequence_a: Iterable[A],
+    sequence_b: Iterable[B],
 ) -> Transformer[tuple[A, B], tuple[A, B]]:
-    expected_length = len(sequence_a) * len(sequence_b)
-
     def supplier() -> Iterable[tuple[A, B]]:
+        # product() buffers both sequences internally
         yield from product(sequence_a, sequence_b)
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+    return Transformer(supplier=supplier)

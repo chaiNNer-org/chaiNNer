@@ -40,11 +40,10 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="Input1"),
 )
 def limit_sequence_node(
-    sequence: list[T],
+    sequence: Iterable[T],
     limit: int,
 ) -> Transformer[T, T]:
     limit = max(limit, 0)
-    actual_length = min(limit, len(sequence))
 
     def supplier() -> Iterable[T]:
         for i, item in enumerate(sequence):
@@ -52,4 +51,4 @@ def limit_sequence_node(
                 break
             yield item
 
-    return Transformer(supplier=supplier, expected_length=actual_length)
+    return Transformer(supplier=supplier)

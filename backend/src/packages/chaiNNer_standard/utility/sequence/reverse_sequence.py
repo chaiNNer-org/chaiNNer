@@ -18,6 +18,7 @@ T = TypeVar("T")
     description=[
         "Reverses the order of items in a sequence.",
         "The first item becomes last and the last item becomes first.",
+        "Note: The sequence must be buffered in memory to reverse it.",
     ],
     icon="MdSwapVert",
     kind="transformer",
@@ -31,11 +32,11 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
 def reverse_sequence_node(
-    sequence: list[T],
+    sequence: Iterable[T],
 ) -> Transformer[T, T]:
-    expected_length = len(sequence)
-
     def supplier() -> Iterable[T]:
-        yield from reversed(sequence)
+        # Buffer the sequence since we need to reverse it
+        items = list(sequence)
+        yield from reversed(items)
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+    return Transformer(supplier=supplier)

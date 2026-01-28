@@ -50,7 +50,7 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
 def slice_sequence_node(
-    sequence: list[T],
+    sequence: Iterable[T],
     start: int,
     stop: int,
     step: int,
@@ -59,15 +59,11 @@ def slice_sequence_node(
     stop = max(stop, 0)
     step = max(step, 1)
 
-    # Calculate expected length using the same logic as Python's range
-    effective_stop = min(stop, len(sequence))
-    if start >= effective_stop:
-        expected_length = 0
-    else:
-        expected_length = (effective_stop - start + step - 1) // step
-
     def supplier() -> Iterable[T]:
-        for i in range(start, min(stop, len(sequence)), step):
-            yield sequence[i]
+        for i, item in enumerate(sequence):
+            if i >= stop:
+                break
+            if i >= start and (i - start) % step == 0:
+                yield item
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+    return Transformer(supplier=supplier)

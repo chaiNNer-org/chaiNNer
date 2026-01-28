@@ -34,21 +34,25 @@ B = TypeVar("B")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
 def interleave_sequences_node(
-    sequence_a: list[A],
-    sequence_b: list[B],
+    sequence_a: Iterable[A],
+    sequence_b: Iterable[B],
 ) -> Transformer[A | B, A | B]:
-    expected_length = len(sequence_a) + len(sequence_b)
-
     def supplier() -> Iterable[A | B]:
-        # Interleave items from both sequences
-        i = 0
-        j = 0
-        while i < len(sequence_a) or j < len(sequence_b):
-            if i < len(sequence_a):
-                yield sequence_a[i]
-                i += 1
-            if j < len(sequence_b):
-                yield sequence_b[j]
-                j += 1
+        iter_a = iter(sequence_a)
+        iter_b = iter(sequence_b)
+        a_exhausted = False
+        b_exhausted = False
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+        while not (a_exhausted and b_exhausted):
+            if not a_exhausted:
+                try:
+                    yield next(iter_a)
+                except StopIteration:
+                    a_exhausted = True
+            if not b_exhausted:
+                try:
+                    yield next(iter_b)
+                except StopIteration:
+                    b_exhausted = True
+
+    return Transformer(supplier=supplier)

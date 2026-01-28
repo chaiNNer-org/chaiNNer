@@ -38,15 +38,14 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
 def skip_sequence_node(
-    sequence: list[T],
+    sequence: Iterable[T],
     skip: int,
 ) -> Transformer[T, T]:
     skip = max(skip, 0)
-    actual_length = max(len(sequence) - skip, 0)
 
     def supplier() -> Iterable[T]:
         for i, item in enumerate(sequence):
             if i >= skip:
                 yield item
 
-    return Transformer(supplier=supplier, expected_length=actual_length)
+    return Transformer(supplier=supplier)

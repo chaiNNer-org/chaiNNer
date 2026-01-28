@@ -39,13 +39,11 @@ T = TypeVar("T")
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="uint"),
 )
 def enumerate_sequence_node(
-    sequence: list[T],
+    sequence: Iterable[T],
     start: int,
 ) -> Transformer[tuple[T, int], tuple[T, int]]:
-    expected_length = len(sequence)
-
     def supplier() -> Iterable[tuple[T, int]]:
         for i, item in enumerate(sequence, start=start):
             yield item, i
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+    return Transformer(supplier=supplier)
