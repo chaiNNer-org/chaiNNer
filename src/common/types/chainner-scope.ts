@@ -92,6 +92,16 @@ let OnnxGenericModel = OnnxModel {
     subType: "Generic",
 };
 
+struct TensorRTEngine {
+    scale: int(1..),
+    inputChannels: int(1..),
+    outputChannels: int(1..),
+    precision: string,
+}
+
+enum TrtPrecision { fp32, fp16 }
+enum TrtShapeMode { fixed, dynamic }
+
 def pytorchToOnnx(model: PyTorchModel): OnnxModel {
     OnnxModel {
         scaleHeight: model.scale,
@@ -145,6 +155,17 @@ def convenientUpscaleOnnx(model: OnnxModel, image: Image) {
             image.channels
         } else {
             model.outputChannels
+        }
+    }
+}
+def convenientUpscaleTrt(engine: TensorRTEngine, image: Image) {
+    Image {
+        width: engine.scale * image.width,
+        height: engine.scale * image.height,
+        channels: if engine.inputChannels == engine.outputChannels {
+            image.channels
+        } else {
+            engine.outputChannels
         }
     }
 }

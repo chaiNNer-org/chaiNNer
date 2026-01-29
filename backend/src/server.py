@@ -634,6 +634,7 @@ async def import_packages(
     importlib.import_module("packages.chaiNNer_pytorch")
     importlib.import_module("packages.chaiNNer_ncnn")
     importlib.import_module("packages.chaiNNer_onnx")
+    importlib.import_module("packages.chaiNNer_tensorrt")
     importlib.import_module("packages.chaiNNer_external")
 
     logger.info("Loading Nodes...")

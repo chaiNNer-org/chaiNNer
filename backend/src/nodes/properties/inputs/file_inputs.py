@@ -19,6 +19,7 @@ FileInputKind = (
     | Literal["param"]
     | Literal["pt"]
     | Literal["pth"]
+    | Literal["tensorrt"]
     | Literal["video"]
 )
 
@@ -185,6 +186,19 @@ def OnnxFileInput(primary_input: bool = False) -> FileInput:
         file_kind="onnx",
         filetypes=[".onnx"],
         primary_input=primary_input,
+    )
+
+
+def TensorRTFileInput(primary_input: bool = False) -> FileInput:
+    """Input for submitting a local TensorRT engine file"""
+    return FileInput(
+        label="TensorRT Engine File",
+        file_kind="tensorrt",
+        filetypes=[".engine", ".trt", ".plan"],
+        primary_input=primary_input,
+    ).with_docs(
+        "TensorRT engine files (.engine, .trt, .plan) are pre-built for a specific GPU architecture.",
+        "Engines built on one GPU may not work on a different GPU architecture.",
     )
 
 
