@@ -40,6 +40,20 @@ def _into_standard_image_form(img: np.ndarray) -> np.ndarray:
         raise ValueError("Unsupported output tensor shape")
 
 
+def _flip_r_b_channels(img: np.ndarray) -> np.ndarray:
+    """Flip R and B channels (RGB <-> BGR conversion)."""
+    shape_size = len(img.shape)
+    if shape_size != 3:
+        return img
+    if img.shape[2] == 3:
+        # (H, W, C) RGB -> BGR - use ascontiguousarray to avoid stride issues
+        return np.ascontiguousarray(np.flip(img, 2))
+    elif img.shape[2] == 4:
+        # (H, W, C) RGBA -> BGRA
+        return np.dstack((img[:, :, 2], img[:, :, 1], img[:, :, 0], img[:, :, 3]))
+    return img
+
+
 def tensorrt_auto_split(
     img: np.ndarray,
     engine: TensorRTEngine,
@@ -66,6 +80,9 @@ def tensorrt_auto_split(
             # Convert to appropriate precision
             lr_img = img.astype(np.float16) if is_fp16 else img.astype(np.float32)
 
+            # Convert RGB to BGR (most models expect BGR)
+            lr_img = _flip_r_b_channels(lr_img)
+
             # Convert to NCHW batched format
             lr_img = _into_batched_form(lr_img)
 
@@ -74,6 +91,9 @@ def tensorrt_auto_split(
 
             # Convert back to HWC format
             output = _into_standard_image_form(output)
+
+            # Convert BGR back to RGB
+            output = _flip_r_b_channels(output)
 
             return output.astype(np.float32)
 
