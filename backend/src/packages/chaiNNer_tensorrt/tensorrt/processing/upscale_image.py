@@ -6,6 +6,7 @@ from api import NodeContext
 from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.tensorrt.auto_split import tensorrt_auto_split
+from nodes.impl.tensorrt.inference import clear_session_cache
 from nodes.impl.tensorrt.model import TensorRTEngine
 from nodes.impl.upscale.auto_split_tiles import (
     CUSTOM,
@@ -105,6 +106,8 @@ if processing_group is not None:
     ) -> np.ndarray:
         settings = get_settings(context)
         gpu_index = settings.gpu_index
+
+        context.add_cleanup(clear_session_cache, after="chain")
 
         in_nc = engine.input_channels
         out_nc = engine.output_channels
