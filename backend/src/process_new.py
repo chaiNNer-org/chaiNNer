@@ -1270,6 +1270,14 @@ class TransformerRuntimeNode(RuntimeNode):
                     self._accumulation_served = 0
                     # Fall through to serving phase
                     pass
+                except TransformerNotReady:
+                    # Upstream transformer is still accumulating - we couldn't pull.
+                    # Still increment served counter so other children don't try either,
+                    # then propagate the exception.
+                    self._accumulation_served += 1
+                    if self._accumulation_served >= self.fanout:
+                        self._accumulation_served = 0
+                    raise
                 else:
                     # Successfully accumulated - track fanout and raise NotReady
                     self._accumulation_served += 1
