@@ -34,15 +34,21 @@ class TensorRTEngineOutput(BaseOutput):
         tags.append(i.precision.upper())
 
         # Add architecture
-        tags.append(i.gpu_architecture)
+        # tags.append(i.gpu_architecture)
 
-        # Add dynamic shape info
-        if i.min_shape is not None:
-            tags.append("Min: " + str(i.min_shape[2]) + "x" + str(i.min_shape[3]))
-        if i.opt_shape is not None:
-            tags.append("Opt: " + str(i.opt_shape[2]) + "x" + str(i.opt_shape[3]))
-        if i.max_shape is not None:
-            tags.append("Max: " + str(i.max_shape[2]) + "x" + str(i.max_shape[3]))
+        # Add shape info
+        if i.has_dynamic_shapes:
+            tags.append("Dynamic")
+            if i.min_shape is not None:
+                tags.append("Min: " + str(i.min_shape[2]) + "x" + str(i.min_shape[3]))
+            if i.opt_shape is not None:
+                tags.append("Opt: " + str(i.opt_shape[2]) + "x" + str(i.opt_shape[3]))
+            if i.max_shape is not None:
+                tags.append("Max: " + str(i.max_shape[2]) + "x" + str(i.max_shape[3]))
+        else:
+            tags.append("Fixed")
+            if i.opt_shape is not None:
+                tags.append(str(i.opt_shape[2]) + "x" + str(i.opt_shape[3]))
 
         return {"tags": tags}
 

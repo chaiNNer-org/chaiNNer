@@ -117,6 +117,22 @@ if utility_group is not None:
                     unit="px",
                 ).with_docs("Maximum input width for dynamic shapes."),
             ),
+            if_enum_group(2, ShapeMode.FIXED)(
+                NumberInput(
+                    "Height",
+                    default=256,
+                    min=16,
+                    max=8192,
+                    unit="px",
+                ).with_docs("Fixed input height."),
+                NumberInput(
+                    "Width",
+                    default=256,
+                    min=16,
+                    max=8192,
+                    unit="px",
+                ).with_docs("Fixed input width."),
+            ),
             NumberInput(
                 "Workspace (GB)",
                 default=4.0,
@@ -130,7 +146,7 @@ if utility_group is not None:
             ),
         ],
         outputs=[
-            TensorRTEngineOutput(kind="tagged"),
+            TensorRTEngineOutput(),
             TextOutput("Build Info"),
         ],
         node_context=True,
@@ -146,6 +162,8 @@ if utility_group is not None:
         opt_width: int,
         max_height: int,
         max_width: int,
+        static_height: int,
+        static_width: int,
         workspace: float,
     ) -> tuple[TensorRTEngine, str]:
         settings = get_settings(context)
@@ -164,11 +182,13 @@ if utility_group is not None:
 
         use_dynamic = shape_mode == ShapeMode.DYNAMIC
 
-        # For fixed mode, use reasonable defaults
         if not use_dynamic:
-            min_height = min_width = 64
-            opt_height = opt_width = 256
-            max_height = max_width = 256
+            min_height = static_height
+            min_width = static_width
+            opt_height = static_height
+            opt_width = static_width
+            max_height = static_height
+            max_width = static_width
 
         config = BuildConfig(
             precision=precision.value,
