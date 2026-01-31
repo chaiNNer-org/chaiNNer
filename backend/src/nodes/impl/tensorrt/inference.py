@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from logger import logger
-
 from .memory import CudaMemoryManager
 from .model import TensorRTEngine
 
@@ -37,7 +35,7 @@ class TensorRTSession:
             return
 
         import tensorrt as trt
-        from cuda import cudart
+        from cuda.bindings import runtime as cudart
 
         cudart.cudaSetDevice(self.gpu_index)
 
@@ -105,9 +103,6 @@ class TensorRTSession:
         """
         if not self._is_loaded:
             raise RuntimeError("Session not loaded. Call load() first.")
-
-        import tensorrt as trt
-        from cuda import cudart
 
         input_name, output_name, _, _ = self._get_binding_info()
 

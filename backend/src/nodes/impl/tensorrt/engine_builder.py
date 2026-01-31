@@ -118,7 +118,7 @@ def build_engine_from_onnx(
         A TensorRTEngine instance
     """
     import tensorrt as trt
-    from cuda import cudart
+    from cuda.bindings import runtime as cudart
 
     # Set the CUDA device
     cudart.cudaSetDevice(gpu_index)
@@ -236,9 +236,15 @@ def build_engine_from_onnx(
         gpu_architecture=gpu_arch,
         tensorrt_version=trt.__version__,
         has_dynamic_shapes=has_dynamic or config.use_dynamic_shapes,
-        min_shape=(config.min_shape[1], config.min_shape[0]) if config.use_dynamic_shapes else None,
-        opt_shape=(config.opt_shape[1], config.opt_shape[0]) if config.use_dynamic_shapes else None,
-        max_shape=(config.max_shape[1], config.max_shape[0]) if config.use_dynamic_shapes else None,
+        min_shape=(config.min_shape[1], config.min_shape[0])
+        if config.use_dynamic_shapes
+        else None,
+        opt_shape=(config.opt_shape[1], config.opt_shape[0])
+        if config.use_dynamic_shapes
+        else None,
+        max_shape=(config.max_shape[1], config.max_shape[0])
+        if config.use_dynamic_shapes
+        else None,
     )
 
     return TensorRTEngine(bytes(serialized_engine), info)
@@ -254,7 +260,7 @@ def load_engine_from_bytes(
     Returns the runtime and deserialized engine.
     """
     import tensorrt as trt
-    from cuda import cudart
+    from cuda.bindings import runtime as cudart
 
     cudart.cudaSetDevice(gpu_index)
 

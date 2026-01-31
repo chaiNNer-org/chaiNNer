@@ -24,8 +24,7 @@ class TensorRTEngineOutput(BaseOutput):
         tags: list[str] = []
 
         # Add channel info
-        if i.input_channels is not None and i.output_channels is not None:
-            tags.append(format_channel_numbers(i.input_channels, i.output_channels))
+        tags.append(format_channel_numbers(i.input_channels, i.output_channels))
 
         # Add scale info
         if i.scale is not None:
@@ -37,6 +36,14 @@ class TensorRTEngineOutput(BaseOutput):
         # Add architecture
         tags.append(i.gpu_architecture)
 
+        # Add dynamic shape info
+        if i.min_shape is not None:
+            tags.append("Min: " + str(i.min_shape[2]) + "x" + str(i.min_shape[3]))
+        if i.opt_shape is not None:
+            tags.append("Opt: " + str(i.opt_shape[2]) + "x" + str(i.opt_shape[3]))
+        if i.max_shape is not None:
+            tags.append("Max: " + str(i.max_shape[2]) + "x" + str(i.max_shape[3]))
+
         return {"tags": tags}
 
     def get_broadcast_type(self, value: TensorRTEngine):
@@ -47,9 +54,9 @@ class TensorRTEngineOutput(BaseOutput):
         i = value.info
         if i.scale is not None:
             fields["scale"] = i.scale
-        if i.input_channels is not None:
+        if i.input_channels:
             fields["inputChannels"] = i.input_channels
-        if i.output_channels is not None:
+        if i.output_channels:
             fields["outputChannels"] = i.output_channels
 
         return navi.named("TensorRTEngine", fields)

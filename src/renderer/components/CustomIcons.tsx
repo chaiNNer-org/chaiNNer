@@ -68,17 +68,6 @@ export const NcnnIcon = createIcon({
     ),
 });
 
-export const NvidiaIcon = createIcon({
-    displayName: 'NvidiaIcon',
-    viewBox: '0 0 24 24',
-    path: (
-        <path
-            d="M8.948 8.798v-1.43a6.7 6.7 0 0 1 .424-.018c3.922-.124 6.14 3.016 6.14 3.016s-2.535 3.446-5.247 3.446c-.48 0-.901-.074-1.317-.22v-4.15c1.554.196 1.871.847 2.793 2.35l2.087-1.758s-1.555-1.56-3.972-1.56c-.312 0-.608.02-.908.064zm0-4.02v1.975l.424-.036c5.466-.192 8.55 4.093 8.55 4.093s-3.605 4.82-7.393 4.82c-.583 0-1.104-.08-1.58-.213v1.39c.424.048.853.084 1.288.084 3.585 0 6.188-1.834 8.698-3.94 0 0 .88.696 2.12 1.418-.92.727-5.89 3.748-10.773 3.748-.473 0-.912-.032-1.333-.08v1.43H20.4V4.778zm0 10.4v1.163c-3.574-.78-4.588-4.19-4.588-4.19s1.35-1.47 3.416-1.729v.574c-1.293.23-2.296 1.04-2.296 1.04s.649 2.108 3.468 3.142zM3.6 10.152s1.913-2.82 5.348-3.159V5.64C4.62 6.056 1.2 9.668 1.2 9.668s1.93 6.092 7.748 6.716v-1.383c-4.22-.626-5.348-4.85-5.348-4.85z"
-            fill="currentColor"
-        />
-    ),
-});
-
 interface IconFactoryProps {
     icon?: string | null;
     accentColor?: string;
@@ -117,13 +106,6 @@ export const IconFactory = memo(({ icon, accentColor, boxSize = 4 }: IconFactory
         case 'NCNN':
             return (
                 <NcnnIcon
-                    color={accentColor}
-                    transition="0.15s ease-in-out"
-                />
-            );
-        case 'Nvidia':
-            return (
-                <NvidiaIcon
                     color={accentColor}
                     transition="0.15s ease-in-out"
                 />

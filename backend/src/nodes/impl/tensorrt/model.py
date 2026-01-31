@@ -17,9 +17,9 @@ class TensorRTEngineInfo:
     gpu_architecture: str
     tensorrt_version: str
     has_dynamic_shapes: bool
-    min_shape: tuple[int, int] | None  # (width, height)
-    opt_shape: tuple[int, int] | None  # (width, height)
-    max_shape: tuple[int, int] | None  # (width, height)
+    min_shape: tuple[int, int, int, int] | None  # (-, channels, width, height)
+    opt_shape: tuple[int, int, int, int] | None  # (-, channels, width, height)
+    max_shape: tuple[int, int, int, int] | None  # (-, channels, width, height)
 
 
 class TensorRTEngine:

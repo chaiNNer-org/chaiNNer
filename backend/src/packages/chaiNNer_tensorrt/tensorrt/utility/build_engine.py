@@ -4,7 +4,7 @@ from enum import Enum
 
 from api import NodeContext
 from logger import logger
-from nodes.groups import Condition, if_enum_group
+from nodes.groups import if_enum_group
 from nodes.impl.onnx.model import OnnxModel
 from nodes.impl.tensorrt.engine_builder import BuildConfig, build_engine_from_onnx
 from nodes.impl.tensorrt.model import TensorRTEngine
@@ -16,7 +16,7 @@ from nodes.properties.inputs import (
 from nodes.properties.outputs import TensorRTEngineOutput, TextOutput
 
 from ...settings import get_settings
-from .. import io_group
+from .. import utility_group
 
 
 class Precision(Enum):
@@ -26,7 +26,7 @@ class Precision(Enum):
 
 PRECISION_LABELS = {
     Precision.FP32: "FP32 (Higher Precision)",
-    Precision.FP16: "FP16 (Faster on RTX GPUs)",
+    Precision.FP16: "FP16 (Faster)",
 }
 
 
@@ -41,18 +41,18 @@ SHAPE_MODE_LABELS = {
 }
 
 
-if io_group is not None:
+if utility_group is not None:
 
-    @io_group.register(
+    @utility_group.register(
         schema_id="chainner:tensorrt:build_engine",
-        name="Build Engine from ONNX",
+        name="Build Engine",
         description=[
             "Convert an ONNX model to a TensorRT engine.",
             "Building an engine can take several minutes depending on the model size and optimization settings.",
             "The built engine is optimized specifically for your GPU and TensorRT version.",
             "It is recommended to save the built engine for reuse, as building is slow.",
         ],
-        icon="Nvidia",
+        icon="BsNvidia",
         inputs=[
             OnnxModelInput("ONNX Model"),
             EnumInput(
@@ -61,8 +61,8 @@ if io_group is not None:
                 default=Precision.FP16,
                 option_labels=PRECISION_LABELS,
             ).with_docs(
-                "FP16 is faster on RTX GPUs and uses less VRAM.",
-                "FP32 provides higher precision but is slower.",
+                "FP16: lower precision but faster and uses less memory, especially on RTX GPUs. FP16 also does not work with certain models.",
+                "FP32: higher precision but slower. Use especially if FP16 fails.",
             ),
             EnumInput(
                 ShapeMode,
@@ -125,7 +125,8 @@ if io_group is not None:
                 precision=1,
                 step=0.5,
             ).with_docs(
-                "Maximum GPU memory for building. Larger values may allow better optimizations."
+                "Maximum GPU memory for building. Larger values may allow better optimizations.",
+                hint=True,
             ),
         ],
         outputs=[
@@ -134,7 +135,7 @@ if io_group is not None:
         ],
         node_context=True,
     )
-    def build_engine_from_onnx_node(
+    def build_engine_node(
         context: NodeContext,
         onnx_model: OnnxModel,
         precision: Precision,
@@ -157,7 +158,9 @@ if io_group is not None:
 
             # Create a cache key based on the model
             model_hash = hashlib.md5(onnx_model.bytes[:1024]).hexdigest()[:8]
-            timing_cache_path = f"{settings.timing_cache_path}/timing_{model_hash}.cache"
+            timing_cache_path = (
+                f"{settings.timing_cache_path}/timing_{model_hash}.cache"
+            )
 
         use_dynamic = shape_mode == ShapeMode.DYNAMIC
 
@@ -194,6 +197,8 @@ if io_group is not None:
             f"Built {precision.value.upper()} engine for {engine.info.gpu_architecture}"
         )
         if use_dynamic:
-            build_info += f" (dynamic: {min_height}x{min_width} to {max_height}x{max_width})"
+            build_info += (
+                f" (dynamic: {min_height}x{min_width} to {max_height}x{max_width})"
+            )
 
         return engine, build_info

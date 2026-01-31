@@ -26,25 +26,25 @@ if nvidia.is_available and not is_arm_mac:
             Dependency(
                 display_name="TensorRT",
                 pypi_name="tensorrt",
-                version="10.0.1",
+                version="10.15.1.29",
                 size_estimate=int(1.2 * GB),
                 auto_update=False,
             ),
             Dependency(
                 display_name="CUDA Python",
                 pypi_name="cuda-python",
-                version="12.3.0",
+                version="13.1.1",
                 size_estimate=20 * MB,
             ),
         ],
-        icon="Nvidia",
+        icon="BsNvidia",
         color="#76B900",
     )
 
     tensorrt_category = package.add_category(
         name="TensorRT",
         description="Nodes for using NVIDIA TensorRT for optimized GPU inference.",
-        icon="Nvidia",
+        icon="BsNvidia",
         color="#76B900",
         install_hint=install_hint,
     )

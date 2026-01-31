@@ -3,12 +3,18 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import tensorrt as trt
+
 from api import NodeContext
 from logger import logger
 from nodes.impl.tensorrt.memory import get_cuda_compute_capability
 from nodes.impl.tensorrt.model import TensorRTEngine, TensorRTEngineInfo
 from nodes.properties.inputs import TensorRTFileInput
-from nodes.properties.outputs import DirectoryOutput, FileNameOutput, TensorRTEngineOutput
+from nodes.properties.outputs import (
+    DirectoryOutput,
+    FileNameOutput,
+    TensorRTEngineOutput,
+)
 from nodes.utils.utils import split_file_path
 
 from ...settings import get_settings
@@ -24,7 +30,7 @@ if io_group is not None:
             "TensorRT engines are built for a specific GPU architecture and may not work "
             "on different GPUs. The node will warn you if there's a potential compatibility issue."
         ),
-        icon="Nvidia",
+        icon="BsNvidia",
         inputs=[TensorRTFileInput(primary_input=True)],
         outputs=[
             TensorRTEngineOutput(kind="tagged").suggest(),
@@ -37,8 +43,6 @@ if io_group is not None:
     def load_engine_node(
         context: NodeContext, path: Path
     ) -> tuple[TensorRTEngine, Path, str]:
-        import tensorrt as trt
-
         assert os.path.exists(path), f"Engine file at location {path} does not exist"
         assert os.path.isfile(path), f"Path {path} is not a file"
 
@@ -56,8 +60,8 @@ if io_group is not None:
             engine_bytes = f.read()
 
         # Deserialize to get engine info
-        trt_logger = trt.Logger(trt.Logger.WARNING)
-        runtime = trt.Runtime(trt_logger)
+        trt_logger = trt.Logger(trt.Logger.WARNING)  # type: ignore
+        runtime = trt.Runtime(trt_logger)  # type: ignore
         engine = runtime.deserialize_cuda_engine(engine_bytes)
 
         if engine is None:
@@ -72,7 +76,9 @@ if io_group is not None:
         output_name = engine.get_tensor_name(1)
 
         input_shape = engine.get_tensor_shape(input_name)
+        logger.info("Input shape: %s", input_shape)
         output_shape = engine.get_tensor_shape(output_name)
+        logger.info("Output shape: %s", output_shape)
 
         # Detect channels
         input_channels = input_shape[1] if len(input_shape) >= 4 else 3
@@ -92,9 +98,46 @@ if io_group is not None:
         # Check for dynamic shapes
         has_dynamic = any(d == -1 for d in input_shape)
 
-        # Detect precision from the engine (this is a heuristic)
-        # TensorRT doesn't provide a direct way to query the precision
-        precision = "fp32"  # Default assumption
+        # Detect precision from the engine
+        precision = "fp16"
+
+        # log out all properties of engine
+        # logger.info(dir(engine))
+        # 'device_memory_size', 'device_memory_size_v2', 'engine_capability', 'error_recorder', 'get_aliased_input_tensor', 'get_device_memory_size_for_profile', 'get_device_memory_size_for_profile_v2', 'get_engine_stat', 'get_tensor_bytes_per_component', 'get_tensor_components_per_element', 'get_tensor_dtype', 'get_tensor_format', 'get_tensor_format_desc', 'get_tensor_location', 'get_tensor_mode', 'get_tensor_name', 'get_tensor_profile_shape', 'get_tensor_profile_values', 'get_tensor_shape', 'get_tensor_vectorized_dim', 'get_weight_streaming_automatic_budget'
+        logger.info("device_memory_size: %s", engine.device_memory_size)
+        logger.info("engine_capability: %s", engine.engine_capability)
+        logger.info("get_engine_stat: %s", engine.get_engine_stat())
+        logger.info(
+            "get_tensor_dtype for input '%s': %s",
+            input_name,
+            engine.get_tensor_dtype(input_name),
+        )
+        logger.info(
+            "get_tensor_dtype for output '%s': %s",
+            output_name,
+            engine.get_tensor_dtype(output_name),
+        )
+        logger.info(
+            "get_tensor_format for input '%s': %s",
+            input_name,
+            engine.get_tensor_format(input_name),
+        )
+        logger.info(
+            "get_tensor_format for output '%s': %s",
+            output_name,
+            engine.get_tensor_format(output_name),
+        )
+
+        precision = (
+            "fp16"
+            if engine.get_tensor_dtype(input_name) == trt.DataType.HALF
+            else "fp32"
+        )
+
+        tensor_profile_name = input_name
+        min_shape, opt_shape, max_shape = engine.get_tensor_profile_shape(
+            tensor_profile_name, 0
+        )
 
         # Create info
         info = TensorRTEngineInfo(
@@ -105,9 +148,9 @@ if io_group is not None:
             gpu_architecture=current_arch,
             tensorrt_version=trt.__version__,
             has_dynamic_shapes=has_dynamic,
-            min_shape=None,
-            opt_shape=None,
-            max_shape=None,
+            min_shape=min_shape,
+            opt_shape=opt_shape,
+            max_shape=max_shape,
         )
 
         dirname, basename, _ = split_file_path(path)

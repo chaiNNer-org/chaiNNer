@@ -93,7 +93,7 @@ if processing_group is not None:
             )
         ],
         name="Upscale Image",
-        icon="Nvidia",
+        icon="BsNvidia",
         node_context=True,
     )
     def upscale_image_node(
