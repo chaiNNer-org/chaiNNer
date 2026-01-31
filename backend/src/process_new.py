@@ -1041,6 +1041,9 @@ class TransformerRuntimeNode(RuntimeNode):
         self._iterable_accumulators: dict[InputId, list[object]] | None = None
         # True while we're still accumulating inputs from upstream
         self._accumulating = False
+        # Track how many times we've been called during current accumulation round
+        # (similar to _current_served for serving phase)
+        self._accumulation_served = 0
 
     def is_ready(self) -> bool:
         """Return True if the transformer is ready to serve output values."""
@@ -1238,7 +1241,8 @@ class TransformerRuntimeNode(RuntimeNode):
         iterable_ids = list(iterable_input.inputs)
 
         # ---------- accumulation phase ----------
-        # Accumulate upstream values one at a time to respect fanout
+        # Accumulate upstream values one at a time, respecting fanout so that
+        # sibling consumers of our upstream node also get their share.
         if self._accumulating or (
             self._supplier_iter is None and self._iterable_accumulators is None
         ):
@@ -1246,21 +1250,43 @@ class TransformerRuntimeNode(RuntimeNode):
             if self._iterable_accumulators is None:
                 self._iterable_accumulators = {inp_id: [] for inp_id in iterable_ids}
                 self._accumulating = True
+                self._accumulation_served = 0
 
-            try:
-                items = await self.executor.runtime_inputs_for_async(
-                    self.node, only_ids=set(iterable_ids)
-                )
-                for inp_id, item in zip(iterable_ids, items, strict=False):
-                    self._iterable_accumulators[inp_id].append(item)
-                self._iter_timer.add()
-                self._send_progress()
-                # Signal that we're still accumulating and not ready to serve
+            # Only pull from upstream on the FIRST call of each fanout round.
+            # Subsequent calls (from other children) just raise TransformerNotReady
+            # without pulling, to avoid consuming multiple upstream fanout slots.
+            if self._accumulation_served == 0:
+                try:
+                    items = await self.executor.runtime_inputs_for_async(
+                        self.node, only_ids=set(iterable_ids)
+                    )
+                    for inp_id, item in zip(iterable_ids, items, strict=False):
+                        self._iterable_accumulators[inp_id].append(item)
+                    self._iter_timer.add()
+                    self._send_progress()
+                except StopAsyncIteration:
+                    # Upstream exhausted - done accumulating, ready to finalize
+                    self._accumulating = False
+                    self._accumulation_served = 0
+                    # Fall through to serving phase
+                    pass
+                else:
+                    # Successfully accumulated - track fanout and raise NotReady
+                    self._accumulation_served += 1
+                    if self._accumulation_served >= self.fanout:
+                        self._accumulation_served = 0
+                    raise TransformerNotReady
+            else:
+                # Not our turn to pull - just increment counter and raise NotReady
+                self._accumulation_served += 1
+                if self._accumulation_served >= self.fanout:
+                    self._accumulation_served = 0
                 raise TransformerNotReady
-            except StopAsyncIteration:
-                # Upstream exhausted - done accumulating, ready to finalize
-                self._accumulating = False
-                # Fall through to serving phase
+
+        # If we reach here during accumulation, upstream was exhausted
+        if self._accumulating:
+            self._accumulating = False
+            self._accumulation_served = 0
 
         # ---------- serving phase ----------
         if self._current_value is None:
@@ -1269,6 +1295,7 @@ class TransformerRuntimeNode(RuntimeNode):
                 # Supplier exhausted but has iterative parent - start new accumulation
                 self._iterable_accumulators = {inp_id: [] for inp_id in iterable_ids}
                 self._accumulating = True
+                self._accumulation_served = 0
                 # Recursively call to start accumulating
                 return await self.__anext__()
             self._current_value = result
