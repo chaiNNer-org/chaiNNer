@@ -17,7 +17,7 @@ from .. import text_group
     icon="MdTextFields",
     kind="collector",
     inputs=[
-        TextInput("Sequence", has_handle=True),
+        TextInput("Text Sequence", has_handle=True),
         TextInput(
             "Separator",
             has_handle=False,
