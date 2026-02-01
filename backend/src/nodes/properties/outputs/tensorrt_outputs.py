@@ -65,4 +65,27 @@ class TensorRTEngineOutput(BaseOutput):
         if i.output_channels:
             fields["outputChannels"] = i.output_channels
 
+        # Add shape constraints (min/max height/width)
+        # Shape tuples are NCHW format: (batch, channels, height, width)
+        if i.min_shape is not None:
+            fields["minHeight"] = i.min_shape[2]
+            fields["minWidth"] = i.min_shape[3]
+        else:
+            fields["minHeight"] = "null"
+            fields["minWidth"] = "null"
+
+        if i.max_shape is not None:
+            fields["maxHeight"] = i.max_shape[2]
+            fields["maxWidth"] = i.max_shape[3]
+        else:
+            fields["maxHeight"] = "null"
+            fields["maxWidth"] = "null"
+
+        if i.opt_shape is not None:
+            fields["optHeight"] = i.opt_shape[2]
+            fields["optWidth"] = i.opt_shape[3]
+        else:
+            fields["optHeight"] = "null"
+            fields["optWidth"] = "null"
+
         return navi.named("TensorRTEngine", fields)

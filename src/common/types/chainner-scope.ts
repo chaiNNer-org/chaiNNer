@@ -97,6 +97,12 @@ struct TensorRTEngine {
     inputChannels: int(1..),
     outputChannels: int(1..),
     precision: string,
+    minHeight: int(1..) | null,
+    minWidth: int(1..) | null,
+    optHeight: int(1..) | null,
+    optWidth: int(1..) | null,
+    maxHeight: int(1..) | null,
+    maxWidth: int(1..) | null,
 }
 
 enum TrtPrecision { fp32, fp16 }

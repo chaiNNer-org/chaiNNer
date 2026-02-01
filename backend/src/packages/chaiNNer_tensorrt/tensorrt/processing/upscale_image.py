@@ -89,7 +89,38 @@ if processing_group is not None:
         outputs=[
             ImageOutput(
                 "Image",
-                image_type="convenientUpscaleTrt(Input0, Input1)",
+                image_type="""
+                    let engine = Input0;
+                    let image = Input1;
+
+                    // Check minimum size constraints
+                    let minWidthOk = match engine.minWidth {
+                        null => true,
+                        _ as w => image.width >= w
+                    };
+                    let minHeightOk = match engine.minHeight {
+                        null => true,
+                        _ as h => image.height >= h
+                    };
+
+                    // Check maximum size constraints
+                    let maxWidthOk = match engine.maxWidth {
+                        null => true,
+                        _ as w => image.width <= w
+                    };
+                    let maxHeightOk = match engine.maxHeight {
+                        null => true,
+                        _ as h => image.height <= h
+                    };
+
+                    if not minWidthOk or not minHeightOk {
+                        error("Image is smaller than the minimum size supported by this TensorRT engine.")
+                    } else if not maxWidthOk or not maxHeightOk {
+                        error("Image is larger than the maximum size supported by this TensorRT engine.")
+                    } else {
+                        convenientUpscaleTrt(engine, image)
+                    }
+                """,
             )
         ],
         name="Upscale Image",
