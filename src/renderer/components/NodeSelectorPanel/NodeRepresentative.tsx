@@ -134,7 +134,9 @@ const NodeRepresentative = memo(
 
         return useMemo(() => {
             const isIterator =
-                node.kind === 'generator' || node.kind === 'collector' || node.kind === 'transformer';
+                node.kind === 'generator' ||
+                node.kind === 'collector' ||
+                node.kind === 'transformer';
             const bgGradient = isIterator
                 ? `repeating-linear(to right,${accentColor},${accentColor} 2px,${bgColor} 2px,${bgColor} 4px)`
                 : `linear-gradient(90deg, ${accentColor} 0%, ${accentColor} 33%, ${bgColor} 66%, ${bgColor} 100%)`;
