@@ -30,8 +30,8 @@ B = TypeVar("B")
         AnyInput("Sequence B").with_id(1),
     ],
     outputs=[
-        AnyOutput("Item A", output_type="Input0").with_id(0),
-        AnyOutput("Item B", output_type="Input1").with_id(1),
+        AnyOutput("Sequence A", output_type="Input0").with_id(0),
+        AnyOutput("Sequence B", output_type="Input1").with_id(1),
     ],
     iterator_inputs=IteratorInputInfo(inputs=[0, 1], length_type="uint"),
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="uint"),
