@@ -90,36 +90,39 @@ if processing_group is not None:
             ImageOutput(
                 "Image",
                 image_type="""
+                    // Until we can take tile size into account, we don't want to error unnecessarily, so i've commented out the checks for now
+
                     let engine = Input0;
                     let image = Input1;
+                    convenientUpscaleTrt(engine, image)
 
-                    // Check minimum size constraints
-                    let minWidthOk = match engine.minWidth {
-                        null => true,
-                        _ as w => image.width >= w
-                    };
-                    let minHeightOk = match engine.minHeight {
-                        null => true,
-                        _ as h => image.height >= h
-                    };
+                    // // Check minimum size constraints
+                    // let minWidthOk = match engine.minWidth {
+                    //     null => true,
+                    //     _ as w => image.width >= w
+                    // };
+                    // let minHeightOk = match engine.minHeight {
+                    //     null => true,
+                    //     _ as h => image.height >= h
+                    // };
 
-                    // Check maximum size constraints
-                    let maxWidthOk = match engine.maxWidth {
-                        null => true,
-                        _ as w => image.width <= w
-                    };
-                    let maxHeightOk = match engine.maxHeight {
-                        null => true,
-                        _ as h => image.height <= h
-                    };
+                    // // Check maximum size constraints
+                    // let maxWidthOk = match engine.maxWidth {
+                    //     null => true,
+                    //     _ as w => image.width >= w
+                    // };
+                    // let maxHeightOk = match engine.maxHeight {
+                    //     null => true,
+                    //     _ as h => image.height <= h
+                    // };
 
-                    if not minWidthOk or not minHeightOk {
-                        error("Image is smaller than the minimum size supported by this TensorRT engine.")
-                    } else if not maxWidthOk or not maxHeightOk {
-                        error("Image is larger than the maximum size supported by this TensorRT engine.")
-                    } else {
-                        convenientUpscaleTrt(engine, image)
-                    }
+                    // if not minWidthOk or not minHeightOk {
+                    //     error("Image is smaller than the minimum size supported by this TensorRT engine.")
+                    // } else if not maxWidthOk or not maxHeightOk {
+                    //     error("Image is larger than the maximum size supported by this TensorRT engine.")
+                    // } else {
+                    //     convenientUpscaleTrt(engine, image)
+                    // }
                 """,
             )
         ],
