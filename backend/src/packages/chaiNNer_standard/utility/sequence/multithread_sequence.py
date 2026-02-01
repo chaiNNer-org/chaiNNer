@@ -18,8 +18,9 @@ T = TypeVar("T")
     name="Multithread Sequence",
     description=[
         "Processes items in the input sequence using multiple threads for improved performance.",
+        "Note that the order of output items may not match the input sequence due to concurrent processing.",
     ],
-    icon="MdContentCut",
+    icon="TbChartArrows",
     kind="transformer",
     inputs=[
         AnyInput("Sequence").with_id(0),
@@ -42,10 +43,7 @@ def multithread_sequence_node(
 ) -> Transformer[T, T]:
     def supplier() -> Iterable[T]:
         with ThreadPoolExecutor(max_workers=num_threads) as executor:
-            futures = {
-                executor.submit(lambda x: x, item): index
-                for index, item in enumerate(sequence)
-            }
+            futures = [executor.submit(lambda x: x, item) for item in sequence]
             for future in as_completed(futures):
                 yield future.result()
 

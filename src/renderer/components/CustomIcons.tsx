@@ -15,9 +15,11 @@ import {
 import { GiRolledCloth } from 'react-icons/gi';
 import * as im from 'react-icons/im';
 import * as md from 'react-icons/md';
+import { TbChartArrows } from 'react-icons/tb';
 
 const fa = { FaPaintBrush, FaAlignCenter, FaAlignLeft, FaAlignRight, FaBold, FaItalic };
 const gi = { GiRolledCloth };
+const tb = { TbChartArrows };
 
 const libraries: Partial<Record<string, Partial<Record<string, IconType>>>> = {
     bs,
@@ -26,6 +28,7 @@ const libraries: Partial<Record<string, Partial<Record<string, IconType>>>> = {
     im,
     fa,
     gi,
+    tb,
 };
 
 export const PyTorchIcon = createIcon({
