@@ -99,35 +99,6 @@ if io_group is not None:
         has_dynamic = any(d == -1 for d in input_shape)
 
         # Detect precision from the engine
-        precision = "fp16"
-
-        # log out all properties of engine
-        # logger.info(dir(engine))
-        # 'device_memory_size', 'device_memory_size_v2', 'engine_capability', 'error_recorder', 'get_aliased_input_tensor', 'get_device_memory_size_for_profile', 'get_device_memory_size_for_profile_v2', 'get_engine_stat', 'get_tensor_bytes_per_component', 'get_tensor_components_per_element', 'get_tensor_dtype', 'get_tensor_format', 'get_tensor_format_desc', 'get_tensor_location', 'get_tensor_mode', 'get_tensor_name', 'get_tensor_profile_shape', 'get_tensor_profile_values', 'get_tensor_shape', 'get_tensor_vectorized_dim', 'get_weight_streaming_automatic_budget'
-        logger.info("device_memory_size: %s", engine.device_memory_size)
-        logger.info("engine_capability: %s", engine.engine_capability)
-        logger.info("get_engine_stat: %s", engine.get_engine_stat())
-        logger.info(
-            "get_tensor_dtype for input '%s': %s",
-            input_name,
-            engine.get_tensor_dtype(input_name),
-        )
-        logger.info(
-            "get_tensor_dtype for output '%s': %s",
-            output_name,
-            engine.get_tensor_dtype(output_name),
-        )
-        logger.info(
-            "get_tensor_format for input '%s': %s",
-            input_name,
-            engine.get_tensor_format(input_name),
-        )
-        logger.info(
-            "get_tensor_format for output '%s': %s",
-            output_name,
-            engine.get_tensor_format(output_name),
-        )
-
         precision = (
             "fp16"
             if engine.get_tensor_dtype(input_name) == trt.DataType.HALF
