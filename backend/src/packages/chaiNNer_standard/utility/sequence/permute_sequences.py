@@ -26,8 +26,17 @@ B = TypeVar("B")
     icon="MdGridOn",
     kind="transformer",
     inputs=[
-        AnyInput("Sequence A").with_id(0),
-        AnyInput("Sequence B").with_id(1),
+        AnyInput("Sequence A")
+        .with_id(0)
+        .with_docs(
+            "This sequence will be lazily evaluated and paired with items from Sequence B."
+        ),
+        AnyInput("Sequence B")
+        .with_id(1)
+        .with_docs(
+            "This sequence will be consumed to memory entirely while Sequence A is lazily evaluated.",
+            "Make sure Sequence B is less or equally as large as Sequence A to avoid high memory consumption.",
+        ),
     ],
     outputs=[
         AnyOutput("Sequence A", output_type="Input0").with_id(0),
