@@ -63,14 +63,15 @@ def collect_and_stack_images_node(
         max_h, max_w, max_c = 0, 0, 1
         imgs: list[np.ndarray] = []
         for img in images:
+            _img = img
             h, w, c = get_h_w_c(img)
             if c == 1:
-                img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+                _img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
                 c = 3
             max_h = max(h, max_h)
             max_w = max(w, max_w)
             max_c = max(c, max_c)
-            imgs.append(img)
+            imgs.append(_img)
 
         fixed_imgs: list[np.ndarray] = []
         for img in imgs:
