@@ -1269,7 +1269,6 @@ class TransformerRuntimeNode(RuntimeNode):
                     self._accumulating = False
                     self._accumulation_served = 0
                     # Fall through to serving phase
-                    pass
                 except TransformerNotReady:
                     # Upstream transformer is still accumulating - we couldn't pull.
                     # Still increment served counter so other children don't try either,
