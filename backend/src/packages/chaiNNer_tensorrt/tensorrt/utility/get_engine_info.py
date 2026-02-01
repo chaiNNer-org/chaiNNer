@@ -18,7 +18,7 @@ if utility_group is not None:
             NumberOutput(
                 "Scale",
                 output_type="""
-                    if Input0.scale == null { 0 } else { Input0.scale }
+                    if Input0.scale == null { -1 } else { Input0.scale }
                 """,
             ),
             TextOutput(
@@ -41,20 +41,24 @@ if utility_group is not None:
     ) -> tuple[int, str, str, str, str]:
         info = engine.info
 
-        scale = info.scale if info.scale is not None else 0
+        scale = info.scale if info.scale is not None else -1
         precision = info.precision.upper()
         gpu_arch = info.gpu_architecture
         trt_version = info.tensorrt_version
 
         if info.has_dynamic_shapes:
-            if info.min_shape and info.max_shape:
+            if info.min_shape and info.max_shape and info.opt_shape:
                 shape_info = (
-                    f"Dynamic: {info.min_shape[0]}x{info.min_shape[1]} to "
-                    f"{info.max_shape[0]}x{info.max_shape[1]}"
+                    f"Dynamic: "
+                    f"Min: {info.min_shape[2]}x{info.min_shape[3]} "
+                    f"Opt: {info.opt_shape[2]}x{info.opt_shape[3]} "
+                    f"Max: {info.max_shape[2]}x{info.max_shape[3]}"
                 )
             else:
-                shape_info = "Dynamic shapes"
+                shape_info = "Dynamic"
+        elif info.opt_shape:
+            shape_info = f"Fixed: {info.opt_shape[2]}x{info.opt_shape[3]}"
         else:
-            shape_info = "Fixed shapes"
+            shape_info = "Fixed"
 
         return scale, precision, gpu_arch, trt_version, shape_info
