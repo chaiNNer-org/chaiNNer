@@ -119,6 +119,11 @@ class CudaMemoryManager:
         if self._stream is not None:
             self._check_cuda_error(cudart.cudaStreamSynchronize(self._stream))
 
+    def remove_buffer(self, buffer: CudaBuffer) -> None:
+        """Remove a buffer from tracked buffers without freeing it."""
+        if buffer in self._buffers:
+            self._buffers.remove(buffer)
+
     def cleanup(self) -> None:
         """Free all allocated resources."""
         from cuda.bindings import runtime as cudart

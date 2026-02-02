@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import types
+
 import numpy as np
 
 from .memory import CudaMemoryManager
@@ -73,7 +75,12 @@ class TensorRTSession:
         self.load()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> bool:
         self.unload()
         return False
 
@@ -155,10 +162,8 @@ class TensorRTSession:
             input_buffer.free()
             output_buffer.free()
             # Remove from tracked buffers
-            if input_buffer in self._memory_manager._buffers:
-                self._memory_manager._buffers.remove(input_buffer)
-            if output_buffer in self._memory_manager._buffers:
-                self._memory_manager._buffers.remove(output_buffer)
+            self._memory_manager.remove_buffer(input_buffer)
+            self._memory_manager.remove_buffer(output_buffer)
 
         return output_array.astype(np.float32)
 
@@ -188,7 +193,6 @@ def get_tensorrt_session(
 
 def clear_session_cache() -> None:
     """Clear the session cache and unload all engines."""
-    global _session_cache
     for session in _session_cache.values():
         session.unload()
     _session_cache.clear()

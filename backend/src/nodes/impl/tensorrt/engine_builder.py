@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 from logger import logger
 
@@ -37,7 +37,7 @@ class TrtLogger:
             trt.ILogger.Severity.VERBOSE: logger.debug,
         }
 
-    def log(self, severity, msg):
+    def log(self, severity: Any, msg: str) -> None:
         log_fn = self.severity_map.get(severity, logger.debug)
         log_fn("[TensorRT] %s", msg)
 
@@ -48,7 +48,7 @@ def get_trt_logger():
 
     # Use a simple logger class
     class SimpleLogger(trt.ILogger):
-        def log(self, severity, msg):
+        def log(self, severity: Any, msg: str) -> None:
             if severity <= trt.ILogger.Severity.WARNING:
                 logger.warning("[TensorRT] %s", msg)
             elif severity <= trt.ILogger.Severity.INFO:
@@ -61,8 +61,8 @@ def get_trt_logger():
 
 def parse_onnx_model(
     onnx_bytes: bytes,
-    network,
-    parser,
+    network: Any,
+    parser: Any,
 ) -> None:
     """Parse an ONNX model into a TensorRT network."""
     success = parser.parse(onnx_bytes)
@@ -76,9 +76,9 @@ def parse_onnx_model(
 
 
 def configure_builder_config(
-    builder,
+    builder: Any,
     config: BuildConfig,
-) -> None:
+) -> Any:
     """Configure the TensorRT builder with the given settings."""
     import tensorrt as trt
 
