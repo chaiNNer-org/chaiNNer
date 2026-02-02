@@ -19,8 +19,8 @@ class Orientation(Enum):
 
 
 @compositing_group.register(
-    schema_id="chainner:image:collect_stack",
-    name="Collect & Stack Images",
+    schema_id="chainner:image:stack_images_sequence",
+    name="Stack Images (Sequence)",
     description=[
         "Collects all images from a sequence and stacks them horizontally or vertically.",
         "This is useful for combining multiple images from iterations into a single stacked image.",
@@ -44,7 +44,7 @@ class Orientation(Enum):
         )
     ],
 )
-def collect_and_stack_images_node(
+def stack_images_sequence_node(
     _: None, orientation: Orientation
 ) -> Collector[np.ndarray, np.ndarray]:
     images: list[np.ndarray] = []
