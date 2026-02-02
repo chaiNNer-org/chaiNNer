@@ -10,12 +10,13 @@ from nodes.impl.tensorrt.inference import clear_session_cache
 from nodes.impl.tensorrt.model import TensorRTEngine
 from nodes.impl.upscale.auto_split_tiles import (
     CUSTOM,
+    MAX_TILE_SIZE,
+    NO_TILING,
     TILE_SIZE_256,
     TileSize,
-    parse_tile_size_input,
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
-from nodes.impl.upscale.tiler import MaxTileSize
+from nodes.impl.upscale.tiler import BoundedTileSize, NoTiling, Tiler
 from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
@@ -33,18 +34,43 @@ from .. import processing_group
 def upscale(
     img: np.ndarray,
     engine: TensorRTEngine,
-    tile_size: TileSize,
+    tiler: Tiler,
     gpu_index: int,
 ) -> np.ndarray:
     logger.debug("Upscaling image with TensorRT")
-
-    def estimate():
-        # Conservative estimate for TensorRT
-        return MaxTileSize(TILE_SIZE_256)
-
-    tiler = parse_tile_size_input(tile_size, estimate)
-
     return tensorrt_auto_split(img, engine, tiler, gpu_index=gpu_index)
+
+
+def create_tiler_for_engine(engine: TensorRTEngine, tile_size: TileSize, custom_tile_size: int) -> Tiler:
+    """
+    Create an appropriate tiler based on the engine's constraints and tile size setting.
+    """
+    # Extract min/max size constraints from engine info
+    # Shape tuples are NCHW format: (batch, channels, height, width)
+    info = engine.info
+    min_size = None
+    max_size = None
+
+    if info.min_shape is not None:
+        min_size = (info.min_shape[3], info.min_shape[2])  # (width, height)
+    if info.max_shape is not None:
+        max_size = (info.max_shape[3], info.max_shape[2])  # (width, height)
+
+    if tile_size == NO_TILING:
+        # No tiling - use the whole image (type validation ensures it fits within bounds)
+        return NoTiling()
+    elif tile_size == MAX_TILE_SIZE:
+        # Use the maximum size allowed by the engine
+        if max_size is not None:
+            size = min(max_size[0], max_size[1])
+        else:
+            size = 2**31  # Effectively unlimited
+        return BoundedTileSize(size, min_size=min_size, max_size=max_size)
+    elif tile_size == CUSTOM:
+        return BoundedTileSize(custom_tile_size, min_size=min_size, max_size=max_size)
+    else:
+        # Numeric tile size
+        return BoundedTileSize(int(tile_size), min_size=min_size, max_size=max_size)
 
 
 if processing_group is not None:
@@ -90,39 +116,41 @@ if processing_group is not None:
             ImageOutput(
                 "Image",
                 image_type="""
-                    // Until we can take tile size into account, we don't want to error unnecessarily, so i've commented out the checks for now
-
                     let engine = Input0;
                     let image = Input1;
-                    convenientUpscaleTrt(engine, image)
+                    let tileSize = Input2;
 
-                    // // Check minimum size constraints
-                    // let minWidthOk = match engine.minWidth {
-                    //     null => true,
-                    //     _ as w => image.width >= w
-                    // };
-                    // let minHeightOk = match engine.minHeight {
-                    //     null => true,
-                    //     _ as h => image.height >= h
-                    // };
+                    // Only validate image dimensions when "No Tiling" is selected (-1)
+                    // Otherwise, the BoundedTileSize tiler handles constraints at runtime
+                    let noTiling = tileSize == -1;
 
-                    // // Check maximum size constraints
-                    // let maxWidthOk = match engine.maxWidth {
-                    //     null => true,
-                    //     _ as w => image.width >= w
-                    // };
-                    // let maxHeightOk = match engine.maxHeight {
-                    //     null => true,
-                    //     _ as h => image.height <= h
-                    // };
+                    // Check minimum size constraints
+                    let minWidthOk = match engine.minWidth {
+                        null => true,
+                        _ as w => image.width >= w
+                    };
+                    let minHeightOk = match engine.minHeight {
+                        null => true,
+                        _ as h => image.height >= h
+                    };
 
-                    // if not minWidthOk or not minHeightOk {
-                    //     error("Image is smaller than the minimum size supported by this TensorRT engine.")
-                    // } else if not maxWidthOk or not maxHeightOk {
-                    //     error("Image is larger than the maximum size supported by this TensorRT engine.")
-                    // } else {
-                    //     convenientUpscaleTrt(engine, image)
-                    // }
+                    // Check maximum size constraints
+                    let maxWidthOk = match engine.maxWidth {
+                        null => true,
+                        _ as w => image.width <= w
+                    };
+                    let maxHeightOk = match engine.maxHeight {
+                        null => true,
+                        _ as h => image.height <= h
+                    };
+
+                    if noTiling and (not minWidthOk or not minHeightOk) {
+                        error("Image is smaller than the minimum size supported by this TensorRT engine. Use tiling or resize the image.")
+                    } else if noTiling and (not maxWidthOk or not maxHeightOk) {
+                        error("Image is larger than the maximum size supported by this TensorRT engine. Use tiling or resize the image.")
+                    } else {
+                        convenientUpscaleTrt(engine, image)
+                    }
                 """,
             )
         ],
@@ -149,6 +177,9 @@ if processing_group is not None:
         h, w, c = get_h_w_c(img)
         logger.debug("Image is %dx%dx%d", h, w, c)
 
+        # Create the appropriate tiler based on engine constraints and tile size setting
+        tiler = create_tiler_for_engine(engine, tile_size, custom_tile_size)
+
         return convenient_upscale(
             img,
             in_nc,
@@ -156,7 +187,7 @@ if processing_group is not None:
             lambda i: upscale(
                 i,
                 engine,
-                TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
+                tiler,
                 gpu_index,
             ),
             separate_alpha,
