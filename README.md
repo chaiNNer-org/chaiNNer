@@ -21,9 +21,7 @@ ChaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and L
 
 For help, suggestions, or just to hang out, you can join the [chaiNNer Discord server](https://discord.gg/pzvAKPKyHM)
 
-Remember: chaiNNer is still a work in progress and in alpha. While it is slowly getting more to where we want it, it is going to take quite some time to have every possible feature we want to add. If you're knowledgeable in TypeScript, React, or Python, feel free to contribute to this project and help us get closer to that goal.
-
-Note: As of right now, chaiNNer is not under active development. This may resume in the future, but at the moment there is no active dev work aside from community contributions via PRs.
+ChaiNNer is under active development. If you're knowledgeable in TypeScript, React, or Python, feel free to contribute to this project and help us continue to improve it.
 
 ## Installation
 
@@ -31,7 +29,7 @@ Download the latest release from the [Github releases page](https://github.com/c
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
-If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, we recommend using Python 3.11, but we try to support 3.10 as well.
+If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, Python 3.10 or later is required (3.11+ recommended).
 
 If you'd like to test the latest changes and tweaks, try out our [nightly builds](https://github.com/chaiNNer-org/chaiNNer-nightly)
 
@@ -45,7 +43,7 @@ While it might seem intimidating at first due to all the possible options, chaiN
     <img src="docs/assets/simple_screenshot.png" width="480" />
 </p>
 
-Before you get to this point though, you'll need to install one of the neural network frameworks from the dependency manager. You can access this via the button in the upper-right-hand corner. ChaiNNer offers support for PyTorch (with select model architectures), NCNN, and ONNX. For Nvidia users, PyTorch will be the preferred way to upscale. For AMD users, NCNN will be the preferred way to upscale.
+Before you get to this point though, you'll need to install one of the neural network frameworks from the dependency manager. You can access this via the button in the upper-right-hand corner. ChaiNNer offers support for PyTorch (with select model architectures), NCNN, ONNX, and TensorRT. For Nvidia users, PyTorch or TensorRT will be the preferred way to upscale. For AMD users, NCNN will be the preferred way to upscale (or PyTorch with ROCm on Linux).
 
 All the other Python dependencies are automatically installed, and chaiNNer even carries its own integrated Python support so that you do not have to modify your existing Python configuration.
 
@@ -82,7 +80,7 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 -   Windows versions 8.1 and below are also not supported.
 
--   Apple Silicon Macs should support almost everything. Although, ONNX only supports the CPU Execution Provider, and NCNN sometimes does not work properly.
+-   Apple Silicon Macs are supported with PyTorch MPS acceleration. ONNX only supports the CPU Execution Provider, and NCNN may not work properly on some configurations.
 
 -   Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
 
@@ -90,13 +88,19 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ## GPU Support
 
-For PyTorch inference, only Nvidia GPUs are officially supported. If you do not have an Nvidia GPU, you will have to use PyTorch in CPU mode. This is because PyTorch only supports Nvidia's CUDA. MacOS users on Apple Silicon Macs can also take advantage of PyTorch's MPS mode, which should work with chaiNNer.
+**Nvidia GPUs:** Full support via PyTorch (CUDA), ONNX, and TensorRT. TensorRT offers the best performance for supported models.
 
-If you have an AMD or Intel GPU that supports NCNN however, chaiNNer now supports NCNN inference. You can use any existing NCNN .bin/.param model files (only ESRGAN-related SR models have been tested), or use chaiNNer to convert a PyTorch or ONNX model to NCNN.
+**AMD GPUs:**
+- On Linux, AMD GPUs can use PyTorch via ROCm
+- NCNN is available on all platforms for AMD GPUs
+
+**Apple Silicon (M1/M2/M3):** PyTorch MPS acceleration is supported.
+
+**Intel GPUs:** NCNN inference is supported for Intel GPUs.
+
+**CPU:** All frameworks support CPU-only mode as a fallback.
 
 For NCNN, make sure to select which GPU you want to use in the settings. It might be defaulting to your integrated graphics!
-
-For Nvidia GPUs, ONNX is also an option to be used. ONNX will use CPU mode on non-Nvidia GPUs, similar to PyTorch.
 
 ## Model Architecture Support
 
@@ -122,6 +126,10 @@ As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.co
 
 -   [u2net](https://github.com/danielgatis/rembg) | [u2net](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net.onnx), [u2netp](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx), [u2net_cloth_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_cloth_seg.onnx), [u2net_human_seg](https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2net_human_seg.onnx), [silueta](https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx)
 -   [isnet](https://github.com/xuebinqin/DIS) | [isnet](https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx)
+
+### TensorRT
+
+TensorRT provides optimized inference for Nvidia GPUs. Models must be converted to TensorRT engine format for use. This offers the best performance on supported hardware.
 
 ## Troubleshooting
 

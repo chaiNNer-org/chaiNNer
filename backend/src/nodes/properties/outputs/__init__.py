@@ -14,3 +14,7 @@ try:
     from .pytorch_outputs import *
 except Exception:
     pass
+try:
+    from .tensorrt_outputs import *
+except Exception:
+    pass

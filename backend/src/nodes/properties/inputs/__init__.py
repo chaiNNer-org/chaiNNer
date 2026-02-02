@@ -16,3 +16,7 @@ try:
     from .pytorch_inputs import *
 except Exception:
     pass
+try:
+    from .tensorrt_inputs import *
+except Exception:
+    pass

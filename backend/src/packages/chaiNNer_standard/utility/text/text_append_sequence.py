@@ -8,8 +8,8 @@ from .. import text_group
 
 
 @text_group.register(
-    schema_id="chainner:utility:collect_append_text",
-    name="Collect & Append Text",
+    schema_id="chainner:utility:text_append_sequence",
+    name="Text Append (Sequence)",
     description=[
         "Collects all text items from a sequence and appends them together using a separator string.",
         "This is useful for joining text from multiple iterations into a single string.",
@@ -36,7 +36,7 @@ from .. import text_group
     ],
     see_also=["chainner:utility:text_append"],
 )
-def collect_and_append_text_node(_: None, separator: str) -> Collector[str, str]:
+def text_append_sequence_node(_: None, separator: str) -> Collector[str, str]:
     texts: list[str] = []
 
     def on_iterate(text: str):

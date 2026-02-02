@@ -8,7 +8,10 @@
 	"exclude": [
 		"**/__pycache__"
 	],
-	"ignore": [],
+	"ignore": [
+		"backend/src/nodes/impl/tensorrt",
+		"backend/src/packages/chaiNNer_tensorrt"
+	],
 	"typeCheckingMode": "basic",
 	"useLibraryCodeForTypes": true,
 	"strictListInference": true,
@@ -29,5 +32,5 @@
 	"reportUnusedClass": "warning",
 	"reportUnusedFunction": "warning",
 	"reportUnusedImport": "warning",
-	"reportUnusedVariable": "warning",
+	"reportUnusedVariable": "warning"
 }
