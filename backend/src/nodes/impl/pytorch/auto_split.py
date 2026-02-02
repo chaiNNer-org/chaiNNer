@@ -112,19 +112,20 @@ def pytorch_auto_split(
     device: torch.device,
     use_fp16: bool,
     tiler: Tiler,
-    progress: Progress,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     dtype = torch.float16 if use_fp16 else torch.float32
     if model.dtype != dtype or model.device != device:
         model = model.to(device, dtype)
 
     def upscale(img: np.ndarray, _: object):
-        progress.check_aborted()
-        if progress.paused:
-            # clear resources before pausing
-            gc.collect()
-            safe_cuda_cache_empty()
-            progress.suspend()
+        if progress is not None:
+            progress.check_aborted()
+            if progress.paused:
+                # clear resources before pausing
+                gc.collect()
+                safe_cuda_cache_empty()
+                progress.suspend()
 
         input_tensor = None
         try:

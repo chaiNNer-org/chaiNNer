@@ -209,7 +209,7 @@ def upscale_image_node(
 ) -> np.ndarray:
     settings = get_settings(context)
 
-    def upscale(i: np.ndarray) -> np.ndarray:
+    def upscale(i: np.ndarray, progress: Progress | None) -> np.ndarray:
         ic = get_h_w_c(i)[2]
         if ic == 3:
             i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
@@ -222,7 +222,7 @@ def upscale_image_node(
             model.model.layers[0].outputs[0],
             model.model.layers[-1].outputs[0],
             TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
-            progress=context,
+            progress=progress,
         )
         if ic == 3:
             i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
@@ -230,4 +230,6 @@ def upscale_image_node(
             i = cv2.cvtColor(i, cv2.COLOR_RGBA2BGRA)
         return i
 
-    return convenient_upscale(img, model.in_nc, model.out_nc, upscale, separate_alpha)
+    return convenient_upscale(
+        img, model.in_nc, model.out_nc, upscale, separate_alpha, progress=context
+    )

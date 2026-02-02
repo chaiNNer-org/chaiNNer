@@ -156,14 +156,15 @@ def upscale_image_node(
         img,
         in_nc,
         out_nc,
-        lambda i: upscale(
+        lambda i, p: upscale(
             i,
             session,
             TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
             change_shape,
             exact_size,
             model.info.size_req if use_size_req else None,
-            progress=context,
+            progress=p,
         ),
         separate_alpha,
+        progress=context,
     )

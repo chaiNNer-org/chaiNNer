@@ -36,7 +36,7 @@ def upscale(
     engine: TensorRTEngine,
     tiler: Tiler,
     gpu_index: int,
-    progress: Progress,
+    progress: Progress | None,
 ) -> np.ndarray:
     logger.debug("Upscaling image with TensorRT")
     return tensorrt_auto_split(img, engine, tiler, gpu_index=gpu_index, progress=progress)
@@ -187,12 +187,13 @@ if processing_group is not None:
             img,
             in_nc,
             out_nc,
-            lambda i: upscale(
+            lambda i, p: upscale(
                 i,
                 engine,
                 tiler,
                 gpu_index,
-                context,
+                p,
             ),
             separate_alpha,
+            progress=context,
         )
