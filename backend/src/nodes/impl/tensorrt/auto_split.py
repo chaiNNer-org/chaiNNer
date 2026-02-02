@@ -6,6 +6,8 @@ import gc
 
 import numpy as np
 
+from api import Progress
+
 from ..upscale.auto_split import Tiler, auto_split
 from .inference import get_tensorrt_session
 from .model import TensorRTEngine
@@ -59,6 +61,7 @@ def tensorrt_auto_split(
     engine: TensorRTEngine,
     tiler: Tiler,
     gpu_index: int = 0,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     """
     Run TensorRT inference with automatic tiling for large images.
@@ -113,6 +116,6 @@ def tensorrt_auto_split(
                 raise
 
     try:
-        return auto_split(img, upscale, tiler)
+        return auto_split(img, upscale, tiler, progress=progress)
     finally:
         gc.collect()
