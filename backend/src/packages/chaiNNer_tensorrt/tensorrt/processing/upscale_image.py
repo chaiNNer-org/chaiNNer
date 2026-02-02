@@ -120,9 +120,9 @@ if processing_group is not None:
                     let image = Input1;
                     let tileSize = Input2;
 
-                    // Only validate image dimensions when "No Tiling" is selected (-1)
+                    // Only validate image dimensions when "No Tiling" is selected (value == -1)
                     // Otherwise, the BoundedTileSize tiler handles constraints at runtime
-                    let noTiling = tileSize == -1;
+                    let noTiling = tileSize.value == -1;
 
                     // Check minimum size constraints
                     let minWidthOk = match engine.minWidth {
