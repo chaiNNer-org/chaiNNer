@@ -61,4 +61,4 @@ jobs:
             - name: Start backend to install dependencies
               run: python ./backend/src/run.py --close-after-start --install-builtin-packages
             - name: pyright
-              run: pyright backend/ --config ./pyrightconfig.json
+              run: pyright backend/
