@@ -1,23 +1,54 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-
 import numpy as np
 
 from api import Progress
 
 from ...utils.utils import get_h_w_c
+from ..image_op import ImageOp, clipped
 from ..image_utils import as_target_channels
 
-# An upscale operation that takes an image and optional progress, returning the upscaled image
-ProgressImageOp = Callable[[np.ndarray, Progress | None], np.ndarray]
 
+class SplitProgress:
+    """
+    A mutable progress wrapper that can be focused on different sub-ranges.
 
-def _clipped(op: ProgressImageOp) -> ProgressImageOp:
-    def inner(img: np.ndarray, progress: Progress | None) -> np.ndarray:
-        return np.clip(op(img, progress), 0, 1)
+    This allows a single ImageOp closure to use different progress ranges
+    without needing to recreate the closure. The closure references `split.current`
+    which changes when `focus()` is called.
 
-    return inner
+    Example usage:
+        split = SplitProgress(context)
+        upscale_op = lambda img: upscale(img, model, split.current)
+
+        # First operation uses 0-50% of progress
+        split.focus(0, 0.5)
+        result1 = upscale_op(img1)
+
+        # Second operation uses 50-100% of progress
+        split.focus(0.5, 0.5)
+        result2 = upscale_op(img2)
+    """
+
+    def __init__(self, progress: Progress | None):
+        self._progress = progress
+        self._current: Progress | None = progress
+
+    def focus(self, offset: float, length: float) -> None:
+        """Focus on a sub-range of the total progress."""
+        if self._progress is not None:
+            self._current = self._progress.sub_progress(offset, length)
+        else:
+            self._current = None
+
+    def reset(self) -> None:
+        """Reset to use the full progress range."""
+        self._current = self._progress
+
+    @property
+    def current(self) -> Progress | None:
+        """Get the current (possibly focused) progress."""
+        return self._current
 
 
 def with_black_and_white_backgrounds(img: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -45,10 +76,10 @@ def convenient_upscale(
     img: np.ndarray,
     model_in_nc: int,
     model_out_nc: int,
-    upscale: ProgressImageOp,
+    upscale: ImageOp,
     separate_alpha: bool = False,
     clip: bool = True,
-    progress: Progress | None = None,
+    split_progress: SplitProgress | None = None,
 ) -> np.ndarray:
     """
     Upscales the given image in an intuitive/convenient way.
@@ -60,28 +91,28 @@ def convenient_upscale(
     that of the input image in cases where `model_in_nc` == `model_out_nc`, and match
     `model_out_nc` otherwise.
 
-    When multiple upscale operations are needed (e.g., for RGBA images), progress is
-    automatically divided between them using sub-progress ranges.
+    When multiple upscale operations are needed (e.g., for RGBA images) and a `split_progress`
+    is provided, progress is automatically divided between them using sub-progress ranges.
+    The `upscale` ImageOp should reference `split_progress.current` to get the correct
+    progress for each operation.
     """
     in_img_c = get_h_w_c(img)[2]
 
     if clip:
-        upscale = _clipped(upscale)
+        upscale = clipped(upscale)
 
     if model_in_nc != model_out_nc:
-        return upscale(as_target_channels(img, model_in_nc, True), progress)
+        return upscale(as_target_channels(img, model_in_nc, True))
 
     if in_img_c == model_in_nc:
-        return upscale(img, progress)
+        return upscale(img)
 
     if in_img_c == 4:
         # Ignore alpha if single-color or not being replaced
         unique = np.unique(img[:, :, 3])
         if len(unique) == 1:
             rgb = as_target_channels(
-                upscale(as_target_channels(img[:, :, :3], model_in_nc, True), progress),
-                3,
-                True,
+                upscale(as_target_channels(img[:, :, :3], model_in_nc, True)), 3, True
             )
             unique_alpha = np.full(rgb.shape[:-1], unique[0], np.float32)
             return np.dstack((rgb, unique_alpha))
@@ -89,38 +120,30 @@ def convenient_upscale(
         if separate_alpha:
             # Upscale the RGB channels and alpha channel separately
             # Split progress: 50% for RGB, 50% for alpha
-            rgb_progress = progress.sub_progress(0, 0.5) if progress else None
-            alpha_progress = progress.sub_progress(0.5, 0.5) if progress else None
-
+            if split_progress:
+                split_progress.focus(0, 0.5)
             rgb = as_target_channels(
-                upscale(
-                    as_target_channels(img[:, :, :3], model_in_nc, True), rgb_progress
-                ),
-                3,
-                True,
+                upscale(as_target_channels(img[:, :, :3], model_in_nc, True)), 3, True
             )
+            if split_progress:
+                split_progress.focus(0.5, 0.5)
             alpha = denoise_and_flatten_alpha(
-                upscale(
-                    as_target_channels(img[:, :, 3], model_in_nc, True), alpha_progress
-                )
+                upscale(as_target_channels(img[:, :, 3], model_in_nc, True))
             )
             return np.dstack((rgb, alpha))
         else:
             # Transparency hack (white/black background difference alpha)
             # Split progress: 50% for black background, 50% for white background
-            black_progress = progress.sub_progress(0, 0.5) if progress else None
-            white_progress = progress.sub_progress(0.5, 0.5) if progress else None
-
             black, white = with_black_and_white_backgrounds(img)
+            if split_progress:
+                split_progress.focus(0, 0.5)
             black_up = as_target_channels(
-                upscale(as_target_channels(black, model_in_nc, True), black_progress),
-                3,
-                True,
+                upscale(as_target_channels(black, model_in_nc, True)), 3, True
             )
+            if split_progress:
+                split_progress.focus(0.5, 0.5)
             white_up = as_target_channels(
-                upscale(as_target_channels(white, model_in_nc, True), white_progress),
-                3,
-                True,
+                upscale(as_target_channels(white, model_in_nc, True)), 3, True
             )
 
             # Interpolate between the alpha values to get a more defined alpha
@@ -130,5 +153,5 @@ def convenient_upscale(
             return np.dstack((black_up, alpha))
 
     return as_target_channels(
-        upscale(as_target_channels(img, model_in_nc, True), progress), in_img_c, True
+        upscale(as_target_channels(img, model_in_nc, True)), in_img_c, True
     )

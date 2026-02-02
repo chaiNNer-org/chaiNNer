@@ -4,13 +4,12 @@ from enum import Enum
 
 import numpy as np
 
-from api import Progress
-
+from nodes.impl.image_op import ImageOp
 from nodes.impl.image_utils import BorderType, create_border
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.utils.utils import Padding, get_h_w_c
 
-from .convenient_upscale import ProgressImageOp, convenient_upscale
+from .convenient_upscale import SplitProgress, convenient_upscale
 
 
 @dataclass
@@ -50,14 +49,14 @@ PAD_SIZE = 16
 
 def _custom_scale_upscale(
     img: np.ndarray,
-    upscale: ProgressImageOp,
+    upscale: ImageOp,
     natural_scale: int,
     custom_scale: int,
     separate_alpha: bool,
-    progress: Progress | None = None,
+    split_progress: SplitProgress | None = None,
 ) -> np.ndarray:
     if custom_scale == natural_scale:
-        return upscale(img, progress)
+        return upscale(img)
 
     # number of iterations we need to do to reach the desired scale
     # e.g. if the model is 2x and the desired scale is 13x, we need to do 4 iterations
@@ -65,12 +64,9 @@ def _custom_scale_upscale(
     org_h, org_w, _ = get_h_w_c(img)
     for i in range(iterations):
         # Split progress evenly across iterations
-        iter_progress = (
-            progress.sub_progress(i / iterations, 1 / iterations)
-            if progress
-            else None
-        )
-        img = upscale(img, iter_progress)
+        if split_progress:
+            split_progress.focus(i / iterations, 1 / iterations)
+        img = upscale(img)
 
     # resize, if necessary
     target_size = (
@@ -91,15 +87,15 @@ def _custom_scale_upscale(
 
 def basic_upscale(
     img: np.ndarray,
-    upscale: ProgressImageOp,
+    upscale: ImageOp,
     upscale_info: UpscaleInfo,
     scale: int,
     separate_alpha: bool,
     padding: PaddingType = PaddingType.NONE,
     clip: bool = True,
-    progress: Progress | None = None,
+    split_progress: SplitProgress | None = None,
 ):
-    def inner_upscale(img: np.ndarray, progress: Progress | None) -> np.ndarray:
+    def inner_upscale(img: np.ndarray) -> np.ndarray:
         return convenient_upscale(
             img,
             upscale_info.in_nc,
@@ -107,7 +103,7 @@ def basic_upscale(
             upscale,
             separate_alpha,
             clip=clip,
-            progress=progress,
+            split_progress=split_progress,
         )
 
     if not upscale_info.supports_custom_scale and scale != upscale_info.scale:
@@ -124,7 +120,7 @@ def basic_upscale(
         natural_scale=upscale_info.scale,
         custom_scale=scale,
         separate_alpha=separate_alpha,
-        progress=progress,
+        split_progress=split_progress,
     )
 
     if padding != PaddingType.NONE:

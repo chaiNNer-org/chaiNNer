@@ -21,6 +21,7 @@ from nodes.impl.upscale.auto_split_tiles import (
     parse_tile_size_input,
 )
 from nodes.impl.upscale.basic_upscale import PaddingType, UpscaleInfo, basic_upscale
+from nodes.impl.upscale.convenient_upscale import SplitProgress
 from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import (
     BoolInput,
@@ -280,19 +281,20 @@ def upscale_image_node(
     if not use_custom_scale or not info.supports_custom_scale:
         custom_scale = model.scale
 
+    split = SplitProgress(context)
     return basic_upscale(
         img,
-        lambda i, p: upscale(
+        lambda i: upscale(
             i,
             model,
             TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
             exec_options,
-            p,
+            split.current,
         ),
         upscale_info=info,
         scale=custom_scale,
         separate_alpha=separate_alpha,
         padding=padding,
         clip=False,  # pytorch_auto_split already does clipping internally
-        progress=context,
+        split_progress=split,
     )

@@ -79,6 +79,12 @@ def tensorrt_auto_split(
     is_fp16 = engine.precision == "fp16"
 
     def upscale(img: np.ndarray, _: object):
+        if progress is not None:
+            progress.check_aborted()
+            if progress.paused:
+                gc.collect()
+                progress.suspend()
+
         try:
             # Convert to appropriate precision
             lr_img = img.astype(np.float16) if is_fp16 else img.astype(np.float32)
