@@ -5,6 +5,8 @@ from __future__ import annotations
 import types
 
 import numpy as np
+import tensorrt as trt
+from cuda.bindings import runtime as cudart
 
 from .memory import CudaMemoryManager
 from .model import TensorRTEngine
@@ -35,9 +37,6 @@ class TensorRTSession:
         """Load the engine and create execution context."""
         if self._is_loaded:
             return
-
-        import tensorrt as trt
-        from cuda.bindings import runtime as cudart
 
         cudart.cudaSetDevice(self.gpu_index)
 

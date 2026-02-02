@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Literal
 
+import tensorrt as trt
+from cuda.bindings import runtime as cudart
+
 from logger import logger
 
 from .memory import get_cuda_compute_capability, get_cuda_device_name
@@ -27,8 +30,6 @@ class TrtLogger:
     """Custom TensorRT logger that integrates with chaiNNer's logging."""
 
     def __init__(self):
-        import tensorrt as trt
-
         self.severity_map = {
             trt.ILogger.Severity.INTERNAL_ERROR: logger.error,
             trt.ILogger.Severity.ERROR: logger.error,
@@ -44,7 +45,6 @@ class TrtLogger:
 
 def get_trt_logger():
     """Get a TensorRT logger instance."""
-    import tensorrt as trt
 
     # Use a simple logger class
     class SimpleLogger(trt.ILogger):
@@ -80,8 +80,6 @@ def configure_builder_config(
     config: BuildConfig,
 ) -> Any:
     """Configure the TensorRT builder with the given settings."""
-    import tensorrt as trt
-
     builder_config = builder.create_builder_config()
 
     # Set workspace size
@@ -117,9 +115,6 @@ def build_engine_from_onnx(
     Returns:
         A TensorRTEngine instance
     """
-    import tensorrt as trt
-    from cuda.bindings import runtime as cudart
-
     # Set the CUDA device
     cudart.cudaSetDevice(gpu_index)
 
@@ -259,9 +254,6 @@ def load_engine_from_bytes(
 
     Returns the runtime and deserialized engine.
     """
-    import tensorrt as trt
-    from cuda.bindings import runtime as cudart
-
     cudart.cudaSetDevice(gpu_index)
 
     trt_logger = trt.Logger(trt.Logger.WARNING)
