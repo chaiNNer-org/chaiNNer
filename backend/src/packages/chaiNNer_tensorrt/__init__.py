@@ -15,32 +15,33 @@ install_hint = (
     "Requires an NVIDIA GPU with CUDA support."
 )
 
-# Only define the package if NVIDIA GPUs are available
-if nvidia.is_available and not is_arm_mac:
-    package = add_package(
-        __file__,
-        id="chaiNNer_tensorrt",
-        name="TensorRT",
-        description=package_description,
-        dependencies=[
-            Dependency(
-                display_name="TensorRT",
-                pypi_name="tensorrt",
-                version="10.15.1.29",
-                size_estimate=int(1.2 * GB),
-                auto_update=False,
-            ),
-            Dependency(
-                display_name="CUDA Python",
-                pypi_name="cuda-python",
-                version="13.1.1",
-                size_estimate=20 * MB,
-            ),
-        ],
-        icon="BsNvidia",
-        color="#76B900",
-    )
+# Always register the package so dependencies are installed in CI
+package = add_package(
+    __file__,
+    id="chaiNNer_tensorrt",
+    name="TensorRT",
+    description=package_description,
+    dependencies=[
+        Dependency(
+            display_name="TensorRT",
+            pypi_name="tensorrt",
+            version="10.15.1.29",
+            size_estimate=int(1.2 * GB),
+            auto_update=False,
+        ),
+        Dependency(
+            display_name="CUDA Python",
+            pypi_name="cuda-python",
+            version="13.1.1",
+            size_estimate=20 * MB,
+        ),
+    ],
+    icon="BsNvidia",
+    color="#76B900",
+)
 
+# Only add category/nodes if NVIDIA GPU is available and not on ARM Mac
+if nvidia.is_available and not is_arm_mac:
     tensorrt_category = package.add_category(
         name="TensorRT",
         description="Nodes for using NVIDIA TensorRT for optimized GPU inference.",
@@ -48,13 +49,10 @@ if nvidia.is_available and not is_arm_mac:
         color="#76B900",
         install_hint=install_hint,
     )
-
     logger.debug("Loaded package %s", package.name)
 else:
-    # Create a dummy for imports to not fail
-    package = None  # type: ignore
     tensorrt_category = None  # type: ignore
     if is_arm_mac:
-        logger.debug("TensorRT package not available on ARM Mac")
+        logger.debug("TensorRT package registered but not available on ARM Mac")
     else:
-        logger.debug("TensorRT package not available (no NVIDIA GPU detected)")
+        logger.debug("TensorRT package registered but no NVIDIA GPU detected")
