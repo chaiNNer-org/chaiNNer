@@ -26,7 +26,7 @@ jobs:
         strategy:
             matrix:
                 os: [
-                    macos-13,
+                    macos-15,
                     ubuntu-latest,
                     windows-latest
                 ]
@@ -42,11 +42,11 @@ jobs:
               with:
                 python-version: 3.12
             - name: install setuptools (macos)
-              if: matrix.os == 'macos-13'
+              if: matrix.os == 'macos-15'
               run: python3 -m pip install setuptools
             - run: npm ci
             # - name: macOS certificate
-            #   if: matrix.os == 'macos-13'
+            #   if: matrix.os == 'macos-15'
             #   env:
             #       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
             #       APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -69,7 +69,7 @@ jobs:
                 #   APPLE_SIGNING_ID: ${{ secrets.APPLE_SIGNING_ID }}
               shell: bash
               run: |
-                  if [[ "${{ matrix.os }}" != "macos-13" ]]; then
+                  if [[ "${{ matrix.os }}" != "macos-15" ]]; then
                       npm run publish -- --no-sign
                   else
                       npm run publish -- --arch=universal --no-sign
