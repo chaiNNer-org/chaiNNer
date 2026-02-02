@@ -581,15 +581,45 @@ def TileSizeDropdown(
 ) -> DropDownInput:
     options = []
     if estimate:
-        options.append({"option": "Auto (estimate)", "value": ESTIMATE})
+        options.append(
+            {
+                "option": "Auto (estimate)",
+                "value": ESTIMATE,
+                "type": f"TileSize {{ value: {int(ESTIMATE)} }}",
+            }
+        )
 
-    options.append({"option": "Maximum", "value": MAX_TILE_SIZE})
-    options.append({"option": "No Tiling", "value": NO_TILING})
+    options.append(
+        {
+            "option": "Maximum",
+            "value": MAX_TILE_SIZE,
+            "type": f"TileSize {{ value: {int(MAX_TILE_SIZE)} }}",
+        }
+    )
+    options.append(
+        {
+            "option": "No Tiling",
+            "value": NO_TILING,
+            "type": f"TileSize {{ value: {int(NO_TILING)} }}",
+        }
+    )
 
     for size in [128, 192, 256, 384, 512, 768, 1024, 1536, 2048, 3072, 4096]:
-        options.append({"option": str(size), "value": size})
+        options.append(
+            {
+                "option": str(size),
+                "value": size,
+                "type": f"TileSize {{ value: {size} }}",
+            }
+        )
 
-    options.append({"option": "Custom", "value": CUSTOM})
+    options.append(
+        {
+            "option": "Custom",
+            "value": CUSTOM,
+            "type": f"TileSize {{ value: {int(CUSTOM)} }}",
+        }
+    )
 
     return DropDownInput(
         input_type="TileSize",

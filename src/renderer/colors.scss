@@ -35,6 +35,7 @@
     --type-color-torch: #dd6b20;
     --type-color-onnx: #63b3ed;
     --type-color-ncnn: #ed64a6;
+    --type-color-tensorrt: #76b900;
 }
 
 :root[data-theme='dark'] {
@@ -373,4 +374,5 @@
     --type-color-torch: #fbae2e;
     --type-color-onnx: #ac9fdc;
     --type-color-ncnn: #ae5354;
+    --type-color-tensorrt: #90c41c;
 }
