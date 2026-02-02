@@ -27,7 +27,12 @@ from chain.chain import Chain, FunctionNode, GeneratorNode
 from chain.json import JsonNode, parse_json
 from chain.optimize import optimize
 from dependencies.store import installed_packages
-from events import EventConsumer, EventQueue, ExecutionErrorData
+from events import (
+    EventConsumer,
+    EventQueue,
+    ExecutionErrorData,
+    ThrottledProgressQueue,
+)
 
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
@@ -239,6 +244,11 @@ async def run(request: Request):
 
         logger.info("Running new executor...")
 
+        # Wrap queue with throttling for progress events
+        # This batches and deduplicates progress updates to reduce CPU overhead
+        throttled_queue = ThrottledProgressQueue(queue=ctx.queue)
+        throttled_queue.set_loop(app.loop)
+
         use_new_executor = full_data.get("useExperimentalFeatures", False)
         if use_new_executor:
             executor = NewExecutor(
@@ -247,7 +257,7 @@ async def run(request: Request):
                 send_broadcast_data=full_data["sendBroadcastData"],
                 options=ExecutionOptions.parse(full_data["options"]),
                 loop=app.loop,
-                queue=ctx.queue,
+                queue=throttled_queue,
                 pool=ctx.pool,
                 storage_dir=ctx.storage_dir,
                 parent_cache=OutputCache(static_data=ctx.cache.copy()),
@@ -259,7 +269,7 @@ async def run(request: Request):
                 send_broadcast_data=full_data["sendBroadcastData"],
                 options=ExecutionOptions.parse(full_data["options"]),
                 loop=app.loop,
-                queue=ctx.queue,
+                queue=throttled_queue,
                 pool=ctx.pool,
                 storage_dir=ctx.storage_dir,
                 parent_cache=OutputCache(static_data=ctx.cache.copy()),
@@ -270,6 +280,8 @@ async def run(request: Request):
         except Aborted:
             pass
         finally:
+            # Ensure any pending progress events are flushed
+            throttled_queue.flush()
             ctx.executor = None
             gc.collect()
 
@@ -367,9 +379,14 @@ async def run_individual(request: Request):
             chain.inputs.set(node_id, node.data.inputs[index].id, i)
 
         # only yield certain types of events
-        queue = EventConsumer.filter(
+        filtered_queue = EventConsumer.filter(
             ctx.queue, {"node-finish", "node-broadcast", "execution-error"}
         )
+
+        # Wrap with throttling (though individual runs typically don't have many
+        # progress events, this keeps the pattern consistent)
+        throttled_queue = ThrottledProgressQueue(queue=filtered_queue)
+        throttled_queue.set_loop(app.loop)
 
         execution_id = ExecutionId("individual-executor " + node_id)
 
@@ -381,7 +398,7 @@ async def run_individual(request: Request):
                 send_broadcast_data=True,
                 options=ExecutionOptions.parse(full_data["options"]),
                 loop=app.loop,
-                queue=queue,
+                queue=throttled_queue,
                 storage_dir=ctx.storage_dir,
                 pool=ctx.pool,
             )
@@ -392,7 +409,7 @@ async def run_individual(request: Request):
                 send_broadcast_data=True,
                 options=ExecutionOptions.parse(full_data["options"]),
                 loop=app.loop,
-                queue=queue,
+                queue=throttled_queue,
                 storage_dir=ctx.storage_dir,
                 pool=ctx.pool,
             )
@@ -432,6 +449,8 @@ async def run_individual(request: Request):
             except Aborted:
                 pass
             finally:
+                # Ensure any pending progress events are flushed
+                throttled_queue.flush()
                 if ctx.individual_executors.get(execution_id, None) == executor:
                     ctx.individual_executors.pop(execution_id, None)
                 gc.collect()
