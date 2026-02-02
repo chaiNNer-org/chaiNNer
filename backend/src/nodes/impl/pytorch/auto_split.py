@@ -165,4 +165,4 @@ def pytorch_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, tiler)
+    return auto_split(img, upscale, tiler, progress=progress)
