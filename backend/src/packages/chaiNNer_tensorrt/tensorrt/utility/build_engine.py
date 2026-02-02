@@ -13,7 +13,7 @@ from nodes.properties.inputs import (
     NumberInput,
     OnnxModelInput,
 )
-from nodes.properties.outputs import TensorRTEngineOutput, TextOutput
+from nodes.properties.outputs import TensorRTEngineOutput
 
 from ...settings import get_settings
 from .. import utility_group
@@ -147,7 +147,6 @@ if utility_group is not None:
         ],
         outputs=[
             TensorRTEngineOutput(),
-            TextOutput("Build Info"),
         ],
         node_context=True,
     )
@@ -165,7 +164,7 @@ if utility_group is not None:
         static_height: int,
         static_width: int,
         workspace: float,
-    ) -> tuple[TensorRTEngine, str]:
+    ) -> TensorRTEngine:
         settings = get_settings(context)
         gpu_index = settings.gpu_index
 
@@ -213,12 +212,4 @@ if utility_group is not None:
             timing_cache_path=timing_cache_path,
         )
 
-        build_info = (
-            f"Built {precision.value.upper()} engine for {engine.info.gpu_architecture}"
-        )
-        if use_dynamic:
-            build_info += (
-                f" (dynamic: {min_height}x{min_width} to {max_height}x{max_width})"
-            )
-
-        return engine, build_info
+        return engine
