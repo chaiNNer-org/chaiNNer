@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import onnxruntime as ort
 
-from api import NodeContext
+from api import NodeContext, Progress
 from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.onnx.auto_split import onnx_auto_split
@@ -38,6 +38,7 @@ def upscale(
     change_shape: bool,
     exact_size: tuple[int, int] | None,
     size_req: SizeReq | None,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     logger.debug("Upscaling image")
 
@@ -51,7 +52,12 @@ def upscale(
         tiler = ExactTileSize(exact_size)
 
     return onnx_auto_split(
-        img, session, change_shape=change_shape, tiler=tiler, size_req=size_req
+        img,
+        session,
+        change_shape=change_shape,
+        tiler=tiler,
+        size_req=size_req,
+        progress=progress,
     )
 
 
@@ -157,6 +163,7 @@ def upscale_image_node(
             change_shape,
             exact_size,
             model.info.size_req if use_size_req else None,
+            progress=context,
         ),
         separate_alpha,
     )
