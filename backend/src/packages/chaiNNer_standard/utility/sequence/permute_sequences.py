@@ -26,23 +26,31 @@ B = TypeVar("B")
     icon="MdGridOn",
     kind="transformer",
     inputs=[
-        AnyInput("Sequence A").with_id(0),
-        AnyInput("Sequence B").with_id(1),
+        AnyInput("Sequence A")
+        .with_id(0)
+        .with_docs(
+            "This sequence will be lazily evaluated and paired with items from Sequence B."
+        ),
+        AnyInput("Sequence B")
+        .with_id(1)
+        .with_docs(
+            "This sequence will be consumed to memory entirely while Sequence A is lazily evaluated.",
+            "Make sure Sequence B is less or equally as large as Sequence A to avoid high memory consumption.",
+        ),
     ],
     outputs=[
-        AnyOutput("Item A", output_type="Input0").with_id(0),
-        AnyOutput("Item B", output_type="Input1").with_id(1),
+        AnyOutput("Sequence A", output_type="Input0").with_id(0),
+        AnyOutput("Sequence B", output_type="Input1").with_id(1),
     ],
     iterator_inputs=IteratorInputInfo(inputs=[0, 1], length_type="uint"),
     iterator_outputs=IteratorOutputInfo(outputs=[0, 1], length_type="uint"),
 )
 def permute_sequences_node(
-    sequence_a: list[A],
-    sequence_b: list[B],
+    sequence_a: Iterable[A],
+    sequence_b: Iterable[B],
 ) -> Transformer[tuple[A, B], tuple[A, B]]:
-    expected_length = len(sequence_a) * len(sequence_b)
-
     def supplier() -> Iterable[tuple[A, B]]:
+        # product() buffers both sequences internally
         yield from product(sequence_a, sequence_b)
 
-    return Transformer(supplier=supplier, expected_length=expected_length)
+    return Transformer(supplier=supplier)

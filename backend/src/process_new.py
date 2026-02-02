@@ -56,6 +56,10 @@ class CollectorNotReady(Exception):
     """Raised when a collector hasn't finished yet but a downstream node wants its value."""
 
 
+class TransformerNotReady(Exception):
+    """Raised when a transformer is still accumulating inputs and can't serve output yet."""
+
+
 class NodeExecutionError(Exception):
     """
     Raised when a node fails to run.
@@ -686,6 +690,9 @@ class GeneratorRuntimeNode(RuntimeNode):
         except CollectorNotReady:
             # Bubble up to executor loop - it will drive the collector to completion
             raise
+        except TransformerNotReady:
+            # Bubble up to executor loop - it will drive the transformer to completion
+            raise
         except StopAsyncIteration:
             # Real upstream exhaustion - no more data available
             return False
@@ -1030,6 +1037,18 @@ class TransformerRuntimeNode(RuntimeNode):
         self._supplier_iter: Iterator[object] | None = None
         self._partial: Output | None = None
         self._items_produced = 0
+        # Accumulator for iterable inputs - populated gradually to respect fanout
+        self._iterable_accumulators: dict[InputId, list[object]] | None = None
+        # True while we're still accumulating inputs from upstream
+        self._accumulating = False
+        # Track how many times we've been called during current accumulation round
+        # (similar to _current_served for serving phase)
+        self._accumulation_served = 0
+
+    def is_ready(self) -> bool:
+        """Return True if the transformer is ready to serve output values."""
+        # Ready if we have a supplier iterator (done accumulating and initialized)
+        return self._supplier_iter is not None
 
     # ---------- helpers ----------
 
@@ -1075,18 +1094,19 @@ class TransformerRuntimeNode(RuntimeNode):
             # so we will re-init anyway.
         return False
 
-    async def _init_new_inner(self) -> bool:
+    async def _finalize_transformer(self) -> bool:
         """
-        Collect all upstream items into lists, pass to node function, call supplier() once.
+        Finalize the transformer using pre-accumulated iterable inputs.
 
-        This method sets up the transformer for a new iteration cycle:
-        1. Collects ALL upstream items into lists (one list per iterable input)
-        2. Passes lists to node function (not None)
+        This method is called after all upstream items have been accumulated
+        into self._iterable_accumulators. It:
+        1. Uses the pre-accumulated lists for iterable inputs
+        2. Passes lists to node function
         3. Calls supplier() once to get output iterator
 
         Returns:
             True  -> new supplier iterator created successfully
-            False -> upstream exhausted or configuration invalid, no more data
+            False -> no items were accumulated, nothing to process
         """
         iterable_input = self.node.data.single_iterable_input
         iterable_ids = list(iterable_input.inputs)
@@ -1094,20 +1114,9 @@ class TransformerRuntimeNode(RuntimeNode):
         if not iterable_ids:
             return False
 
-        # Collect ALL upstream items into lists (one list per iterable input)
-        collected_lists: dict[InputId, list[object]] = {
-            inp_id: [] for inp_id in iterable_ids
-        }
-
-        while True:
-            try:
-                items = await self.executor.runtime_inputs_for_async(
-                    self.node, only_ids=set(iterable_ids)
-                )
-                for inp_id, item in zip(iterable_ids, items, strict=False):
-                    collected_lists[inp_id].append(item)
-            except StopAsyncIteration:
-                break
+        # Use pre-accumulated lists
+        assert self._iterable_accumulators is not None
+        collected_lists = self._iterable_accumulators
 
         # If no items were collected, upstream was already exhausted
         if all(len(lst) == 0 for lst in collected_lists.values()):
@@ -1149,11 +1158,15 @@ class TransformerRuntimeNode(RuntimeNode):
         self._supplier_iter = iter(out.transformer.supplier())
         self._items_produced = 0
         self._expected_len = out.transformer.expected_length
+
+        # Clear accumulators for potential re-init
+        self._iterable_accumulators = None
+        self._accumulating = False
         return True
 
     # ---------- main logic ----------
 
-    async def _advance(self) -> Output:
+    async def _advance(self) -> Output | None:
         """
         Get one output item for this transformer.
 
@@ -1161,45 +1174,47 @@ class TransformerRuntimeNode(RuntimeNode):
         and yields output items. We simply iterate through the supplier's output.
 
         If the supplier is exhausted:
-          - if we have a truly iterative parent, re-init and continue
+          - if we have a truly iterative parent, return None to signal re-accumulation needed
           - else, finish (no more data available)
+
+        Returns:
+            Output -> successfully got a value
+            None -> supplier exhausted, need to re-accumulate (has iterative parent)
         """
-        while True:
-            if self._supplier_iter is None:
-                ok = await self._init_new_inner()
-                if not ok:
-                    # Upstream can't give us more data -> we're done
-                    self._finish()
-                    raise StopAsyncIteration
+        if self._supplier_iter is None:
+            ok = await self._finalize_transformer()
+            if not ok:
+                # Upstream can't give us more data -> we're done
+                self._finish()
+                raise StopAsyncIteration
 
-            assert self._supplier_iter is not None
+        assert self._supplier_iter is not None
 
-            try:
-                iter_start = time.monotonic()
-                values = next(self._supplier_iter)
-                self._accumulated_exec_time += time.monotonic() - iter_start
-                # Successfully got a value from supplier
-                assert self._items_produced is not None
-                self._items_produced += 1
-                break
-            except StopIteration:
-                # Supplier exhausted - clean up and check if we should re-init
-                self._transformer = None
-                self._supplier_iter = None
-                self._partial = None
-                # Don't reset _items_produced before _finish() -
-                # it needs the count for final progress
+        try:
+            iter_start = time.monotonic()
+            values = next(self._supplier_iter)
+            self._accumulated_exec_time += time.monotonic() - iter_start
+            # Successfully got a value from supplier
+            assert self._items_produced is not None
+            self._items_produced += 1
+        except StopIteration:
+            # Supplier exhausted - clean up and check if we should re-init
+            self._transformer = None
+            self._supplier_iter = None
+            self._partial = None
+            # Don't reset _items_produced before _finish() -
+            # it needs the count for final progress
 
-                # Check if we should re-init or stop
-                # Only re-init if we have a truly iterative parent that can feed us more
-                if not self._has_truly_iterative_parent():
-                    self._finish()
-                    raise StopAsyncIteration from None
+            # Check if we should re-init or stop
+            # Only re-init if we have a truly iterative parent that can feed us more
+            if not self._has_truly_iterative_parent():
+                self._finish()
+                raise StopAsyncIteration from None
 
-                # Reset items produced for next iteration cycle
-                self._items_produced = 0
-                # Loop around to try building a new supplier iterator
-                continue
+            # Reset items produced for next iteration cycle
+            self._items_produced = 0
+            # Signal that we need to start a new accumulation cycle
+            return None
 
         assert self._partial is not None
         iterable_output = self.node.data.single_iterable_output
@@ -1222,8 +1237,75 @@ class TransformerRuntimeNode(RuntimeNode):
         if self._finished:
             raise StopAsyncIteration
 
+        iterable_input = self.node.data.single_iterable_input
+        iterable_ids = list(iterable_input.inputs)
+
+        # ---------- accumulation phase ----------
+        # Accumulate upstream values one at a time, respecting fanout so that
+        # sibling consumers of our upstream node also get their share.
+        if self._accumulating or (
+            self._supplier_iter is None and self._iterable_accumulators is None
+        ):
+            # Initialize accumulators if needed
+            if self._iterable_accumulators is None:
+                self._iterable_accumulators = {inp_id: [] for inp_id in iterable_ids}
+                self._accumulating = True
+                self._accumulation_served = 0
+
+            # Only pull from upstream on the FIRST call of each fanout round.
+            # Subsequent calls (from other children) just raise TransformerNotReady
+            # without pulling, to avoid consuming multiple upstream fanout slots.
+            if self._accumulation_served == 0:
+                try:
+                    items = await self.executor.runtime_inputs_for_async(
+                        self.node, only_ids=set(iterable_ids)
+                    )
+                    for inp_id, item in zip(iterable_ids, items, strict=False):
+                        self._iterable_accumulators[inp_id].append(item)
+                    self._iter_timer.add()
+                    self._send_progress()
+                except StopAsyncIteration:
+                    # Upstream exhausted - done accumulating, ready to finalize
+                    self._accumulating = False
+                    self._accumulation_served = 0
+                    # Fall through to serving phase
+                except TransformerNotReady:
+                    # Upstream transformer is still accumulating - we couldn't pull.
+                    # Still increment served counter so other children don't try either,
+                    # then propagate the exception.
+                    self._accumulation_served += 1
+                    if self._accumulation_served >= self.fanout:
+                        self._accumulation_served = 0
+                    raise
+                else:
+                    # Successfully accumulated - track fanout and raise NotReady
+                    self._accumulation_served += 1
+                    if self._accumulation_served >= self.fanout:
+                        self._accumulation_served = 0
+                    raise TransformerNotReady
+            else:
+                # Not our turn to pull - just increment counter and raise NotReady
+                self._accumulation_served += 1
+                if self._accumulation_served >= self.fanout:
+                    self._accumulation_served = 0
+                raise TransformerNotReady
+
+        # If we reach here during accumulation, upstream was exhausted
+        if self._accumulating:
+            self._accumulating = False
+            self._accumulation_served = 0
+
+        # ---------- serving phase ----------
         if self._current_value is None:
-            self._current_value = await self._advance()
+            result = await self._advance()
+            if result is None:
+                # Supplier exhausted but has iterative parent - start new accumulation
+                self._iterable_accumulators = {inp_id: [] for inp_id in iterable_ids}
+                self._accumulating = True
+                self._accumulation_served = 0
+                # Recursively call to start accumulating
+                return await self.__anext__()
+            self._current_value = result
             self._current_served = 0
 
         out = self._current_value
@@ -1267,6 +1349,9 @@ class SideEffectLeafRuntimeNode(RuntimeNode):
             inputs = await self.executor.runtime_inputs_for_async(self.node)
         except CollectorNotReady:
             # collectors not ready yet
+            raise
+        except TransformerNotReady:
+            # transformers still accumulating
             raise
         except StopAsyncIteration:
             # real upstream exhaustion
@@ -1510,6 +1595,9 @@ class Executor:
                     out = await upstream_rt.__anext__()
                 except StopAsyncIteration:
                     raise
+                except TransformerNotReady:
+                    # Transformer is still accumulating - propagate up
+                    raise
 
                 if src_index >= len(out):
                     raise StopAsyncIteration
@@ -1682,6 +1770,10 @@ class Executor:
                     # Upstream collector not done yet - skip for now,
                     # try again next iteration
                     pass
+                except TransformerNotReady:
+                    # Upstream transformer is still accumulating inputs -
+                    # this counts as progress since the transformer advanced
+                    any_progress = True
                 except StopAsyncIteration:
                     # This root is exhausted - it will naturally
                     # stop being called

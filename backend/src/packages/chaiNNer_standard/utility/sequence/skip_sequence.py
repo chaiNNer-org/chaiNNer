@@ -13,23 +13,21 @@ T = TypeVar("T")
 
 
 @sequence_group.register(
-    schema_id="chainner:utility:limit_sequence",
-    name="Limit Sequence",
+    schema_id="chainner:utility:skip_sequence",
+    name="Skip Sequence",
     description=[
-        "Limits a sequence to the specified number of items.",
-        "The output sequence will contain at most the specified number "
-        "of items from the input sequence.",
-        "If the input sequence has fewer items than the limit, all items "
-        "will be passed through unchanged.",
+        "Skips the first N items in a sequence.",
+        "The output sequence will contain all items after the first N items.",
+        "If the input sequence has fewer than N items, the output will be empty.",
     ],
-    icon="MdFilterList",
+    icon="MdSkipNext",
     kind="transformer",
     inputs=[
         AnyInput("Sequence").with_id(0),
         NumberInput(
-            "Limit",
+            "Skip",
             min=0,
-            default=10,
+            default=1,
             precision=0,
         ).with_id(1),
     ],
@@ -37,18 +35,17 @@ T = TypeVar("T")
         AnyOutput("Sequence", output_type="Input0").with_id(0),
     ],
     iterator_inputs=IteratorInputInfo(inputs=[0], length_type="uint"),
-    iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="Input1"),
+    iterator_outputs=IteratorOutputInfo(outputs=[0], length_type="uint"),
 )
-def limit_sequence_node(
+def skip_sequence_node(
     sequence: Iterable[T],
-    limit: int,
+    skip: int,
 ) -> Transformer[T, T]:
-    limit = max(limit, 0)
+    skip = max(skip, 0)
 
     def supplier() -> Iterable[T]:
         for i, item in enumerate(sequence):
-            if i >= limit:
-                break
-            yield item
+            if i >= skip:
+                yield item
 
     return Transformer(supplier=supplier)
