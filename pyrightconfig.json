@@ -8,13 +8,17 @@
 	"exclude": [
 		"**/__pycache__"
 	],
-	"ignore": [],
+	"ignore": [
+		"backend/src/nodes/impl/tensorrt",
+		"backend/src/packages/chaiNNer_tensorrt"
+	],
 	"typeCheckingMode": "basic",
 	"useLibraryCodeForTypes": true,
 	"strictListInference": true,
 	"strictDictionaryInference": true,
 	"strictSetInference": true,
 	"reportDuplicateImport": "warning",
+	"reportImportCycles": "error",
 	"reportIncompatibleVariableOverride": "error",
 	"reportIncompatibleMethodOverride": "error",
 	"reportOverlappingOverload": "error",
@@ -28,26 +32,5 @@
 	"reportUnusedClass": "warning",
 	"reportUnusedFunction": "warning",
 	"reportUnusedImport": "warning",
-	"reportUnusedVariable": "warning",
-	"enableTypeIgnoreComments": true,
-	"executionEnvironments": [
-		{
-			"root": "backend/src/nodes/impl/tensorrt",
-			"extraPaths": ["backend/src"],
-			"reportMissingImports": "none",
-			"reportImportCycles": "none",
-			"reportGeneralTypeIssues": "none",
-			"reportOptionalMemberAccess": "none",
-			"reportAttributeAccessIssue": "none"
-		},
-		{
-			"root": "backend/src/packages/chaiNNer_tensorrt",
-			"extraPaths": ["backend/src"],
-			"reportMissingImports": "none",
-			"reportImportCycles": "none",
-			"reportGeneralTypeIssues": "none",
-			"reportOptionalMemberAccess": "none",
-			"reportAttributeAccessIssue": "none"
-		}
-	]
+	"reportUnusedVariable": "warning"
 }
