@@ -4,7 +4,11 @@ from pathlib import Path
 
 from logger import logger
 from nodes.impl.tensorrt.model import TensorRTEngine
-from nodes.properties.inputs import DirectoryInput, RelativePathInput, TensorRTEngineInput
+from nodes.properties.inputs import (
+    DirectoryInput,
+    RelativePathInput,
+    TensorRTEngineInput,
+)
 
 from .. import io_group
 

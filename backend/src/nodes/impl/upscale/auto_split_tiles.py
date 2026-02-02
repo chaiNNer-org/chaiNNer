@@ -6,7 +6,7 @@ import numpy as np
 from logger import logger
 
 from ...utils.utils import get_h_w_c
-from .tiler import BoundedTileSize, MaxTileSize, NoTiling, Tiler
+from .tiler import MaxTileSize, NoTiling, Tiler
 
 GB_AMT = 1024**3
 

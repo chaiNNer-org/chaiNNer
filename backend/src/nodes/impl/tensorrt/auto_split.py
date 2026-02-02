@@ -102,7 +102,7 @@ def tensorrt_auto_split(
             # Check for CUDA OOM errors
             if (
                 "out of memory" in error_str
-                or "cuda" in error_str and "memory" in error_str
+                or ("cuda" in error_str and "memory" in error_str)
                 or "allocation" in error_str
             ):
                 raise RuntimeError(  # noqa: B904

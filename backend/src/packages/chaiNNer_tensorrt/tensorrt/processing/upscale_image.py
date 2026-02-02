@@ -41,7 +41,9 @@ def upscale(
     return tensorrt_auto_split(img, engine, tiler, gpu_index=gpu_index)
 
 
-def create_tiler_for_engine(engine: TensorRTEngine, tile_size: TileSize, custom_tile_size: int) -> Tiler:
+def create_tiler_for_engine(
+    engine: TensorRTEngine, tile_size: TileSize, custom_tile_size: int
+) -> Tiler:
     """
     Create an appropriate tiler based on the engine's constraints and tile size setting.
     """

@@ -92,7 +92,9 @@ class BoundedTileSize(Tiler):
         self.max_w, self.max_h = max_size if max_size else (2**31, 2**31)
 
         # Automatically clamp tile size to be within bounds
-        self.tile_size = max(self.min_w, self.min_h, min(tile_size, self.max_w, self.max_h))
+        self.tile_size = max(
+            self.min_w, self.min_h, min(tile_size, self.max_w, self.max_h)
+        )
 
     def allow_smaller_tile_size(self) -> bool:
         # Use exact tile sizes to ensure the engine gets properly sized inputs
