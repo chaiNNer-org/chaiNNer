@@ -435,7 +435,7 @@ class _ExecutorNodeContext(NodeContext):
         progress: ProgressToken,
         settings: SettingsParser,
         storage_dir: Path,
-        send_progress: Callable[[str, float], None] | None = None,
+        send_progress: Callable[[NodeId, float], None] | None = None,
     ) -> None:
         super().__init__()
         self.progress = progress
@@ -444,9 +444,9 @@ class _ExecutorNodeContext(NodeContext):
         self.chain_cleanup_fns: set[Callable[[], None]] = set()
         self.node_cleanup_fns: set[Callable[[], None]] = set()
         self._send_progress_fn = send_progress
-        self._current_node_id: str | None = None
+        self._current_node_id: NodeId | None = None
 
-    def bind_node(self, node_id: str) -> None:
+    def bind_node(self, node_id: NodeId) -> None:
         """Bind this context to a specific node for progress reporting."""
         self._current_node_id = node_id
 
