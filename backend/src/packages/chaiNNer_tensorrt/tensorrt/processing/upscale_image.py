@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from api import NodeContext
+from api import NodeContext, Progress
 from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.tensorrt.auto_split import tensorrt_auto_split
@@ -36,9 +36,12 @@ def upscale(
     engine: TensorRTEngine,
     tiler: Tiler,
     gpu_index: int,
+    progress: Progress | None,
 ) -> np.ndarray:
     logger.debug("Upscaling image with TensorRT")
-    return tensorrt_auto_split(img, engine, tiler, gpu_index=gpu_index)
+    return tensorrt_auto_split(
+        img, engine, tiler, gpu_index=gpu_index, progress=progress
+    )
 
 
 def create_tiler_for_engine(
@@ -186,11 +189,7 @@ if processing_group is not None:
             img,
             in_nc,
             out_nc,
-            lambda i: upscale(
-                i,
-                engine,
-                tiler,
-                gpu_index,
-            ),
+            lambda i, p: upscale(i, engine, tiler, gpu_index, p),
             separate_alpha,
+            progress=context,
         )

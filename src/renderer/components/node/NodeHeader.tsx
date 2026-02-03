@@ -38,11 +38,17 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
     const etaDate = new Date();
     etaDate.setSeconds(etaDate.getSeconds() + eta);
 
+    // Custom progress (from context.set_progress()) has total === 0
+    const isCustomProgress = total === 0;
+
     let etaText;
     if (paused) {
         etaText = 'Paused';
     } else if (progress >= 1) {
         etaText = 'Finished';
+    } else if (isCustomProgress) {
+        // No ETA available for custom progress
+        etaText = null;
     } else {
         etaText = (
             <>
@@ -72,15 +78,18 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
                         fontSize="sm"
                         fontWeight="medium"
                     >
-                        {index}/{total} ({(progress * 100).toFixed(0)}
-                        %)
+                        {isCustomProgress
+                            ? `${(progress * 100).toFixed(0)}%`
+                            : `${index}/${total} (${(progress * 100).toFixed(0)}%)`}
                     </Text>
-                    <Text
-                        fontSize="sm"
-                        fontWeight="medium"
-                    >
-                        {etaText}
-                    </Text>
+                    {etaText && (
+                        <Text
+                            fontSize="sm"
+                            fontWeight="medium"
+                        >
+                            {etaText}
+                        </Text>
+                    )}
                 </HStack>
             </Center>
             <Box

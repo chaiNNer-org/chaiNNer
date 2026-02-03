@@ -43,7 +43,7 @@ def upscale(
     model: ImageModelDescriptor,
     tile_size: TileSize,
     options: PyTorchSettings,
-    progress: Progress,
+    progress: Progress | None,
 ):
     with torch.no_grad():
         # Borrowed from iNNfer
@@ -282,16 +282,17 @@ def upscale_image_node(
 
     return basic_upscale(
         img,
-        lambda i: upscale(
+        lambda i, p: upscale(
             i,
             model,
             TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
             exec_options,
-            context,
+            p,
         ),
         upscale_info=info,
         scale=custom_scale,
         separate_alpha=separate_alpha,
         padding=padding,
         clip=False,  # pytorch_auto_split already does clipping internally
+        progress=context,
     )

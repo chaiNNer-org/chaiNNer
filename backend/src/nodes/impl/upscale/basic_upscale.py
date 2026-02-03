@@ -4,12 +4,12 @@ from enum import Enum
 
 import numpy as np
 
-from nodes.impl.image_op import ImageOp
+from api import Progress
 from nodes.impl.image_utils import BorderType, create_border
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.utils.utils import Padding, get_h_w_c
 
-from .convenient_upscale import convenient_upscale
+from .convenient_upscale import ProgressImageOp, convenient_upscale
 
 
 @dataclass
@@ -49,20 +49,25 @@ PAD_SIZE = 16
 
 def _custom_scale_upscale(
     img: np.ndarray,
-    upscale: ImageOp,
+    upscale: ProgressImageOp,
     natural_scale: int,
     custom_scale: int,
     separate_alpha: bool,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     if custom_scale == natural_scale:
-        return upscale(img)
+        return upscale(img, progress)
 
     # number of iterations we need to do to reach the desired scale
     # e.g. if the model is 2x and the desired scale is 13x, we need to do 4 iterations
     iterations = max(1, math.ceil(math.log(custom_scale, natural_scale)))
     org_h, org_w, _ = get_h_w_c(img)
-    for _ in range(iterations):
-        img = upscale(img)
+    for i in range(iterations):
+        # Split progress evenly across iterations
+        iter_progress = (
+            progress.sub_progress(i / iterations, 1 / iterations) if progress else None
+        )
+        img = upscale(img, iter_progress)
 
     # resize, if necessary
     target_size = (
@@ -83,14 +88,15 @@ def _custom_scale_upscale(
 
 def basic_upscale(
     img: np.ndarray,
-    upscale: ImageOp,
+    upscale: ProgressImageOp,
     upscale_info: UpscaleInfo,
     scale: int,
     separate_alpha: bool,
     padding: PaddingType = PaddingType.NONE,
     clip: bool = True,
+    progress: Progress | None = None,
 ):
-    def inner_upscale(img: np.ndarray) -> np.ndarray:
+    def inner_upscale(img: np.ndarray, p: Progress | None) -> np.ndarray:
         return convenient_upscale(
             img,
             upscale_info.in_nc,
@@ -98,6 +104,7 @@ def basic_upscale(
             upscale,
             separate_alpha,
             clip=clip,
+            progress=p,
         )
 
     if not upscale_info.supports_custom_scale and scale != upscale_info.scale:
@@ -114,6 +121,7 @@ def basic_upscale(
         natural_scale=upscale_info.scale,
         custom_scale=scale,
         separate_alpha=separate_alpha,
+        progress=progress,
     )
 
     if padding != PaddingType.NONE:

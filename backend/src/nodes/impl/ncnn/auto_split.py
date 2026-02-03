@@ -12,6 +12,8 @@ except ImportError:
     from ncnn import ncnn  # type: ignore
 
     use_gpu = False
+
+from api import Progress
 from logger import logger
 
 from ...utils.utils import get_h_w_c
@@ -27,6 +29,7 @@ def ncnn_auto_split(
     blob_vkallocator,  # noqa: ANN001
     staging_vkallocator,  # noqa: ANN001
     tiler: Tiler,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     def upscale(img: np.ndarray, _: object):
         ex = net.create_extractor()
@@ -91,4 +94,4 @@ def ncnn_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, tiler)
+    return auto_split(img, upscale, tiler, progress=progress)

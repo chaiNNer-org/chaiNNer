@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from api import Progress
 from logger import logger
 
 from ...utils.utils import Padding, Region, Size, get_h_w_c
@@ -132,12 +133,15 @@ def _exact_split_without_padding(
     exact_size: Size,
     upscale: Callable[[np.ndarray, Region], np.ndarray],
     overlap: int,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     h, w, _ = get_h_w_c(img)
     exact_w, exact_h = exact_size
     assert w >= exact_w and h >= exact_h
 
     if (w, h) == exact_size:
+        if progress is not None:
+            progress.set_progress(1.0)
         return upscale(img, Region(0, 0, w, h))
 
     # To allocate the result image, we need to know the upscale factor first,
@@ -147,6 +151,9 @@ def _exact_split_without_padding(
     out_channels: int = 0
 
     regions = _exact_split_into_regions(w, h, exact_w, exact_h, overlap)
+    total_tiles = sum(len(row) for row in regions)
+    tiles_processed = 0
+
     for row in regions:
         row_result: TileBlender | None = None
         row_overlap: TileOverlap | None = None
@@ -183,6 +190,11 @@ def _exact_split_without_padding(
                 upscale_result, TileOverlap(pad.left * scale, pad.right * scale)
             )
 
+            # Report progress after each tile
+            tiles_processed += 1
+            if progress is not None:
+                progress.set_progress(tiles_processed / total_tiles)
+
         assert row_result is not None
         assert row_overlap is not None
         if result is None:
@@ -207,6 +219,7 @@ def exact_split(
     exact_size: Size,
     upscale: Callable[[np.ndarray, Region], np.ndarray],
     overlap: int = 16,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     """
     Splits the image into tiles with exactly the given tile size.
@@ -218,7 +231,7 @@ def exact_split(
     img, base_padding = _pad_image(img, exact_size)
     h, w, _ = get_h_w_c(img)
 
-    result = _exact_split_without_padding(img, exact_size, upscale, overlap)
+    result = _exact_split_without_padding(img, exact_size, upscale, overlap, progress)
     scale = get_h_w_c(result)[0] // h
 
     if base_padding.empty:
