@@ -5,7 +5,6 @@ from enum import Enum
 import numpy as np
 
 from api import Progress
-
 from nodes.impl.image_utils import BorderType, create_border
 from nodes.impl.resize import ResizeFilter, resize
 from nodes.utils.utils import Padding, get_h_w_c
@@ -66,9 +65,7 @@ def _custom_scale_upscale(
     for i in range(iterations):
         # Split progress evenly across iterations
         iter_progress = (
-            progress.sub_progress(i / iterations, 1 / iterations)
-            if progress
-            else None
+            progress.sub_progress(i / iterations, 1 / iterations) if progress else None
         )
         img = upscale(img, iter_progress)
 
