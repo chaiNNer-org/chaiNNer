@@ -15,7 +15,7 @@ from nodes.impl.upscale.auto_split_tiles import (
     TileSize,
     parse_tile_size_input,
 )
-from nodes.impl.upscale.convenient_upscale import SplitProgress, convenient_upscale
+from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import ExactTileSize
 from nodes.properties.inputs import (
     BoolInput,
@@ -152,20 +152,19 @@ def upscale_image_node(
         and model.info.scale_height is not None
     )
 
-    split = SplitProgress(context)
     return convenient_upscale(
         img,
         in_nc,
         out_nc,
-        lambda i: upscale(
+        lambda i, p: upscale(
             i,
             session,
             TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
             change_shape,
             exact_size,
             model.info.size_req if use_size_req else None,
-            progress=split.current,
+            progress=p,
         ),
         separate_alpha,
-        split_progress=split,
+        progress=context,
     )

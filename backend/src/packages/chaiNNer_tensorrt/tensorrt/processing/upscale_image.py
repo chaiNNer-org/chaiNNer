@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from api import NodeContext
+from api import NodeContext, Progress
 from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.tensorrt.auto_split import tensorrt_auto_split
@@ -15,7 +15,7 @@ from nodes.impl.upscale.auto_split_tiles import (
     TILE_SIZE_256,
     TileSize,
 )
-from nodes.impl.upscale.convenient_upscale import SplitProgress, convenient_upscale
+from nodes.impl.upscale.convenient_upscale import convenient_upscale
 from nodes.impl.upscale.tiler import BoundedTileSize, NoTiling, Tiler
 from nodes.properties.inputs import (
     BoolInput,
@@ -36,11 +36,11 @@ def upscale(
     engine: TensorRTEngine,
     tiler: Tiler,
     gpu_index: int,
-    split_progress: SplitProgress,
+    progress: Progress | None,
 ) -> np.ndarray:
     logger.debug("Upscaling image with TensorRT")
     return tensorrt_auto_split(
-        img, engine, tiler, gpu_index=gpu_index, progress=split_progress.current
+        img, engine, tiler, gpu_index=gpu_index, progress=progress
     )
 
 
@@ -185,12 +185,11 @@ if processing_group is not None:
         # Create the appropriate tiler based on engine constraints and tile size setting
         tiler = create_tiler_for_engine(engine, tile_size, custom_tile_size)
 
-        split = SplitProgress(context)
         return convenient_upscale(
             img,
             in_nc,
             out_nc,
-            lambda i: upscale(i, engine, tiler, gpu_index, split),
+            lambda i, p: upscale(i, engine, tiler, gpu_index, p),
             separate_alpha,
-            split_progress=split,
+            progress=context,
         )
