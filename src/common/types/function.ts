@@ -600,9 +600,9 @@ export class FunctionInstance {
 
     static fromPartialInputs(
         definition: FunctionDefinition,
-        partialInputs: (inputId: InputId) =>
-            | { type: NonNeverType; sequence: NonNeverType | undefined }
-            | undefined,
+        partialInputs: (
+            inputId: InputId
+        ) => { type: NonNeverType; sequence: NonNeverType | undefined } | undefined,
         outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP,
         sequenceOutputNarrowing: ReadonlyMap<IterOutputId, Type> = EMPTY_MAP,
         passthrough?: PassthroughInfo
@@ -660,7 +660,11 @@ export class FunctionInstance {
                     const converted = definition.convertInput(id, assigned.type);
                     const newType = assign(converted, type).assignedType;
                     if (newType.type === 'never') {
-                        inputErrors.push({ inputId: id, inputType: type, assignedType: assigned.type });
+                        inputErrors.push({
+                            inputId: id,
+                            inputType: type,
+                            assignedType: assigned.type,
+                        });
                     }
                     type = newType;
 
@@ -676,9 +680,15 @@ export class FunctionInstance {
                                 incomingSequencesByIterInput.set(iterInputId, sequences);
                             }
                             sequences.push({ inputId: id, sequence: assigned.sequence });
-                        } else if (definition.schema.kind === 'regularNode' && item.input.hasHandle) {
+                        } else if (
+                            definition.schema.kind === 'regularNode' &&
+                            item.input.hasHandle
+                        ) {
                             // For regular nodes, collect all incoming sequences
-                            incomingSequencesForRegularNode.push({ inputId: id, sequence: assigned.sequence });
+                            incomingSequencesForRegularNode.push({
+                                inputId: id,
+                                sequence: assigned.sequence,
+                            });
                             inputLengths.set(id, assigned.sequence);
                         }
                     }
@@ -703,13 +713,16 @@ export class FunctionInstance {
                     // First, check if all incoming sequences are compatible with each other
                     let combinedIncoming: NonNeverType = incomingSequencesData[0].sequence;
                     let incomingSequencesCompatible = true;
-                    for (let i = 1; i < incomingSequencesData.length; i++) {
-                        const newCombined: Type = intersect(combinedIncoming, incomingSequencesData[i].sequence);
+                    for (let i = 1; i < incomingSequencesData.length; i += 1) {
+                        const newCombined: Type = intersect(
+                            combinedIncoming,
+                            incomingSequencesData[i].sequence
+                        );
                         if (newCombined.type === 'never') {
                             // Incoming sequences are incompatible with each other
                             // Report errors comparing them to the first sequence
                             incomingSequencesCompatible = false;
-                            for (let j = 1; j < incomingSequencesData.length; j++) {
+                            for (let j = 1; j < incomingSequencesData.length; j += 1) {
                                 sequenceErrors.push({
                                     inputId: incomingSequencesData[j].inputId,
                                     sequenceType: incomingSequencesData[0].sequence,
@@ -753,17 +766,23 @@ export class FunctionInstance {
 
         // For regular nodes, compute the common sequence type by intersecting all incoming sequences
         let regularNodeSequenceType: NonNeverType | undefined;
-        if (definition.schema.kind === 'regularNode' && incomingSequencesForRegularNode.length > 0) {
+        if (
+            definition.schema.kind === 'regularNode' &&
+            incomingSequencesForRegularNode.length > 0
+        ) {
             // Intersect all incoming sequence types
             // This ensures all sequences have compatible lengths
             let combinedSequence: NonNeverType = incomingSequencesForRegularNode[0].sequence;
             let hasSequenceError = false;
-            for (let i = 1; i < incomingSequencesForRegularNode.length; i++) {
-                const newCombined: Type = intersect(combinedSequence, incomingSequencesForRegularNode[i].sequence);
+            for (let i = 1; i < incomingSequencesForRegularNode.length; i += 1) {
+                const newCombined: Type = intersect(
+                    combinedSequence,
+                    incomingSequencesForRegularNode[i].sequence
+                );
                 if (newCombined.type === 'never') {
                     // Incompatible sequence lengths - generate errors for all inputs with sequences
                     // The first input's sequence is the "expected" type, others are incompatible
-                    for (let j = 1; j < incomingSequencesForRegularNode.length; j++) {
+                    for (let j = 1; j < incomingSequencesForRegularNode.length; j += 1) {
                         sequenceErrors.push({
                             inputId: incomingSequencesForRegularNode[j].inputId,
                             sequenceType: incomingSequencesForRegularNode[0].sequence,
