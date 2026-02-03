@@ -91,14 +91,24 @@ export class TypeState {
         const functions = new Map<string, FunctionInstance>();
         const evaluationErrors = new Map<string, EvaluationError>();
 
-        const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
+        interface SourceTypeInfo {
+            type: NonNeverType;
+            sequence: NonNeverType | undefined;
+        }
+        const getSourceType = (id: string, inputId: InputId): SourceTypeInfo | undefined => {
             const edge = edges.get(id, inputId);
             if (edge) {
                 const sourceNode = nodesMap.get(edge.source);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
-                    return functionInstance?.outputs.get(edge.outputId);
+                    const type = functionInstance?.outputs.get(edge.outputId);
+                    if (type) {
+                        return {
+                            type,
+                            sequence: functionInstance?.outputSequence.get(edge.outputId),
+                        };
+                    }
                 }
             }
             return undefined;
@@ -121,7 +131,7 @@ export class TypeState {
             try {
                 instance = FunctionInstance.fromPartialInputs(
                     definition,
-                    (id): NonNeverType | undefined => {
+                    (id) => {
                         const edgeSource = getSourceType(n.id, id);
                         if (edgeSource) {
                             return edgeSource;
@@ -132,12 +142,12 @@ export class TypeState {
                         if (inputValue !== undefined) {
                             const foo = definition.inputDataAdapters.get(id)?.(inputValue);
                             if (foo !== undefined) {
-                                return foo;
+                                return { type: foo, sequence: undefined };
                             }
                         }
 
                         if (inputValue === undefined && definition.inputNullable.has(id)) {
-                            return nullType;
+                            return { type: nullType, sequence: undefined };
                         }
 
                         return undefined;

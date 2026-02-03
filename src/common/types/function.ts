@@ -590,7 +590,9 @@ export class FunctionInstance {
 
     static fromPartialInputs(
         definition: FunctionDefinition,
-        partialInputs: (inputId: InputId) => NonNeverType | undefined,
+        partialInputs: (inputId: InputId) =>
+            | { type: NonNeverType; sequence: NonNeverType | undefined }
+            | undefined,
         outputNarrowing: ReadonlyMap<OutputId, Type> = EMPTY_MAP,
         sequenceOutputNarrowing: ReadonlyMap<IterOutputId, Type> = EMPTY_MAP,
         passthrough?: PassthroughInfo
@@ -608,6 +610,10 @@ export class FunctionInstance {
         }
         const scope = scopeBuilder.createScope();
 
+        // Track incoming sequence types for regular nodes
+        // We'll intersect all of them to get the common sequence type
+        const incomingSequences: NonNeverType[] = [];
+
         // evaluate inputs
         const inputs = new Map<InputId, NonNeverType>();
         const inputLengths = new Map<InputId, NonNeverType>();
@@ -621,14 +627,25 @@ export class FunctionInstance {
 
             if (type.type !== 'never' && item.type === 'Input') {
                 const { id } = item.input;
-                const assignedType = partialInputs(id);
-                if (assignedType) {
-                    const converted = definition.convertInput(id, assignedType);
+                const assigned = partialInputs(id);
+                if (assigned) {
+                    const converted = definition.convertInput(id, assigned.type);
                     const newType = assign(converted, type).assignedType;
                     if (newType.type === 'never') {
-                        inputErrors.push({ inputId: id, inputType: type, assignedType });
+                        inputErrors.push({ inputId: id, inputType: type, assignedType: assigned.type });
                     }
                     type = newType;
+
+                    // For regular nodes, collect incoming sequence types
+                    // These will be intersected to determine the output sequence type
+                    if (
+                        definition.schema.kind === 'regularNode' &&
+                        assigned.sequence &&
+                        item.input.hasHandle
+                    ) {
+                        incomingSequences.push(assigned.sequence);
+                        inputLengths.set(id, assigned.sequence);
+                    }
                 }
             }
 
@@ -647,6 +664,25 @@ export class FunctionInstance {
                 }
             }
             scope.assignParameter(item.param, type);
+        }
+
+        // For regular nodes, compute the common sequence type by intersecting all incoming sequences
+        let regularNodeSequenceType: NonNeverType | undefined;
+        if (definition.schema.kind === 'regularNode' && incomingSequences.length > 0) {
+            // Intersect all incoming sequence types
+            // This ensures all sequences have compatible lengths
+            let combinedSequence: Type = incomingSequences[0];
+            for (let i = 1; i < incomingSequences.length; i++) {
+                combinedSequence = intersect(combinedSequence, incomingSequences[i]);
+                if (combinedSequence.type === 'never') {
+                    // Incompatible sequence lengths - this is an error condition
+                    // but we don't have a way to report sequence errors yet
+                    break;
+                }
+            }
+            if (combinedSequence.type !== 'never') {
+                regularNodeSequenceType = combinedSequence;
+            }
         }
 
         // evaluate outputs
@@ -708,6 +744,11 @@ export class FunctionInstance {
                 if (item.type === 'Output') {
                     outputs.set(item.output.id, type);
                     scope.assignParameter(getOutputParamName(item.output.id), type);
+
+                    // For regular nodes, propagate the intersected sequence type to all outputs
+                    if (regularNodeSequenceType) {
+                        outputLengths.set(item.output.id, regularNodeSequenceType);
+                    }
                 } else {
                     for (const id of item.iterOutput.outputs) {
                         outputLengths.set(id, type);
