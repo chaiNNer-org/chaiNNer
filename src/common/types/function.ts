@@ -700,29 +700,45 @@ export class FunctionInstance {
                 let finalSequenceType: NonNeverType = type;
 
                 if (incomingSequencesData && incomingSequencesData.length > 0) {
-                    // Intersect all incoming sequence types together
-                    let combinedIncoming: Type = incomingSequencesData[0].sequence;
+                    // First, check if all incoming sequences are compatible with each other
+                    let combinedIncoming: NonNeverType = incomingSequencesData[0].sequence;
+                    let incomingSequencesCompatible = true;
                     for (let i = 1; i < incomingSequencesData.length; i++) {
-                        combinedIncoming = intersect(combinedIncoming, incomingSequencesData[i].sequence);
+                        const newCombined: Type = intersect(combinedIncoming, incomingSequencesData[i].sequence);
+                        if (newCombined.type === 'never') {
+                            // Incoming sequences are incompatible with each other
+                            // Report errors comparing them to the first sequence
+                            incomingSequencesCompatible = false;
+                            for (let j = 1; j < incomingSequencesData.length; j++) {
+                                sequenceErrors.push({
+                                    inputId: incomingSequencesData[j].inputId,
+                                    sequenceType: incomingSequencesData[0].sequence,
+                                    assignedSequenceType: incomingSequencesData[j].sequence,
+                                });
+                            }
+                            break;
+                        }
+                        combinedIncoming = newCombined;
                     }
 
-                    // Now intersect with the declared sequence type (assignability check)
-                    // This checks that the incoming sequences are compatible with what the node expects
-                    const narrowedType = intersect(combinedIncoming, type);
+                    if (incomingSequencesCompatible) {
+                        // Now intersect with the declared sequence type (assignability check)
+                        // This checks that the incoming sequences are compatible with what the node expects
+                        const narrowedType = intersect(combinedIncoming, type);
 
-                    if (narrowedType.type === 'never') {
-                        // Incompatible sequences - the incoming sequences don't match the expected type
-                        // Generate sequence assignment errors for all inputs in this iterator group
-                        for (const data of incomingSequencesData) {
-                            sequenceErrors.push({
-                                inputId: data.inputId,
-                                sequenceType: type,
-                                assignedSequenceType: data.sequence,
-                            });
+                        if (narrowedType.type === 'never') {
+                            // Incoming sequences don't match the declared type
+                            for (const data of incomingSequencesData) {
+                                sequenceErrors.push({
+                                    inputId: data.inputId,
+                                    sequenceType: type,
+                                    assignedSequenceType: data.sequence,
+                                });
+                            }
+                            finalSequenceType = type;
+                        } else {
+                            finalSequenceType = narrowedType;
                         }
-                        finalSequenceType = type;
-                    } else {
-                        finalSequenceType = narrowedType;
                     }
                 }
 
