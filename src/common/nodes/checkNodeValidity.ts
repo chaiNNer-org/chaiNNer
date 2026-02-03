@@ -1,3 +1,4 @@
+import { NonNeverType, isStructInstance } from '@chainner/navi';
 import { Input, InputData, InputId, NodeSchema } from '../common-types';
 import { FunctionInstance } from '../types/function';
 import { generateAssignmentErrorTrace, printErrorTrace, simpleError } from '../types/mismatch';
@@ -10,6 +11,34 @@ import { ChainLineage, Lineage } from './lineage';
 
 const formatMissingInputs = (missingInputs: Input[]) => {
     return `Missing required input data: ${missingInputs.map((input) => input.label).join(', ')}`;
+};
+
+/**
+ * Extracts a human-readable representation of a sequence's length from its type.
+ * Returns undefined if the type is not a Sequence or length cannot be determined.
+ */
+const formatSequenceLength = (sequenceType: NonNeverType): string | undefined => {
+    if (!isStructInstance(sequenceType) || sequenceType.descriptor.name !== 'Sequence') {
+        return undefined;
+    }
+    const lengthType = sequenceType.getField('length');
+    if (!lengthType) {
+        return undefined;
+    }
+    // Format the length type - for literals it will be a number, for intervals it will be a range
+    if (lengthType.underlying === 'number') {
+        if (lengthType.type === 'literal') {
+            return String(lengthType.value);
+        }
+        if (lengthType.type === 'int-interval') {
+            if (lengthType.min === lengthType.max) {
+                return String(lengthType.min);
+            }
+            return `${lengthType.min}..${lengthType.max}`;
+        }
+    }
+    // For unions or other complex types, just return a generic description
+    return lengthType.toString();
 };
 
 export interface CheckNodeValidityOptions {
@@ -105,6 +134,48 @@ export const checkNodeValidity = ({
             const trace = printErrorTrace(traceTree);
             return invalid(
                 `Input ${input.label} was connected with an incompatible value. ${trace.join(' ')}`
+            );
+        }
+
+        // Sequence type check
+        for (const {
+            inputId,
+            sequenceType,
+            assignedSequenceType,
+        } of functionInstance.sequenceErrors) {
+            const input = schema.inputs.find((i) => i.id === inputId)!;
+
+            const error = simpleError(assignedSequenceType, sequenceType);
+            if (error) {
+                return invalid(
+                    `Input ${input.label} requires sequence ${error.definition} but was connected with sequence ${error.assigned}.`
+                );
+            }
+        }
+
+        if (functionInstance.sequenceErrors.length > 0) {
+            const { inputId, sequenceType, assignedSequenceType } =
+                functionInstance.sequenceErrors[0];
+            const input = schema.inputs.find((i) => i.id === inputId)!;
+            const traceTree = generateAssignmentErrorTrace(assignedSequenceType, sequenceType);
+            if (traceTree) {
+                const trace = printErrorTrace(traceTree);
+                return invalid(
+                    `Input ${input.label} was connected with an incompatible sequence. ${trace.join(
+                        ' '
+                    )}`
+                );
+            }
+            // Try to provide a more helpful error message with the actual lengths
+            const expectedLength = formatSequenceLength(sequenceType);
+            const actualLength = formatSequenceLength(assignedSequenceType);
+            if (expectedLength && actualLength) {
+                return invalid(
+                    `Input ${input.label} was connected with an incompatible sequence length. Expected length ${expectedLength} but got length ${actualLength}.`
+                );
+            }
+            return invalid(
+                `Input ${input.label} was connected with an incompatible sequence length.`
             );
         }
 
