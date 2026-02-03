@@ -6,6 +6,7 @@ import {
     FunctionDefinition,
     FunctionInputAssignmentError,
     FunctionInstance,
+    FunctionSequenceAssignmentError,
 } from '../types/function';
 import { nullType } from '../types/util';
 import { EMPTY_MAP } from '../util';
@@ -20,6 +21,16 @@ const assignmentErrorEquals = (
         a.inputId === b.inputId &&
         isSameType(a.assignedType, b.assignedType) &&
         isSameType(a.inputType, b.inputType)
+    );
+};
+const sequenceErrorEquals = (
+    a: FunctionSequenceAssignmentError,
+    b: FunctionSequenceAssignmentError
+): boolean => {
+    return (
+        a.inputId === b.inputId &&
+        isSameType(a.assignedSequenceType, b.assignedSequenceType) &&
+        isSameType(a.sequenceType, b.sequenceType)
     );
 };
 const mapEqual = <K, V extends NonNullable<unknown>>(
@@ -54,6 +65,7 @@ const instanceEqual = (a: FunctionInstance, b: FunctionInstance): boolean => {
     if (!mapEqual(a.outputSequence, b.outputSequence, isSameType)) return false;
 
     if (!arrayEqual(a.inputErrors, b.inputErrors, assignmentErrorEquals)) return false;
+    if (!arrayEqual(a.sequenceErrors, b.sequenceErrors, sequenceErrorEquals)) return false;
 
     return true;
 };

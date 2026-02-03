@@ -108,6 +108,33 @@ export const checkNodeValidity = ({
             );
         }
 
+        // Sequence type check
+        for (const { inputId, sequenceType, assignedSequenceType } of functionInstance.sequenceErrors) {
+            const input = schema.inputs.find((i) => i.id === inputId)!;
+
+            const error = simpleError(assignedSequenceType, sequenceType);
+            if (error) {
+                return invalid(
+                    `Input ${input.label} requires sequence ${error.definition} but was connected with sequence ${error.assigned}.`
+                );
+            }
+        }
+
+        if (functionInstance.sequenceErrors.length > 0) {
+            const { inputId, sequenceType, assignedSequenceType } = functionInstance.sequenceErrors[0];
+            const input = schema.inputs.find((i) => i.id === inputId)!;
+            const traceTree = generateAssignmentErrorTrace(assignedSequenceType, sequenceType);
+            if (traceTree) {
+                const trace = printErrorTrace(traceTree);
+                return invalid(
+                    `Input ${input.label} was connected with an incompatible sequence. ${trace.join(' ')}`
+                );
+            }
+            return invalid(
+                `Input ${input.label} was connected with an incompatible sequence length.`
+            );
+        }
+
         // eslint-disable-next-line no-unreachable-loop
         for (const { message } of functionInstance.outputErrors) {
             return invalid(`Some inputs are incompatible with each other. ${message ?? ''}`);
