@@ -22,7 +22,7 @@ const formatSequenceLength = (sequenceType: NonNeverType): string | undefined =>
         return undefined;
     }
     const lengthType = sequenceType.getField('length');
-    if (!lengthType || lengthType.type === 'never') {
+    if (!lengthType) {
         return undefined;
     }
     // Format the length type - for literals it will be a number, for intervals it will be a range
