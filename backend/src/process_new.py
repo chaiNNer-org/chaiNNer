@@ -1902,7 +1902,7 @@ class Executor:
             }
         )
 
-    def _send_custom_progress(self, node_id: str, progress: float) -> None:
+    def _send_custom_progress(self, node_id: NodeId, progress: float) -> None:
         """Send custom progress event from context.set_progress() call."""
         self.queue.put(
             {
