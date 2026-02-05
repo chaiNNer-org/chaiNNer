@@ -40,7 +40,10 @@ package = add_package(
     color="#76B900",
 )
 
-# Only add category/nodes if NVIDIA GPU is available and not on ARM Mac
+if not nvidia.is_available:
+    package.disabled = True
+    package.disabled_reason = "TensorRT requires an NVIDIA GPU with CUDA support"
+
 if nvidia.is_available and not is_arm_mac:
     tensorrt_category = package.add_category(
         name="TensorRT",
@@ -52,7 +55,3 @@ if nvidia.is_available and not is_arm_mac:
     logger.debug("Loaded package %s", package.name)
 else:
     tensorrt_category = None  # type: ignore
-    if is_arm_mac:
-        logger.debug("TensorRT package registered but not available on ARM Mac")
-    else:
-        logger.debug("TensorRT package registered but no NVIDIA GPU detected")

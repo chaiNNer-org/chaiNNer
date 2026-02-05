@@ -336,6 +336,8 @@ class Package:
     categories: list[Category] = field(default_factory=list)
     features: list[Feature] = field(default_factory=list)
     settings: list[Setting] = field(default_factory=list)
+    disabled: bool = False
+    disabled_reason: str | None = None
 
     def add_category(
         self,
@@ -386,6 +388,8 @@ class Package:
             "dependencies": [d.to_dict() for d in self.dependencies],
             "features": [f.to_dict() for f in self.features],
             "settings": [asdict(x) for x in self.settings],
+            "disabled": self.disabled,
+            "disabledReason": self.disabled_reason,
         }
 
     @staticmethod
