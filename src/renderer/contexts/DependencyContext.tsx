@@ -250,11 +250,7 @@ const PackageView = memo(
                                             hyphens: 'auto',
                                             whiteSpace: 'pre-line',
                                         }}
-                                        label={
-                                            isDisabled && p.disabledReason
-                                                ? `${p.description}\n\n⚠️ ${p.disabledReason}`
-                                                : p.description
-                                        }
+                                        label={p.description}
                                         openDelay={200}
                                         px={2}
                                         py={1}
