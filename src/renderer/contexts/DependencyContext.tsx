@@ -986,14 +986,16 @@ export const DependencyProvider = memo(({ children }: React.PropsWithChildren<un
 
     const availableUpdates = useMemo((): number => {
         if (!installedPyPi) return 0;
-        return packages.filter(({ dependencies }) =>
-            dependencies.some(({ version, pypiName }) => {
-                const installed = installedPyPi[pypiName];
-                if (!installed) {
-                    return true;
-                }
-                return versionGt(version, installed);
-            })
+        return packages.filter(
+            ({ dependencies, disabled }) =>
+                !disabled &&
+                dependencies.some(({ version, pypiName }) => {
+                    const installed = installedPyPi[pypiName];
+                    if (!installed) {
+                        return true;
+                    }
+                    return versionGt(version, installed);
+                })
         ).length;
     }, [packages, installedPyPi]);
 
