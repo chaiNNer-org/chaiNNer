@@ -431,7 +431,11 @@ class _ExecutorNodeContext(NodeContext):
     """
 
     def __init__(
-        self, progress: ProgressToken, settings: SettingsParser, storage_dir: Path
+        self,
+        progress: ProgressToken,
+        settings: SettingsParser,
+        storage_dir: Path,
+        send_progress: Callable[[NodeId, float], None] | None = None,
     ) -> None:
         super().__init__()
         self.progress = progress
@@ -439,6 +443,12 @@ class _ExecutorNodeContext(NodeContext):
         self._storage_dir = storage_dir
         self.chain_cleanup_fns: set[Callable[[], None]] = set()
         self.node_cleanup_fns: set[Callable[[], None]] = set()
+        self._send_progress_fn = send_progress
+        self._current_node_id: NodeId | None = None
+
+    def bind_node(self, node_id: NodeId) -> None:
+        """Bind this context to a specific node for progress reporting."""
+        self._current_node_id = node_id
 
     @property
     def aborted(self) -> bool:
@@ -454,10 +464,9 @@ class _ExecutorNodeContext(NodeContext):
         return self.progress.paused
 
     def set_progress(self, progress: float) -> None:
-        # we emit progress via executor events instead
         self.check_aborted()
-
-        # TODO: send progress event
+        if self._send_progress_fn is not None and self._current_node_id is not None:
+            self._send_progress_fn(self._current_node_id, progress)
 
     @property
     def settings(self) -> SettingsParser:
@@ -1665,8 +1674,14 @@ class Executor:
         if ctx is None:
             pkg = registry.get_package(node.schema_id)
             settings = self.options.get_package_settings(pkg.id)
-            ctx = _ExecutorNodeContext(self.progress, settings, self._storage_dir)
+            ctx = _ExecutorNodeContext(
+                self.progress,
+                settings,
+                self._storage_dir,
+                send_progress=self._send_custom_progress,
+            )
             self.__context_cache[node.schema_id] = ctx
+        ctx.bind_node(node.id)
         return ctx
 
     # ------------------------------------------------------------------
@@ -1882,6 +1897,21 @@ class Executor:
                     "progress": 1,
                     "index": index,
                     "total": total,
+                    "eta": 0,
+                },
+            }
+        )
+
+    def _send_custom_progress(self, node_id: NodeId, progress: float) -> None:
+        """Send custom progress event from context.set_progress() call."""
+        self.queue.put(
+            {
+                "event": "node-progress",
+                "data": {
+                    "nodeId": node_id,
+                    "progress": max(0.0, min(1.0, progress)),
+                    "index": 0,
+                    "total": 0,
                     "eta": 0,
                 },
             }

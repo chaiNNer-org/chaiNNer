@@ -14,7 +14,7 @@ except ImportError:
 
     use_gpu = False
 
-from api import NodeContext
+from api import NodeContext, Progress
 from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.ncnn.auto_split import ncnn_auto_split
@@ -76,6 +76,7 @@ def upscale_impl(
     input_name: str,
     output_name: str,
     tile_size: TileSize,
+    progress: Progress | None = None,
 ):
     net = get_ncnn_net(model, settings=settings)
     # Try/except block to catch errors
@@ -126,6 +127,7 @@ def upscale_impl(
                     blob_vkallocator=blob_vkallocator,
                     staging_vkallocator=staging_vkallocator,
                     tiler=parse_tile_size_input(tile_size, estimate),
+                    progress=progress,
                 )
         else:
             return ncnn_auto_split(
@@ -136,6 +138,7 @@ def upscale_impl(
                 blob_vkallocator=None,
                 staging_vkallocator=None,
                 tiler=parse_tile_size_input(tile_size, estimate),
+                progress=progress,
             )
     except (RuntimeError, ValueError):
         raise
@@ -206,7 +209,7 @@ def upscale_image_node(
 ) -> np.ndarray:
     settings = get_settings(context)
 
-    def upscale(i: np.ndarray) -> np.ndarray:
+    def upscale(i: np.ndarray, p: Progress | None) -> np.ndarray:
         ic = get_h_w_c(i)[2]
         if ic == 3:
             i = cv2.cvtColor(i, cv2.COLOR_BGR2RGB)
@@ -219,6 +222,7 @@ def upscale_image_node(
             model.model.layers[0].outputs[0],
             model.model.layers[-1].outputs[0],
             TileSize(custom_tile_size) if tile_size == CUSTOM else tile_size,
+            progress=p,
         )
         if ic == 3:
             i = cv2.cvtColor(i, cv2.COLOR_RGB2BGR)
@@ -226,4 +230,6 @@ def upscale_image_node(
             i = cv2.cvtColor(i, cv2.COLOR_RGBA2BGRA)
         return i
 
-    return convenient_upscale(img, model.in_nc, model.out_nc, upscale, separate_alpha)
+    return convenient_upscale(
+        img, model.in_nc, model.out_nc, upscale, separate_alpha, progress=context
+    )

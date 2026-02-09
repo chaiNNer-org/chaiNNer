@@ -6,6 +6,7 @@ from collections.abc import Callable
 import numpy as np
 import onnxruntime as ort
 
+from api import Progress
 from nodes.impl.onnx.model import SizeReq
 
 from ..upscale.auto_split import Tiler, auto_split
@@ -101,6 +102,7 @@ def onnx_auto_split(
     change_shape: bool,
     tiler: Tiler,
     size_req: SizeReq | None = None,
+    progress: Progress | None = None,
 ) -> np.ndarray:
     input_name = session.get_inputs()[0].name
     output_name = session.get_outputs()[0].name
@@ -134,6 +136,6 @@ def onnx_auto_split(
                 raise
 
     try:
-        return auto_split(img, upscale, tiler)
+        return auto_split(img, upscale, tiler, progress=progress)
     finally:
         gc.collect()
