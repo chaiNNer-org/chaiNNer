@@ -119,7 +119,7 @@
     "@fontsource/open-sans": "^4.5.10",
     "@octokit/rest": "^19.0.13",
     "@react-nano/use-event-source": "^0.12.0",
-    "axios": "^1.12.0",
+    "axios": "^1.13.5",
     "bezier-js": "^6.1.4",
     "chakra-ui-markdown-renderer": "^4.1.0",
     "chokidar": "^3.5.3",
