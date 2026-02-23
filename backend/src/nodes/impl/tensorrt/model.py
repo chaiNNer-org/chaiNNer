@@ -10,7 +10,7 @@ from typing import Literal
 class TensorRTEngineInfo:
     """Metadata about a TensorRT engine."""
 
-    precision: Literal["fp32", "fp16", "int8"]
+    precision: Literal["fp32", "fp16", "bf16", "int8"]
     input_channels: int
     output_channels: int
     scale: int | None
@@ -36,7 +36,7 @@ class TensorRTEngine:
         self.info: TensorRTEngineInfo = info
 
     @property
-    def precision(self) -> Literal["fp32", "fp16", "int8"]:
+    def precision(self) -> Literal["fp32", "fp16", "bf16", "int8"]:
         return self.info.precision
 
     @property

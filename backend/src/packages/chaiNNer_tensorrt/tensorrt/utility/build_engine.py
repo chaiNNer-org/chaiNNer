@@ -22,11 +22,13 @@ from .. import utility_group
 class Precision(Enum):
     FP32 = "fp32"
     FP16 = "fp16"
+    BF16 = "bf16"
 
 
 PRECISION_LABELS = {
     Precision.FP32: "FP32 (Higher Precision)",
     Precision.FP16: "FP16 (Faster)",
+    Precision.BF16: "BF16 (Balanced)",
 }
 
 
@@ -62,6 +64,7 @@ if utility_group is not None:
                 option_labels=PRECISION_LABELS,
             ).with_docs(
                 "FP16: lower precision but faster and uses less memory, especially on RTX GPUs. FP16 also does not work with certain models.",
+                "BF16: same exponent range as FP32 with reduced mantissa. Better numerical stability than FP16 while still being faster than FP32. Good for models that produce NaN/artifacts with FP16.",
                 "FP32: higher precision but slower. Use especially if FP16 fails.",
             ),
             EnumInput(

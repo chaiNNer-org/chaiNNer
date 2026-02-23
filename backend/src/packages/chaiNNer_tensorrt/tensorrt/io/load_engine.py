@@ -99,11 +99,13 @@ if io_group is not None:
         has_dynamic = any(d == -1 for d in input_shape)
 
         # Detect precision from the engine
-        precision = (
-            "fp16"
-            if engine.get_tensor_dtype(input_name) == trt.DataType.HALF
-            else "fp32"
-        )
+        input_dtype = engine.get_tensor_dtype(input_name)
+        if input_dtype == trt.DataType.HALF:
+            precision = "fp16"
+        elif input_dtype == trt.DataType.BF16:
+            precision = "bf16"
+        else:
+            precision = "fp32"
 
         tensor_profile_name = input_name
         min_shape, opt_shape, max_shape = engine.get_tensor_profile_shape(

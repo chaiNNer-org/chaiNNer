@@ -105,7 +105,7 @@ struct TensorRTEngine {
     maxWidth: int(1..) | null,
 }
 
-enum TrtPrecision { fp32, fp16 }
+enum TrtPrecision { fp32, fp16, bf16 }
 enum TrtShapeMode { fixed, dynamic }
 
 def pytorchToOnnx(model: PyTorchModel): OnnxModel {
