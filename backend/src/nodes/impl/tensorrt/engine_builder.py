@@ -178,9 +178,7 @@ def build_engine_from_onnx(
             builder_config.set_flag(trt.BuilderFlag.BF16)
             logger.info("BF16 mode enabled")
         else:
-            logger.warning(
-                "BF16 not supported by this TensorRT version, using FP32"
-            )
+            logger.warning("BF16 not supported by this TensorRT version, using FP32")
 
     # Configure dynamic shapes if needed
     has_dynamic = any(d == -1 for d in input_shape)
