@@ -18,7 +18,7 @@ from .model import TensorRTEngine, TensorRTEngineInfo
 class BuildConfig:
     """Configuration for TensorRT engine building."""
 
-    precision: Literal["fp32", "fp16"]
+    precision: Literal["fp32", "fp16", "bf16"]
     workspace_size_gb: float
     min_shape: tuple[int, int]  # (height, width)
     opt_shape: tuple[int, int]  # (height, width)
@@ -93,6 +93,14 @@ def configure_builder_config(
             logger.info("FP16 mode enabled")
         else:
             logger.warning("FP16 not supported on this platform, falling back to FP32")
+    elif config.precision == "bf16":
+        if hasattr(trt.BuilderFlag, "BF16"):
+            builder_config.set_flag(trt.BuilderFlag.BF16)
+            logger.info("BF16 mode enabled")
+        else:
+            logger.warning(
+                "BF16 not supported by this TensorRT version, falling back to FP32"
+            )
 
     return builder_config
 
@@ -165,6 +173,12 @@ def build_engine_from_onnx(
             logger.info("FP16 mode enabled")
         else:
             logger.warning("FP16 not supported on this platform, using FP32")
+    elif config.precision == "bf16":
+        if hasattr(trt.BuilderFlag, "BF16"):
+            builder_config.set_flag(trt.BuilderFlag.BF16)
+            logger.info("BF16 mode enabled")
+        else:
+            logger.warning("BF16 not supported by this TensorRT version, using FP32")
 
     # Configure dynamic shapes if needed
     has_dynamic = any(d == -1 for d in input_shape)
@@ -231,13 +245,13 @@ def build_engine_from_onnx(
         gpu_architecture=gpu_arch,
         tensorrt_version=trt.__version__,
         has_dynamic_shapes=has_dynamic or config.use_dynamic_shapes,
-        min_shape=(config.min_shape[1], config.min_shape[0])
+        min_shape=(1, input_channels, config.min_shape[0], config.min_shape[1])
         if config.use_dynamic_shapes
         else None,
-        opt_shape=(config.opt_shape[1], config.opt_shape[0])
+        opt_shape=(1, input_channels, config.opt_shape[0], config.opt_shape[1])
         if config.use_dynamic_shapes
         else None,
-        max_shape=(config.max_shape[1], config.max_shape[0])
+        max_shape=(1, input_channels, config.max_shape[0], config.max_shape[1])
         if config.use_dynamic_shapes
         else None,
     )

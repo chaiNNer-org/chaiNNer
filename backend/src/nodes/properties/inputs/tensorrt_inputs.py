@@ -33,6 +33,11 @@ def TensorRTPrecisionDropdown() -> DropDownInput:
                 "value": "fp16",
                 "type": "TrtPrecision::fp16",
             },
+            {
+                "option": "BF16",
+                "value": "bf16",
+                "type": "TrtPrecision::bf16",
+            },
         ],
     )
 
