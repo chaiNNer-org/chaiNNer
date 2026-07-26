@@ -5,12 +5,17 @@ from math import ceil
 import cv2
 import numpy as np
 
+from nodes.impl.image_utils import create_border
 from nodes.impl.resize import ResizeFilter, resize
-from nodes.properties.inputs import ImageInput, NumberInput
+from nodes.impl.upscale.basic_upscale import PaddingType
+from nodes.properties.inputs import ImageInput, NumberInput, PaddingTypeInput
 from nodes.properties.outputs import ImageOutput
-from nodes.utils.utils import get_h_w_c
+from nodes.utils.utils import Padding, get_h_w_c
 
 from .. import correction_group
+
+
+PAD_SIZE = 16
 
 
 @correction_group.register(
@@ -32,11 +37,12 @@ from .. import correction_group
             default=12.5,
             unit="%",
         ),
+        PaddingTypeInput().with_id(3),
     ],
     outputs=[ImageOutput(shape_as=0)],
 )
 def average_color_fix_node(
-    input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float
+    input_img: np.ndarray, ref_img: np.ndarray, scale_factor: float, padding: PaddingType = PaddingType.NONE
 ) -> np.ndarray:
     if scale_factor != 100.0:
         # Make sure reference image dims are not resized to 0
@@ -47,6 +53,17 @@ def average_color_fix_node(
         )
 
         ref_img = resize(ref_img, out_dims, filter=ResizeFilter.BOX)
+
+    orig_h, orig_w, _ = get_h_w_c(input_img)
+    ref_h, ref_w, ref_c = get_h_w_c(ref_img)
+
+    input_pad_w = 0
+    input_pad_h_val = 0
+    if padding != PaddingType.NONE:
+        ref_img = create_border(ref_img, padding.to_border_type(), Padding.all(PAD_SIZE))
+        input_pad_w = ceil(PAD_SIZE * orig_w / ref_w)
+        input_pad_h_val = ceil(PAD_SIZE * orig_h / ref_h)
+        input_img = create_border(input_img, padding.to_border_type(), Padding(input_pad_h_val, input_pad_w, input_pad_h_val, input_pad_w))
 
     input_h, input_w, input_c = get_h_w_c(input_img)
     ref_h, ref_w, ref_c = get_h_w_c(ref_img)
@@ -122,5 +139,8 @@ def average_color_fix_node(
     # add alpha back in
     if alpha is not None:
         result = np.concatenate([result, alpha], axis=2)
+
+    if padding != PaddingType.NONE:
+        result = result[input_pad_h_val:-input_pad_h_val, input_pad_w:-input_pad_w]
 
     return result
