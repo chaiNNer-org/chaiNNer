@@ -1,7 +1,7 @@
 // Windows-only (un)install hooks
 
 import check from 'electron-squirrel-startup';
-import { appendFileSync, existsSync, rmdirSync } from 'fs';
+import { appendFileSync, existsSync, rmSync } from 'fs';
 import path from 'path';
 import { LEVEL_NAME, log } from '../common/log';
 import { getLogsFolder, getRootDir } from './platform';
@@ -49,7 +49,7 @@ const onUninstall = () => {
         log.info(`Deleting folder: ${p}`);
         try {
             if (existsSync(p)) {
-                rmdirSync(p, { recursive: true });
+                rmSync(p, { recursive: true, force: true });
             }
         } catch (error) {
             log.error(`Error deleting folder: ${String(error)}`);
