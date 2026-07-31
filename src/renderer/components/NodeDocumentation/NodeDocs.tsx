@@ -104,13 +104,13 @@ interface OutputItemProps extends InputOutputItemProps {
 }
 
 const InputOutputItem = memo(
-    ({ type, kind, item, condition, schema }: InputItemProps | OutputItemProps) => {
+    ({ type: declaredType, kind, item, condition, schema }: InputItemProps | OutputItemProps) => {
         const { t } = useTranslation();
         const isOptional = 'optional' in item && item.optional;
-        if (isOptional) {
-            // eslint-disable-next-line no-param-reassign
-            type = withoutNull(type);
-        }
+        // NOTE: don't assign to a destructured parameter here. TypeScript drops the `kind` ->
+        // `item` discriminated-union narrowing for the whole component if any of the destructured
+        // bindings is reassigned, which makes `item.id` widen to `InputId | OutputId`.
+        const type = isOptional ? withoutNull(declaredType) : declaredType;
 
         const isIterated =
             kind === 'input'
