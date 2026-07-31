@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
+import { IpcRendererEvent, contextBridge, ipcRenderer, webUtils } from 'electron';
 import type { Version } from '../common/common-types';
 
 // Pre-load constants from the main process
@@ -15,6 +15,13 @@ contextBridge.exposeInMainWorld('appConstants', {
     isMac,
     isArmMac,
     appDataPath,
+});
+
+// Electron 32 removed the non-standard `File.path` property. `webUtils.getPathForFile` is the
+// replacement, and it can only be called from a context that can reach the `electron` module, so
+// it has to be bridged into the renderer.
+contextBridge.exposeInMainWorld('electronFileUtils', {
+    getPathForFile: (file: File): string => webUtils.getPathForFile(file),
 });
 
 contextBridge.exposeInMainWorld('unsafeIpcRenderer', {
@@ -38,9 +45,8 @@ contextBridge.exposeInMainWorld('unsafeIpcRenderer', {
     send: (channel: string, ...args: any[]): void => ipcRenderer.send(channel, ...args),
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     sendSync: (channel: string, ...args: any[]): any => ipcRenderer.sendSync(channel, ...args),
-    sendTo: (webContentsId: number, channel: string, ...args: any[]): void =>
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        ipcRenderer.sendTo(webContentsId, channel, ...args),
+    // NOTE: `sendTo` (renderer -> renderer) was removed in Electron 28. Route such messages
+    // through the main process instead.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     sendToHost: (channel: string, ...args: any[]): void => ipcRenderer.sendToHost(channel, ...args),
 });

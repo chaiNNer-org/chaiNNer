@@ -28,15 +28,24 @@ export interface DataTransferProcessorOptions {
     changeEdges: SetState<Edge<EdgeData>[]>;
 }
 
+/**
+ * Returns the absolute path of a dropped/selected file.
+ *
+ * Electron 32 removed the non-standard `File.path` property, so this goes through
+ * `webUtils.getPathForFile`, which the preload script bridges into the renderer.
+ */
+export const getFilePath = (file: File): string => window.electronFileUtils.getPathForFile(file);
+
 export const getSingleFileWithExtension = (
     dataTransfer: DataTransfer,
     allowedExtensions: readonly string[]
 ): string | undefined => {
     if (dataTransfer.files.length === 1) {
         const [file] = dataTransfer.files;
-        const extension = extname(file.path).toLowerCase();
+        const path = getFilePath(file);
+        const extension = extname(path).toLowerCase();
         if (allowedExtensions.includes(extension)) {
-            return file.path;
+            return path;
         }
     }
     return undefined;
@@ -111,16 +120,16 @@ const chainnerPresetProcessor: DataTransferProcessor = (
 const openChainnerFileProcessor: DataTransferProcessor = (dataTransfer) => {
     if (dataTransfer.files.length === 1) {
         const [file] = dataTransfer.files;
-        if (/\.chn/i.test(file.path)) {
+        const path = getFilePath(file);
+        if (/\.chn/i.test(path)) {
             // found a .chn file
 
-            ipcRenderer
-                .invoke('open-save-file', file.path)
-                .then((result) => {
-                    // TODO: 1 is hard-coded. Find a better way
-                    ipcRenderer.sendTo(1, 'file-open', result);
-                })
-                .catch(log.error);
+            // The main process opens the file and pushes the result back over `file-open`, the
+            // same way it handles files opened via the OS or the menu. This used to invoke
+            // `open-save-file` here and then re-broadcast the result to this very window with
+            // `ipcRenderer.sendTo(1, ...)`, but renderer-to-renderer messaging was removed in
+            // Electron 28.
+            ipcRenderer.invoke('open-dropped-save-file', path).catch(log.error);
 
             return true;
         }

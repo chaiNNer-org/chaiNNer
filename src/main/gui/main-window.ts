@@ -176,6 +176,13 @@ const registerEventHandlerPreSetup = (
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
     ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));
+    ipcMain.handle('open-dropped-save-file', async (event, p) => {
+        // Renderer-to-renderer messaging was removed in Electron 28, so the renderer asks the main
+        // process to open the file and the result is pushed back over `file-open`, matching how
+        // files opened via the OS or the menu are delivered.
+        const result = await openSaveFile(p);
+        mainWindow.webContents.send('file-open', result);
+    });
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none
     ipcMain.on('set-progress-bar', (event, progress) => {

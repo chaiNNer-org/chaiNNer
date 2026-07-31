@@ -26,7 +26,7 @@ import {
 import { GlobalContext, GlobalVolatileContext } from '../../contexts/GlobalNodeState';
 import { getCategoryAccentColor, getTypeAccentColors } from '../../helpers/accentColors';
 
-import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
+import { getFilePath, getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { NodeState, useNodeStateFromData } from '../../helpers/nodeState';
 import { NO_DISABLED, UseDisabled, useDisabled } from '../../hooks/useDisabled';
 import { useNodeMenu } from '../../hooks/useNodeMenu';
@@ -243,7 +243,7 @@ const NodeInner = memo(({ data, selected }: NodeProps) => {
                     description: `Only one file is accepted by ${fileInput.label}.`,
                 });
             } else {
-                const ext = path.extname(event.dataTransfer.files[0].path);
+                const ext = path.extname(getFilePath(event.dataTransfer.files[0]));
                 sendToast({
                     status: 'error',
                     description: `${fileInput.label} does not accept ${ext} files.`,

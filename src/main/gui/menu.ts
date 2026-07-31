@@ -506,6 +506,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
 
     if (isMac) {
         const dockMenu = Menu.buildFromTemplate(dockMenuTemplate);
-        app.dock.setMenu(dockMenu);
+        // `app.dock` only exists on macOS and is typed as optional as of Electron 32.
+        app.dock?.setMenu(dockMenu);
     }
 };

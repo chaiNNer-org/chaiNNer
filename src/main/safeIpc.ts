@@ -47,11 +47,6 @@ interface WebContentsWithSafeIcp extends WebContents {
     postMessage(channel: keyof SendChannels, message: unknown, transfer?: MessagePortMain[]): void;
     send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
     sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): ChannelReturn<C>;
-    sendTo<C extends keyof SendChannels>(
-        webContentsId: number,
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): void;
     sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
 }
 
