@@ -161,5 +161,18 @@
   },
   "optionalDependencies": {
     "appdmg": "^0.6.6"
+  },
+  "_overridesComment": [
+    "tar and tmp are pinned to patched versions across the whole tree. Both are only reachable",
+    "from the Electron Forge build toolchain (@electron/rebuild, @electron/node-gyp and the",
+    "Forge CLI prompts) and neither is shipped in the packaged app.",
+    "brace-expansion is deliberately NOT overridden: the only patched release is 5.x, whose",
+    "export shape changed from a bare function to { expand }, which breaks every minimatch",
+    "older than 10.8. Clearing that advisory requires upgrading ESLint to 9 and migrating to",
+    "flat config."
+  ],
+  "overrides": {
+    "tar": "^7.5.22",
+    "tmp": "^0.2.7"
   }
 }
