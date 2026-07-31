@@ -1,8 +1,11 @@
-import decompress from 'decompress';
+import { createReadStream } from 'fs';
 import fs from 'fs/promises';
 import Downloader from 'nodejs-file-downloader';
 import path from 'path';
 import semver from 'semver';
+import { Transform } from 'stream';
+import { pipeline } from 'stream/promises';
+import * as tar from 'tar';
 import { PythonInfo } from '../../common/common-types';
 import { log } from '../../common/log';
 import { isArmMac } from '../env';
@@ -41,20 +44,25 @@ const extractPython = async (
     tarPath: string,
     onProgress: (percent: number) => void
 ) => {
-    const files = await decompress(tarPath);
-    const totalFiles = files.length;
-    let doneCounter = 0;
+    await fs.mkdir(directory, { recursive: true });
 
-    await Promise.all(
-        files.map(async (file) => {
-            const filePath = path.join(directory, file.path);
-            await fs.mkdir(path.dirname(filePath), { recursive: true });
-            await fs.writeFile(filePath, file.data);
-            const percentageComplete = (doneCounter / totalFiles) * 100;
-            doneCounter += 1;
-            onProgress(percentageComplete);
-        })
-    );
+    // Progress is tracked by how much of the (compressed) archive has been consumed, since the
+    // number of entries in the archive isn't known until it has been fully read.
+    const { size: totalBytes } = await fs.stat(tarPath);
+    let readBytes = 0;
+    const trackProgress = new Transform({
+        transform: (chunk: Buffer, _encoding, callback) => {
+            readBytes += chunk.length;
+            onProgress(totalBytes > 0 ? Math.min(100, (readBytes / totalBytes) * 100) : 0);
+            callback(null, chunk);
+        },
+    });
+
+    // `tar` refuses to extract entries with absolute paths or `..` segments, so the archive cannot
+    // write outside of `directory`.
+    await pipeline(createReadStream(tarPath), trackProgress, tar.extract({ cwd: directory }));
+
+    onProgress(100);
 };
 
 export const getIntegratedPythonExecutable = (directory: string): string => {
