@@ -89,6 +89,7 @@ def scale_array(
 def mean_std_transfer(
     img: np.ndarray,
     ref_img: np.ndarray,
+    init_img: np.ndarray,
     colorspace: TransferColorSpace,
     overflow_method: OverflowMethod,
     valid_indices: np.ndarray,
@@ -118,12 +119,14 @@ def mean_std_transfer(
         c_clip_min, c_clip_max = (-127, 127)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         ref_img = cv2.cvtColor(ref_img, cv2.COLOR_BGR2LAB)
+        init_img = cv2.cvtColor(init_img, cv2.COLOR_BGR2LAB)
     elif colorspace == TransferColorSpace.RGB:
         a_clip_min, a_clip_max = (0, 1)
         b_clip_min, b_clip_max = (0, 1)
         c_clip_min, c_clip_max = (0, 1)
         img = img[:, :, :3]
         ref_img = ref_img[:, :, :3]
+        init_img = init_img[:, :, :3]
     else:
         raise ValueError(f"Invalid color space {colorspace}")
 
@@ -135,7 +138,7 @@ def mean_std_transfer(
         b_std_tar,
         c_mean_tar,
         c_std_tar,
-    ) = image_stats(img[valid_indices])
+    ) = image_stats(init_img[valid_indices])
     (
         a_mean_src,
         a_std_src,
