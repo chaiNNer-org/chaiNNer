@@ -28,6 +28,7 @@ import { getRootDir, installDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { SaveData, SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
+import { getPngFromClipboard } from '../util';
 import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
@@ -291,9 +292,25 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
     ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
     ipcMain.handle('clipboard-readImage-and-store', async () => {
+        const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
+
+        // Try to read raw PNG bytes from the clipboard first to preserve the RGB
+        // values of transparent pixels. Electron's NativeImage goes through
+        // bitmap/DIB conversion which does not reliably preserve these values.
+        // See https://github.com/chaiNNer-org/chaiNNer/issues/1511
+        const pngData = getPngFromClipboard(['image/png', 'PNG', 'public.png'], (format) =>
+            clipboard.readBuffer(format)
+        );
+
+        if (pngData) {
+            await fs.writeFile(imgPath, pngData);
+            return imgPath;
+        }
+
+        // Fallback: use NativeImage for clipboard entries without a PNG stream
+        // (e.g. screenshots, JPEG-sourced images)
         const clipboardData = clipboard.readImage();
         const imgData = clipboardData.toPNG();
-        const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
         await fs.writeFile(imgPath, imgData);
         return imgPath;
     });
