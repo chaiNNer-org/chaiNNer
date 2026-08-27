@@ -9,6 +9,7 @@ import onnxruntime as ort
 from api import Progress
 from nodes.impl.onnx.model import SizeReq
 
+from ..oom import is_cuda_oom
 from ..upscale.auto_split import Tiler, auto_split
 
 
@@ -123,19 +124,19 @@ def onnx_auto_split(
             output = remove_pad(output)
             return output.astype(np.float32)
         except Exception as e:
-            if "ONNXRuntimeError" in str(e) and (
-                "allocate memory" in str(e)
-                or "out of memory" in str(e)
-                or "cudaMalloc" in str(e)
-            ):
-                raise RuntimeError(  # noqa: B904
-                    "A VRAM out-of-memory error has occurred. Please try using a more extreme tiling mode."
-                )
-            else:
-                # Re-raise the exception if not an OOM error
-                raise
+            if is_cuda_oom(e):
+                gc.collect()
+                from ..upscale.auto_split import Split
+
+                return Split()
+            raise
+
+    def oom_cleanup() -> None:
+        gc.collect()
 
     try:
-        return auto_split(img, upscale, tiler, progress=progress)
+        return auto_split(
+            img, upscale, tiler, progress=progress, oom_cleanup=oom_cleanup
+        )
     finally:
         gc.collect()

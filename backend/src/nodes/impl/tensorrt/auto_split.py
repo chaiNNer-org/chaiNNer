@@ -8,6 +8,7 @@ import numpy as np
 
 from api import Progress
 
+from ..oom import is_cuda_oom
 from ..upscale.auto_split import Tiler, auto_split
 from .inference import get_tensorrt_session
 from .model import TensorRTEngine
@@ -107,21 +108,19 @@ def tensorrt_auto_split(
             return output.astype(np.float32)
 
         except Exception as e:
-            error_str = str(e).lower()
-            # Check for CUDA OOM errors
-            if (
-                "out of memory" in error_str
-                or ("cuda" in error_str and "memory" in error_str)
-                or "allocation" in error_str
-            ):
-                raise RuntimeError(  # noqa: B904
-                    "A VRAM out-of-memory error has occurred. Please try using a smaller tile size."
-                )
-            else:
-                # Re-raise the exception if not an OOM error
-                raise
+            if is_cuda_oom(e):
+                gc.collect()
+                from ..upscale.auto_split import Split
+
+                return Split()
+            raise
+
+    def oom_cleanup() -> None:
+        gc.collect()
 
     try:
-        return auto_split(img, upscale, tiler, progress=progress)
+        return auto_split(
+            img, upscale, tiler, progress=progress, oom_cleanup=oom_cleanup
+        )
     finally:
         gc.collect()

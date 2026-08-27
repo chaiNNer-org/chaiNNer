@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
+from typing import Protocol
 
 import numpy as np
 
@@ -9,6 +10,7 @@ from api import Progress
 from logger import logger
 
 from ...utils.utils import Region, Size, get_h_w_c
+from ..oom import OomRecoveryExhaustedError, is_cuda_oom, is_non_oom_error
 from .exact_split import exact_split
 from .tile_blending import BlendDirection, TileBlender, TileOverlap, half_sin_blend_fn
 from .tiler import Tiler
@@ -16,6 +18,10 @@ from .tiler import Tiler
 
 class Split:
     pass
+
+
+class OomCleanup(Protocol):
+    def __call__(self) -> None: ...
 
 
 SplitImageOp = Callable[[np.ndarray, Region], np.ndarray | Split]
@@ -27,6 +33,7 @@ def auto_split(
     tiler: Tiler,
     overlap: int = 16,
     progress: Progress | None = None,
+    oom_cleanup: OomCleanup | None = None,
 ) -> np.ndarray:
     """
     Splits the image into tiles according to the given tiler.
@@ -52,6 +59,7 @@ def auto_split(
         split_tile_size=tiler.split,
         overlap=overlap,
         progress=progress,
+        oom_cleanup=oom_cleanup,
     )
 
 
@@ -66,6 +74,7 @@ def _exact_split(
     split_tile_size: Callable[[Size], Size],
     overlap: int,
     progress: Progress | None = None,
+    oom_cleanup: OomCleanup | None = None,
 ) -> np.ndarray:
     h, w, c = get_h_w_c(img)
     logger.debug(
@@ -83,22 +92,38 @@ def _exact_split(
             raise _SplitEx
         return result
 
-    MAX_ITER = 20  # noqa: N806
-
-    for _ in range(MAX_ITER):
-        try:
-            max_overlap = min(*starting_tile_size) // 4
-            return exact_split(
-                img=img,
-                exact_size=starting_tile_size,
-                upscale=no_split_upscale,
-                overlap=min(max_overlap, overlap),
-                progress=progress,
-            )
-        except _SplitEx:
-            starting_tile_size = split_tile_size(starting_tile_size)
-
-    raise ValueError(f"Aborting after {MAX_ITER} splits. Unable to upscale image.")
+    max_overlap = min(*starting_tile_size) // 4
+    try:
+        return exact_split(
+            img=img,
+            exact_size=starting_tile_size,
+            upscale=no_split_upscale,
+            overlap=min(max_overlap, overlap),
+            progress=progress,
+        )
+    except _SplitEx:
+        # The upscale requested a split (OOM) — manual mode does not retry.
+        if oom_cleanup is not None:
+            oom_cleanup()
+        raise OomRecoveryExhaustedError(
+            original_error=RuntimeError("VRAM out of memory during exact split"),
+            attempts=0,
+            last_tile_size=starting_tile_size,
+        ) from None
+    except Exception as e:
+        if is_non_oom_error(e):
+            raise
+        if not is_cuda_oom(e):
+            # Unrelated error — propagate unchanged.
+            raise
+        # Recognized GPU OOM error — manual mode does not retry.
+        if oom_cleanup is not None:
+            oom_cleanup()
+        raise OomRecoveryExhaustedError(
+            original_error=e,
+            attempts=0,
+            last_tile_size=starting_tile_size,
+        ) from None
 
 
 def _max_split(
@@ -108,6 +133,7 @@ def _max_split(
     split_tile_size: Callable[[Size], Size],
     overlap: int,
     progress: Progress | None = None,
+    oom_cleanup: OomCleanup | None = None,
 ) -> np.ndarray:
     """
     Splits the image into tiles with at most the given tile size.
@@ -129,24 +155,37 @@ def _max_split(
     )
 
     if w <= max_tile_size[0] and h <= max_tile_size[1]:
-        # the image might be small enough so that we don't have to split at all
-        upscale_result = upscale(img, img_region)
+        try:
+            upscale_result = upscale(img, img_region)
+        except Exception as e:
+            if not is_cuda_oom(e) and not isinstance(e, _SplitEx):
+                raise
+            upscale_result = Split()
+
         if not isinstance(upscale_result, Split):
             if progress is not None:
-                progress.set_progress(1.0)
+                progress.set_progress(1.0, max_tile_size[0])
             return upscale_result
 
-        # the image was too large
-        max_tile_size = split_tile_size(max_tile_size)
+        try:
+            max_tile_size = split_tile_size(max_tile_size)
+        except ValueError:
+            # Cannot reduce tile size further
+            raise OomRecoveryExhaustedError(
+                original_error=ValueError(
+                    "Unable to upscale the whole image at once - minimum tile size reached"
+                ),
+                attempts=0,
+                last_tile_size=max_tile_size,
+            ) from None
 
+        if oom_cleanup is not None:
+            oom_cleanup()
         logger.warning(
             "Unable to upscale the whole image at once. Reduced tile size to %s.",
             max_tile_size,
         )
 
-    # The upscale method is allowed to request splits at any time.
-    # When a split occurs, we have to "restart" the loop and
-    # this variable allow us to split the already processed tiles.
     start_y = 0
 
     # To allocate the result image, we need to know the upscale factor first,
@@ -154,17 +193,15 @@ def _max_split(
     result: TileBlender | None = None
     scale: int = 0
     out_channels: int = 0
+    oom_attempts = 0
+    last_error: BaseException | None = None
+    max_attempts = 20  # Match _exact_split limit
 
     restart = True
-    while restart:
+    while restart and oom_attempts < max_attempts:
         restart = False
+        break_outer = False
 
-        # This is a bit complex.
-        # We don't actually use the current tile size to partition the image.
-        # If we did, then tile_size=1024 and w=1200 would result in very uneven tiles.
-        # Instead, we use tile_size to calculate how many tiles we get in the x and y direction
-        # and then calculate the optimal tile size for the x and y direction using the counts.
-        # This yields optimal tile sizes which should prevent unnecessary splitting.
         tile_count_x = math.ceil(w / max_tile_size[0])
         tile_count_y = math.ceil(h / max_tile_size[1])
         tile_size_x = math.ceil(w / tile_count_x)
@@ -196,10 +233,58 @@ def _max_split(
                 pad = img_region.child_padding(tile).min(overlap)
                 padded_tile = tile.add_padding(pad)
 
-                upscale_result = upscale(padded_tile.read_from(img), padded_tile)
+                try:
+                    upscale_result = upscale(padded_tile.read_from(img), padded_tile)
+                except Exception as e:
+                    last_error = e
+                    if not is_cuda_oom(e) and not isinstance(e, _SplitEx):
+                        raise
+                    # Handle OOM exception from upscale
+                    try:
+                        max_tile_size = split_tile_size(max_tile_size)
+                    except ValueError:
+                        # Cannot reduce tile size further
+                        break_outer = True
+                        break
+                    oom_attempts += 1
+                    if oom_cleanup is not None:
+                        oom_cleanup()
+                    logger.warning(
+                        "VRAM OOM recovery: retrying with tile size %dx%d (attempt %d) after error: %s",
+                        max_tile_size[0],
+                        max_tile_size[1],
+                        oom_attempts,
+                        str(e)[:100],
+                    )
+                    # Discard partial output: tiles at the smaller size won't align
+                    # with the rows already blended at the previous tile size.
+                    result = None
+                    scale = 0
+                    out_channels = 0
+                    start_y = 0
+                    restart = True
+                    break_outer = True
+                    break
 
                 if isinstance(upscale_result, Split):
-                    max_tile_size = split_tile_size(max_tile_size)
+                    try:
+                        max_tile_size = split_tile_size(max_tile_size)
+                    except ValueError:
+                        # Cannot reduce tile size further
+                        last_error = ValueError("Minimum tile size reached")
+                        break_outer = True
+                        break
+                    oom_attempts += 1
+
+                    if oom_cleanup is not None:
+                        oom_cleanup()
+
+                    logger.warning(
+                        "VRAM OOM recovery: retrying with tile size %dx%d (attempt %d)",
+                        max_tile_size[0],
+                        max_tile_size[1],
+                        oom_attempts,
+                    )
 
                     new_tile_count_y = math.ceil(h / max_tile_size[1])
                     new_tile_size_y = math.ceil(h / new_tile_count_y)
@@ -211,15 +296,13 @@ def _max_split(
                         start_y,
                     )
 
-                    # reset result
                     if result is not None:
-                        # we already added at least one row, so we have to set the offset back
                         result.offset = start_y * new_tile_size_y
 
                     restart = True
+                    break_outer = True
                     break
 
-                # figure out by how much the image was upscaled by
                 up_h, up_w, up_c = get_h_w_c(upscale_result)
                 current_scale = up_h // padded_tile.height
                 assert current_scale > 0
@@ -227,7 +310,6 @@ def _max_split(
                 assert padded_tile.width * current_scale == up_w
 
                 if row_result is None:
-                    # allocate the result image
                     scale = current_scale
                     out_channels = up_c
                     row_result = TileBlender(
@@ -243,17 +325,17 @@ def _max_split(
 
                 assert current_scale == scale
 
-                # add to row
                 row_result.add_tile(
                     upscale_result, TileOverlap(pad.left * scale, pad.right * scale)
                 )
 
-                # Report progress after each tile
                 tiles_processed += 1
                 if progress is not None:
-                    progress.set_progress(tiles_processed / total_tiles)
+                    progress.set_progress(
+                        tiles_processed / total_tiles, max_tile_size[0]
+                    )
 
-            if restart:
+            if restart or break_outer:
                 break
 
             assert row_result is not None
@@ -268,8 +350,20 @@ def _max_split(
                     blend_fn=half_sin_blend_fn,
                 )
 
-            # add row
             result.add_tile(row_result.get_result(), row_overlap)
 
-    assert result is not None
-    return result.get_result()
+        # End of for loops
+
+        if not restart and not break_outer:
+            # All tiles were processed successfully.
+            assert result is not None
+            return result.get_result()
+
+    # Exhausted retries or unable to reduce tile size further.
+    if last_error is None:
+        last_error = ValueError("Unable to upscale image within tile size limits")
+    raise OomRecoveryExhaustedError(
+        original_error=last_error,
+        attempts=oom_attempts,
+        last_tile_size=max_tile_size,
+    )

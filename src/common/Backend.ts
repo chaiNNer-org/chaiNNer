@@ -339,6 +339,7 @@ export interface BackendEventMap {
         index: number;
         total: number;
         eta: number;
+        tileSize?: number;
     };
     'node-finish': {
         nodeId: string;

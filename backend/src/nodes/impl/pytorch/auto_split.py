@@ -9,6 +9,7 @@ from spandrel import ImageModelDescriptor
 
 from api import Progress
 
+from ..oom import is_cuda_oom
 from ..upscale.auto_split import Split, Tiler, auto_split
 from .utils import safe_cuda_cache_empty
 
@@ -150,8 +151,8 @@ def pytorch_auto_split(
 
             return result
         except RuntimeError as e:
-            # Check to see if its actually the CUDA out of memory error
-            if "allocate" in str(e) or "CUDA" in str(e):
+            # Check to see if its actually the CUDA out of memory error using shared classification
+            if is_cuda_oom(e):
                 # Collect garbage (clear VRAM)
                 if input_tensor is not None:
                     try:
@@ -166,4 +167,8 @@ def pytorch_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, tiler, progress=progress)
+    def oom_cleanup() -> None:
+        gc.collect()
+        safe_cuda_cache_empty()
+
+    return auto_split(img, upscale, tiler, progress=progress, oom_cleanup=oom_cleanup)

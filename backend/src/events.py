@@ -5,7 +5,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Literal, TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 import navi
 from api import BroadcastData, ErrorValue, InputId, IterOutputId, NodeId, OutputId
@@ -81,6 +81,7 @@ class NodeProgressData(TypedDict):
     index: int
     total: int
     eta: float
+    tileSize: NotRequired[int]
 
 
 class NodeProgressUpdateEvent(TypedDict):

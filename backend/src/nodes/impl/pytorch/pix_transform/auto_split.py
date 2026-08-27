@@ -7,6 +7,7 @@ import torch
 
 from ....utils.utils import Region, Size, get_h_w_c
 from ...image_op import to_op
+from ...oom import is_cuda_oom
 from ...upscale.auto_split import Split, auto_split
 from ...upscale.grayscale import SplitMode, grayscale_split
 from ...upscale.passthrough import passthrough_single_color
@@ -20,7 +21,9 @@ class _PixTiler(Tiler):
         self.max_tile_size: int = max_tile_size
 
     def allow_smaller_tile_size(self) -> bool:
-        return False
+        # This is an automatic tiler, so it must be allowed to reduce its
+        # starting size after an accelerator OOM.
+        return True
 
     def starting_tile_size(self, width: int, height: int, channels: int) -> Size:
         square = min(width, height, self.max_tile_size)
@@ -79,18 +82,18 @@ def pix_transform_auto_split(
 
             return grayscale_split(tile, pass_op, split_mode)
         except RuntimeError as e:
-            # Check to see if its actually the CUDA out of memory error
-            if "allocate" in str(e) or "CUDA" in str(e):
-                # Collect garbage (clear VRAM)
+            if is_cuda_oom(e):
                 gc.collect()
                 safe_cuda_cache_empty()
                 return Split()
-            else:
-                # Re-raise the exception if not an OOM error
-                raise
+            raise
+
+    def oom_cleanup() -> None:
+        gc.collect()
+        safe_cuda_cache_empty()
 
     try:
-        return auto_split(source, upscale, tiler)
+        return auto_split(source, upscale, tiler, oom_cleanup=oom_cleanup)
     finally:
         del device
         gc.collect()

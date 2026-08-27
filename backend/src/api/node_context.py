@@ -47,7 +47,7 @@ class Progress(ABC):
             time.sleep(0.1)
 
     @abstractmethod
-    def set_progress(self, progress: float) -> None:
+    def set_progress(self, progress: float, tile_size: int | None = None) -> None:
         """
         Sets the progress of the current node execution. `progress` must be a value between 0 and 1.
 
@@ -89,7 +89,7 @@ class _NoopProgress(Progress):
     def suspend(self) -> None:
         pass
 
-    def set_progress(self, progress: float) -> None:
+    def set_progress(self, progress: float, tile_size: int | None = None) -> None:
         pass
 
     def sub_progress(self, offset: float, length: float) -> "Progress":
@@ -116,8 +116,8 @@ class _SubProgress(Progress):
     def suspend(self) -> None:
         self._parent.suspend()
 
-    def set_progress(self, progress: float) -> None:
-        self._parent.set_progress(self._offset + progress * self._length)
+    def set_progress(self, progress: float, tile_size: int | None = None) -> None:
+        self._parent.set_progress(self._offset + progress * self._length, tile_size)
 
     def sub_progress(self, offset: float, length: float) -> "_SubProgress":
         return _SubProgress(
