@@ -1,6 +1,7 @@
 import { QuestionIcon } from '@chakra-ui/icons';
 import { Tooltip } from '@chakra-ui/react';
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useMemo } from 'react';
+import { useContextSelector } from 'use-context-selector';
 import { useValidDropDownValue } from '../../hooks/useValidDropDownValue';
 import { Markdown } from '../Markdown';
 import { AnchorSelector } from './elements/AnchorSelector';
@@ -10,12 +11,30 @@ import { IconList } from './elements/IconList';
 import { TabList } from './elements/TabList';
 import { AutoLabel, InlineLabel, WithoutLabel } from './InputContainer';
 import { InputProps } from './props';
+import { ExecutionContext } from '../../contexts/ExecutionContext';
 
 type DropDownInputProps = InputProps<'dropdown', string | number>;
 
 export const DropDownInput = memo(
-    ({ value, setValue, input, isLocked, testCondition }: DropDownInputProps) => {
+    ({ value, setValue, input, isLocked, testCondition, nodeId }: DropDownInputProps) => {
         const { options, def, label, preferredStyle, groups, hint, description } = input;
+        const tileSize = useContextSelector(
+            ExecutionContext,
+            (context) => (nodeId ? context.getNodeProgress(nodeId)?.tileSize : undefined)
+        );
+        const displayOptions = useMemo(
+            () =>
+                options.map((option) =>
+                    option.value === 0 && tileSize !== undefined
+                        ? { ...option, option: `Auto (${tileSize})` }
+                        : option
+                ),
+            [options, tileSize]
+        );
+        const displayInput = useMemo(
+            () => (displayOptions === options ? input : { ...input, options: displayOptions }),
+            [displayOptions, input, options]
+        );
 
         // eslint-disable-next-line no-param-reassign
         value = useValidDropDownValue(value, setValue, input);
@@ -64,7 +83,7 @@ export const DropDownInput = memo(
                 <WithoutLabel>
                     <TabList
                         isDisabled={isLocked}
-                        options={input.options}
+                        options={displayInput.options}
                         value={value}
                         onChange={setValue}
                     />
@@ -77,7 +96,7 @@ export const DropDownInput = memo(
                 <InlineLabel input={input}>
                     <IconList
                         isDisabled={isLocked}
-                        options={input.options}
+                        options={displayInput.options}
                         value={value}
                         onChange={setValue}
                     />
@@ -90,7 +109,7 @@ export const DropDownInput = memo(
                 <InlineLabel input={input}>
                     <AnchorSelector
                         isDisabled={isLocked}
-                        options={input.options}
+                        options={displayInput.options}
                         value={value}
                         onChange={setValue}
                     />
@@ -103,7 +122,7 @@ export const DropDownInput = memo(
                 <DropDown
                     groups={groups}
                     isDisabled={isLocked}
-                    options={input.options}
+                    options={displayInput.options}
                     reset={reset}
                     testCondition={testCondition}
                     value={value}

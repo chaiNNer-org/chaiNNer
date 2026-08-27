@@ -435,7 +435,7 @@ class _ExecutorNodeContext(NodeContext):
         progress: ProgressToken,
         settings: SettingsParser,
         storage_dir: Path,
-        send_progress: Callable[[NodeId, float], None] | None = None,
+        send_progress: Callable[[NodeId, float, int | None], None] | None = None,
     ) -> None:
         super().__init__()
         self.progress = progress
@@ -463,10 +463,10 @@ class _ExecutorNodeContext(NodeContext):
         time.sleep(0)
         return self.progress.paused
 
-    def set_progress(self, progress: float) -> None:
+    def set_progress(self, progress: float, tile_size: int | None = None) -> None:
         self.check_aborted()
         if self._send_progress_fn is not None and self._current_node_id is not None:
-            self._send_progress_fn(self._current_node_id, progress)
+            self._send_progress_fn(self._current_node_id, progress, tile_size)
 
     @property
     def settings(self) -> SettingsParser:
@@ -1902,7 +1902,9 @@ class Executor:
             }
         )
 
-    def _send_custom_progress(self, node_id: NodeId, progress: float) -> None:
+    def _send_custom_progress(
+        self, node_id: NodeId, progress: float, tile_size: int | None = None
+    ) -> None:
         """Send custom progress event from context.set_progress() call."""
         self.queue.put(
             {
@@ -1913,6 +1915,7 @@ class Executor:
                     "index": 0,
                     "total": 0,
                     "eta": 0,
+                    **({"tileSize": tile_size} if tile_size is not None else {}),
                 },
             }
         )

@@ -18,6 +18,7 @@ from logger import logger
 
 from ...utils.utils import get_h_w_c
 from ..image_utils import to_uint8
+from ..oom import is_cuda_oom
 from ..upscale.auto_split import Split, Tiler, auto_split
 
 
@@ -79,8 +80,8 @@ def ncnn_auto_split(
                 raise RuntimeError(
                     "A critical error has occurred. You may need to restart chaiNNer in order for NCNN upscaling to start working again."
                 ) from e
-            # Check to see if its actually the NCNN out of memory error
-            if "failed" in str(e):
+            # Check to see if its actually the NCNN out of memory error using shared classification
+            elif is_cuda_oom(e):
                 # clear VRAM
                 logger.debug("NCNN out of VRAM, clearing VRAM and splitting.")
                 ex = None
@@ -94,4 +95,10 @@ def ncnn_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, tiler, progress=progress)
+    def oom_cleanup() -> None:
+        gc.collect()
+        if use_gpu:
+            blob_vkallocator.clear()
+            staging_vkallocator.clear()
+
+    return auto_split(img, upscale, tiler, progress=progress, oom_cleanup=oom_cleanup)

@@ -79,6 +79,7 @@ export interface NodeProgress {
     eta: number;
     index: number;
     total: number;
+    tileSize?: number;
 }
 
 interface ExecutionContextValue {
@@ -198,7 +199,14 @@ export const ExecutionProvider = memo(({ children }: React.PropsWithChildren<{}>
     const [nodeProgress, setNodeProgress] = useState<Record<string, NodeProgress | undefined>>({});
     const setNodeProgressImpl = useCallback(
         (nodeId: string, progress: NodeProgress) => {
-            setNodeProgress((prev) => ({ ...prev, [nodeId]: progress }));
+            setNodeProgress((prev) => ({
+                ...prev,
+                [nodeId]: {
+                    ...prev[nodeId],
+                    ...progress,
+                    tileSize: progress.tileSize ?? prev[nodeId]?.tileSize,
+                },
+            }));
         },
         [setNodeProgress]
     );
