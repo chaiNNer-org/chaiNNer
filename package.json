@@ -105,7 +105,7 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
     "vite": "^7.3.6",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@chainner/navi": "^0.8.0",
