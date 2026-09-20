@@ -1,15 +1,32 @@
 import os
 
+from amd import amd
 from api import GB, KB, MB, Dependency, add_package
 from gpu import nvidia
 from logger import logger
 from system import is_arm_mac
+
+# AMD's ROCm wheels for Windows. See
+# https://rocm.docs.amd.com/projects/ai-ecosystem/en/latest/frameworks/pytorch/install.html
+ROCM_INDEX_URL = "https://stable.repo.amd.com/rocm/whl-next/"
+ROCM_SUFFIX = "+rocm10.0.0"
+ROCM_TORCH_VERSION = "2.12.0"
+ROCM_TORCHVISION_VERSION = "0.27.0"
+# e.g. "device-gfx1201", or "device-gfx1103,device-gfx1201" on a laptop with
+# both a Ryzen iGPU and a discrete Radeon.
+ROCM_EXTRAS = amd.torch_extras
 
 general = "PyTorch uses .pth models to upscale images."
 
 if is_arm_mac:
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
     package_description = general
+    inst_hint = f"{general} It is the most widely-used upscaling architecture."
+elif amd.is_supported:
+    package_description = (
+        f"{general} It will install the ROCm build from AMD, which runs on your"
+        " Radeon GPU. Make sure your AMD driver is up to date."
+    )
     inst_hint = f"{general} It is the most widely-used upscaling architecture."
 else:
     package_description = (
@@ -37,6 +54,32 @@ def get_pytorch():
                 pypi_name="torchvision",
                 version="0.22.0",
                 size_estimate=1.3 * MB,
+                auto_update=False,
+            ),
+        ]
+    elif amd.is_supported:
+        # AMD publishes ROCm wheels for Windows on its own index. They are not on
+        # PyPI and not on download.pytorch.org, and the [device-all] extra pulls
+        # in the matching rocm_sdk_* runtime packages. One device-gfx* extra is
+        # requested per installed card: device-all would download kernels for
+        # every AMD architecture ever published, which is several GB.
+        return [
+            Dependency(
+                display_name="PyTorch (ROCm)",
+                pypi_name="torch",
+                version=f"{ROCM_TORCH_VERSION}{ROCM_SUFFIX}",
+                extras=ROCM_EXTRAS,
+                size_estimate=2 * GB,
+                index_url=ROCM_INDEX_URL,
+                auto_update=False,
+            ),
+            Dependency(
+                display_name="TorchVision (ROCm)",
+                pypi_name="torchvision",
+                version=f"{ROCM_TORCHVISION_VERSION}{ROCM_SUFFIX}",
+                extras=ROCM_EXTRAS,
+                size_estimate=10 * MB,
+                index_url=ROCM_INDEX_URL,
                 auto_update=False,
             ),
         ]

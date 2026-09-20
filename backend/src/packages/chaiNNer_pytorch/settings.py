@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 import torch
 
+from amd import amd
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
 from gpu import nvidia
 from logger import logger
@@ -44,7 +45,9 @@ should_fp16 = False
 if nvidia.is_available:
     should_fp16 = nvidia.all_support_fp16
 else:
-    should_fp16 = is_arm_mac
+    # RDNA2 and newer do FP16 natively, and that is exactly the hardware AMD
+    # ships ROCm wheels for.
+    should_fp16 = is_arm_mac or amd.is_supported
 
 package.add_setting(
     ToggleSetting(
