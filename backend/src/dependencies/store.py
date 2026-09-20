@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import time
 from collections.abc import Iterable
 from dataclasses import dataclass
 from logging import Logger
@@ -21,6 +23,16 @@ COLLECTING_REGEX = re.compile(r"Collecting ([a-zA-Z0-9-_]+)")
 UNINSTALLING_REGEX = re.compile(r"Uninstalling ([a-zA-Z0-9-_]+)-+")
 
 DEP_MAX_PROGRESS = 0.8
+
+# Socket timeout in seconds, and how many times pip retries a failed download.
+# The pip cache is deliberately left enabled: a dropped connection then only
+# costs the one wheel that was in flight instead of the whole install.
+NETWORK_TIMEOUT = 60
+NETWORK_RETRIES = 10
+
+# How long to wait for a line from pip before sending a keep-alive progress
+# update. pip prints nothing at all while unpacking large wheels.
+HEARTBEAT_INTERVAL = 5.0
 
 ENV = {
     **os.environ,
@@ -91,6 +103,8 @@ class DependencyInfo:
     display_name: str | None = None
     from_file: str | None = None
     extra_index_url: str | None = None
+    index_url: str | None = None
+    extras: str | None = None
     size_estimate: int | float | None = None
 
 
@@ -102,7 +116,37 @@ def pin(dependency: DependencyInfo) -> str:
         if os.path.isfile(whl_file):
             return whl_file
 
+    if dependency.extras:
+        package_name = f"{package_name}[{dependency.extras}]"
+
     return f"{package_name}=={dependency.version}"
+
+
+def build_index_args(dependencies: Iterable[DependencyInfo]) -> list[str]:
+    """
+    Builds the pip index arguments for a set of dependencies.
+
+    An index_url replaces PyPI entirely and wins over extra_index_url, because
+    that is the only way to stop pip from silently resolving a package (e.g.
+    torch) to the PyPI build instead of the vendor one.
+    """
+    args: list[str] = []
+
+    index_urls = {d.index_url for d in dependencies if d.index_url}
+    if len(index_urls) > 1:
+        raise ValueError("Cannot install from more than one index_url at once.")
+    for url in index_urls:
+        args.extend(["--index-url", url])
+
+    for url in sorted({d.extra_index_url for d in dependencies if d.extra_index_url}):
+        args.extend(["--extra-index-url", url])
+
+    if index_urls:
+        # PyPI is no longer the main index, so it has to be added back for
+        # everything that is not published by the vendor.
+        args.extend(["--extra-index-url", "https://pypi.org/simple"])
+
+    return args
 
 
 SEMVER_REGEX = re.compile(r"(\d+)(?:\.(\d+)(?:\.(\d+))?)?")
@@ -127,6 +171,13 @@ def filter_necessary_to_install(dependencies: Iterable[DependencyInfo]):
     for dependency in dependencies:
         version = installed_packages.get(dependency.package_name, None)
         if version:
+            # A local version label (e.g. +rocm10.0.0 or +cu128) is not part of
+            # the semver comparison, so "2.12.0+cpu" and "2.12.0+rocm10.0.0"
+            # would look identical. Compare the full string in that case.
+            if "+" in dependency.version and version != dependency.version:
+                dependencies_to_install.append(dependency)
+                continue
+
             installed_version = coerce_semver(version)
             dep_version = coerce_semver(dependency.version)
             if installed_version < dep_version:
@@ -155,15 +206,7 @@ def install_dependencies_sync(
             "Please free up disk space and try again."
         )
 
-    extra_index_urls = {
-        dep_info.extra_index_url
-        for dep_info in dependencies_to_install
-        if dep_info.extra_index_url
-    }
-
-    extra_index_args = []
-    if len(extra_index_urls) > 0:
-        extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
+    extra_index_args = build_index_args(dependencies_to_install)
 
     try:
         exit_code = subprocess.check_call(
@@ -175,6 +218,10 @@ def install_dependencies_sync(
                 *[pin(dep_info) for dep_info in dependencies_to_install],
                 "--disable-pip-version-check",
                 "--no-warn-script-location",
+                "--timeout",
+                str(NETWORK_TIMEOUT),
+                "--retries",
+                str(NETWORK_RETRIES),
                 *extra_index_args,
             ],
             env=ENV,
@@ -229,15 +276,7 @@ async def install_dependencies(
     deps_counter = 0
     transitive_deps_counter = 0
 
-    extra_index_urls = {
-        dep_info.extra_index_url
-        for dep_info in dependencies_to_install
-        if dep_info.extra_index_url
-    }
-
-    extra_index_args = []
-    if len(extra_index_urls) > 0:
-        extra_index_args.extend(["--extra-index-url", ",".join(extra_index_urls)])
+    extra_index_args = build_index_args(dependencies_to_install)
 
     def get_progress_amount():
         transitive_progress = 1 - 1 / (2**transitive_deps_counter)
@@ -259,7 +298,14 @@ async def install_dependencies(
                 "--disable-chainner_pip-version-check",
                 "--no-warn-script-location",
                 "--progress-bar=json",
-                "--no-cache-dir",
+                # Large wheels (the ROCm SDK is ~750 MB) are regularly cut off
+                # mid-transfer by the vendor CDNs. Without an explicit timeout a
+                # stalled socket never turns into an error and the install hangs
+                # forever, so fail fast and retry instead.
+                "--timeout",
+                str(NETWORK_TIMEOUT),
+                "--retries",
+                str(NETWORK_RETRIES),
                 *extra_index_args,
             ],
             stdout=subprocess.PIPE,
@@ -277,10 +323,35 @@ async def install_dependencies(
         raise
     installing_name = "Unknown"
     error_output = []
+    loop = asyncio.get_running_loop()
+
+    # pip goes completely silent while it unpacks what it downloaded, which for
+    # the ROCm SDK means several GB and several minutes. Reading the pipe with a
+    # blocking call from inside a coroutine would freeze the whole event loop for
+    # that entire stretch: no HTTP, no SSE, a progress bar stuck at its last
+    # value and a UI that looks hung. So the read happens on a worker thread.
+    installing_phase = False
+    last_heartbeat = time.monotonic()
+
     while True:
-        nextline = process.stdout.readline()  # type: ignore
-        if process.poll() is not None:
+        try:
+            nextline = await asyncio.wait_for(
+                loop.run_in_executor(None, process.stdout.readline),  # type: ignore
+                timeout=HEARTBEAT_INTERVAL,
+            )
+        except asyncio.TimeoutError:
+            # No output for a while. Keep the UI alive instead of looking dead.
+            if installing_phase and time.monotonic() - last_heartbeat >= HEARTBEAT_INTERVAL:
+                last_heartbeat = time.monotonic()
+                await update_progress_cb(
+                    "Installing collected dependencies...", 0.9, None
+                )
+            continue
+
+        if not nextline:
+            # EOF: pip closed its output, so it is done or dying.
             break
+
         line = nextline.strip()
         if not line:
             continue
@@ -344,9 +415,11 @@ async def install_dependencies(
         # The Installing step of pip. Installs happen for all the collected packages at once.
         # We can't get the progress of the installation, so we just tell the user that it's happening.
         elif "Installing collected packages" in line:
+            installing_phase = True
+            last_heartbeat = time.monotonic()
             await update_progress_cb("Installing collected dependencies...", 0.9, None)
 
-    exit_code = process.wait()
+    exit_code = await loop.run_in_executor(None, process.wait)
     if exit_code != 0:
         # Check if any disk space errors were collected
         for error_line in error_output:
@@ -439,10 +512,21 @@ async def uninstall_dependencies(
         env=ENV,
     )
     uninstalling_name = "Unknown"
+    loop = asyncio.get_running_loop()
+
+    # Same as in install_dependencies: never block the event loop on the pipe.
     while True:
-        nextline = process.stdout.readline()  # type: ignore
-        if process.poll() is not None:
+        try:
+            nextline = await asyncio.wait_for(
+                loop.run_in_executor(None, process.stdout.readline),  # type: ignore
+                timeout=HEARTBEAT_INTERVAL,
+            )
+        except asyncio.TimeoutError:
+            continue
+
+        if not nextline:
             break
+
         line = nextline.strip()
         if not line:
             continue
@@ -474,11 +558,11 @@ async def uninstall_dependencies(
                 None,
             )
 
-    exit_code = process.wait()
+    exit_code = await loop.run_in_executor(None, process.wait)
     if exit_code != 0:
-        raise ValueError("An error occurred while installing dependencies.")
+        raise ValueError("An error occurred while uninstalling dependencies.")
 
-    await update_progress_cb("Finished installing dependencies...", 1, None)
+    await update_progress_cb("Finished uninstalling dependencies...", 1, None)
 
     for dep_info in dependencies:
         del installed_packages[dep_info.package_name]
