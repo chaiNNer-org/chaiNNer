@@ -250,6 +250,12 @@ class Dependency:
     size_estimate: int | float
     auto_update: bool = True
     extra_index_url: str | None = None
+    # Unlike extra_index_url, this *replaces* PyPI as the package source.
+    # Needed for AMD's ROCm wheels: with --extra-index-url pip is free to pick
+    # the CPU build from PyPI instead.
+    index_url: str | None = None
+    # pip extras, e.g. "device-all" -> torch[device-all]==...
+    extras: str | None = None
 
     import_name: str | None = None
 
@@ -261,6 +267,8 @@ class Dependency:
             "sizeEstimate": int(self.size_estimate),
             "autoUpdate": self.auto_update,
             "findLink": self.extra_index_url,
+            "indexUrl": self.index_url,
+            "extras": self.extras,
         }
 
     @staticmethod
@@ -272,6 +280,8 @@ class Dependency:
             size_estimate=data["sizeEstimate"],
             auto_update=data["autoUpdate"],
             extra_index_url=data["findLink"],
+            index_url=data.get("indexUrl"),
+            extras=data.get("extras"),
         )
 
 
