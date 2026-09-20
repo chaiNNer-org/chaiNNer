@@ -1,5 +1,11 @@
 from __future__ import annotations
 
+# Must run before any other native library is loaded into this process.
+# See torch_preload for why.
+from torch_preload import preload_rocm_torch  # noqa: E402  isort: skip
+
+preload_rocm_torch()
+
 import asyncio
 import gc
 import importlib
