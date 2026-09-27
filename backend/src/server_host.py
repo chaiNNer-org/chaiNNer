@@ -314,12 +314,19 @@ def deps_to_dep_info(deps: list[api.Dependency]) -> list[DependencyInfo]:
 
 
 def create_update_progress(ctx: AppContext) -> UpdateProgressFn:
+    last_logged: tuple[str, float] | None = None
+
     def update_progress(
         message: str,
         progress: float,
         status_progress: float | None = None,
     ):
-        logger.info("Progress: %s %s %s", message, progress, status_progress)
+        # Download progress arrives several times a second. Only log when the
+        # step changes, not for every byte count update.
+        nonlocal last_logged
+        if last_logged != (message, progress):
+            last_logged = (message, progress)
+            logger.info("Progress: %s %s", message, progress)
         return ctx.setup_queue.put_and_wait(
             {
                 "event": "package-install-status",
