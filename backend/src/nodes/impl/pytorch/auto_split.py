@@ -10,6 +10,7 @@ from spandrel import ImageModelDescriptor
 from api import Progress
 
 from ..upscale.auto_split import Split, Tiler, auto_split
+from .spandrel_patches import apply_spandrel_patches
 from .utils import safe_cuda_cache_empty
 
 
@@ -110,11 +111,11 @@ def pytorch_auto_split(
     img: np.ndarray,
     model: ImageModelDescriptor[torch.nn.Module],
     device: torch.device,
-    use_fp16: bool,
+    dtype: torch.dtype,
     tiler: Tiler,
     progress: Progress | None = None,
 ) -> np.ndarray:
-    dtype = torch.float16 if use_fp16 else torch.float32
+    apply_spandrel_patches()
     if model.dtype != dtype or model.device != device:
         model = model.to(device, dtype)
 

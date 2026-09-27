@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 import torch
+from spandrel import ModelDescriptor
 
 from amd import amd
 from api import DropdownSetting, NodeContext, NumberSetting, ToggleSetting
@@ -59,8 +60,10 @@ package.add_setting(
             if is_arm_mac
             else (
                 "Runs PyTorch in half-precision (FP16) mode for less VRAM usage. RTX"
-                " GPUs also get a speedup. It falls back to full-precision (FP32)"
-                " mode when CPU mode is selected."
+                " GPUs also get a speedup. DAT models, which do not support FP16, use"
+                " BF16 instead on GPUs with native BF16 (RTX 30+, Radeon RX 7000+)."
+                " It falls back to full-precision (FP32) mode when CPU mode is"
+                " selected."
             )
         ),
         default=should_fp16,
@@ -126,6 +129,67 @@ class PyTorchSettings:
             device = "cpu"
 
         return torch.device(device)
+
+    def inference_dtype(self, model: ModelDescriptor) -> torch.dtype:
+        """
+        The dtype to run a model in.
+
+        Half precision is requested through the FP16 setting. Some transformer
+        architectures do not work in FP16, but do in BF16, which has the same
+        memory savings. Those use BF16 instead of falling back to FP32, as long
+        as the GPU has fast BF16.
+        """
+        if not self.use_fp16:
+            return torch.float32
+        if model.supports_half:
+            return torch.float16
+        if (
+            model.architecture.id in BF16_VERIFIED_ARCHITECTURES
+            and model.supports_bfloat16
+            and _has_fast_bf16(self.device)
+        ):
+            return torch.bfloat16
+        return torch.float32
+
+
+# spandrel's supports_bfloat16 flag is not reliable: DRCT, ATD, GRL and RGT all
+# claim BF16 support but fail at inference with "expected scalar type Float but
+# found BFloat16", because they build masks/biases in float32 at run time. Only
+# architectures that were actually run in BF16 on tile sizes other than their
+# training size are listed here. DAT needs the mask fix in spandrel_patches.
+BF16_VERIFIED_ARCHITECTURES = frozenset({"DAT"})
+
+
+_fast_bf16_cache: dict[torch.device, bool] = {}
+
+
+def _has_fast_bf16(device: torch.device) -> bool:
+    """
+    Whether BF16 runs natively (matrix cores) rather than emulated, which would
+    be slower than FP32.
+    """
+    if device.type != "cuda":
+        return False
+    cached = _fast_bf16_cache.get(device)
+    if cached is not None:
+        return cached
+
+    result = False
+    try:
+        props = torch.cuda.get_device_properties(device)
+        if torch.version.hip:
+            # RDNA3 (gfx11), RDNA4 (gfx12) and CDNA2+ have BF16 WMMA/MFMA.
+            # RDNA2 (gfx103x) does not.
+            arch = str(getattr(props, "gcnArchName", "")).split(":")[0]
+            result = arch.startswith(("gfx11", "gfx12", "gfx90a", "gfx94", "gfx95"))
+        else:
+            # Ampere and newer.
+            result = props.major >= 8
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Could not determine BF16 support: %s", e)
+
+    _fast_bf16_cache[device] = result
+    return result
 
 
 def get_settings(context: NodeContext) -> PyTorchSettings:

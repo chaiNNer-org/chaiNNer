@@ -41,7 +41,11 @@ export const SystemStats = memo(() => {
                         <Tooltip
                             borderRadius={8}
                             key={usage.label}
-                            label={`${usage.percent.toFixed(1)}%`}
+                            label={
+                                usage.detail
+                                    ? `${usage.percent.toFixed(1)}% · ${usage.detail}`
+                                    : `${usage.percent.toFixed(1)}%`
+                            }
                             px={2}
                             py={1}
                         >

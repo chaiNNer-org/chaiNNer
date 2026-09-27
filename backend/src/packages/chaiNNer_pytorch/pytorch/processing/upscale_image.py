@@ -49,8 +49,8 @@ def upscale(
         # Borrowed from iNNfer
         logger.debug("Upscaling image")
 
-        # TODO: use bfloat16 if RTX
-        use_fp16 = options.use_fp16 and model.supports_half
+        dtype = options.inference_dtype(model)
+        bytes_per_element = torch.tensor([], dtype=dtype).element_size()
         device = options.device
 
         if model.tiling == ModelTiling.INTERNAL:
@@ -64,8 +64,7 @@ def upscale(
                 MODEL_BYTES_CACHE[model] = model_bytes
 
             if "cuda" in device.type:
-                if options.use_fp16:
-                    model_bytes = model_bytes // 2
+                model_bytes = model_bytes * bytes_per_element // 4
                 mem_info: tuple[int, int] = torch.cuda.mem_get_info(device)  # type: ignore
                 _free, total = mem_info
                 # only use 75% of the total memory
@@ -80,7 +79,7 @@ def upscale(
                         budget,
                         model_bytes,
                         img,
-                        2 if use_fp16 else 4,
+                        bytes_per_element,
                     )
                 )
             elif device.type == "cpu":
@@ -102,7 +101,7 @@ def upscale(
             img,
             model=model,
             device=device,
-            use_fp16=use_fp16,
+            dtype=dtype,
             tiler=parse_tile_size_input(tile_size, estimate),
             progress=progress,
         )

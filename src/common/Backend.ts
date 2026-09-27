@@ -268,7 +268,7 @@ export class Backend {
         return this.fetchJson('/python-info', 'GET');
     }
 
-    systemUsage(): Promise<{ label: string; percent: number }[]> {
+    systemUsage(): Promise<{ label: string; percent: number; detail?: string | null }[]> {
         return this.fetchJson('/system-usage', 'GET');
     }
 

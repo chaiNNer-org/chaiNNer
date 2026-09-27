@@ -103,7 +103,13 @@ export class OwnedBackendProcess implements BaseBackendProcess {
         });
 
         // Backend handles its own logging - we don't capture stdout/stderr
-        // Each process logs to its own files independently
+        // Each process logs to its own files independently.
+        // The pipes still have to be drained, though: the backend also logs to
+        // stderr, and once the OS pipe buffer (64 KB on Windows) is full, every
+        // write blocks. That freezes the backend's whole event loop, e.g. halfway
+        // through a PyTorch download, which floods the log with progress lines.
+        backend.stdout.resume();
+        backend.stderr.resume();
 
         return backend;
     }

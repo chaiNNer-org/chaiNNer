@@ -6,6 +6,7 @@ from torch import Tensor
 
 from ..image_utils import as_3d
 from ..onnx.np_tensor_utils import MAX_VALUES_BY_DTYPE, np_denorm
+from .spandrel_patches import clear_spandrel_caches
 
 
 def bgr_to_rgb(image: Tensor) -> Tensor:
@@ -150,6 +151,7 @@ def safe_cuda_cache_empty():
     """
     Empties the CUDA cache if CUDA is available. Hopefully without causing any errors.
     """
+    clear_spandrel_caches()
     try:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()

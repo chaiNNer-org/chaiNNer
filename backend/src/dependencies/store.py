@@ -332,14 +332,15 @@ async def install_dependencies(
     # value and a UI that looks hung. So the read happens on a worker thread.
     installing_phase = False
     last_heartbeat = time.monotonic()
+    pending_read: asyncio.Future[str] | None = None
 
     while True:
-        try:
-            nextline = await asyncio.wait_for(
-                loop.run_in_executor(None, process.stdout.readline),  # type: ignore
-                timeout=HEARTBEAT_INTERVAL,
-            )
-        except asyncio.TimeoutError:
+        # A timed-out read must not be abandoned: its thread keeps running and
+        # would swallow the next line, so the same future is awaited again.
+        if pending_read is None:
+            pending_read = loop.run_in_executor(None, process.stdout.readline)  # type: ignore
+        done, _ = await asyncio.wait({pending_read}, timeout=HEARTBEAT_INTERVAL)
+        if not done:
             # No output for a while. Keep the UI alive instead of looking dead.
             if installing_phase and time.monotonic() - last_heartbeat >= HEARTBEAT_INTERVAL:
                 last_heartbeat = time.monotonic()
@@ -347,6 +348,8 @@ async def install_dependencies(
                     "Installing collected dependencies...", 0.9, None
                 )
             continue
+        nextline = pending_read.result()
+        pending_read = None
 
         if not nextline:
             # EOF: pip closed its output, so it is done or dying.
@@ -514,15 +517,17 @@ async def uninstall_dependencies(
     uninstalling_name = "Unknown"
     loop = asyncio.get_running_loop()
 
-    # Same as in install_dependencies: never block the event loop on the pipe.
+    # Same as in install_dependencies: never block the event loop on the pipe,
+    # and never abandon a read that is still in flight.
+    pending_read: asyncio.Future[str] | None = None
     while True:
-        try:
-            nextline = await asyncio.wait_for(
-                loop.run_in_executor(None, process.stdout.readline),  # type: ignore
-                timeout=HEARTBEAT_INTERVAL,
-            )
-        except asyncio.TimeoutError:
+        if pending_read is None:
+            pending_read = loop.run_in_executor(None, process.stdout.readline)  # type: ignore
+        done, _ = await asyncio.wait({pending_read}, timeout=HEARTBEAT_INTERVAL)
+        if not done:
             continue
+        nextline = pending_read.result()
+        pending_read = None
 
         if not nextline:
             break

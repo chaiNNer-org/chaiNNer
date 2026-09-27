@@ -8,6 +8,7 @@ from spandrel_extra_arches import EXTRA_REGISTRY
 
 from api import NodeContext
 from logger import logger
+from nodes.impl.pytorch.spandrel_patches import apply_spandrel_patches
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.utils import split_file_path
@@ -16,6 +17,7 @@ from ...settings import get_settings
 from .. import io_group
 
 MAIN_REGISTRY.add(*EXTRA_REGISTRY)
+apply_spandrel_patches()
 
 
 def parse_ckpt_state_dict(checkpoint: dict):
@@ -82,12 +84,8 @@ def load_model_node(
         for _, v in model_descriptor.model.named_parameters():
             v.requires_grad = False
         model_descriptor.model.eval()
-        model_descriptor = model_descriptor.to(pytorch_device)
-        should_use_fp16 = exec_options.use_fp16 and model_descriptor.supports_half
-        if should_use_fp16:
-            model_descriptor.model.half()
-        else:
-            model_descriptor.model.float()
+        dtype = exec_options.inference_dtype(model_descriptor)
+        model_descriptor.model.to(pytorch_device, dtype)
     except Exception as e:
         raise ValueError(
             f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try"
