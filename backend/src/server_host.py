@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import sys
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from functools import cached_property
@@ -36,6 +37,7 @@ from logger import logger, setup_logger
 from response import error_response, success_response
 from server_config import ServerConfig
 from server_process_helper import WorkerServer
+from win_gpu import VENDOR_AMD, WindowsGpuMonitor, create_monitor
 
 
 class AppContext:
@@ -181,23 +183,92 @@ async def python_info(_request: Request):
 class SystemStat:
     label: str
     percent: float
+    detail: str | None = None
+
+
+def _gb(n: int) -> str:
+    return f"{n / 1024**3:.1f} GB"
+
+
+class _GpuStats:
+    """
+    Collects GPU load and VRAM for every GPU chaiNNer can run models on.
+
+    Nvidia cards go through NVML. Everything else (AMD) goes through the Windows
+    GPU performance counters, since there is no NVML equivalent for AMD there.
+    """
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._win_monitor: WindowsGpuMonitor | None = None
+        self._initialized = False
+
+    def _init(self) -> None:
+        # NVML already covers Nvidia cards, so only ask Windows about the rest.
+        self._win_monitor = create_monitor({VENDOR_AMD})
+        if self._win_monitor is not None:
+            logger.info(
+                "Tracking GPU usage via Windows performance counters for: %s",
+                ", ".join(a.name for a in self._win_monitor.adapters),
+            )
+        self._initialized = True
+
+    def sample(self) -> list[tuple[str, float, int, int]]:
+        """Returns (name, load %, vram used, vram total) per GPU."""
+        with self._lock:
+            if not self._initialized:
+                self._init()
+
+            gpus: list[tuple[str, float, int, int]] = []
+            for device in nvidia.devices:
+                vram = device.get_current_vram_usage()
+                gpus.append(
+                    (device.name, device.get_utilization(), vram.used, vram.total)
+                )
+            if self._win_monitor is not None:
+                try:
+                    for usage in self._win_monitor.sample():
+                        gpus.append(
+                            (
+                                usage.adapter.name,
+                                usage.utilization,
+                                usage.memory_used,
+                                usage.memory_total,
+                            )
+                        )
+                except Exception:
+                    logger.warning("Failed to read GPU usage counters.", exc_info=True)
+                    self._win_monitor.close()
+                    self._win_monitor = None
+            return gpus
+
+
+_gpu_stats = _GpuStats()
 
 
 @app.route("/system-usage", methods=["GET"])
 async def system_usage(_request: Request):
     stats_list = []
     cpu_usage = psutil.cpu_percent()
-    mem_usage = psutil.virtual_memory().percent
+    mem = psutil.virtual_memory()
     stats_list.append(SystemStat("CPU", cpu_usage))
-    stats_list.append(SystemStat("RAM", mem_usage))
-    for device in nvidia.devices:
-        usage = device.get_current_vram_usage()
-        stats_list.append(
-            SystemStat(
-                f"VRAM {device.index}" if len(nvidia.devices) > 1 else "VRAM",
-                usage.used / usage.total * 100,
+    stats_list.append(
+        SystemStat("RAM", mem.percent, f"{_gb(mem.used)} / {_gb(mem.total)}")
+    )
+
+    # Performance counter queries can take a few dozen ms, keep them off the loop.
+    gpus = await asyncio.get_running_loop().run_in_executor(None, _gpu_stats.sample)
+    for i, (name, load, used, total) in enumerate(gpus):
+        suffix = f" {i}" if len(gpus) > 1 else ""
+        stats_list.append(SystemStat(f"GPU{suffix}", load, name))
+        if total > 0:
+            stats_list.append(
+                SystemStat(
+                    f"VRAM{suffix}",
+                    used / total * 100,
+                    f"{name}: {_gb(used)} / {_gb(total)}",
+                )
             )
-        )
     return json([asdict(x) for x in stats_list])
 
 

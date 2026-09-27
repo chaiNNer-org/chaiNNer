@@ -67,6 +67,13 @@ class NvDevice:
         info = nv.nvmlDeviceGetMemoryInfo(self.handle)
         return MemoryUsage(info.total, info.used, info.free)  # type: ignore
 
+    def get_utilization(self) -> float:
+        """GPU load in percent over the driver's last sample period."""
+        try:
+            return float(nv.nvmlDeviceGetUtilizationRates(self.handle).gpu)  # type: ignore
+        except Exception:
+            return 0.0
+
 
 class NvInfo:
     def __init__(self, devices: Sequence[NvDevice], clean_up: Callable[[], None]):
