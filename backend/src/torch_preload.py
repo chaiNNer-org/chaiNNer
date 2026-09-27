@@ -47,6 +47,14 @@ def preload_rocm_torch() -> None:
             os.environ.setdefault("MIOPEN_CUSTOM_CACHE_DIR", str(db))
             os.environ.setdefault("MIOPEN_FIND_MODE", "FAST")
 
+        # The ROCm runtime on Windows keeps freed allocations in its own cache,
+        # sized at 1/8 of VRAM by default (2 GB on a 16 GB card). PyTorch's
+        # caching allocator already does the same job, so torch.cuda.empty_cache()
+        # hands memory back to that second cache instead of to the system, and
+        # an idle chaiNNer keeps holding it. 64 MB makes empty_cache() actually
+        # free VRAM, with no measurable speed difference.
+        os.environ.setdefault("GPU_RESOURCE_CACHE_SIZE", "64")
+
         _setup_miopen_cache()
 
         import torch  # noqa: F401
