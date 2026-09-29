@@ -145,7 +145,7 @@ const AppearanceSettings = memo(() => {
                         { label: t('languages.portuguese', 'Português'), value: 'pt' },
                         { label: t('languages.japanese', '日本語'), value: 'ja' },
                         { label: t('languages.chinese', '中文'), value: 'zh-CN' },
-                        { label: t('languages.russian', 'Русский'), value: 'ru' },
+                        { label: t('languages.ukrainian', 'Українська'), value: 'uk' },
                         { label: t('languages.korean', '한국어'), value: 'ko' },
                         { label: t('languages.dutch', 'Nederlands'), value: 'nl' },
                         { label: t('languages.polish', 'Polski'), value: 'pl' },
