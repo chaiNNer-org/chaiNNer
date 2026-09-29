@@ -1,0 +1,430 @@
+{
+    "alert": {
+        "button": {
+            "ok": "ОК",
+            "cancel": "Скасувати",
+            "openLogsFolder": "Відкрити папку логів",
+            "exitApplication": "Вийти із застосунку",
+            "copyToClipboard": "Скопіювати в буфер обміну"
+        },
+        "stackTrace": "Трасування стаку",
+        "title": {
+            "systemInformation": "Інформація про систему"
+        }
+    },
+    "common": {
+        "cancel": "Скасувати",
+        "close": "Закрити",
+        "open": "Відкрити",
+        "settings": "Налаштування"
+    },
+    "error": {
+        "error": "Помилка",
+        "message": {
+            "criticalBackend": "Критична помилка викликана під час обробки вузла бекендом."
+        },
+        "title": {
+            "unableToProcessNodes": "Не вдалося обробити вузли бекенду."
+        }
+    },
+    "header": {
+        "alpha": "Альфа",
+        "pause": "Павза",
+        "pauseButton": "Клавіша павзи",
+        "resume": "Продовжити",
+        "run": "Запустити",
+        "runButton": "Клавіша запуску",
+        "stop": "Зупинити",
+        "stopButton": "Клавіша зупинки",
+        "updateAvailable": "Доступне оновлення ({{version}})",
+        "updateAvailableAria": "Доступне оновлення",
+        "updateChangelog": "Журнал змін",
+        "updateAvailableTitle": "Доступне оновлення ({{version}})",
+        "updateAvailableMessage": "Вам доступне оновлення на версію {{version}}. Бажаєте переглянути журнал змін?",
+        "viewReleaseOnGitHub": "Переглянути реліз на GitHub",
+        "downloadFromWebsite": "Завантажити з chaiNNer.app",
+        "ignoreUpdate": "Ігнорувати оновлення",
+        "viewUpdate": "Переглянути оновлення"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Скопіювати ID вводу перепису",
+        "directory": {
+            "clear": "Очистити",
+            "copyFullDirectoryPath": "Скопівати повний шлях",
+            "openInFileExplorer": "Відкити у провіднику",
+            "selectDirectory": "Вибрати шлях...",
+            "clickToSelect": "Натисніть аби вибрати..."
+        },
+        "extractValueIntoNode": "Витягнути значення у вузол",
+        "file": {
+            "clear": "Очистити",
+            "copyFileName": "Скопіювати назву файлу",
+            "copyFullFilePath": "Скопіювати повний шлях до файлу",
+            "openInFileExplorer": "Відкрити у провіднику",
+            "selectFile": "Виберіть файл...",
+            "clickToSelectFile": "Натисніть аби вибрати файл..."
+        },
+        "number": {
+            "copyText": "Скопіювати номер",
+            "paste": "Вставити"
+        },
+        "text": {
+            "copyText": "Скопіювати текст",
+            "paste": "Вставити",
+            "invalidCharacter": "Неприйнятний символ '{{character}}' (U+{{codePoint}})."
+        },
+        "addInput": "Додати ввід",
+        "colorCompare": {
+            "old": "старе",
+            "new": "Нове"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Зображення недоступне.",
+            "imagePreviewFailed": "Прев'ю зображення не вдалося завантажити, ймовірно через непідтримуваний тип файлу."
+        },
+        "model": {
+            "modelNotAvailable": "Інформація про модель недоступна."
+        }
+    },
+    "settings": {
+        "title": "Налаштування",
+        "restartChaiNNer": "Перезапустити chaiNNer",
+        "tabs": {
+            "appearance": "Вигляд",
+            "environment": "Оточення",
+            "python": "Python",
+            "advanced": "Просунуті"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Кольорова тема",
+                "description": "Виберіть тему вигляду chaiNNer.",
+                "options": {
+                    "dark": "Темна",
+                    "light": "Світла",
+                    "system": "Система",
+                    "charcoal": "Charcoal",
+                    "coffee": "Coffee",
+                    "blueberry": "Blueberry",
+                    "dusk": "Dusk",
+                    "oled": "OLED",
+                    "cyberpunk": "Cyberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Мова (потребує перезапуску)",
+                "description": "Виберіть мову інтерфейсу chaiNNer."
+            },
+            "chainAnimation": {
+                "label": "Анімація ланцюга",
+                "description": "Вмикає анімації що відображають стан обробки ланцюга."
+            },
+            "minimap": {
+                "label": "Міні-карта",
+                "description": "Вмикає міні-карту поточного ланцюга у нижньому правому куті редактора вузлів."
+            },
+            "snapToGrid": {
+                "label": "Прив'язка до сітки",
+                "description": " Вмикає прив'язку до сітки вузлів."
+            },
+            "snapToGridAmount": {
+                "label": "Розмір прив'язки до сітки",
+                "description": "Розмір прив'язки до сітки."
+            },
+            "viewportExportPadding": {
+                "label": "Відступ при експорті PNG з області перегляду",
+                "description": "Розмір відступу при експорті PNG з області перегляду."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Шаблон при запуску",
+                "description": "Виберіть шаблон ланцюга що запускатиметься при запуску chaiNNer.",
+                "placeholder": "Виберіть файл...",
+                "clear": "Очистити",
+                "pickFile": "Виберіть файл шаблону запуску"
+            },
+            "selectChain": "Виберіть ланцюг"
+        },
+        "python": {
+            "general": "Загальні",
+            "useSystemPython": {
+                "label": "Використовувати системний Python (потребує перезапуску)",
+                "description": "Використовує системний Python для обробки chaiNNer замість вбудованого (не рекомендовано)"
+            },
+            "systemPythonLocation": {
+                "label": "Розташування системного Python (опціонально)",
+                "description": "В разі потреби, використовуйте конретний бінарник python замість старндарного, що викликається командами 'python3' чи 'python'. Корисно, якщо у вас є декілька версій і ви бажаєте вибрати якусь конкретну.",
+                "placeholder": "Вибрати файл...",
+                "clear": "Очистити",
+                "pickFile": "Вибрати розташування системного python"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Перевіряти оновлення при запуску.",
+                "description": "Перемикає перевірку на оновлення при запуску програми."
+            },
+            "experimentalFeatures": {
+                "label": "Увімкнути експерементальні можливості",
+                "description": "Вмикає експерементальні можливості для тестування перш ніж вони будуть завершені."
+            },
+            "hardwareAcceleration": {
+                "label": "Увімкнути Апаратне прискорення (потребує перезапуску)",
+                "description": "Вмикає рендеринг інтерфейсу на GPU. Використовуйте з обережністю, так як це може викликати деградація продуктивності при обробці зображення."
+            },
+            "allowMultipleInstances": {
+                "label": "Дозволити роботу декілька процесів",
+                "description": "Вмикає роботу декількох процесів chaiNNer. Не рекомендовано, але якщо ваш ланцюг не використує усю кількість системних ресурсів, це може бути корисним для запуску паралельних процесів."
+            }
+        },
+        "noOptionsFound": "Варіантів не знайдено.",
+        "clearCache": "Очистити Кеш"
+    },
+    "setup": {
+        "checkingPort": "Перевірка на доступні порти...",
+        "checkingPython": "Перевірка системного середовища на валідний Python...",
+        "downloadingPython": "Завантаження вбудованого Python...",
+        "extractingPython": "Витягнення завантажених файлів...",
+        "loading": "Завантаження...",
+        "startingBackend": "Запуск процесів бекенду..."
+    },
+    "typeTags": {
+        "optional": "опціонально"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Випадкове насіння",
+            "randomSeedAria": "Випадкове насіння"
+        }
+    },
+    "logo": {
+        "background": "bg",
+        "front": "front"
+    },
+    "timer": {
+        "executionTook": "Виконання тривало орієнтовно {{duration}}.",
+        "hour_one": "годину",
+        "hour_few": "години",
+        "hour_many": "годин",
+        "hour_other": "години",
+        "minute_one": "хвилину",
+        "minute_few": "хвилини",
+        "minute_many": "хвилин",
+        "minute_other": "хвилини",
+        "second_one": "секунду",
+        "second_few": "секунди",
+        "second_many": "секунд",
+        "second_other": "секунди"
+    },
+    "linkedInputs": {
+        "currentlyLinked": "Значення {{inputs}} наразі прив'язано до того ж значення. Натисніть аби прибрати прив'язку.",
+        "clickToLink": "Натисніть тут, щоб прив'язати {{inputs}} до того ж значення."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "portuguese": "Português",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+		"ukrainian": "Українська",
+        "turkish": "Türkçe",
+        "arabic": "العربية",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "Пошук...",
+        "missingNodes": "Відсутні вузли? Натисніть тут аби відкрити менеджер залежностей",
+        "noCompatibleNodes": "Не знайдено сумісних вузлів."
+    },
+    "favorites": {
+        "title": "Улюблені",
+        "noFavorites": "Відсутні улюблені.",
+        "addFavoritesTooltip": "Додайте улюблені правою кнопкою миші по вузлі і вибравши «Додати в улюблені»",
+        "addFavoritesTooltipExpanded": {
+            "beforeIcon": "Додайте в улюблені навівшись на вузол на натиснувши на",
+            "afterIcon": "іконку або натиснувши праву кнопку та вибравши «Додати в улюблені»."
+        },
+        "addToFavorites": "Додати в улюблені",
+        "removeFromFavorites": "Видалити з улюблених"
+    },
+    "documentation": {
+        "title": "Документація вузлів",
+        "openDocumentation": "Відкрити Документацію"
+    },
+    "dependencyManager": {
+        "title": "Менеджер залежностей",
+        "manageDependencies": "Керувати залежностями",
+        "updatesAvailable": "Доступні оновлення",
+        "updatesAvailableDescription_one": "У вас є {{count}} пакунок з доступним оновленням залежностей.",
+        "updatesAvailableDescription_few": "У вас є {{count}} пакунки з доступними оновленнями залежностей.",
+        "updatesAvailableDescription_many": "У вас є {{count}} пакунків з доступними оновленнями залежностей.",
+        "updatesAvailableDescription_other": "У вас є {{count}} пакунка з доступними оновленнями залежностей.",
+        "openDependencyManager": "Відкрити менеджер залежностей",
+        "packages": "Пакунки",
+        "features": "Можливості",
+        "refresh": "Оновити",
+        "install": "Встановити",
+        "update": "Оновити",
+        "uninstall": "Видалити",
+        "close": "Закрити",
+        "missing": "Відсутнє",
+        "outdated": "Застаріле",
+        "unavailable": "Недоступне",
+        "enabled": "Увімкнено",
+        "disabled": "Вимкнено",
+        "python": "Python",
+        "system": "Системний",
+        "integrated": "Інтегрований",
+        "advanced": "Просунутий",
+        "installationMode": "Режим встановлення",
+        "normal": "Стандартний",
+        "manualCopy": "Ручний/Копіювання",
+        "consoleOutput": "Вивід консолі:",
+        "commandCopied": "Команду скопіювано у буфер обміну",
+        "commandCopiedDescription": "Відкрийте зовнішній термінал, вставте команду і запустіть. Щойно процес завершиться, вручну перезапустіть chaiNNer.",
+        "uninstallTitle": "Видалити",
+        "uninstallMessage": "Ви дійсно бажаєте видалити {{name}}?",
+        "unsavedChanges": "Не збережені зміни",
+        "unsavedChangesMessage": "Ви можете втратити ваші незбережені зміни видаливши {{name}}.\n\nВи впевнені що бажаєте видалити {{name}}?",
+        "cancel": "Скасувати",
+        "installing": "Встановлення {{name}}...",
+        "uninstalling": "Видалення {{name}}...",
+        "copyPythonPath": "Скопіювати шлях до Python у буфер обміну",
+        "pythonPath": "Шлях до Python:",
+        "installAllPackages": "{{operations}} усі пакети ({{size}})",
+        "package_one": "пакет",
+        "package_few": "пакети",
+        "package_many": "пакетів",
+        "package_other": "пакета",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Режим редагування",
+        "editContent": "Редагувати контент",
+        "markdownMode": "Режим розмітки",
+        "viewMarkdown": "Переглянути розмітку"
+    },
+    "node": {
+        "disableHint": "Підказка: Натисніть Ctrl і клацніть, щоб переглянути варіанти.",
+        "note": {
+            "placeholder": "Текст примітки"
+        },
+        "implementationError": "Помилка імплементації",
+        "implementationErrorMessage": "Не вдалося з'ясувати інформацію для вузла {{nodeName}} ({{schemaId}}).",
+        "enable": "Увімкнути",
+        "disable": "Вимкнути",
+        "skip": "Пропустити",
+        "eta": "ОЧЗ:",
+        "outdated": "Застаріле"
+    },
+    "color": {
+        "resetToOld": "Скинути до старих кольорів",
+        "acceptNew": "Прийняти нові кольори"
+    },
+    "support": {
+        "koFiTooltip": "Підтримайте chaiNNer на Ko-fi",
+        "koFiAria": "Підтримайте chaiNNer",
+        "koFiButton": "Підтримайте chaiNNer"
+    },
+    "edge": {
+        "removeEdge": "Видалити край кнопки"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Видалити зупинку",
+        "removeEdge": "Видалити край"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Аби додати вузол до робочої області двічі клацніть по ньому або перетягніть.",
+        "collapseExpandCategories": "Згорнути/Розгорнути категорії"
+    },
+    "nodeMenu": {
+        "copy": "Скопіювати",
+        "duplicate": "Дублювати",
+        "resetNode": "Скинути вузол",
+        "resetInputs": "Скинути ввід",
+        "resetConnections": "Скинути з'єднання",
+        "resetAll": "Скинути усе",
+        "enable": "Увімкнути",
+        "disable": "Вимкнути",
+        "skip": "Пропустити",
+        "unlock": "Роблокувати",
+        "lock": "Заблокувати",
+        "refreshPreview": "Оновити попередній перегляд",
+        "delete": "Видалити",
+        "openDocumentation": "Відкрити документацію"
+    },
+    "nodesMenu": {
+        "copy": "Скопіювати",
+        "duplicate": "Продублювати",
+        "resetNodes": "Скинути вузли",
+        "resetInputs": "Скинути Вводи",
+        "resetConnections": "Скинути з'єднання",
+        "resetAll": "Скинути усе",
+        "enableAll": "Увімкнути усе",
+        "disableAll": "Вимкнути усе",
+        "delete": "Видалити"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Додати зупинку",
+        "delete": "Видалити"
+    },
+    "nodeSelector": {
+        "favorites": "Улюблені",
+        "missingDependencies": "Відсутні залежності.",
+        "unableToImport": "Не вдалося імпортувати вузол(ли).",
+        "clickToInstall": "Натисніть аби відкрити менеджер залежностей для встановлення {{packageName}}.",
+        "criticalImportError": "Критична помилка імпорту викликана залежністю у пакеті: {{packageName}}.",
+        "nodes": "Вузли"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "is": "є",
+            "isNot": "не є",
+            "oneOf": "один з",
+            "ofType": "типу",
+            "allOf": "З усіх",
+            "atLeastOneOf": "Принаймні один з",
+            "followingConditions": "задовільняє наступні вимоги:",
+            "condition": "Вимоги:"
+        },
+        "nodeDocs": {
+            "optional": "опціонально",
+            "sequenced": "(Впорядковано)",
+            "supportedFileTypes": "Підтримувані типи файлів:",
+            "primaryInputDescription": "Цей ввід є основним для підтримуваних типів файлів. Це означає, що ви можете перетягнути підтримувані файли в chaiNNer, і програма автоматично створить вузол із заповненим цим вводом.",
+            "options": "Опції:",
+            "type": "Тип:",
+            "inputs": "Вводи",
+            "noInputs": "Цей вузол не має вводів.",
+            "outputs": "Виводи",
+            "noOutputs": "Цей вузол немає виводів.",
+            "seeAlso": "Гляньте також",
+            "character_one": "символ",
+            "character_few": "символи",
+            "character_many": "символів",
+            "character_other": "символу"
+        },
+        "nodesList": {
+            "noNodesFound": "Не знайдено вузлів"
+        }
+    }
+}
