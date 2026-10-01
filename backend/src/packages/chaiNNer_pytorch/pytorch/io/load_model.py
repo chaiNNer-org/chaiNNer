@@ -8,7 +8,10 @@ from spandrel_extra_arches import EXTRA_REGISTRY
 
 from api import NodeContext
 from logger import logger
-from nodes.impl.pytorch.spandrel_patches import apply_spandrel_patches
+from nodes.impl.pytorch.spandrel_patches import (
+    apply_spandrel_patches,
+    patch_depthwise_convs,
+)
 from nodes.properties.inputs import PthFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, ModelOutput
 from nodes.utils.utils import split_file_path
@@ -86,6 +89,7 @@ def load_model_node(
         model_descriptor.model.eval()
         dtype = exec_options.inference_dtype(model_descriptor)
         model_descriptor.model.to(pytorch_device, dtype)
+        patch_depthwise_convs(model_descriptor.model)
     except Exception as e:
         raise ValueError(
             f"Model {os.path.basename(path)} is unsupported by chaiNNer. Please try"

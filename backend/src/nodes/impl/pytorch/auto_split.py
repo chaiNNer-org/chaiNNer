@@ -10,7 +10,7 @@ from spandrel import ImageModelDescriptor
 from api import Progress
 
 from ..upscale.auto_split import Split, Tiler, auto_split
-from .spandrel_patches import apply_spandrel_patches
+from .spandrel_patches import apply_spandrel_patches, patch_depthwise_convs
 from .utils import safe_cuda_cache_empty
 
 
@@ -118,6 +118,7 @@ def pytorch_auto_split(
     apply_spandrel_patches()
     if model.dtype != dtype or model.device != device:
         model = model.to(device, dtype)
+    patch_depthwise_convs(model.model)
 
     def upscale(img: np.ndarray, _: object):
         if progress is not None:

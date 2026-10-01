@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 
 import torch
+from torch import nn
 
 from logger import logger
 
@@ -74,6 +75,78 @@ def _patch_dat() -> None:
             return masks
 
     cls.calculate_mask = calculate_mask
+
+
+_hip_dwconv_failed = False
+
+
+def _is_depthwise_3x3(m: nn.Module) -> bool:
+    return (
+        isinstance(m, nn.Conv2d)
+        and m.groups == m.in_channels == m.out_channels
+        and m.kernel_size == (3, 3)
+        and m.stride == (1, 1)
+        and m.padding == (1, 1)
+        and m.dilation == (1, 1)
+        and m.padding_mode == "zeros"
+    )
+
+
+def patch_depthwise_convs(model: nn.Module) -> None:
+    """
+    Routes depthwise 3x3 convolutions through a custom HIP kernel on ROCm.
+
+    MIOpen has no fast kernel for them on consumer Radeon cards: on an RX 9070 XT
+    one takes ~4 ms on a 180x256x256 tensor, the custom kernel ~0.16 ms. DAT runs
+    72 of them per tile, which made them its single biggest cost. Many other
+    architectures (SAFMN, OmniSR, DRCT, RGT, ...) use them as well.
+
+    Any failure (compile, launch, unsupported input) falls back to the original
+    convolution. Set CHAINNER_HIP_DWCONV=0 to disable this entirely.
+    """
+    if getattr(model, "_chainner_dwconv_patched", False):
+        return
+    model._chainner_dwconv_patched = True  # type: ignore[attr-defined]
+
+    from .hip_kernels import can_dwconv3x3, dwconv3x3, hip_kernels_available
+
+    if _hip_dwconv_failed or not hip_kernels_available():
+        return
+
+    count = 0
+    for module in model.modules():
+        if not _is_depthwise_3x3(module):
+            continue
+        original_forward = module.forward
+        cache: dict[str, object] = {}
+
+        def forward(x, m=module, original=original_forward, cache=cache):
+            global _hip_dwconv_failed
+            if _hip_dwconv_failed or not can_dwconv3x3(x):
+                return original(x)
+            # fp32 weights in the kernel's (C, 9) layout, rebuilt if the module
+            # was moved to another device or dtype
+            key = (m.weight.data_ptr(), m.weight.dtype, m.weight._version)
+            if cache.get("key") != key:
+                cache["key"] = key
+                cache["w"] = m.weight.detach().float().reshape(m.in_channels, 9).contiguous()
+                cache["b"] = (
+                    m.bias.detach().float().contiguous() if m.bias is not None else None
+                )
+            try:
+                return dwconv3x3(x, cache["w"], cache["b"])  # type: ignore[arg-type]
+            except Exception as e:  # noqa: BLE001
+                _hip_dwconv_failed = True
+                logger.warning(
+                    "HIP depthwise conv kernel failed, falling back to MIOpen: %s", e
+                )
+                return original(x)
+
+        module.forward = forward
+        count += 1
+
+    if count:
+        logger.debug("Using the HIP kernel for %d depthwise 3x3 convolutions", count)
 
 
 def apply_spandrel_patches() -> None:
