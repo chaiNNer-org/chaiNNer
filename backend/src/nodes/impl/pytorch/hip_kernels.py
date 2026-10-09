@@ -149,12 +149,15 @@ __device__ void win_attn(const T* __restrict__ qkv, long s0, long s1, long s2, l
     // writing at (y + s) mod size, so DAT's torch.roll copies are not needed.
     const int y = ih * H_sp + n / W_sp, x = iw * W_sp + n % W_sp;
     const int ys = (y + sy) % H, xs = (x + sx) % W;
-    const long base = (long)b * s1 + ((long)ys * W + xs) * s2 + (long)(h * d) * s3;
+    // positions past the Hc x Wc image are the window padding: zero q/k/v,
+    // exactly like DAT's F.pad, without materializing the padded copy
+    const bool valid = ys < Hc && xs < Wc;
+    const long base = (long)b * s1 + ((long)ys * Wc + xs) * s2 + (long)(h * d) * s3;
 
     float q[DMAX];
     #pragma unroll
     for (int j = 0; j < DMAX; j++) {
-        if (j < d) {
+        if (j < d && valid) {
             q[j] = load_val(qkv, base + j * s3) * scale;
             copy_val(Ks, n * DP + j, qkv, s0 + base + j * s3);
             copy_val(Vs, n * DP + j, qkv, 2 * s0 + base + j * s3);
@@ -411,21 +414,289 @@ __device__ void dw_tokens(const T* __restrict__ x, long row_stride, int ch_offse
 extern "C" __global__ void dw_tokens_f32(const float* x, float* out, DWT_ARGS, int C, int H, int W) { dw_tokens<float>(x, DWT_PASS, out, C, H, W); }
 extern "C" __global__ void dw_tokens_f16(const _Float16* x, _Float16* out, DWT_ARGS, int C, int H, int W) { dw_tokens<_Float16>(x, DWT_PASS, out, C, H, W); }
 extern "C" __global__ void dw_tokens_bf16(const bf16_t* x, bf16_t* out, DWT_ARGS, int C, int H, int W) { dw_tokens<bf16_t>(x, DWT_PASS, out, C, H, W); }
+
+// LayerNorm over the channels of contiguous (tokens, C) rows, optionally after
+// a residual add: sum = x + a (stored, rounded to T like PyTorch's add), out =
+// LayerNorm(sum). One wave32 per token, 8 tokens per 256-thread block, up to
+// 8 * 32 = 256 channels kept in registers.
+__device__ __forceinline__ float round_t(float v, const float*) { return v; }
+__device__ __forceinline__ float round_t(float v, const _Float16*) { return (float)(_Float16)v; }
+__device__ __forceinline__ float round_t(float v, const bf16_t*) {
+    unsigned int u = __float_as_uint(v);
+    u += 0x7FFFu + ((u >> 16) & 1u);
+    return __uint_as_float(u & 0xFFFF0000u);
+}
+
+template <typename T>
+__device__ void add_ln(const T* __restrict__ x, const T* __restrict__ a, T* __restrict__ sum_out,
+                       T* __restrict__ out, const float* __restrict__ gamma,
+                       const float* __restrict__ beta, int C, long tokens, float eps) {
+    const int lane = threadIdx.x & 31;
+    const long tok = (long)blockIdx.x * 8 + (threadIdx.x >> 5);
+    if (tok >= tokens) return;
+    const long row = tok * C;
+    float v[8];
+    float s = 0.0f;
+    #pragma unroll
+    for (int k = 0; k < 8; k++) {
+        const int c = lane + 32 * k;
+        float t = 0.0f;
+        if (c < C) {
+            t = load_val(x, row + c);
+            if (a) t = round_t(t + load_val(a, row + c), x);
+        }
+        v[k] = t;
+        s += t;
+    }
+    #pragma unroll
+    for (int o = 16; o > 0; o >>= 1) s += __shfl_xor(s, o, 32);
+    const float mean = s / C;
+    float q = 0.0f;
+    #pragma unroll
+    for (int k = 0; k < 8; k++) {
+        const int c = lane + 32 * k;
+        if (c < C) { const float dv = v[k] - mean; q += dv * dv; }
+    }
+    #pragma unroll
+    for (int o = 16; o > 0; o >>= 1) q += __shfl_xor(q, o, 32);
+    const float rstd = rsqrtf(q / C + eps);
+    #pragma unroll
+    for (int k = 0; k < 8; k++) {
+        const int c = lane + 32 * k;
+        if (c < C) {
+            if (sum_out) store_val(sum_out, row + c, v[k]);
+            store_val(out, row + c, (v[k] - mean) * rstd * gamma[c] + beta[c]);
+        }
+    }
+}
+
+#define LN_ARGS const float* gamma, const float* beta, int C, long tokens, float eps
+#define LN_PASS gamma, beta, C, tokens, eps
+extern "C" __global__ void add_ln_f32(const float* x, const float* a, float* sum_out, float* out, LN_ARGS) { add_ln<float>(x, a, sum_out, out, LN_PASS); }
+extern "C" __global__ void add_ln_f16(const _Float16* x, const _Float16* a, _Float16* sum_out, _Float16* out, LN_ARGS) { add_ln<_Float16>(x, a, sum_out, out, LN_PASS); }
+extern "C" __global__ void add_ln_bf16(const bf16_t* x, const bf16_t* a, bf16_t* sum_out, bf16_t* out, LN_ARGS) { add_ln<bf16_t>(x, a, sum_out, out, LN_PASS); }
+"""
+
+_ATTN_WMMA_SRC = r"""
+// DAT window attention on RDNA4 matrix cores (gfx12 WMMA, wave32).
+// Same contract as win_attn (see there), for 16-bit inputs.
+//
+// Block: 256 threads = 8 waves, one (window, head) per block. K and V of the
+// window are staged in shared memory (V transposed), each wave walks query
+// tiles of 16 rows. Per 16-key tile: S = Q K^T via WMMA (fp32 accumulate),
+// scale + bias + shift mask + online softmax in registers, P goes through a
+// small per-wave LDS buffer into WMMA operand layout, O += P V via WMMA.
+//
+// gfx12 wave32 layouts (verified): A lane l -> row l%16, k = 8*(l/16)+i;
+// B lane l -> col l%16, k = 8*(l/16)+i; D lane l -> col l%16, row 8*(l/16)+i.
+
+typedef unsigned short u16;
+typedef short v8s __attribute__((ext_vector_type(8)));
+typedef _Float16 v8h __attribute__((ext_vector_type(8)));
+typedef float v8f __attribute__((ext_vector_type(8)));
+typedef float v4f __attribute__((ext_vector_type(4)));
+
+__device__ __forceinline__ u16 f2bf(float v) {
+    unsigned int u = __float_as_uint(v);
+    u += 0x7FFFu + ((u >> 16) & 1u);
+    return (u16)(u >> 16);
+}
+__device__ __forceinline__ u16 f2h(float v) {
+    _Float16 h = (_Float16)v;
+    return *(u16*)&h;
+}
+__device__ __forceinline__ float bf2f(u16 v) { return __uint_as_float(((unsigned int)v) << 16); }
+__device__ __forceinline__ float h2f(u16 v) { return (float)*(_Float16*)&v; }
+
+template <bool BF16>
+__device__ __forceinline__ v8f mma(v8s a, v8s b, v8f c) {
+    if constexpr (BF16) {
+        return __builtin_amdgcn_wmma_f32_16x16x16_bf16_w32_gfx12(a, b, c);
+    } else {
+        return __builtin_amdgcn_wmma_f32_16x16x16_f16_w32_gfx12(
+            __builtin_bit_cast(v8h, a), __builtin_bit_cast(v8h, b), c);
+    }
+}
+
+template <bool BF16, int KD>
+__device__ void win_attn_wmma(const u16* __restrict__ qkv, long s0, long s1, long s2, long s3,
+                              const float* __restrict__ biasT, const int* __restrict__ labels,
+                              u16* __restrict__ out, long out_stride, int out_off, int Hc, int Wc,
+                              int sy, int sx, int H, int W, int H_sp, int W_sp,
+                              int heads, int d, float scale) {
+    constexpr int KS = KD / 16;  // k steps over the head dim, and O column tiles
+    extern __shared__ unsigned char lds_raw[];
+    const int N = H_sp * W_sp;
+    u16* Ks = (u16*)lds_raw;           // [N][KD]
+    u16* Vt = Ks + N * KD;             // [KD][N]
+    u16* Pb = Vt + N * KD;             // [8 waves][16][16]
+    int* labs = (int*)(Pb + 8 * 256);  // [N]
+
+    const int nw = W / W_sp, nh = H / H_sp, nW = nh * nw;
+    const int h = blockIdx.x % heads;
+    const int win = blockIdx.x / heads;
+    const int b = win / nW, wimg = win % nW;
+    const int ih = wimg / nw, iw = wimg % nw;
+
+    // stage K and V^T (zero padded to KD) and the region labels
+    for (int t = threadIdx.x; t < N; t += 256) {
+        const int y = ih * H_sp + t / W_sp, x = iw * W_sp + t % W_sp;
+        const int ys = (y + sy) % H, xs = (x + sx) % W;
+        const bool valid = ys < Hc && xs < Wc;  // window padding is zero
+        const long base = (long)b * s1 + ((long)ys * Wc + xs) * s2 + (long)(h * d) * s3;
+        for (int j = 0; j < KD; j++) {
+            const bool in = j < d && valid;
+            Ks[t * KD + j] = in ? qkv[s0 + base + j * s3] : (u16)0;
+            Vt[j * N + t] = in ? qkv[2 * s0 + base + j * s3] : (u16)0;
+        }
+        if (labels) labs[t] = labels[wimg * N + t];
+    }
+    __syncthreads();
+
+    const int wave = threadIdx.x >> 5, lane = threadIdx.x & 31;
+    const int col = lane & 15, half = lane >> 4;
+    u16* P = Pb + wave * 256;
+
+    for (int qt = wave; qt < N / 16; qt += 8) {
+        // A operands for Q: row = query qt*16 + col, k = s*16 + 8*half + i
+        v8s qa[KS];
+        {
+            const int n = qt * 16 + col;
+            const int y = ih * H_sp + n / W_sp, x = iw * W_sp + n % W_sp;
+            const int ys = (y + sy) % H, xs = (x + sx) % W;
+            const bool valid = ys < Hc && xs < Wc;
+            const long base = (long)b * s1 + ((long)ys * Wc + xs) * s2 + (long)(h * d) * s3;
+            #pragma unroll
+            for (int s = 0; s < KS; s++)
+                #pragma unroll
+                for (int i = 0; i < 8; i++) {
+                    const int j = s * 16 + 8 * half + i;
+                    qa[s][i] = (j < d && valid) ? (short)qkv[base + j * s3] : (short)0;
+                }
+        }
+        // this lane's 8 query rows (D layout)
+        const int q0 = qt * 16 + 8 * half;
+        int qlab[8];
+        #pragma unroll
+        for (int i = 0; i < 8; i++) qlab[i] = labels ? labs[q0 + i] : 0;
+
+        float m[8], l[8];
+        v8f o[KS];
+        #pragma unroll
+        for (int i = 0; i < 8; i++) { m[i] = -__builtin_inff(); l[i] = 0.0f; }
+        #pragma unroll
+        for (int t = 0; t < KS; t++) o[t] = (v8f){0, 0, 0, 0, 0, 0, 0, 0};
+
+        for (int kt = 0; kt < N / 16; kt++) {
+            const int key = kt * 16 + col;
+            v8f sacc = (v8f){0, 0, 0, 0, 0, 0, 0, 0};
+            #pragma unroll
+            for (int s = 0; s < KS; s++) {
+                const v8s kb = *(const v8s*)(Ks + key * KD + s * 16 + 8 * half);
+                sacc = mma<BF16>(qa[s], kb, sacc);
+            }
+            float sv[8];
+            const int klab = labels ? labs[key] : 0;
+            const float* brow = biasT ? biasT + ((long)h * N + key) * N + q0 : nullptr;
+            v4f b0 = {0, 0, 0, 0}, b1 = {0, 0, 0, 0};
+            if (brow) { b0 = *(const v4f*)brow; b1 = *(const v4f*)(brow + 4); }
+            #pragma unroll
+            for (int i = 0; i < 8; i++) {
+                float v = sacc[i] * scale + (i < 4 ? b0[i] : b1[i - 4]);
+                if (labels && klab != qlab[i]) v -= 100.0f;
+                sv[i] = v;
+            }
+            // row max / sum across the 16 key columns of this half wave
+            float corr[8];
+            #pragma unroll
+            for (int i = 0; i < 8; i++) {
+                float mx = sv[i];
+                mx = fmaxf(mx, __shfl_xor(mx, 1, 16));
+                mx = fmaxf(mx, __shfl_xor(mx, 2, 16));
+                mx = fmaxf(mx, __shfl_xor(mx, 4, 16));
+                mx = fmaxf(mx, __shfl_xor(mx, 8, 16));
+                const float mn = fmaxf(m[i], mx);
+                corr[i] = __expf(m[i] - mn);
+                const float p = __expf(sv[i] - mn);
+                float ps = p;
+                ps += __shfl_xor(ps, 1, 16);
+                ps += __shfl_xor(ps, 2, 16);
+                ps += __shfl_xor(ps, 4, 16);
+                ps += __shfl_xor(ps, 8, 16);
+                l[i] = l[i] * corr[i] + ps;
+                m[i] = mn;
+                // P[row][key] for the A-layout re-read below
+                P[(8 * half + i) * 16 + col] = BF16 ? f2bf(p) : f2h(p);
+            }
+            #pragma unroll
+            for (int t = 0; t < KS; t++)
+                #pragma unroll
+                for (int i = 0; i < 8; i++) o[t][i] *= corr[i];
+            __builtin_amdgcn_wave_barrier();
+            __builtin_amdgcn_fence(__ATOMIC_SEQ_CST, "wavefront");
+            // A operand: row = query col, k = key 8*half + i
+            const v8s pa = *(const v8s*)(P + col * 16 + 8 * half);
+            #pragma unroll
+            for (int t = 0; t < KS; t++) {
+                // B operand: col = head dim t*16 + col, k = key kt*16 + 8*half + i
+                const v8s vb = *(const v8s*)(Vt + (t * 16 + col) * N + kt * 16 + 8 * half);
+                o[t] = mma<BF16>(pa, vb, o[t]);
+            }
+            __builtin_amdgcn_wave_barrier();
+            __builtin_amdgcn_fence(__ATOMIC_SEQ_CST, "wavefront");
+        }
+
+        // write O / l: lane holds head dim t*16 + col for rows q0 + i
+        #pragma unroll
+        for (int i = 0; i < 8; i++) {
+            const int n = q0 + i;
+            const int y = ih * H_sp + n / W_sp, x = iw * W_sp + n % W_sp;
+            const int ys = (y + sy) % H, xs = (x + sx) % W;
+            if (ys >= Hc || xs >= Wc) continue;
+            const float inv = 1.0f / l[i];
+            const long ob = (((long)b * Hc + ys) * Wc + xs) * out_stride + out_off + h * d;
+            #pragma unroll
+            for (int t = 0; t < KS; t++) {
+                const int j = t * 16 + col;
+                if (j < d) out[ob + j] = BF16 ? f2bf(o[t][i] * inv) : f2h(o[t][i] * inv);
+            }
+        }
+    }
+}
+
+#define WMMA_ARGS long s0, long s1, long s2, long s3, const float* biasT, const int* labels, long out_stride, int out_off, int Hc, int Wc, int sy, int sx, int H, int W, int H_sp, int W_sp, int heads, int d, float scale
+#define WMMA_PASS s0, s1, s2, s3, biasT, labels, out, out_stride, out_off, Hc, Wc, sy, sx, H, W, H_sp, W_sp, heads, d, scale
+extern "C" __global__ void __launch_bounds__(256) win_attn_wmma_bf16_32(const u16* qkv, u16* out, WMMA_ARGS) { win_attn_wmma<true, 32>(qkv, WMMA_PASS); }
+extern "C" __global__ void __launch_bounds__(256) win_attn_wmma_bf16_64(const u16* qkv, u16* out, WMMA_ARGS) { win_attn_wmma<true, 64>(qkv, WMMA_PASS); }
+extern "C" __global__ void __launch_bounds__(256) win_attn_wmma_bf16_16(const u16* qkv, u16* out, WMMA_ARGS) { win_attn_wmma<true, 16>(qkv, WMMA_PASS); }
+extern "C" __global__ void __launch_bounds__(256) win_attn_wmma_f16_32(const u16* qkv, u16* out, WMMA_ARGS) { win_attn_wmma<false, 32>(qkv, WMMA_PASS); }
+extern "C" __global__ void __launch_bounds__(256) win_attn_wmma_f16_64(const u16* qkv, u16* out, WMMA_ARGS) { win_attn_wmma<false, 64>(qkv, WMMA_PASS); }
+extern "C" __global__ void __launch_bounds__(256) win_attn_wmma_f16_16(const u16* qkv, u16* out, WMMA_ARGS) { win_attn_wmma<false, 16>(qkv, WMMA_PASS); }
 """
 
 _TW, _TH = 32, 16
 _MAX_GRID_Z = 65535
 _DTYPE_SUFFIX = {torch.float32: "f32", torch.float16: "f16", torch.bfloat16: "bf16"}
-_PROGRAMS = {
-    "dwconv": (_DWCONV_SRC, [f"dwconv3x3_{s}" for s in _DTYPE_SUFFIX.values()]),
+# name -> (source, kernel names, extra compiler options)
+_PROGRAMS: dict[str, tuple[str, list[str], list[str]]] = {
+    "dwconv": (_DWCONV_SRC, [f"dwconv3x3_{s}" for s in _DTYPE_SUFFIX.values()], []),
     "win_attn": (
         _ATTN_SRC,
         [f"win_attn_{s}_{dm}" for s in _DTYPE_SUFFIX.values() for dm in (32, 64)],
+        [],
+    ),
+    # gfx12 (RDNA4) only: uses the gfx12 WMMA builtins
+    "win_attn_wmma": (
+        _ATTN_WMMA_SRC,
+        [f"win_attn_wmma_{s}_{kd}" for s in ("bf16", "f16") for kd in (16, 32, 64)],
+        ["-std=c++17"],
     ),
     "spatial_gate": (
         _SG_SRC,
         [f"sg_{k}_{s}" for k in ("stats", "gate") for s in _DTYPE_SUFFIX.values()]
-        + [f"dw_tokens_{s}" for s in _DTYPE_SUFFIX.values()],
+        + [f"dw_tokens_{s}" for s in _DTYPE_SUFFIX.values()]
+        + [f"add_ln_{s}" for s in _DTYPE_SUFFIX.values()],
+        [],
     ),
 }
 _LDS_LIMIT = 64 * 1024
@@ -453,7 +724,7 @@ class _Hip:
             raise RuntimeError(f"{what} failed with HIP error {err}")
 
     def _compile(self, device_index: int, program: str) -> None:
-        source, names = _PROGRAMS[program]
+        source, names, extra_opts = _PROGRAMS[program]
         arch = torch.cuda.get_device_properties(device_index).gcnArchName.split(":")[0]
         prog = ctypes.c_void_p()
         self._check(
@@ -463,7 +734,7 @@ class _Hip:
             "hiprtcCreateProgram",
         )
         try:
-            opts = [f"--offload-arch={arch}".encode(), b"-O3"]
+            opts = [f"--offload-arch={arch}".encode(), b"-O3"] + [o.encode() for o in extra_opts]
             err = self.rtc.hiprtcCompileProgram(
                 prog, len(opts), (ctypes.c_char_p * len(opts))(*opts)
             )
@@ -603,6 +874,34 @@ def can_window_attention(
     return d <= 64 and _attn_lds_bytes(n, d, qkv.dtype) <= _LDS_LIMIT
 
 
+_gfx12: dict[int, bool] = {}
+_wmma_failed = False
+
+
+def _is_gfx12(device: int) -> bool:
+    if device not in _gfx12:
+        arch = torch.cuda.get_device_properties(device).gcnArchName
+        _gfx12[device] = arch.startswith("gfx12")
+    return _gfx12[device]
+
+
+def _wmma_lds_bytes(n: int, kd: int) -> int:
+    # must match win_attn_wmma: K [N][KD], V^T [KD][N], 8 P tiles, labels
+    return 2 * n * kd * 2 + 8 * 256 * 2 + n * 4
+
+
+def _wmma_head_dim(qkv: torch.Tensor, n: int, d: int) -> int:
+    """The padded head dim for the WMMA kernel, or 0 if it does not apply."""
+    if _wmma_failed or os.environ.get("CHAINNER_HIP_WMMA", "").strip() == "0":
+        return 0
+    if qkv.dtype not in (torch.bfloat16, torch.float16) or not _is_gfx12(qkv.device.index or 0):
+        return 0
+    kd = 16 if d <= 16 else 32 if d <= 32 else 64 if d <= 64 else 0
+    if not kd or n % 16 or _wmma_lds_bytes(n, kd) > _LDS_LIMIT:
+        return 0
+    return kd
+
+
 def window_attention(
     qkv: torch.Tensor,
     H: int,  # noqa: N803
@@ -620,7 +919,9 @@ def window_attention(
     """
     DAT window attention for one branch, fused into a single kernel.
 
-    qkv: (3, B, H*W, heads*d), any strides, H/W padded to the window grid.
+    qkv: (3, B, Hc*Wc, heads*d), any strides. H and W are the window grid,
+        which may be larger than the data (Hc x Wc, from `out`); positions
+        outside the data count as zero, like DAT's zero padding.
     bias_t: (heads, N, N) float32, transposed (key, query), contiguous.
     labels: (nW, N) int32 contiguous.
     shift: (sy, sx) for shifted windows: the result equals rolling qkv by
@@ -638,8 +939,23 @@ def window_attention(
         out = torch.empty((B, H, W, C), device=qkv.device, dtype=qkv.dtype)
     _, Hc, Wc, out_c = out.shape  # noqa: N806
     hip = _get_hip()
-    name = f"win_attn_{_DTYPE_SUFFIX[qkv.dtype]}_{32 if d <= 32 else 64}"
-    fn = hip.get(qkv.device.index or 0, "win_attn", name)
+    device = qkv.device.index or 0
+    kd = _wmma_head_dim(qkv, n, d)
+    if kd:
+        try:
+            fn = hip.get(device, "win_attn_wmma", f"win_attn_wmma_{_DTYPE_SUFFIX[qkv.dtype]}_{kd}")
+        except Exception as e:  # noqa: BLE001
+            # keep the scalar kernel, only the matrix core path is lost
+            global _wmma_failed
+            _wmma_failed = True
+            logger.warning("WMMA attention kernel unavailable, using the scalar one: %s", e)
+            kd = 0
+    if kd:
+        block, shared = 256, _wmma_lds_bytes(n, kd)
+    else:
+        name = f"win_attn_{_DTYPE_SUFFIX[qkv.dtype]}_{32 if d <= 32 else 64}"
+        fn = hip.get(device, "win_attn", name)
+        block, shared = n, _attn_lds_bytes(n, d, qkv.dtype)
     s0, s1, s2, s3 = qkv.stride()
     args = [
         ctypes.c_void_p(qkv.data_ptr()),
@@ -665,7 +981,7 @@ def window_attention(
         ctypes.c_float(scale),
     ]
     blocks = B * (H // H_sp) * (W // W_sp) * heads
-    hip.launch(fn, (blocks, 1, 1), (n, 1, 1), args, _stream(qkv), _attn_lds_bytes(n, d, qkv.dtype))
+    hip.launch(fn, (blocks, 1, 1), (block, 1, 1), args, _stream(qkv), shared)
     return out
 
 
@@ -788,3 +1104,55 @@ def dwconv_tokens(
         _stream(x),
     )
     return out
+
+
+# --- LayerNorm (+ residual add) -----------------------------------------------
+
+
+def can_layer_norm(x: torch.Tensor) -> bool:
+    return (
+        x.is_cuda
+        and x.dtype in _DTYPE_SUFFIX
+        and not x.requires_grad
+        and x.is_contiguous()
+        and 0 < x.shape[-1] <= 256
+    )
+
+
+def layer_norm(
+    x: torch.Tensor,
+    gamma: torch.Tensor,
+    beta: torch.Tensor,
+    eps: float,
+    residual: torch.Tensor | None = None,
+) -> tuple[torch.Tensor | None, torch.Tensor]:
+    """
+    LayerNorm over the last dim of a contiguous tensor. With `residual`, first
+    computes x + residual and returns (that sum, its LayerNorm); otherwise
+    (None, LayerNorm(x)). gamma/beta: float32 contiguous.
+    """
+    C = x.shape[-1]
+    tokens = x.numel() // C
+    out = torch.empty_like(x)
+    sum_out = torch.empty_like(x) if residual is not None else None
+    if residual is not None:
+        residual = residual.contiguous()
+    hip = _get_hip()
+    hip.launch(
+        hip.get(x.device.index or 0, "spatial_gate", f"add_ln_{_DTYPE_SUFFIX[x.dtype]}"),
+        ((tokens + 7) // 8, 1, 1),
+        (256, 1, 1),
+        [
+            ctypes.c_void_p(x.data_ptr()),
+            ctypes.c_void_p(residual.data_ptr() if residual is not None else 0),
+            ctypes.c_void_p(sum_out.data_ptr() if sum_out is not None else 0),
+            ctypes.c_void_p(out.data_ptr()),
+            ctypes.c_void_p(gamma.data_ptr()),
+            ctypes.c_void_p(beta.data_ptr()),
+            ctypes.c_int(C),
+            ctypes.c_int64(tokens),
+            ctypes.c_float(eps),
+        ],
+        _stream(x),
+    )
+    return sum_out, out

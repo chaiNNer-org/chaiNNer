@@ -40,6 +40,7 @@ def clear_spandrel_caches() -> None:
     with _dat_mask_lock:
         _dat_mask_cache.clear()
     _dat_label_cache.clear()
+    _dat_shift_label_cache.clear()
 
 
 def _patch_dat() -> None:
@@ -378,12 +379,49 @@ def _asa_masks(module: nn.Module, H: int, W: int, device: torch.device):  # noqa
     return module.attn_mask_0, module.attn_mask_1
 
 
+_dat_shift_label_cache: dict[tuple, tuple[torch.Tensor, torch.Tensor]] = {}
+
+
+def _dat_shift_labels(module: nn.Module, H: int, W: int, device: torch.device):  # noqa: N803
+    """
+    The shift-window region id of every token, per window, for both branches:
+    exactly the `mask_windows` that DAT's calculate_mask builds before turning
+    them into N x N masks. The kernel only compares ids, so the masks are never
+    built. Tiles of a few different sizes alternate, so several are cached; they
+    are only H*W ints each.
+    """
+    key = (H, W, tuple(module.split_size), tuple(module.shift_size), device)
+    labels = _dat_shift_label_cache.get(key)
+    if labels is None:
+
+        def regions(sh: int, sw: int, th: int, tw: int) -> torch.Tensor:
+            img = torch.zeros(H, W, dtype=torch.int32)
+            cnt = 0
+            for hs in (slice(0, -sh), slice(-sh, -th), slice(-th, None)):
+                for ws in (slice(0, -sw), slice(-sw, -tw), slice(-tw, None)):
+                    img[hs, ws] = cnt
+                    cnt += 1
+            windows = img.view(H // sh, sh, W // sw, sw).permute(0, 2, 1, 3)
+            return windows.reshape(-1, sh * sw).contiguous().to(device)
+
+        s0, s1 = module.split_size[0], module.split_size[1]
+        t0, t1 = module.shift_size[0], module.shift_size[1]
+        labels = (regions(s0, s1, t0, t1), regions(s1, s0, t1, t0))
+        if len(_dat_shift_label_cache) >= 16:
+            _dat_shift_label_cache.pop(next(iter(_dat_shift_label_cache)))
+        _dat_shift_label_cache[key] = labels
+    return labels
+
+
 def _asa_fused_attention(module, qkv, B, H, W, _H, _W, C, shifted, device):  # noqa: N803
     """
     Both window attention branches straight into one (B, H*W, C) tensor, or
     None if the fused kernel cannot be used. Shifted windows are handled by the
-    kernel's read/write offsets instead of torch.roll, and the two branches
-    write their channel halves directly, so no roll, crop or cat copies.
+    kernel's read/write offsets instead of torch.roll, the window padding by
+    treating positions outside H x W as zero instead of F.pad, and the two
+    branches write their channel halves directly: no roll, pad, crop or cat.
+
+    qkv: (3, B, H*W, C), unpadded. _H x _W: the window grid (padded size).
     """
     from .hip_kernels import can_window_attention, window_attention
 
@@ -395,8 +433,7 @@ def _asa_fused_attention(module, qkv, B, H, W, _H, _W, C, shifted, device):  # n
     ):
         return None
     if shifted:
-        mask_0, mask_1 = _asa_masks(module, _H, _W, device)
-        labels = (_dat_mask_labels(mask_0), _dat_mask_labels(mask_1))
+        labels = _dat_shift_labels(module, _H, _W, device)
         s0, s1 = module.shift_size[0], module.shift_size[1]
         shifts = ((s0, s1), (s1, s0))
     else:
@@ -445,10 +482,6 @@ def _patch_dat_adaptive_modules() -> None:
             max_split_size = max(self.split_size[0], self.split_size[1])
             pad_r = (max_split_size - W % max_split_size) % max_split_size
             pad_b = (max_split_size - H % max_split_size) % max_split_size
-            if pad_r or pad_b:
-                qkv = qkv.reshape(3 * B, H, W, C).permute(0, 3, 1, 2)
-                qkv = F.pad(qkv, (0, pad_r, 0, pad_b)).reshape(3, B, C, -1).transpose(-2, -1)
-            # without padding, the original's pad/reshape/transpose only copies
             _H = pad_b + H  # noqa: N806
             _W = pad_r + W  # noqa: N806
             _L = _H * _W  # noqa: N806
@@ -460,6 +493,9 @@ def _patch_dat_adaptive_modules() -> None:
             attened_x = _asa_fused_attention(self, qkv, B, H, W, _H, _W, C, shifted, x.device)
             if attened_x is None:
                 # same as the original
+                if pad_r or pad_b:
+                    qkv = qkv.reshape(3 * B, H, W, C).permute(0, 3, 1, 2)
+                    qkv = F.pad(qkv, (0, pad_r, 0, pad_b)).reshape(3, B, C, -1).transpose(-2, -1)
                 if shifted:
                     qkv = qkv.view(3, B, _H, _W, C)
                     qkv_0 = torch.roll(
@@ -526,6 +562,72 @@ def _patch_dat_adaptive_modules() -> None:
 
     asa_cls.forward = asa_forward
     aca_cls.forward = aca_forward
+
+
+_hip_ln_failed = False
+
+
+def _ln_params(norm: nn.LayerNorm) -> tuple[torch.Tensor, torch.Tensor]:
+    key = tuple((t.data_ptr(), _version_of(t)) for t in (norm.weight, norm.bias))
+    cached = norm.__dict__.get("_chainner_ln_params")
+    if cached is None or cached[0] != key:
+        cached = (
+            key,
+            (norm.weight.detach().float().contiguous(), norm.bias.detach().float().contiguous()),
+        )
+        norm.__dict__["_chainner_ln_params"] = cached
+    return cached[1]
+
+
+def _patch_dat_block() -> None:
+    """
+    DAT block (DATB): x + attn(norm1(x)), then + ffn(norm2(.)). PyTorch's
+    LayerNorm on ROCm runs at a fraction of memory bandwidth here (~0.36 ms on
+    a 256px tile, twice per block), and the residual add before norm2 is one
+    more full pass. A HIP kernel does the LayerNorms, with the first residual
+    add fused into the second one.
+    """
+    from spandrel.architectures.DAT.__arch import DAT as dat_arch
+
+    from .hip_kernels import can_layer_norm, hip_kernels_available, layer_norm
+
+    cls = dat_arch.DATB
+    original = cls.forward
+
+    def usable(self, x) -> bool:
+        c = x.shape[-1]
+        return (
+            not _hip_ln_failed
+            and not self.training
+            and hip_kernels_available()
+            and can_layer_norm(x)
+            and all(
+                isinstance(n, nn.LayerNorm)
+                and n.elementwise_affine
+                and n.bias is not None
+                and tuple(n.normalized_shape) == (c,)
+                for n in (self.norm1, self.norm2)
+            )
+        )
+
+    def forward(self, x, x_size):
+        global _hip_ln_failed
+        if not usable(self, x):
+            return original(self, x, x_size)
+        H, W = x_size  # noqa: N806
+        try:
+            g1, b1 = _ln_params(self.norm1)
+            g2, b2 = _ln_params(self.norm2)
+            _, n1 = layer_norm(x, g1, b1, self.norm1.eps)
+            a = self.drop_path(self.attn(n1, H, W))
+            s, n2 = layer_norm(x, g2, b2, self.norm2.eps, residual=a)
+            return s + self.drop_path(self.ffn(n2, H, W))
+        except Exception as e:  # noqa: BLE001
+            _hip_ln_failed = True
+            logger.warning("HIP LayerNorm kernel failed, falling back: %s", e)
+            return original(self, x, x_size)
+
+    cls.forward = forward
 
 
 _hip_dwconv_failed = False
@@ -628,3 +730,7 @@ def apply_spandrel_patches() -> None:
             _patch_dat_adaptive_modules()
         except Exception as e:  # noqa: BLE001
             logger.warning("Could not patch DAT adaptive attention modules: %s", e)
+        try:
+            _patch_dat_block()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Could not patch DAT blocks: %s", e)
