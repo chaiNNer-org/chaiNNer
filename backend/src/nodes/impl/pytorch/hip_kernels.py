@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ctypes
+import hashlib
 import os
 import sys
 import threading
@@ -723,9 +724,14 @@ class _Hip:
         if err != 0:
             raise RuntimeError(f"{what} failed with HIP error {err}")
 
-    def _compile(self, device_index: int, program: str) -> None:
-        source, names, extra_opts = _PROGRAMS[program]
-        arch = torch.cuda.get_device_properties(device_index).gcnArchName.split(":")[0]
+    def _hiprtc_version(self) -> str:
+        major, minor = ctypes.c_int(), ctypes.c_int()
+        if self.rtc.hiprtcVersion(ctypes.byref(major), ctypes.byref(minor)) != 0:
+            return "unknown"
+        return f"{major.value}.{minor.value}"
+
+    def _build(self, program: str, source: str, opts: list[bytes]) -> bytes:
+        """Compiles a program with HIPRTC and returns the code object."""
         prog = ctypes.c_void_p()
         self._check(
             self.rtc.hiprtcCreateProgram(
@@ -734,7 +740,6 @@ class _Hip:
             "hiprtcCreateProgram",
         )
         try:
-            opts = [f"--offload-arch={arch}".encode(), b"-O3"] + [o.encode() for o in extra_opts]
             err = self.rtc.hiprtcCompileProgram(
                 prog, len(opts), (ctypes.c_char_p * len(opts))(*opts)
             )
@@ -750,21 +755,76 @@ class _Hip:
             self._check(self.rtc.hiprtcGetCodeSize(prog, ctypes.byref(size)), "hiprtcGetCodeSize")
             code = ctypes.create_string_buffer(size.value)
             self._check(self.rtc.hiprtcGetCode(prog, code), "hiprtcGetCode")
+            return code.raw
         finally:
             self.rtc.hiprtcDestroyProgram(ctypes.byref(prog))
 
+    def _load(self, device_index: int, names: list[str], code: bytes) -> None:
         with torch.cuda.device(device_index):
             torch.cuda.current_stream(device_index)  # ensure the context exists
             module = ctypes.c_void_p()
-            self._check(self.hip.hipModuleLoadData(ctypes.byref(module), code), "hipModuleLoadData")
+            self._check(
+                self.hip.hipModuleLoadData(ctypes.byref(module), ctypes.c_char_p(code)),
+                "hipModuleLoadData",
+            )
+            funcs = {}
             for name in names:
                 fn = ctypes.c_void_p()
                 self._check(
                     self.hip.hipModuleGetFunction(ctypes.byref(fn), module, name.encode()),
                     "hipModuleGetFunction",
                 )
-                self.funcs[(device_index, name)] = fn
+                funcs[(device_index, name)] = fn
+            self.funcs.update(funcs)
+
+    def _compile(self, device_index: int, program: str) -> None:
+        """
+        Loads a program's kernels for a device, from the on-disk cache if
+        possible. Compiled code objects are kept in %APPDATA%/chaiNNer/hip_cache,
+        keyed by everything that affects the result: kernel source, compiler
+        options, GPU architecture and HIPRTC version. A changed kernel or driver
+        simply gets a new file; stale files of the same program and GPU are
+        removed.
+        """
+        source, names, extra_opts = _PROGRAMS[program]
+        arch = torch.cuda.get_device_properties(device_index).gcnArchName.split(":")[0]
+        opts = [f"--offload-arch={arch}".encode(), b"-O3"] + [o.encode() for o in extra_opts]
+
+        digest = hashlib.sha256(
+            b"|".join([source.encode(), *opts, self._hiprtc_version().encode()])
+        ).hexdigest()[:24]
+        prefix = f"{program}-{arch}-"
+        cache_dir = _cache_dir()
+        path = cache_dir / f"{prefix}{digest}.co" if cache_dir else None
+
+        if path is not None and path.is_file():
+            try:
+                self._load(device_index, names, path.read_bytes())
+                logger.debug("Loaded cached HIP %s kernels for %s", program, arch)
+                return
+            except Exception as e:  # noqa: BLE001
+                logger.info("Ignoring unusable cached HIP %s kernels: %s", program, e)
+                try:
+                    path.unlink()
+                except OSError:
+                    pass
+
+        code = self._build(program, source, opts)
+        self._load(device_index, names, code)
         logger.info("Compiled HIP %s kernels for %s", program, arch)
+
+        if path is not None:
+            try:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                for old in path.parent.glob(f"{prefix}*.co"):
+                    if old != path:
+                        old.unlink(missing_ok=True)
+                # write a temp file first, so a concurrent reader never sees half a file
+                tmp = path.with_suffix(f".{os.getpid()}.tmp")
+                tmp.write_bytes(code)
+                os.replace(tmp, path)
+            except OSError as e:
+                logger.debug("Could not cache HIP %s kernels: %s", program, e)
 
     def get(self, device_index: int, program: str, name: str) -> ctypes.c_void_p:
         fn = self.funcs.get((device_index, name))
@@ -788,6 +848,12 @@ class _Hip:
 
 _hip: _Hip | None = None
 _hip_lock = threading.Lock()
+
+
+def _cache_dir() -> Path | None:
+    """Where compiled kernels are kept between runs, next to the MIOpen cache."""
+    appdata = os.environ.get("APPDATA")
+    return Path(appdata) / "chaiNNer" / "hip_cache" if appdata else None
 
 
 def hip_kernels_available() -> bool:
