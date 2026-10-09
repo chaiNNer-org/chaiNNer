@@ -1,37 +1,28 @@
 # chaiNNer
 
-[![GitHub Latest Release](https://img.shields.io/github/v/release/chaiNNer-org/chaiNNer)](https://github.com/chaiNNer-org/chaiNNer/releases/latest)
-[![GitHub Total Downloads](https://img.shields.io/github/downloads/chaiNNer-org/chaiNNer/total)](https://github.com/chaiNNer-org/chaiNNer/releases)
-[![License](https://img.shields.io/github/license/chaiNNer-org/chaiNNer)](./LICENSE)
-[![Discord](https://img.shields.io/discord/930865462852591648?label=Discord&logo=Discord&logoColor=white&color=5865F2)](https://discord.gg/pzvAKPKyHM)
-[![ko-fi](https://img.shields.io/badge/Ko--fi-Support%20chaiNNer%20-hotpink?logo=kofi&logoColor=white)](https://ko-fi.com/T6T46KTTW)
-![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
-
 <p align="center">
   <a href="https://github.com/chaiNNer-org/chaiNNer/releases" target="_blank">
     <img src="docs/assets/banner.png" width="720" />
   </a>
 </p>
 
-A node-based image processing GUI aimed at making chaining image processing tasks easy and customizable. Born as an AI upscaling application, chaiNNer has grown into an extremely flexible and powerful programmatic image processing application.
+A custom fork of node-based image processing GUI aimed at making chaining image processing tasks easy and customizable. Born as an AI upscaling application, chaiNNer has grown into an extremely flexible and powerful programmatic image processing application.
 
 ChaiNNer gives you a level of customization of your image processing workflow that very few others do. Not only do you have full control over your processing pipeline, you can do incredibly complex tasks just by connecting a few nodes together.
 
-ChaiNNer is also cross-platform, meaning you can run it on Windows, MacOS, and Linux.
+For help, suggestions, or just to hang out, you can join the [original chaiNNer Discord server](https://discord.gg/pzvAKPKyHM)
 
-For help, suggestions, or just to hang out, you can join the [chaiNNer Discord server](https://discord.gg/pzvAKPKyHM)
-
-ChaiNNer is under active development. If you're knowledgeable in TypeScript, React, or Python, feel free to contribute to this project and help us continue to improve it.
+This fork of ChaiNNer is not in active development, and only upgraded for Image upscale purposes.
 
 ## Installation
 
-Download the latest release from the [Github releases page](https://github.com/chaiNNer-org/chaiNNer/releases) and run the installer best suited for your system. Simple as that.
+Download the latest release from the [Github releases page](https://github.com/florentia-mysteria/chaiNNer-rocm-windows/releases) and run the installer best suited for your system. Simple as that.
 
 You don't even need to have Python installed, as chaiNNer will download an isolated integrated Python build on startup. From there, you can install all the other dependencies via the Dependency Manager.
 
 If you do wish to use your system Python installation still, you can turn the system Python setting on. However, it is much more recommended to use integrated Python. If you do wish to use your system Python, Python 3.10 or later is required (3.11+ recommended).
 
-If you'd like to test the latest changes and tweaks, try out our [nightly builds](https://github.com/chaiNNer-org/chaiNNer-nightly)
+If you'd like to test the latest changes and tweaks, try out our nightly builds
 
 ## How To Use
 
@@ -76,27 +67,18 @@ You can right-click in the editor viewport to show an inline nodes list to selec
 
 ## Compatibility Notes
 
--   MacOS versions 10.x and below are not supported.
+-   Windows versions 8.1 and below are not supported.
 
--   Windows versions 8.1 and below are also not supported.
+-   Linux support is not tested for this fork.
 
--   Apple Silicon Macs are supported with PyTorch MPS acceleration. ONNX only supports the CPU Execution Provider, and NCNN may not work properly on some configurations.
-
--   Some NCNN users with non-Nvidia GPUs might get all-black outputs. I am not sure what to do to fix this as it appears to be due to the graphics driver crashing as a result of going out of memory. If this happens to you, try manually setting a tiling amount.
-
--   To use the Clipboard nodes, Linux users need to have xclip or, for wayland users, wl-copy installed.
+-   Required ROCm 10 compatible GPU (RX7600 or higher) or APU (Ryzen 3 210 or higher)
 
 ## GPU Support
 
 **Nvidia GPUs:** Full support via PyTorch (CUDA), ONNX, and TensorRT. TensorRT offers the best performance for supported models.
 
 **AMD GPUs:**
-- On Linux, AMD GPUs can use PyTorch via ROCm
-- NCNN is available on all platforms for AMD GPUs
-
-**Apple Silicon (M1/M2/M3):** PyTorch MPS acceleration is supported.
-
-**Intel GPUs:** NCNN inference is supported for Intel GPUs.
+- Windows ROCm support from the box.
 
 **CPU:** All frameworks support CPU-only mode as a fallback.
 
@@ -108,7 +90,7 @@ ChaiNNer currently supports a limited amount of neural network architectures. Mo
 
 ### PyTorch
 
-As of v0.21.0, chaiNNer uses our new package called [Spandrel](https://github.com/chaiNNer-org/spandrel) to support Pytorch model architectures. For a list of what's supported, [check out the list there](https://github.com/chaiNNer-org/spandrel#model-architecture-support).
+As of v0.21.0, chaiNNer uses original [chaiNNER](https://github.com/chaiNNer-org/chaiNNer) package called [Spandrel](https://github.com/chaiNNer-org/spandrel) to support Pytorch model architectures. For a list of what's supported, [check out the list there](https://github.com/chaiNNer-org/spandrel#model-architecture-support).
 
 ### NCNN
 
@@ -145,6 +127,6 @@ For FAQ information, view the [FAQ document](https://github.com/chaiNNer-org/cha
 
 ## Documentation
 
-For in-depth documentation covering various aspects of ChaiNNer, including CLI usage, data representation, and a contributor's guide, kindly refer to our [ChaiNNer Wiki](https://github.com/chaiNNer-org/chaiNNer/wiki).
+For in-depth documentation covering various aspects of ChaiNNer, including CLI usage, data representation, and a contributor's guide, refer to original [ChaiNNer Wiki](https://github.com/chaiNNer-org/chaiNNer/wiki).
 
 
