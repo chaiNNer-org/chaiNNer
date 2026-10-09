@@ -344,7 +344,7 @@ def _aim_params(module: nn.Module, dtype: torch.dtype):
 def _channel_map(module: nn.Module, t: torch.Tensor) -> torch.Tensor:
     """channel_interaction(t as an image) as (B, 1, C), from the token layout."""
     B, _, C = t.shape
-    pooled = t.float().mean(dim=1).to(t.dtype).view(B, C, 1, 1)
+    pooled = torch.mean(t, dim=1, dtype=torch.float32).to(t.dtype).view(B, C, 1, 1)
     out = pooled
     for m in list(module.channel_interaction)[1:]:
         out = m(out)
@@ -463,7 +463,7 @@ def _patch_dat_adaptive_modules() -> None:
     """
     from spandrel.architectures.DAT.__arch import DAT as dat_arch
 
-    from .hip_kernels import dwconv_tokens
+    from .hip_kernels import dwconv_tokens, gate_mix
 
     asa_cls = dat_arch.Adaptive_Spatial_Attention
     aca_cls = dat_arch.Adaptive_Channel_Attention
@@ -524,7 +524,7 @@ def _patch_dat_adaptive_modules() -> None:
             conv_x = dwconv_tokens(qkv_lin, 2 * C, C, H, W, params[0], params[1], gelu=True)
             channel_map = _channel_map(self, conv_x)  # B, 1, C
             spatial_map = _spatial_map(self, attened_x, params)  # B, L, 1
-            x = attened_x * torch.sigmoid(channel_map) + torch.sigmoid(spatial_map) * conv_x
+            x = gate_mix(attened_x, conv_x, spatial_map, channel_map, a_uses_tok=False)
             return self.proj_drop(self.proj(x))
         except Exception as e:  # noqa: BLE001
             _hip_aim_failed = True
@@ -553,7 +553,7 @@ def _patch_dat_adaptive_modules() -> None:
             conv_x = dwconv_tokens(qkv_lin, 2 * C, C, H, W, params[0], params[1], gelu=True)
             channel_map = _channel_map(self, attened_x)  # B, 1, C
             spatial_map = _spatial_map(self, conv_x, params)  # B, N, 1
-            x = attened_x * torch.sigmoid(spatial_map) + conv_x * torch.sigmoid(channel_map)
+            x = gate_mix(attened_x, conv_x, spatial_map, channel_map, a_uses_tok=True)
             return self.proj_drop(self.proj(x))
         except Exception as e:  # noqa: BLE001
             _hip_aim_failed = True

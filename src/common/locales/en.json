@@ -184,6 +184,10 @@
             "allowMultipleInstances": {
                 "label": "Allow multiple concurrent instances",
                 "description": "Enable multiple concurrent instances of chaiNNer. This is not recommended, but if your chain is not using enough of your system resources, you might find this helpful for running things concurrently."
+            },
+            "lowMemorySave": {
+                "label": "Low memory image saving (experimental)",
+                "description": "Save Image converts very large images to 8/16 bit in parts instead of all at once. This greatly reduces peak RAM usage for huge images."
             }
         },
         "noOptionsFound": "No options found.",

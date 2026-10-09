@@ -105,11 +105,34 @@ def normalize(img: np.ndarray) -> np.ndarray:
     return np.clip(img, 0, 1)
 
 
-def to_uint8(img: np.ndarray, normalized: bool = False) -> np.ndarray:
+_LOW_MEMORY_CHUNK_BYTES = 64 * 1024 * 1024
+
+
+def _scale_round_low_memory(img: np.ndarray, scale: int, dtype: type) -> np.ndarray:
+    """
+    Same result as `(img * scale).round().astype(dtype)`, but converts the image a band of rows
+    at a time, so only one small float32 temporary is alive instead of two full-size copies.
+    """
+    out = np.empty(img.shape, dtype=dtype)
+    if img.size == 0:
+        return out
+    row_bytes = max(1, img[0].nbytes)
+    rows = max(1, _LOW_MEMORY_CHUNK_BYTES // row_bytes)
+    for y in range(0, img.shape[0], rows):
+        band = img[y : y + rows] * scale
+        np.round(band, out=band)
+        out[y : y + rows] = band
+    return out
+
+
+def to_uint8(
+    img: np.ndarray, normalized: bool = False, low_memory: bool = False
+) -> np.ndarray:
     """
     Returns a new uint8 image with the given image data.
 
     If `normalized` is `False`, then the image will be normalized before being converted to uint8.
+    If `low_memory` is `True`, the conversion is done in bands to reduce peak RAM usage.
     """
     if img.dtype == np.uint8:
         return img.copy()
@@ -117,14 +140,19 @@ def to_uint8(img: np.ndarray, normalized: bool = False) -> np.ndarray:
     if not normalized or img.dtype != np.float32:
         img = normalize(img)
 
+    if low_memory:
+        return _scale_round_low_memory(img, 255, np.uint8)
     return (img * 255).round().astype(np.uint8)
 
 
-def to_uint16(img: np.ndarray, normalized: bool = False) -> np.ndarray:
+def to_uint16(
+    img: np.ndarray, normalized: bool = False, low_memory: bool = False
+) -> np.ndarray:
     """
     Returns a new uint16 image with the given image data.
 
     If `normalized` is `False`, then the image will be normalized before being converted to uint16.
+    If `low_memory` is `True`, the conversion is done in bands to reduce peak RAM usage.
     """
     if img.dtype == np.uint16:
         return img.copy()
@@ -132,6 +160,8 @@ def to_uint16(img: np.ndarray, normalized: bool = False) -> np.ndarray:
     if not normalized or img.dtype != np.float32:
         img = normalize(img)
 
+    if low_memory:
+        return _scale_round_low_memory(img, 65535, np.uint16)
     return (img * 65535).round().astype(np.uint16)
 
 

@@ -490,6 +490,16 @@ const AdvancedSettings = memo(() => {
     const [hardwareAcceleration, setHardwareAcceleration] = useMutSetting('hardwareAcceleration');
     const [allowMultipleInstances, setAllowMultipleInstances] =
         useMutSetting('allowMultipleInstances');
+    const [packageSettings, setPackageSettings] = useMutSetting('packageSettings');
+    const lowMemorySave = packageSettings.chaiNNer_standard?.low_memory_save === true;
+    const setLowMemorySave = useCallback(
+        (value: boolean) =>
+            setPackageSettings((prev) => ({
+                ...prev,
+                chaiNNer_standard: { ...prev.chaiNNer_standard, low_memory_save: value },
+            })),
+        [setPackageSettings]
+    );
 
     return (
         <VStack
@@ -537,6 +547,20 @@ const AdvancedSettings = memo(() => {
                     ),
                 }}
                 value={hardwareAcceleration}
+            />
+            <ToggleSetting
+                setValue={setLowMemorySave}
+                setting={{
+                    label: t(
+                        'settings.advanced.lowMemorySave.label',
+                        'Low memory image saving (experimental)'
+                    ),
+                    description: t(
+                        'settings.advanced.lowMemorySave.description',
+                        'Save Image converts very large images to 8/16 bit in parts instead of all at once. This greatly reduces peak RAM usage for huge images.'
+                    ),
+                }}
+                value={lowMemorySave}
             />
             {/* TODO: Not working on macOS ATM. A new window must be created. */}
             {!isMac && (

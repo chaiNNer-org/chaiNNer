@@ -9,7 +9,7 @@ import numpy as np
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 
-from api import KeyInfo, Lazy
+from api import KeyInfo, Lazy, NodeContext
 from logger import logger
 from nodes.groups import Condition, if_enum_group, if_group
 from nodes.impl.dds.format import (
@@ -312,8 +312,10 @@ def DdsMipMapsDropdown() -> DropDownInput:
     key_info=KeyInfo.enum(4),
     side_effects=True,
     limited_to_8bpc="Image will be saved with 8 bits/channel by default. Some formats support higher bit depths.",
+    node_context=True,
 )
 def save_image_node(
+    context: NodeContext,
     lazy_image: Lazy[np.ndarray],
     base_directory: Path,
     relative_path: str | None,
@@ -347,11 +349,12 @@ def save_image_node(
 
     logger.debug("Writing image to path: %s", full_path)
     img = lazy_image.value
+    low_memory = context.settings.get_bool("low_memory_save", False)
 
     # DDS files are handled separately
     if image_format == ImageFormat.DDS:
         # we only support 8bits of precision for DDS
-        img = to_uint8(img, normalized=True)
+        img = to_uint8(img, normalized=True, low_memory=low_memory)
 
         # remap legacy DX9 formats
         legacy_dds = dds_format in LEGACY_TO_DXGI or dds_format in PREFER_DX9
@@ -373,7 +376,7 @@ def save_image_node(
     # Some formats are handled by PIL
     if image_format in (ImageFormat.GIF, ImageFormat.TGA, ImageFormat.AVIF):
         # we only support 8bits of precision for those formats
-        img = to_uint8(img, normalized=True)
+        img = to_uint8(img, normalized=True, low_memory=low_memory)
         args = {}
 
         if image_format == ImageFormat.AVIF:
@@ -429,9 +432,9 @@ def save_image_node(
                 precision = "f32"
 
         if precision == "u8":
-            img = to_uint8(img, normalized=True)
+            img = to_uint8(img, normalized=True, low_memory=low_memory)
         elif precision == "u16":
-            img = to_uint16(img, normalized=True)
+            img = to_uint16(img, normalized=True, low_memory=low_memory)
         elif precision == "f32":
             # chainner images are always f32
             pass

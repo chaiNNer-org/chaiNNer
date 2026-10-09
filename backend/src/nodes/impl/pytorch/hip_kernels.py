@@ -476,6 +476,29 @@ __device__ void add_ln(const T* __restrict__ x, const T* __restrict__ a, T* __re
 extern "C" __global__ void add_ln_f32(const float* x, const float* a, float* sum_out, float* out, LN_ARGS) { add_ln<float>(x, a, sum_out, out, LN_PASS); }
 extern "C" __global__ void add_ln_f16(const _Float16* x, const _Float16* a, _Float16* sum_out, _Float16* out, LN_ARGS) { add_ln<_Float16>(x, a, sum_out, out, LN_PASS); }
 extern "C" __global__ void add_ln_bf16(const bf16_t* x, const bf16_t* a, bf16_t* sum_out, bf16_t* out, LN_ARGS) { add_ln<bf16_t>(x, a, sum_out, out, LN_PASS); }
+
+// DAT's Adaptive Interaction gating, in one pass over (B, N, C):
+//   out = a * sigmoid(tok[b, n]) + b * sigmoid(ch[b, c])   (a_uses_tok = 1)
+//   out = a * sigmoid(ch[b, c]) + b * sigmoid(tok[b, n])   (a_uses_tok = 0)
+// PyTorch runs this as four broadcast kernels with temporaries.
+template <typename T>
+__device__ void gate_mix(const T* __restrict__ a, const T* __restrict__ bt,
+                         const T* __restrict__ tok, const T* __restrict__ ch,
+                         T* __restrict__ out, int C, long N, long total, int a_uses_tok) {
+    for (long i = (long)blockIdx.x * 256 + threadIdx.x; i < total; i += (long)gridDim.x * 256) {
+        const long t = i / C;
+        const int c = (int)(i - t * C);
+        const long bi = t / N;
+        const float ts = 1.0f / (1.0f + __expf(-load_val(tok, t)));
+        const float cs = 1.0f / (1.0f + __expf(-load_val(ch, bi * C + c)));
+        const float va = load_val(a, i), vb = load_val(bt, i);
+        store_val(out, i, a_uses_tok ? va * ts + vb * cs : va * cs + vb * ts);
+    }
+}
+
+extern "C" __global__ void gate_mix_f32(const float* a, const float* b, const float* tok, const float* ch, float* out, int C, long N, long total, int a_uses_tok) { gate_mix<float>(a, b, tok, ch, out, C, N, total, a_uses_tok); }
+extern "C" __global__ void gate_mix_f16(const _Float16* a, const _Float16* b, const _Float16* tok, const _Float16* ch, _Float16* out, int C, long N, long total, int a_uses_tok) { gate_mix<_Float16>(a, b, tok, ch, out, C, N, total, a_uses_tok); }
+extern "C" __global__ void gate_mix_bf16(const bf16_t* a, const bf16_t* b, const bf16_t* tok, const bf16_t* ch, bf16_t* out, int C, long N, long total, int a_uses_tok) { gate_mix<bf16_t>(a, b, tok, ch, out, C, N, total, a_uses_tok); }
 """
 
 _ATTN_WMMA_SRC = r"""
@@ -696,7 +719,8 @@ _PROGRAMS: dict[str, tuple[str, list[str], list[str]]] = {
         _SG_SRC,
         [f"sg_{k}_{s}" for k in ("stats", "gate") for s in _DTYPE_SUFFIX.values()]
         + [f"dw_tokens_{s}" for s in _DTYPE_SUFFIX.values()]
-        + [f"add_ln_{s}" for s in _DTYPE_SUFFIX.values()],
+        + [f"add_ln_{s}" for s in _DTYPE_SUFFIX.values()]
+        + [f"gate_mix_{s}" for s in _DTYPE_SUFFIX.values()],
         [],
     ),
 }
@@ -1222,3 +1246,45 @@ def layer_norm(
         _stream(x),
     )
     return sum_out, out
+
+
+# --- adaptive interaction gating ------------------------------------------------
+
+
+def gate_mix(
+    a: torch.Tensor,
+    b: torch.Tensor,
+    tok: torch.Tensor,
+    ch: torch.Tensor,
+    a_uses_tok: bool,
+) -> torch.Tensor:
+    """
+    a * sigmoid(tok) + b * sigmoid(ch) (or with tok/ch swapped between a and b)
+    for (B, N, C) tensors a and b, a per-token map tok (B, N, 1) and a
+    per-channel map ch (B, 1, C), in one pass.
+    """
+    B, N, C = a.shape
+    a, b = a.contiguous(), b.contiguous()
+    tok = tok.reshape(B, N).to(a.dtype).contiguous()
+    ch = ch.reshape(B, C).to(a.dtype).contiguous()
+    out = torch.empty_like(a)
+    total = a.numel()
+    hip = _get_hip()
+    hip.launch(
+        hip.get(a.device.index or 0, "spatial_gate", f"gate_mix_{_DTYPE_SUFFIX[a.dtype]}"),
+        (min((total + 255) // 256, 65535), 1, 1),
+        (256, 1, 1),
+        [
+            ctypes.c_void_p(a.data_ptr()),
+            ctypes.c_void_p(b.data_ptr()),
+            ctypes.c_void_p(tok.data_ptr()),
+            ctypes.c_void_p(ch.data_ptr()),
+            ctypes.c_void_p(out.data_ptr()),
+            ctypes.c_int(C),
+            ctypes.c_int64(N),
+            ctypes.c_int64(total),
+            ctypes.c_int(1 if a_uses_tok else 0),
+        ],
+        _stream(a),
+    )
+    return out

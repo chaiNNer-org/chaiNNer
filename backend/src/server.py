@@ -2,7 +2,10 @@ from __future__ import annotations
 
 # Must run before any other native library is loaded into this process.
 # See torch_preload for why.
-from torch_preload import preload_rocm_torch  # noqa: E402  isort: skip
+from torch_preload import (  # noqa: E402  isort: skip
+    preload_rocm_torch,
+    warm_up_miopen_in_background,
+)
 
 preload_rocm_torch()
 
@@ -702,6 +705,7 @@ async def import_packages(
 
 async def setup(sanic_app: Sanic):
     await import_packages(AppContext.get(sanic_app).config)
+    warm_up_miopen_in_background()
 
 
 exit_code = 0
