@@ -31,7 +31,7 @@ interface IteratorProcessProps {
 }
 
 const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessProps) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { paused } = useContext(ExecutionStatusContext);
 
     const { progress, eta, index, total } = nodeProgress;
@@ -43,9 +43,9 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
 
     let etaText;
     if (paused) {
-        etaText = 'Paused';
+        etaText = t('node.paused', 'Paused');
     } else if (progress >= 1) {
-        etaText = 'Finished';
+        etaText = t('node.finished', 'Finished');
     } else if (isCustomProgress) {
         // No ETA available for custom progress
         etaText = null;
@@ -56,7 +56,7 @@ const IteratorProcess = memo(({ nodeProgress, progressColor }: IteratorProcessPr
                 <ReactTimeAgo
                     future
                     date={etaDate}
-                    locale="en-US"
+                    locale={i18n.language}
                     timeStyle="round"
                     tooltip={false}
                 />

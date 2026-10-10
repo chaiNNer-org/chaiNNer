@@ -31,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { BsFillPencilFill, BsPaletteFill } from 'react-icons/bs';
 import { FaPython, FaTools } from 'react-icons/fa';
 import { useContext } from 'use-context-selector';
+import { normalizeLanguage } from '../../common/i18n';
 import { isMac } from '../appConstants';
 import { BackendContext } from '../contexts/BackendContext';
 import { useMutSetting } from '../hooks/useSettings';
@@ -131,7 +132,7 @@ const AppearanceSettings = memo(() => {
             <DropdownSetting
                 setValue={(value) => setLanguage(value)}
                 setting={{
-                    label: t('settings.appearance.language.label', 'Language (requires restart)'),
+                    label: t('settings.appearance.language.label', 'Language'),
                     description: t(
                         'settings.appearance.language.description',
                         "Choose the language for chaiNNer's interface."
@@ -142,7 +143,6 @@ const AppearanceSettings = memo(() => {
                         { label: t('languages.german', 'Deutsch'), value: 'de' },
                         { label: t('languages.french', 'Français'), value: 'fr' },
                         { label: t('languages.italian', 'Italiano'), value: 'it' },
-                        { label: t('languages.portuguese', 'Português'), value: 'pt' },
                         { label: t('languages.japanese', '日本語'), value: 'ja' },
                         { label: t('languages.chinese', '中文'), value: 'zh-CN' },
                         { label: t('languages.russian', 'Русский'), value: 'ru' },
@@ -150,7 +150,6 @@ const AppearanceSettings = memo(() => {
                         { label: t('languages.dutch', 'Nederlands'), value: 'nl' },
                         { label: t('languages.polish', 'Polski'), value: 'pl' },
                         { label: t('languages.turkish', 'Türkçe'), value: 'tr' },
-                        { label: t('languages.arabic', 'العربية'), value: 'ar' },
                         { label: t('languages.hindi', 'हिन्दी'), value: 'hi' },
                         {
                             label: t('languages.brazilianPortuguese', 'Português (Brasil)'),
@@ -159,7 +158,7 @@ const AppearanceSettings = memo(() => {
                     ],
                     small: true,
                 }}
-                value={language}
+                value={normalizeLanguage(language)}
             />
 
             <ToggleSetting

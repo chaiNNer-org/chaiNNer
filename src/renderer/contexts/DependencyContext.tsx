@@ -678,7 +678,13 @@ const PythonSection = memo(
                         borderRadius={8}
                         label={
                             <Markdown nonInteractive>
-                                {`Copy Python path to clipboard\n\nPython path is: \\\n\`${pythonInfo.python}\``}
+                                {`${t(
+                                    'dependencyManager.copyPythonPath',
+                                    'Copy Python path to clipboard'
+                                )}\n\n${t(
+                                    'dependencyManager.pythonPath',
+                                    'Python path is:'
+                                )} \\\n\`${pythonInfo.python}\``}
                             </Markdown>
                         }
                         maxWidth="none"

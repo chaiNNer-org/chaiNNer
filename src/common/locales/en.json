@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "Language (requires restart)",
+                "label": "Language",
                 "description": "Choose the language for chaiNNer's interface."
             },
             "chainAnimation": {
@@ -206,18 +206,8 @@
             "randomSeedAria": "Random Seed"
         }
     },
-    "logo": {
-        "background": "bg",
-        "front": "front"
-    },
     "timer": {
-        "executionTook": "Execution took approximately {{duration}}.",
-        "hour_one": "hour",
-        "hour_other": "hours",
-        "minute_one": "minute",
-        "minute_other": "minutes",
-        "second_one": "second",
-        "second_other": "seconds"
+        "executionTook": "Execution took approximately {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "The values of {{inputs}} are currently linked to the same value. Click here to undo this link.",
@@ -229,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -237,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -250,10 +238,7 @@
         "title": "Favorites",
         "noFavorites": "No Favorites.",
         "addFavoritesTooltip": "Add Favorites by right-clicking nodes and selecting Add to Favorites.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Add Favorites by hovering over nodes and clicking the",
-            "afterIcon": "icon, or by right-clicking and selecting Add to Favorites."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "Add to Favorites",
         "removeFromFavorites": "Remove from Favorites"
     },
@@ -324,7 +309,9 @@
         "disable": "Disable",
         "skip": "Skip",
         "eta": "ETA:",
-        "outdated": "Outdated"
+        "outdated": "Outdated",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "Reset to old color",
@@ -387,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "is",
-            "isNot": "is not",
-            "oneOf": "one of",
-            "ofType": "of type",
-            "allOf": "All of",
-            "atLeastOneOf": "At least one of",
-            "followingConditions": "the following conditions must be met:",
-            "condition": "Condition:"
+            "condition": "Condition:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "optional",
