@@ -65,7 +65,7 @@
             "clickToSelectFile": "クリックしてファイルを選択..."
         },
         "number": {
-            "copyText": "番号をコピー",
+            "copyText": "数値をコピー",
             "paste": "貼り付け"
         },
         "text": {
@@ -129,7 +129,7 @@
             },
             "minimap": {
                 "label": "ミニマップ",
-                "description": "ノードエディターの右下角に現在のチェーンのミニマップを有効にします。"
+                "description": "ノードエディターの右下隅に現在のチェーンのミニマップを表示します。"
             },
             "snapToGrid": {
                 "label": "グリッドにスナップ",
@@ -161,7 +161,7 @@
                 "description": "バンドルされたPythonの代わりにシステムPythonをchaiNNerの処理に使用します（推奨されません）"
             },
             "systemPythonLocation": {
-                "label": "システムPythonの場所（オプション）",
+                "label": "システムPythonの場所（任意）",
                 "description": "希望する場合は、'python3'または'python'によって呼び出されるデフォルトのものではなく、特定のPythonバイナリを使用します。これは、複数のPythonバージョンがインストールされており、特定のものを選択したい場合に便利です。",
                 "placeholder": "ファイルを選択...",
                 "clear": "クリア",
@@ -175,7 +175,7 @@
             },
             "experimentalFeatures": {
                 "label": "実験的機能を有効にする",
-                "description": "完成する前に実験的機能を試すために有効にします。"
+                "description": "開発中の実験的機能を有効にして、先行して試せるようにします。"
             },
             "hardwareAcceleration": {
                 "label": "ハードウェアアクセラレーションを有効にする（再起動が必要）",
@@ -183,7 +183,7 @@
             },
             "allowMultipleInstances": {
                 "label": "複数の同時インスタンスを許可",
-                "description": "chaiNNerの複数の同時インスタンスを有効にします。これは推奨されませんが、チェーンがシステムリソースを十分に使用していない場合、同時に物事を実行するのに役立つ場合があります。"
+                "description": "chaiNNerの複数の同時インスタンスを有効にします。これは推奨されませんが、チェーンがシステムリソースを十分に使用していない場合、複数の処理を同時に実行するのに役立つ場合があります。"
             }
         },
         "noOptionsFound": "オプションが見つかりません。",
@@ -191,14 +191,14 @@
     },
     "setup": {
         "checkingPort": "利用可能なポートをチェック中...",
-        "checkingPython": "有効なPythonのシステム環境をチェック中...",
+        "checkingPython": "システム環境で有効なPythonを確認中...",
         "downloadingPython": "統合Pythonをダウンロード中...",
         "extractingPython": "ダウンロードしたファイルを展開中...",
         "loading": "読み込み中...",
         "startingBackend": "バックエンドプロセスを開始中..."
     },
     "typeTags": {
-        "optional": "オプション"
+        "optional": "任意"
     },
     "groups": {
         "seed": {
@@ -207,7 +207,7 @@
         }
     },
     "node": {
-        "disableHint": "ヒント：Ctrl+クリックでオプションを循環します。",
+        "disableHint": "ヒント：Ctrl+クリックでオプションを順に切り替えます。",
         "note": {
             "placeholder": "ノートテキスト"
         },
@@ -218,14 +218,14 @@
         "skip": "スキップ",
         "eta": "ETA：",
         "outdated": "古い",
-        "paused": "Paused",
-        "finished": "Finished"
+        "paused": "一時停止中",
+        "finished": "完了"
     },
     "timer": {
         "executionTook": "実行には約{{duration}}かかりました。"
     },
     "linkedInputs": {
-        "currentlyLinked": "{{inputs}}の値は現在同じ値にリンクされています。ここをクリックしてこのリンクを元に戻します。",
+        "currentlyLinked": "{{inputs}}の値は現在同じ値にリンクされています。ここをクリックするとリンクを解除します。",
         "clickToLink": "ここをクリックして{{inputs}}を同じ値にリンクします。"
     },
     "languages": {
@@ -246,14 +246,14 @@
     },
     "search": {
         "placeholder": "検索...",
-        "missingNodes": "ノードが見つかりませんか？依存関係マネージャーを開くためにクリックしてください！",
+        "missingNodes": "ノードが足りませんか？クリックして依存関係マネージャーを開いてください！",
         "noCompatibleNodes": "互換性のあるノードが見つかりません。"
     },
     "favorites": {
         "title": "お気に入り",
         "noFavorites": "お気に入りがありません。",
         "addFavoritesTooltip": "ノードを右クリックして「お気に入りに追加」を選択してお気に入りを追加します。",
-        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
+        "addFavoritesTooltipExpanded": "ノードにマウスを合わせて<star/>アイコンをクリックするか、右クリックして「お気に入りに追加」を選択すると、お気に入りに追加できます。",
         "addToFavorites": "お気に入りに追加",
         "removeFromFavorites": "お気に入りから削除"
     },
@@ -265,8 +265,8 @@
         "title": "依存関係マネージャー",
         "manageDependencies": "依存関係を管理",
         "updatesAvailable": "利用可能なアップデート",
-        "updatesAvailableDescription_one": "利用可能な依存関係アップデートがある{{count}}個のパッケージがあります。",
-        "updatesAvailableDescription_other": "利用可能な依存関係アップデートがある{{count}}個のパッケージがあります。",
+        "updatesAvailableDescription_one": "{{count}}個のパッケージで依存関係のアップデートが利用可能です。",
+        "updatesAvailableDescription_other": "{{count}}個のパッケージで依存関係のアップデートが利用可能です。",
         "openDependencyManager": "依存関係マネージャーを開く",
         "packages": "パッケージ",
         "features": "機能",
@@ -298,8 +298,8 @@
         "installing": "{{name}}をインストール中...",
         "uninstalling": "{{name}}をアンインストール中...",
         "copyPythonPath": "Pythonパスをクリップボードにコピー",
-        "pythonPath": "Pythonパスは：",
-        "installAllPackages": "{{operations}}すべてのパッケージ（{{size}}）",
+        "pythonPath": "Pythonパス：",
+        "installAllPackages": "すべてのパッケージを{{operations}}（{{size}}）",
         "package_one": "パッケージ",
         "package_other": "パッケージ",
         "brackets": {
@@ -315,7 +315,7 @@
     },
     "color": {
         "resetToOld": "古い色にリセット",
-        "acceptNew": "新しい色を受け入れる"
+        "acceptNew": "新しい色を適用"
     },
     "edge": {
         "removeEdge": "エッジ削除ボタン"
@@ -340,8 +340,8 @@
         "resetInputs": "入力をリセット",
         "resetConnections": "接続をリセット",
         "resetAll": "すべてをリセット",
-        "enable": "有効",
-        "disable": "無効",
+        "enable": "有効化",
+        "disable": "無効化",
         "skip": "スキップ",
         "unlock": "ロック解除",
         "lock": "ロック",
@@ -356,8 +356,8 @@
         "resetInputs": "入力をリセット",
         "resetConnections": "接続をリセット",
         "resetAll": "すべてをリセット",
-        "enableAll": "すべてを有効",
-        "disableAll": "すべてを無効",
+        "enableAll": "すべて有効化",
+        "disableAll": "すべて無効化",
         "delete": "削除"
     },
     "edgeMenu": {
@@ -375,19 +375,19 @@
     "nodeDocumentation": {
         "conditionExplanation": {
             "condition": "条件：",
-            "allConditions": "All of the following conditions must be met:",
-            "anyCondition": "At least one of the following conditions must be met:",
-            "enumIs": "<name>{{name}}</name> is <options/>.",
-            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
-            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
-            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
-            "typeIs": "<name>{{name}}</name> is {{type}}.",
-            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
-            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
-            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
+            "allConditions": "次の条件をすべて満たす必要があります：",
+            "anyCondition": "次の条件のうち少なくとも1つを満たす必要があります：",
+            "enumIs": "<name>{{name}}</name>は<options/>です。",
+            "enumIsNot": "<name>{{name}}</name>は<options/>ではありません。",
+            "enumIsOneOf": "<name>{{name}}</name>は<options/>のいずれかです。",
+            "enumIsNotOneOf": "<name>{{name}}</name>は<options/>のいずれでもありません。",
+            "typeIs": "<name>{{name}}</name>は {{type}} です。",
+            "typeIsNot": "<name>{{name}}</name>は {{type}} ではありません。",
+            "typeIsOfType": "<name>{{name}}</name>の型は<type/>です。",
+            "typeIsNotOfType": "<name>{{name}}</name>の型は<type/>ではありません。"
         },
         "nodeDocs": {
-            "optional": "オプション",
+            "optional": "任意",
             "sequenced": "（シーケンス）",
             "supportedFileTypes": "サポートされているファイルタイプ：",
             "primaryInputDescription": "この入力は、サポートされているファイルタイプの主要入力です。これは、サポートされているファイルをchaiNNerにドラッグ&ドロップでき、この入力が自動的に入力されたノードが作成されることを意味します。",

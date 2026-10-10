@@ -47,7 +47,7 @@
         "viewUpdate": "Просмотреть обновление"
     },
     "inputs": {
-        "copyInputOverrideId": "Копировать ID переопределения ввода",
+        "copyInputOverrideId": "Копировать ID переопределения входа",
         "directory": {
             "clear": "Очистить",
             "copyFullDirectoryPath": "Копировать полный путь к папке",
@@ -73,7 +73,7 @@
             "paste": "Вставить",
             "invalidCharacter": "Недопустимый символ '{{character}}' (U+{{codePoint}})."
         },
-        "addInput": "Добавить ввод",
+        "addInput": "Добавить вход",
         "colorCompare": {
             "old": "старый",
             "new": "новый"
@@ -202,12 +202,12 @@
     },
     "groups": {
         "seed": {
-            "randomSeed": "Случайное семя",
-            "randomSeedAria": "Случайное семя"
+            "randomSeed": "Случайный сид",
+            "randomSeedAria": "Случайный сид"
         }
     },
     "timer": {
-        "executionTook": "Выполнение заняло приблизительно {{duration}}."
+        "executionTook": "Время выполнения: примерно {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "Значения {{inputs}} в настоящее время связаны с одним и тем же значением. Нажмите здесь, чтобы отменить эту связь.",
@@ -238,7 +238,7 @@
         "title": "Избранное",
         "noFavorites": "Нет избранного.",
         "addFavoritesTooltip": "Добавляйте в избранное, щелкая правой кнопкой мыши по узлам и выбирая 'Добавить в избранное'.",
-        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
+        "addFavoritesTooltipExpanded": "Добавляйте в избранное, наводя курсор на узел и нажимая значок <star/>, или щелкая правой кнопкой мыши и выбирая 'Добавить в избранное'.",
         "addToFavorites": "Добавить в избранное",
         "removeFromFavorites": "Удалить из избранного"
     },
@@ -251,7 +251,9 @@
         "manageDependencies": "Управление зависимостями",
         "updatesAvailable": "Доступны обновления",
         "updatesAvailableDescription_one": "Есть {{count}} пакет с доступными обновлениями зависимостей.",
-        "updatesAvailableDescription_other": "Есть {{count}} пакетов с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_few": "Есть {{count}} пакета с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_many": "Есть {{count}} пакетов с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_other": "Есть {{count}} пакета с доступными обновлениями зависимостей.",
         "openDependencyManager": "Открыть менеджер зависимостей",
         "packages": "Пакеты",
         "features": "Функции",
@@ -262,11 +264,11 @@
         "close": "Закрыть",
         "missing": "Отсутствует",
         "outdated": "Устарел",
-        "unavailable": "Недоступен",
-        "enabled": "Включен",
-        "disabled": "Отключен",
+        "unavailable": "Недоступна",
+        "enabled": "Включена",
+        "disabled": "Отключена",
         "python": "Python",
-        "system": "Система",
+        "system": "Системный",
         "integrated": "Встроенный",
         "advanced": "Дополнительно",
         "installationMode": "Режим установки",
@@ -282,11 +284,13 @@
         "cancel": "Отмена",
         "installing": "Установка {{name}}...",
         "uninstalling": "Удаление {{name}}...",
-        "copyPythonPath": "Копировать путь Python в буфер обмена",
-        "pythonPath": "Путь Python:",
-        "installAllPackages": "{{operations}} Все пакеты ({{size}})",
+        "copyPythonPath": "Копировать путь к Python в буфер обмена",
+        "pythonPath": "Путь к Python:",
+        "installAllPackages": "{{operations}} все пакеты ({{size}})",
         "package_one": "пакет",
-        "package_other": "пакетов",
+        "package_few": "пакета",
+        "package_many": "пакетов",
+        "package_other": "пакета",
         "brackets": {
             "open": "[",
             "close": "]"
@@ -310,8 +314,8 @@
         "skip": "Пропустить",
         "eta": "Ожидаемое время:",
         "outdated": "Устарел",
-        "paused": "Paused",
-        "finished": "Finished"
+        "paused": "Приостановлено",
+        "finished": "Завершено"
     },
     "color": {
         "resetToOld": "Сбросить к старому цвету",
@@ -375,16 +379,16 @@
     "nodeDocumentation": {
         "conditionExplanation": {
             "condition": "Условие:",
-            "allConditions": "All of the following conditions must be met:",
-            "anyCondition": "At least one of the following conditions must be met:",
-            "enumIs": "<name>{{name}}</name> is <options/>.",
-            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
-            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
-            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
-            "typeIs": "<name>{{name}}</name> is {{type}}.",
-            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
-            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
-            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
+            "allConditions": "Должны выполняться все следующие условия:",
+            "anyCondition": "Должно выполняться хотя бы одно из следующих условий:",
+            "enumIs": "<name>{{name}}</name> имеет значение <options/>.",
+            "enumIsNot": "<name>{{name}}</name> не имеет значения <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> имеет одно из значений <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> не имеет ни одного из значений <options/>.",
+            "typeIs": "<name>{{name}}</name> — это {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> — это не {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> имеет тип <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> не имеет типа <type/>."
         },
         "nodeDocs": {
             "optional": "необязательно",
@@ -399,7 +403,9 @@
             "noOutputs": "У этого узла нет выходов.",
             "seeAlso": "См. также",
             "character_one": "символ",
-            "character_other": "символов"
+            "character_few": "символа",
+            "character_many": "символов",
+            "character_other": "символа"
         },
         "nodesList": {
             "noNodesFound": "Узлы не найдены"

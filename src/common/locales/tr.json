@@ -52,8 +52,8 @@
             "clear": "Temizle",
             "copyFullDirectoryPath": "Tam Dizin Yolunu Kopyala",
             "openInFileExplorer": "Dosya Gezgini'nde Aç",
-            "selectDirectory": "Bir dizin seç...",
-            "clickToSelect": "Seçmek için tıkla..."
+            "selectDirectory": "Bir dizin seçin...",
+            "clickToSelect": "Seçmek için tıklayın..."
         },
         "extractValueIntoNode": "Değeri düğüme çıkar",
         "file": {
@@ -61,8 +61,8 @@
             "copyFileName": "Dosya Adını Kopyala",
             "copyFullFilePath": "Tam Dosya Yolunu Kopyala",
             "openInFileExplorer": "Dosya Gezgini'nde Aç",
-            "selectFile": "Bir dosya seç...",
-            "clickToSelectFile": "Dosya seçmek için tıkla..."
+            "selectFile": "Bir dosya seçin...",
+            "clickToSelectFile": "Dosya seçmek için tıklayın..."
         },
         "number": {
             "copyText": "Sayıyı Kopyala",
@@ -148,7 +148,7 @@
             "startupTemplate": {
                 "label": "Başlangıç Şablonu",
                 "description": "chaiNNer başlatıldığında varsayılan olarak kullanılacak zincir şablonunu ayarlayın.",
-                "placeholder": "Bir dosya seç...",
+                "placeholder": "Bir dosya seçin...",
                 "clear": "Temizle",
                 "pickFile": "Başlangıç şablonu dosyasını seç"
             },
@@ -157,13 +157,13 @@
         "python": {
             "general": "Genel",
             "useSystemPython": {
-                "label": "Sistem Python kullan (yeniden başlatma gerekir)",
-                "description": "chaiNNer'ın işlemesi için paketlenmiş Python yerine sistem Python'u kullanın (önerilmez)"
+                "label": "Sistem Python'unu kullan (yeniden başlatma gerekir)",
+                "description": "chaiNNer'ın işlemesi için paketlenmiş Python yerine sistem Python'unu kullanın (önerilmez)"
             },
             "systemPythonLocation": {
                 "label": "Sistem Python konumu (isteğe bağlı)",
                 "description": "İstenirse, 'python3' veya 'python' tarafından çağrılan varsayılan yerine belirli bir python ikili dosyası kullanın. Birden fazla python sürümü yüklüyse ve belirli birini seçmek istiyorsanız yararlıdır.",
-                "placeholder": "Bir dosya seç...",
+                "placeholder": "Bir dosya seçin...",
                 "clear": "Temizle",
                 "pickFile": "Sistem python konumunu seç"
             }
@@ -182,7 +182,7 @@
                 "description": "GUI için GPU renderlamayı etkinleştirin. Görüntü işleme için GPU performansını ciddi şekilde azaltabileceği için dikkatli kullanın."
             },
             "allowMultipleInstances": {
-                "label": "Birden fazla eşzamanlı örnek izin ver",
+                "label": "Birden fazla eşzamanlı örneğe izin ver",
                 "description": "chaiNNer'ın birden fazla eşzamanlı örneğini etkinleştirin. Önerilmez, ancak zinciriniz sistem kaynaklarınızı yeterince kullanmıyorsa, şeyleri eşzamanlı olarak çalıştırmak için bunu yararlı bulabilirsiniz."
             }
         },
@@ -211,7 +211,7 @@
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}} değerleri şu anda aynı değere bağlı. Bu bağlantıyı geri almak için buraya tıklayın.",
-        "clickToLink": "{{inputs}}'i aynı değere bağlamak için buraya tıklayın."
+        "clickToLink": "{{inputs}} girişlerini aynı değere bağlamak için buraya tıklayın."
     },
     "languages": {
         "english": "English",
@@ -238,7 +238,7 @@
         "title": "Favoriler",
         "noFavorites": "Favori yok.",
         "addFavoritesTooltip": "Düğümlere sağ tıklayıp 'Favorilere Ekle'yi seçerek favori ekleyin.",
-        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
+        "addFavoritesTooltipExpanded": "Düğümlerin üzerine gelip <star/> simgesine tıklayarak ya da sağ tıklayıp 'Favorilere Ekle'yi seçerek favori ekleyin.",
         "addToFavorites": "Favorilere Ekle",
         "removeFromFavorites": "Favorilerden Kaldır"
     },
@@ -271,14 +271,14 @@
         "advanced": "Gelişmiş",
         "installationMode": "Kurulum modu",
         "normal": "Normal",
-        "manualCopy": "Manuel/Kopyala",
+        "manualCopy": "Manuel/Kopyalama",
         "consoleOutput": "Konsol çıktısı:",
         "commandCopied": "Komut panoya kopyalandı",
         "commandCopiedDescription": "Harici bir terminal açın, komutu yapıştırın ve çalıştırın. Çalışmayı bitirdiğinde chaiNNer'ı manuel olarak yeniden başlatın.",
         "uninstallTitle": "Kaldır",
-        "uninstallMessage": "{{name}} kaldırmak istediğinizden emin misiniz?",
+        "uninstallMessage": "{{name}} paketini kaldırmak istediğinizden emin misiniz?",
         "unsavedChanges": "Kaydedilmemiş Değişiklikler",
-        "unsavedChangesMessage": "{{name}} kaldırarak kaydedilmemiş değişikliklerinizi kaybedebilirsiniz.\n\n{{name}} kaldırmak istediğinizden emin misiniz?",
+        "unsavedChangesMessage": "{{name}} paketini kaldırırsanız kaydedilmemiş değişikliklerinizi kaybedebilirsiniz.\n\n{{name}} paketini kaldırmak istediğinizden emin misiniz?",
         "cancel": "İptal",
         "installing": "{{name}} yükleniyor...",
         "uninstalling": "{{name}} kaldırılıyor...",
@@ -303,15 +303,15 @@
         "note": {
             "placeholder": "Not Metni"
         },
-        "implementationError": "Uygulama Hatası",
+        "implementationError": "Gerçekleştirim Hatası",
         "implementationErrorMessage": "{{nodeName}} ({{schemaId}}) düğümü için anahtar bilgiler belirlenemiyor.",
         "enable": "Etkinleştir",
         "disable": "Devre Dışı Bırak",
         "skip": "Atla",
-        "eta": "ETA:",
+        "eta": "Tahmini bitiş:",
         "outdated": "Güncel değil",
-        "paused": "Paused",
-        "finished": "Finished"
+        "paused": "Duraklatıldı",
+        "finished": "Tamamlandı"
     },
     "color": {
         "resetToOld": "Eski renge sıfırla",
@@ -368,23 +368,23 @@
         "favorites": "Favoriler",
         "missingDependencies": "Eksik bağımlılıklar.",
         "unableToImport": "Düğüm(ler) içe aktarılamıyor.",
-        "clickToInstall": "{{packageName}} yüklemek için bağımlılık yöneticisini açmak için tıklayın.",
+        "clickToInstall": "{{packageName}} paketini yüklemek üzere bağımlılık yöneticisini açmak için tıklayın.",
         "criticalImportError": "{{packageName}} paketindeki bir bağımlılıkla kritik bir içe aktarma hatası oluştu.",
         "nodes": "Düğümler"
     },
     "nodeDocumentation": {
         "conditionExplanation": {
             "condition": "Koşul:",
-            "allConditions": "All of the following conditions must be met:",
-            "anyCondition": "At least one of the following conditions must be met:",
-            "enumIs": "<name>{{name}}</name> is <options/>.",
-            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
-            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
-            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
-            "typeIs": "<name>{{name}}</name> is {{type}}.",
-            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
-            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
-            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
+            "allConditions": "Aşağıdaki koşulların tümü karşılanmalıdır:",
+            "anyCondition": "Aşağıdaki koşullardan en az biri karşılanmalıdır:",
+            "enumIs": "<name>{{name}}</name> için <options/> seçili.",
+            "enumIsNot": "<name>{{name}}</name> için <options/> seçili değil.",
+            "enumIsOneOf": "<name>{{name}}</name> için şunlardan biri seçili: <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> için şunlardan hiçbiri seçili değil: <options/>.",
+            "typeIs": "<name>{{name}}</name> şu türdedir: {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> şu türde değildir: {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> şu türdedir: <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> şu türde değildir: <type/>."
         },
         "nodeDocs": {
             "optional": "isteğe bağlı",
