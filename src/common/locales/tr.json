@@ -48,9 +48,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "Giriş Geçersiz Kılma ID'sini Kopyala",
-        "inputOverrideId": "Giriş Geçersiz Kılma ID'si",
-        "inputOverrideIdCopied": "Giriş geçersiz kılma ID'si panoya kopyalandı",
-        "inputOverrideIdTooltip": "Bu giriş için benzersiz tanımlayıcı. Zincirde girişi geçersiz kılmak için kullanılır.",
         "directory": {
             "clear": "Temizle",
             "copyFullDirectoryPath": "Tam Dizin Yolunu Kopyala",
@@ -209,18 +206,8 @@
             "randomSeedAria": "Rastgele Tohum"
         }
     },
-    "logo": {
-        "background": "arka plan",
-        "front": "ön"
-    },
     "timer": {
-        "executionTook": "Yürütme yaklaşık {{duration}} sürdü.",
-        "hour_one": "saat",
-        "hour_other": "saat",
-        "minute_one": "dakika",
-        "minute_other": "dakika",
-        "second_one": "saniye",
-        "second_other": "saniye"
+        "executionTook": "Yürütme yaklaşık {{duration}} sürdü."
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}} değerleri şu anda aynı değere bağlı. Bu bağlantıyı geri almak için buraya tıklayın.",
@@ -232,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +238,7 @@
         "title": "Favoriler",
         "noFavorites": "Favori yok.",
         "addFavoritesTooltip": "Düğümlere sağ tıklayıp 'Favorilere Ekle'yi seçerek favori ekleyin.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Düğümlerin üzerine gelip",
-            "afterIcon": "simgesine tıklayarak veya sağ tıklayıp 'Favorilere Ekle'yi seçerek favori ekleyin."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "Favorilere Ekle",
         "removeFromFavorites": "Favorilerden Kaldır"
     },
@@ -327,7 +309,9 @@
         "disable": "Devre Dışı Bırak",
         "skip": "Atla",
         "eta": "ETA:",
-        "outdated": "Güncel değil"
+        "outdated": "Güncel değil",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "Eski renge sıfırla",
@@ -390,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "dir",
-            "isNot": "değildir",
-            "oneOf": "biridir",
-            "ofType": "türündedir",
-            "allOf": "Hepsi",
-            "atLeastOneOf": "En az biri",
-            "followingConditions": "aşağıdaki koşullar karşılanmalıdır:",
-            "condition": "Koşul:"
+            "condition": "Koşul:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "isteğe bağlı",

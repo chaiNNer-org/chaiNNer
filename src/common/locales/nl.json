@@ -48,9 +48,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "Invoer Overschrijf ID Kopiëren",
-        "inputOverrideId": "Invoer Overschrijf ID",
-        "inputOverrideIdCopied": "Invoer Overschrijf ID gekopieerd naar klembord",
-        "inputOverrideIdTooltip": "Unieke identifier voor deze invoer. Gebruikt voor het overschrijven van invoer in de keten.",
         "directory": {
             "clear": "Wissen",
             "copyFullDirectoryPath": "Volledig Directorypad Kopiëren",
@@ -209,18 +206,8 @@
             "randomSeedAria": "Willekeurig Zaad"
         }
     },
-    "logo": {
-        "background": "achtergrond",
-        "front": "voorgrond"
-    },
     "timer": {
-        "executionTook": "Uitvoering duurde ongeveer {{duration}}.",
-        "hour_one": "uur",
-        "hour_other": "uren",
-        "minute_one": "minuut",
-        "minute_other": "minuten",
-        "second_one": "seconde",
-        "second_other": "seconden"
+        "executionTook": "Uitvoering duurde ongeveer {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "De waarden van {{inputs}} zijn momenteel gekoppeld aan dezelfde waarde. Klik hier om deze koppeling ongedaan te maken.",
@@ -232,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +238,7 @@
         "title": "Favorieten",
         "noFavorites": "Geen Favorieten.",
         "addFavoritesTooltip": "Voeg Favorieten toe door met de rechtermuisknop op knooppunten te klikken en 'Toevoegen aan Favorieten' te selecteren.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Voeg Favorieten toe door over knooppunten te zweven en op het",
-            "afterIcon": "pictogram te klikken, of door met de rechtermuisknop te klikken en 'Toevoegen aan Favorieten' te selecteren."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "Toevoegen aan Favorieten",
         "removeFromFavorites": "Verwijderen uit Favorieten"
     },
@@ -327,7 +309,9 @@
         "disable": "Uitschakelen",
         "skip": "Overslaan",
         "eta": "ETA:",
-        "outdated": "Verouderd"
+        "outdated": "Verouderd",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "Terugzetten naar oude kleur",
@@ -390,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "is",
-            "isNot": "is niet",
-            "oneOf": "een van",
-            "ofType": "van type",
-            "allOf": "Alle",
-            "atLeastOneOf": "Ten minste een van",
-            "followingConditions": "moeten de volgende voorwaarden worden voldaan:",
-            "condition": "Voorwaarde:"
+            "condition": "Voorwaarde:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "optioneel",

@@ -1,5 +1,5 @@
 import i18n from 'i18next';
-import { DEFAULT_OPTIONS } from '../common/i18n';
+import { DEFAULT_OPTIONS, normalizeLanguage } from '../common/i18n';
 import { log } from '../common/log';
 import { readSettings } from './setting-storage';
 
@@ -7,7 +7,7 @@ import { readSettings } from './setting-storage';
 let language = 'en';
 try {
     const settings = readSettings();
-    language = settings.language || 'en';
+    language = normalizeLanguage(settings.language);
 } catch (error) {
     log.warn('Failed to load settings for i18n, using default language');
 }

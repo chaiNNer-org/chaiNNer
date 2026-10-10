@@ -48,9 +48,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "Copiar ID de Substituição de Entrada",
-        "inputOverrideId": "ID de Substituição de Entrada",
-        "inputOverrideIdCopied": "ID de substituição de entrada copiado para a área de transferência",
-        "inputOverrideIdTooltip": "Identificador único para esta entrada. Usado para substituir entrada na cadeia.",
         "directory": {
             "clear": "Limpar",
             "copyFullDirectoryPath": "Copiar Caminho Completo do Diretório",
@@ -209,18 +206,8 @@
             "randomSeedAria": "Semente Aleatória"
         }
     },
-    "logo": {
-        "background": "fundo",
-        "front": "frente"
-    },
     "timer": {
-        "executionTook": "A execução levou aproximadamente {{duration}}.",
-        "hour_one": "hora",
-        "hour_other": "horas",
-        "minute_one": "minuto",
-        "minute_other": "minutos",
-        "second_one": "segundo",
-        "second_other": "segundos"
+        "executionTook": "A execução levou aproximadamente {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "Os valores de {{inputs}} estão atualmente vinculados ao mesmo valor. Clique aqui para desfazer este vínculo.",
@@ -232,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +238,7 @@
         "title": "Favoritos",
         "noFavorites": "Nenhum Favorito.",
         "addFavoritesTooltip": "Adicione Favoritos clicando com o botão direito nos nós e selecionando Adicionar aos Favoritos.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Adicione Favoritos passando o mouse sobre os nós e clicando no",
-            "afterIcon": "ícone, ou clicando com o botão direito e selecionando Adicionar aos Favoritos."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "Adicionar aos Favoritos",
         "removeFromFavorites": "Remover dos Favoritos"
     },
@@ -327,7 +309,9 @@
         "disable": "Desabilitar",
         "skip": "Pular",
         "eta": "ETA:",
-        "outdated": "Desatualizado"
+        "outdated": "Desatualizado",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "Redefinir para cor antiga",
@@ -390,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "é",
-            "isNot": "não é",
-            "oneOf": "um de",
-            "ofType": "do tipo",
-            "allOf": "Todos",
-            "atLeastOneOf": "Pelo menos um de",
-            "followingConditions": "as seguintes condições devem ser atendidas:",
-            "condition": "Condição:"
+            "condition": "Condição:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "opcional",

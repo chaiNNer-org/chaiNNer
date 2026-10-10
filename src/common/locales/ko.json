@@ -48,9 +48,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "입력 재정의 ID 복사",
-        "inputOverrideId": "입력 재정의 ID",
-        "inputOverrideIdCopied": "입력 재정의 ID가 클립보드에 복사되었습니다",
-        "inputOverrideIdTooltip": "이 입력에 대한 고유 식별자입니다. 체인에서 입력을 재정의하는 데 사용됩니다.",
         "directory": {
             "clear": "지우기",
             "copyFullDirectoryPath": "전체 디렉토리 경로 복사",
@@ -209,18 +206,8 @@
             "randomSeedAria": "랜덤 시드"
         }
     },
-    "logo": {
-        "background": "배경",
-        "front": "전면"
-    },
     "timer": {
-        "executionTook": "실행에 약 {{duration}}이 걸렸습니다.",
-        "hour_one": "시간",
-        "hour_other": "시간",
-        "minute_one": "분",
-        "minute_other": "분",
-        "second_one": "초",
-        "second_other": "초"
+        "executionTook": "실행에 약 {{duration}}이 걸렸습니다."
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}}의 값이 현재 같은 값에 연결되어 있습니다. 이 링크를 취소하려면 여기를 클릭하세요.",
@@ -232,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +238,7 @@
         "title": "즐겨찾기",
         "noFavorites": "즐겨찾기가 없습니다.",
         "addFavoritesTooltip": "노드를 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "노드 위에 마우스를 올리고",
-            "afterIcon": "아이콘을 클릭하거나 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "즐겨찾기에 추가",
         "removeFromFavorites": "즐겨찾기에서 제거"
     },
@@ -327,7 +309,9 @@
         "disable": "비활성화",
         "skip": "건너뛰기",
         "eta": "예상 시간:",
-        "outdated": "오래됨"
+        "outdated": "오래됨",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "이전 색상으로 재설정",
@@ -390,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "입니다",
-            "isNot": "아닙니다",
-            "oneOf": "중 하나",
-            "ofType": "타입",
-            "allOf": "모두",
-            "atLeastOneOf": "최소 하나",
-            "followingConditions": "다음 조건이 충족되어야 합니다:",
-            "condition": "조건:"
+            "condition": "조건:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "선택사항",

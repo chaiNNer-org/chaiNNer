@@ -217,20 +217,12 @@
     "disable": "Deshabilitar",
     "skip": "Omitir",
     "eta": "ETA:",
-    "outdated": "Desactualizado"
-  },
-  "logo": {
-    "background": "bg",
-    "front": "front"
+    "outdated": "Desactualizado",
+    "paused": "Paused",
+    "finished": "Finished"
   },
   "timer": {
-    "executionTook": "La ejecución tomó aproximadamente {{duration}}.",
-    "hour_one": "hora",
-    "hour_other": "horas",
-    "minute_one": "minuto",
-    "minute_other": "minutos",
-    "second_one": "segundo",
-    "second_other": "segundos"
+    "executionTook": "La ejecución tomó aproximadamente {{duration}}."
   },
   "linkedInputs": {
     "currentlyLinked": "Los valores de {{inputs}} están actualmente vinculados al mismo valor. Haz clic aquí para deshacer este enlace.",
@@ -242,7 +234,6 @@
     "german": "Deutsch",
     "french": "Français",
     "italian": "Italiano",
-    "portuguese": "Português",
     "japanese": "日本語",
     "chinese": "中文",
     "russian": "Русский",
@@ -250,7 +241,6 @@
     "dutch": "Nederlands",
     "polish": "Polski",
     "turkish": "Türkçe",
-    "arabic": "العربية",
     "hindi": "हिन्दी",
     "brazilianPortuguese": "Português (Brasil)"
   },
@@ -263,10 +253,7 @@
     "title": "Favoritos",
     "noFavorites": "Sin Favoritos.",
     "addFavoritesTooltip": "Agregar Favoritos haciendo clic derecho en nodos y seleccionando 'Agregar a Favoritos'.",
-    "addFavoritesTooltipExpanded": {
-      "beforeIcon": "Agregar Favoritos pasando el mouse sobre nodos y haciendo clic en el icono",
-      "afterIcon": ", o haciendo clic derecho y seleccionando 'Agregar a Favoritos'."
-    },
+    "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
     "addToFavorites": "Agregar a Favoritos",
     "removeFromFavorites": "Quitar de Favoritos"
   },
@@ -387,14 +374,17 @@
   },
   "nodeDocumentation": {
     "conditionExplanation": {
-      "is": "es",
-      "isNot": "no es",
-      "oneOf": "uno de",
-      "ofType": "de tipo",
-      "allOf": "Todos de",
-      "atLeastOneOf": "Al menos uno de",
-      "followingConditions": "se deben cumplir las siguientes condiciones:",
-      "condition": "Condición:"
+      "condition": "Condición:",
+      "allConditions": "All of the following conditions must be met:",
+      "anyCondition": "At least one of the following conditions must be met:",
+      "enumIs": "<name>{{name}}</name> is <options/>.",
+      "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+      "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+      "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+      "typeIs": "<name>{{name}}</name> is {{type}}.",
+      "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+      "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+      "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
     },
     "nodeDocs": {
       "optional": "opcional",

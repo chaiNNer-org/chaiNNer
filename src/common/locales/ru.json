@@ -48,9 +48,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "Копировать ID переопределения ввода",
-        "inputOverrideId": "ID переопределения ввода",
-        "inputOverrideIdCopied": "ID переопределения ввода скопирован в буфер обмена",
-        "inputOverrideIdTooltip": "Уникальный идентификатор для этого ввода. Используется для переопределения ввода в цепочке.",
         "directory": {
             "clear": "Очистить",
             "copyFullDirectoryPath": "Копировать полный путь к папке",
@@ -209,18 +206,8 @@
             "randomSeedAria": "Случайное семя"
         }
     },
-    "logo": {
-        "background": "фон",
-        "front": "передний план"
-    },
     "timer": {
-        "executionTook": "Выполнение заняло приблизительно {{duration}}.",
-        "hour_one": "час",
-        "hour_other": "часов",
-        "minute_one": "минута",
-        "minute_other": "минут",
-        "second_one": "секунда",
-        "second_other": "секунд"
+        "executionTook": "Выполнение заняло приблизительно {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "Значения {{inputs}} в настоящее время связаны с одним и тем же значением. Нажмите здесь, чтобы отменить эту связь.",
@@ -232,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +238,7 @@
         "title": "Избранное",
         "noFavorites": "Нет избранного.",
         "addFavoritesTooltip": "Добавляйте в избранное, щелкая правой кнопкой мыши по узлам и выбирая 'Добавить в избранное'.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Добавляйте в избранное, наводя курсор на узлы и нажимая на",
-            "afterIcon": "иконку, или щелкая правой кнопкой мыши и выбирая 'Добавить в избранное'."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "Добавить в избранное",
         "removeFromFavorites": "Удалить из избранного"
     },
@@ -327,7 +309,9 @@
         "disable": "Отключить",
         "skip": "Пропустить",
         "eta": "Ожидаемое время:",
-        "outdated": "Устарел"
+        "outdated": "Устарел",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "Сбросить к старому цвету",
@@ -390,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "является",
-            "isNot": "не является",
-            "oneOf": "одним из",
-            "ofType": "типа",
-            "allOf": "Все",
-            "atLeastOneOf": "По крайней мере один из",
-            "followingConditions": "должны быть выполнены следующие условия:",
-            "condition": "Условие:"
+            "condition": "Условие:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "необязательно",

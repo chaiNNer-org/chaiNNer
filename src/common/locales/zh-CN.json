@@ -217,20 +217,12 @@
         "disable": "禁用",
         "skip": "跳过",
         "eta": "预计时间：",
-        "outdated": "过时"
-    },
-    "logo": {
-        "background": "背景",
-        "front": "前景"
+        "outdated": "过时",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "timer": {
-        "executionTook": "执行大约花费了 {{duration}}。",
-        "hour_one": "小时",
-        "hour_other": "小时",
-        "minute_one": "分钟",
-        "minute_other": "分钟",
-        "second_one": "秒",
-        "second_other": "秒"
+        "executionTook": "执行大约花费了 {{duration}}。"
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}} 的值当前链接到相同的值。点击此处取消此链接。",
@@ -242,7 +234,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -250,7 +241,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -263,10 +253,7 @@
         "title": "收藏夹",
         "noFavorites": "无收藏。",
         "addFavoritesTooltip": "右键点击节点并选择添加到收藏夹来添加收藏。",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "通过悬停在节点上并点击图标来添加收藏，",
-            "afterIcon": "或右键点击并选择添加到收藏夹。"
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "添加到收藏夹",
         "removeFromFavorites": "从收藏夹中移除"
     },
@@ -387,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "是",
-            "isNot": "不是",
-            "oneOf": "之一",
-            "ofType": "类型",
-            "allOf": "全部",
-            "atLeastOneOf": "至少一个",
-            "followingConditions": "必须满足以下条件：",
-            "condition": "条件："
+            "condition": "条件：",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "可选",

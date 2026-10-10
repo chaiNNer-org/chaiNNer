@@ -217,20 +217,12 @@
         "disable": "無効",
         "skip": "スキップ",
         "eta": "ETA：",
-        "outdated": "古い"
-    },
-    "logo": {
-        "background": "背景",
-        "front": "前面"
+        "outdated": "古い",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "timer": {
-        "executionTook": "実行には約{{duration}}かかりました。",
-        "hour_one": "時間",
-        "hour_other": "時間",
-        "minute_one": "分",
-        "minute_other": "分",
-        "second_one": "秒",
-        "second_other": "秒"
+        "executionTook": "実行には約{{duration}}かかりました。"
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}}の値は現在同じ値にリンクされています。ここをクリックしてこのリンクを元に戻します。",
@@ -242,7 +234,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -250,7 +241,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -263,10 +253,7 @@
         "title": "お気に入り",
         "noFavorites": "お気に入りがありません。",
         "addFavoritesTooltip": "ノードを右クリックして「お気に入りに追加」を選択してお気に入りを追加します。",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "ノードにマウスを合わせてアイコンをクリックしてお気に入りを追加するか、",
-            "afterIcon": "右クリックして「お気に入りに追加」を選択します。"
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "お気に入りに追加",
         "removeFromFavorites": "お気に入りから削除"
     },
@@ -387,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "は",
-            "isNot": "ではありません",
-            "oneOf": "の一つ",
-            "ofType": "のタイプ",
-            "allOf": "すべての",
-            "atLeastOneOf": "少なくとも一つの",
-            "followingConditions": "次の条件が満たされる必要があります：",
-            "condition": "条件："
+            "condition": "条件：",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "オプション",

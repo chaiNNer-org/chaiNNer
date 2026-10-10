@@ -11,8 +11,9 @@ import {
     Tooltip,
 } from '@chakra-ui/react';
 import { memo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { NodeSchema } from '../../../common/common-types';
+import { TransElement } from '../TransElement';
 import { NodeRepresentativeList } from './NodeRepresentative';
 import { TextBox } from './TextBox';
 
@@ -86,17 +87,23 @@ export const FavoritesAccordionItem = memo(
                                             )}
                                         </>
                                     ) : (
-                                        <>
-                                            {t(
-                                                'favorites.addFavoritesTooltipExpanded.beforeIcon',
-                                                'Add Favorites by hovering over nodes and clicking the'
-                                            )}{' '}
-                                            <StarIcon style={{ verticalAlign: 'baseline' }} />{' '}
-                                            {t(
-                                                'favorites.addFavoritesTooltipExpanded.afterIcon',
-                                                'icon, or by right-clicking and selecting Add to Favorites.'
-                                            )}
-                                        </>
+                                        <Trans
+                                            components={{
+                                                star: (
+                                                    <TransElement
+                                                        element={
+                                                            <StarIcon
+                                                                style={{
+                                                                    verticalAlign: 'baseline',
+                                                                }}
+                                                            />
+                                                        }
+                                                    />
+                                                ),
+                                            }}
+                                            defaults="Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites."
+                                            i18nKey="favorites.addFavoritesTooltipExpanded"
+                                        />
                                     )
                                 }
                             />

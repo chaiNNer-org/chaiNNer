@@ -1,9 +1,23 @@
 import { Box, Center, ChakraProvider, ColorModeScript, Spinner } from '@chakra-ui/react';
 import i18n from 'i18next';
 import TimeAgo from 'javascript-time-ago';
+import de from 'javascript-time-ago/locale/de.json';
 import en from 'javascript-time-ago/locale/en.json';
+import es from 'javascript-time-ago/locale/es.json';
+import fr from 'javascript-time-ago/locale/fr.json';
+import hi from 'javascript-time-ago/locale/hi.json';
+import it from 'javascript-time-ago/locale/it.json';
+import ja from 'javascript-time-ago/locale/ja.json';
+import ko from 'javascript-time-ago/locale/ko.json';
+import nl from 'javascript-time-ago/locale/nl.json';
+import pl from 'javascript-time-ago/locale/pl.json';
+import pt from 'javascript-time-ago/locale/pt.json';
+import ru from 'javascript-time-ago/locale/ru.json';
+import tr from 'javascript-time-ago/locale/tr.json';
+import zh from 'javascript-time-ago/locale/zh.json';
 import { memo, useEffect, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
+import { normalizeLanguage } from '../common/i18n';
 import { ChainnerSettings } from '../common/settings/settings';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { BackendProvider } from './contexts/BackendContext';
@@ -16,7 +30,10 @@ import { ipcRenderer } from './safeIpc';
 import { darktheme } from './theme';
 import './i18n';
 
-TimeAgo.addLocale(en);
+// One per shipped UI language; pt-BR and zh-CN resolve to pt and zh.
+for (const locale of [en, de, es, fr, hi, it, ja, ko, nl, pl, pt, ru, tr, zh]) {
+    TimeAgo.addLocale(locale);
+}
 TimeAgo.setDefaultLocale(en.locale);
 
 const LoadingComponent = memo(() => (
@@ -64,7 +81,7 @@ export const App = memo(() => {
     // Apply language setting
     useEffect(() => {
         if (settings?.language) {
-            i18n.changeLanguage(settings.language).catch(() => {
+            i18n.changeLanguage(normalizeLanguage(settings.language)).catch(() => {
                 // Fallback to English if language fails to load
                 i18n.changeLanguage('en').catch(() => {
                     // ignore

@@ -217,20 +217,12 @@
         "disable": "Désactiver",
         "skip": "Ignorer",
         "eta": "ETA :",
-        "outdated": "Obsolète"
-    },
-    "logo": {
-        "background": "arrière-plan",
-        "front": "avant"
+        "outdated": "Obsolète",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "timer": {
-        "executionTook": "L'exécution a pris environ {{duration}}.",
-        "hour_one": "heure",
-        "hour_other": "heures",
-        "minute_one": "minute",
-        "minute_other": "minutes",
-        "second_one": "seconde",
-        "second_other": "secondes"
+        "executionTook": "L'exécution a pris environ {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "Les valeurs de {{inputs}} sont actuellement liées à la même valeur. Cliquez ici pour annuler ce lien.",
@@ -242,7 +234,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -250,7 +241,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -263,10 +253,7 @@
         "title": "Favoris",
         "noFavorites": "Aucun favori.",
         "addFavoritesTooltip": "Ajouter des favoris en cliquant avec le bouton droit sur les nœuds et en sélectionnant Ajouter aux favoris.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Ajouter des favoris en survolant les nœuds et en cliquant sur l'icône",
-            "afterIcon": ", ou en cliquant avec le bouton droit et en sélectionnant Ajouter aux favoris."
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "Ajouter aux favoris",
         "removeFromFavorites": "Retirer des favoris"
     },
@@ -387,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "est",
-            "isNot": "n'est pas",
-            "oneOf": "un de",
-            "ofType": "de type",
-            "allOf": "Tous de",
-            "atLeastOneOf": "Au moins un de",
-            "followingConditions": "les conditions suivantes doivent être remplies :",
-            "condition": "Condition :"
+            "condition": "Condition :",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "optionnel",

@@ -48,9 +48,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "इनपुट ओवरराइड ID कॉपी करें",
-        "inputOverrideId": "इनपुट ओवरराइड ID",
-        "inputOverrideIdCopied": "इनपुट ओवरराइड ID क्लिपबोर्ड में कॉपी हो गया",
-        "inputOverrideIdTooltip": "इस इनपुट के लिए अद्वितीय पहचानकर्ता। चेन में इनपुट को ओवरराइड करने के लिए उपयोग किया जाता है।",
         "directory": {
             "clear": "साफ़ करें",
             "copyFullDirectoryPath": "पूरा डायरेक्टरी पाथ कॉपी करें",
@@ -209,18 +206,8 @@
             "randomSeedAria": "यादृच्छिक बीज"
         }
     },
-    "logo": {
-        "background": "पृष्ठभूमि",
-        "front": "अग्रभूमि"
-    },
     "timer": {
-        "executionTook": "निष्पादन में लगभग {{duration}} लगा।",
-        "hour_one": "घंटा",
-        "hour_other": "घंटे",
-        "minute_one": "मिनट",
-        "minute_other": "मिनट",
-        "second_one": "सेकंड",
-        "second_other": "सेकंड"
+        "executionTook": "निष्पादन में लगभग {{duration}} लगा।"
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}} के मान वर्तमान में एक ही मान से जुड़े हैं। इस लिंक को पूर्ववत करने के लिए यहां क्लिक करें।",
@@ -232,7 +219,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +226,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +238,7 @@
         "title": "पसंदीदा",
         "noFavorites": "कोई पसंदीदा नहीं।",
         "addFavoritesTooltip": "नोड्स पर राइट-क्लिक करके और 'पसंदीदा में जोड़ें' चुनकर पसंदीदा जोड़ें।",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "नोड्स पर होवर करके और",
-            "afterIcon": "आइकन पर क्लिक करके, या राइट-क्लिक करके 'पसंदीदा में जोड़ें' चुनकर पसंदीदा जोड़ें।"
-        },
+        "addFavoritesTooltipExpanded": "Add Favorites by hovering over nodes and clicking the <star/> icon, or by right-clicking and selecting Add to Favorites.",
         "addToFavorites": "पसंदीदा में जोड़ें",
         "removeFromFavorites": "पसंदीदा से हटाएं"
     },
@@ -327,7 +309,9 @@
         "disable": "अक्षम करें",
         "skip": "छोड़ें",
         "eta": "ETA:",
-        "outdated": "पुराना"
+        "outdated": "पुराना",
+        "paused": "Paused",
+        "finished": "Finished"
     },
     "color": {
         "resetToOld": "पुराने रंग पर रीसेट करें",
@@ -390,14 +374,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "है",
-            "isNot": "नहीं है",
-            "oneOf": "में से एक",
-            "ofType": "प्रकार का",
-            "allOf": "सभी",
-            "atLeastOneOf": "कम से कम एक",
-            "followingConditions": "निम्नलिखित शर्तों को पूरा किया जाना चाहिए:",
-            "condition": "शर्त:"
+            "condition": "शर्त:",
+            "allConditions": "All of the following conditions must be met:",
+            "anyCondition": "At least one of the following conditions must be met:",
+            "enumIs": "<name>{{name}}</name> is <options/>.",
+            "enumIsNot": "<name>{{name}}</name> is not <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> is one of <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> is not one of <options/>.",
+            "typeIs": "<name>{{name}}</name> is {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> is not {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> is of type <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> is not of type <type/>."
         },
         "nodeDocs": {
             "optional": "वैकल्पिक",
