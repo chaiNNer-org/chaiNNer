@@ -4,24 +4,24 @@
 # off (security updates ignore that limit).
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 0
-    groups:
-      npm-security:
-        applies-to: security-updates
-        patterns:
-          - "*"
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+      open-pull-requests-limit: 0
+      groups:
+          npm-security:
+              applies-to: security-updates
+              patterns:
+                  - '*'
 
-  - package-ecosystem: pip
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 0
-    groups:
-      pip-security:
-        applies-to: security-updates
-        patterns:
-          - "*"
+    - package-ecosystem: pip
+      directory: /
+      schedule:
+          interval: weekly
+      open-pull-requests-limit: 0
+      groups:
+          pip-security:
+              applies-to: security-updates
+              patterns:
+                  - '*'
