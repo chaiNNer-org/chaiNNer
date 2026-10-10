@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Annuler",
             "openLogsFolder": "Ouvrir le dossier des journaux",
             "exitApplication": "Quitter l'application",
             "copyToClipboard": "Copier dans le presse-papiers"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Annuler",
         "close": "Fermer",
-        "open": "Ouvrir",
         "settings": "Paramètres"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "Vérifier les mises à jour au démarrage",
                 "description": "Active la vérification des mises à jour au démarrage."
-            },
-            "experimentalFeatures": {
-                "label": "Activer les fonctionnalités expérimentales",
-                "description": "Activer les fonctionnalités expérimentales pour les essayer avant qu'elles ne soient terminées."
             },
             "hardwareAcceleration": {
                 "label": "Activer l'accélération matérielle (nécessite un redémarrage)",
@@ -365,7 +359,6 @@
         "delete": "Supprimer"
     },
     "nodeSelector": {
-        "favorites": "Favoris",
         "missingDependencies": "Dépendances manquantes.",
         "unableToImport": "Impossible d'importer le(s) nœud(s).",
         "clickToInstall": "Cliquez pour ouvrir le gestionnaire de dépendances et installer {{packageName}}.",

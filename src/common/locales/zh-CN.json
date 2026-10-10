@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "确定",
-            "cancel": "取消",
             "openLogsFolder": "打开日志文件夹",
             "exitApplication": "退出应用程序",
             "copyToClipboard": "复制到剪贴板"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "取消",
         "close": "关闭",
-        "open": "打开",
         "settings": "设置"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "启动时检查更新",
                 "description": "切换启动时的更新检查。"
-            },
-            "experimentalFeatures": {
-                "label": "启用实验性功能",
-                "description": "启用实验性功能以在完成前试用它们。"
             },
             "hardwareAcceleration": {
                 "label": "启用硬件加速（需要重启）",
@@ -365,7 +359,6 @@
         "delete": "删除"
     },
     "nodeSelector": {
-        "favorites": "收藏夹",
         "missingDependencies": "缺少依赖。",
         "unableToImport": "无法导入节点。",
         "clickToInstall": "点击打开依赖管理器并安装 {{packageName}}。",

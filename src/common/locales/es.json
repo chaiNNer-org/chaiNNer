@@ -2,7 +2,6 @@
   "alert": {
     "button": {
       "ok": "Aceptar",
-      "cancel": "Cancelar",
       "openLogsFolder": "Abrir carpeta de registros",
       "exitApplication": "Salir de la aplicación",
       "copyToClipboard": "Copiar al portapapeles"
@@ -15,7 +14,6 @@
   "common": {
     "cancel": "Cancelar",
     "close": "Cerrar",
-    "open": "Abrir",
     "settings": "Configuración"
   },
   "error": {
@@ -173,10 +171,6 @@
         "label": "Buscar actualizaciones al iniciar",
         "description": "Activa la búsqueda de actualizaciones al iniciar."
       },
-      "experimentalFeatures": {
-        "label": "Habilitar características experimentales",
-        "description": "Habilita características experimentales para probarlas antes de que estén terminadas."
-      },
       "hardwareAcceleration": {
         "label": "Habilitar aceleración de hardware (requiere reinicio)",
         "description": "Habilita el renderizado por GPU para la interfaz gráfica. Úsalo con precaución, ya que puede reducir considerablemente el rendimiento de la GPU en el procesamiento de imágenes."
@@ -252,8 +246,8 @@
   "favorites": {
     "title": "Favoritos",
     "noFavorites": "Sin favoritos.",
-    "addFavoritesTooltip": "Agrega favoritos haciendo clic derecho en los nodos y seleccionando 'Agregar a favoritos'.",
-    "addFavoritesTooltipExpanded": "Agrega favoritos pasando el cursor sobre los nodos y haciendo clic en el icono <star/>, o haciendo clic derecho y seleccionando 'Agregar a favoritos'.",
+    "addFavoritesTooltip": "Agrega favoritos haciendo clic derecho en los nodos y seleccionando «Agregar a favoritos».",
+    "addFavoritesTooltipExpanded": "Agrega favoritos pasando el cursor sobre los nodos y haciendo clic en el icono <star/>, o haciendo clic derecho y seleccionando «Agregar a favoritos».",
     "addToFavorites": "Agregar a favoritos",
     "removeFromFavorites": "Quitar de favoritos"
   },
@@ -365,7 +359,6 @@
     "delete": "Eliminar"
   },
   "nodeSelector": {
-    "favorites": "Favoritos",
     "missingDependencies": "Dependencias faltantes.",
     "unableToImport": "No se pueden importar nodo(s).",
     "clickToInstall": "Haz clic para abrir el administrador de dependencias e instalar {{packageName}}.",

@@ -2,7 +2,6 @@
   "alert": {
     "button": {
       "ok": "OK",
-      "cancel": "Abbrechen",
       "openLogsFolder": "Protokollordner öffnen",
       "exitApplication": "Anwendung beenden",
       "copyToClipboard": "In Zwischenablage kopieren"
@@ -15,7 +14,6 @@
   "common": {
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "open": "Öffnen",
     "settings": "Einstellungen"
   },
   "error": {
@@ -172,10 +170,6 @@
       "checkForUpdates": {
         "label": "Beim Start auf Updates prüfen",
         "description": "Schaltet die Überprüfung auf Updates beim Start um."
-      },
-      "experimentalFeatures": {
-        "label": "Experimentelle Funktionen aktivieren",
-        "description": "Aktivieren Sie experimentelle Funktionen, um sie auszuprobieren, bevor sie fertiggestellt sind."
       },
       "hardwareAcceleration": {
         "label": "Hardwarebeschleunigung aktivieren (erfordert Neustart)",
@@ -365,7 +359,6 @@
     "delete": "Löschen"
   },
   "nodeSelector": {
-    "favorites": "Favoriten",
     "missingDependencies": "Fehlende Abhängigkeiten.",
     "unableToImport": "Knoten können nicht importiert werden.",
     "clickToInstall": "Klicken Sie hier, um den Abhängigkeitsmanager zu öffnen und {{packageName}} zu installieren.",

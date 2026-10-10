@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "Tamam",
-            "cancel": "İptal",
             "openLogsFolder": "Log Klasörünü Aç",
             "exitApplication": "Uygulamadan Çık",
             "copyToClipboard": "Panoya Kopyala"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "İptal",
         "close": "Kapat",
-        "open": "Aç",
         "settings": "Ayarlar"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "Başlangıçta Güncelleme Kontrol Et",
                 "description": "Başlangıçta güncelleme kontrolünü açar/kapatır."
-            },
-            "experimentalFeatures": {
-                "label": "Deneysel özellikleri etkinleştir",
-                "description": "Tamamlanmadan önce deneysel özellikleri denemek için etkinleştirin."
             },
             "hardwareAcceleration": {
                 "label": "Donanım Hızlandırmayı Etkinleştir (yeniden başlatma gerekir)",
@@ -365,7 +359,6 @@
         "delete": "Sil"
     },
     "nodeSelector": {
-        "favorites": "Favoriler",
         "missingDependencies": "Eksik bağımlılıklar.",
         "unableToImport": "Düğüm(ler) içe aktarılamıyor.",
         "clickToInstall": "{{packageName}} paketini yüklemek üzere bağımlılık yöneticisini açmak için tıklayın.",

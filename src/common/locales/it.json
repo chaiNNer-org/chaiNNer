@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Annulla",
             "openLogsFolder": "Apri cartella dei log",
             "exitApplication": "Esci dall'applicazione",
             "copyToClipboard": "Copia negli appunti"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Annulla",
         "close": "Chiudi",
-        "open": "Apri",
         "settings": "Impostazioni"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "Controlla aggiornamenti all'avvio",
                 "description": "Attiva il controllo degli aggiornamenti all'avvio."
-            },
-            "experimentalFeatures": {
-                "label": "Abilita funzionalità sperimentali",
-                "description": "Abilita funzionalità sperimentali per provarle prima che siano finite."
             },
             "hardwareAcceleration": {
                 "label": "Abilita accelerazione hardware (richiede riavvio)",
@@ -365,7 +359,6 @@
         "delete": "Elimina"
     },
     "nodeSelector": {
-        "favorites": "Preferiti",
         "missingDependencies": "Dipendenze mancanti.",
         "unableToImport": "Impossibile importare nodo/i.",
         "clickToInstall": "Clicca per aprire il gestore dipendenze e installare {{packageName}}.",

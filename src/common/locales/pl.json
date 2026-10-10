@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Anuluj",
             "openLogsFolder": "Otwórz folder logów",
             "exitApplication": "Zamknij aplikację",
             "copyToClipboard": "Kopiuj do schowka"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Anuluj",
         "close": "Zamknij",
-        "open": "Otwórz",
         "settings": "Ustawienia"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "Sprawdzaj aktualizacje przy uruchomieniu",
                 "description": "Przełącza sprawdzanie aktualizacji przy uruchomieniu."
-            },
-            "experimentalFeatures": {
-                "label": "Włącz funkcje eksperymentalne",
-                "description": "Włącz funkcje eksperymentalne, aby je wypróbować przed ukończeniem."
             },
             "hardwareAcceleration": {
                 "label": "Włącz przyspieszenie sprzętowe (wymaga restartu)",
@@ -369,7 +363,6 @@
         "delete": "Usuń"
     },
     "nodeSelector": {
-        "favorites": "Ulubione",
         "missingDependencies": "Brakujące zależności.",
         "unableToImport": "Nie można zaimportować węzła(ów).",
         "clickToInstall": "Kliknij, aby otworzyć menedżer zależności w celu zainstalowania {{packageName}}.",

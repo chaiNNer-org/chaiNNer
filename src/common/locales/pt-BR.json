@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Cancelar",
             "openLogsFolder": "Abrir pasta de logs",
             "exitApplication": "Sair do aplicativo",
             "copyToClipboard": "Copiar para a área de transferência"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Cancelar",
         "close": "Fechar",
-        "open": "Abrir",
         "settings": "Configurações"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "Verificar atualizações na inicialização",
                 "description": "Alterna a verificação de atualizações na inicialização."
-            },
-            "experimentalFeatures": {
-                "label": "Habilitar recursos experimentais",
-                "description": "Habilitar recursos experimentais para experimentá-los antes de serem finalizados."
             },
             "hardwareAcceleration": {
                 "label": "Habilitar aceleração de hardware (requer reinicialização)",
@@ -365,7 +359,6 @@
         "delete": "Excluir"
     },
     "nodeSelector": {
-        "favorites": "Favoritos",
         "missingDependencies": "Dependências ausentes.",
         "unableToImport": "Não é possível importar nó(s).",
         "clickToInstall": "Clique para abrir o gerenciador de dependências para instalar {{packageName}}.",
