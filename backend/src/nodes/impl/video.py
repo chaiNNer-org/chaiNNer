@@ -42,6 +42,21 @@ class VideoMetadata:
             raise RuntimeError("No height found in video stream")
         height = int(height)
 
+        # Account for displaymatrix rotation metadata (common on phone clips).
+        # ffmpeg's rawvideo output is auto-rotated to the displayed orientation,
+        # so the metadata must match displayed dims or the frame reshape below
+        # will use the wrong stride and produce a tiled/scanline-corrupted image.
+        rotation = 0
+        for sd in video_stream.get("side_data_list", []) or []:
+            if "rotation" in sd:
+                try:
+                    rotation = int(sd["rotation"]) % 360
+                except (TypeError, ValueError):
+                    rotation = 0
+                break
+        if rotation in (90, 270):
+            width, height = height, width
+
         fps = video_stream.get("r_frame_rate", None)
         if fps is None:
             raise RuntimeError("No fps found in video stream")
@@ -82,12 +97,18 @@ class VideoLoader:
         Returns an iterator that yields frames as BGR uint8 numpy arrays.
         """
 
+        # Force ffmpeg's rawvideo output to exactly metadata.width x metadata.height.
+        # Without this, sources with non-square pixels (SAR != 1:1) or coded-vs-
+        # display dimension mismatches (e.g. HEVC CTU padding) emit a buffer of
+        # the wrong byte count or stride, which the np.reshape below then
+        # misinterprets as a tiled/scanline-corrupted image.
         ffmpeg_reader = (
             ffmpeg.input(self.path)
             .output(
                 "pipe:",
                 format="rawvideo",
                 pix_fmt="bgr24",
+                vf=f"setsar=1,scale={self.metadata.width}:{self.metadata.height}:flags=lanczos",
                 sws_flags="lanczos+accurate_rnd+full_chroma_int+full_chroma_inp+bitexact",
                 loglevel="error",
             )
