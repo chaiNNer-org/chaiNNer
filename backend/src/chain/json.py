@@ -12,7 +12,6 @@ from .chain import (
     EdgeTarget,
     FunctionNode,
     GeneratorNode,
-    TransformerNode,
 )
 
 
@@ -58,8 +57,6 @@ def parse_json(json: list[JsonNode]) -> Chain:
             node = GeneratorNode(json_node["id"], json_node["schemaId"])
         elif json_node["nodeType"] == "collector":
             node = CollectorNode(json_node["id"], json_node["schemaId"])
-        elif json_node["nodeType"] == "transformer":
-            node = TransformerNode(json_node["id"], json_node["schemaId"])
         else:
             node = FunctionNode(json_node["id"], json_node["schemaId"])
         chain.add_node(node)
