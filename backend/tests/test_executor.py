@@ -30,7 +30,7 @@ from api import (
 )
 from chain.chain import Chain, CollectorNode, FunctionNode
 from chain.input import InputMap
-from events import EventQueue
+from events import EventQueue, ThrottledProgressQueue
 from process import ExecutionId, Executor, run_collector_iterate, run_node
 
 
@@ -185,6 +185,60 @@ class TestExecutorBasicExecution:
 
         # Should not raise an error
         await executor.run()
+
+
+class TestNodeProgress:
+    """Test progress reported by a node through its context."""
+
+    @pytest.mark.asyncio
+    async def test_set_progress_sends_node_progress(self, executor_setup, monkeypatch):
+        """context.set_progress() reaches the queue as a node-progress event."""
+
+        def run_fn(context: NodeContext) -> None:
+            context.set_progress(0.5)
+
+        node_data = create_mock_node_data("test:node", "Test Node", run_fn=run_fn)
+        node_data.node_context = True  # type: ignore
+
+        node = Mock(spec=FunctionNode)
+        node.id = NodeId("node1")
+        node.schema_id = "test:node"
+        node.data = node_data
+        node.has_side_effects = Mock(return_value=True)
+        executor_setup["chain"].add_node(node)
+
+        package = Mock()
+        package.id = "test"
+        monkeypatch.setattr("process.registry.get_package", lambda _: package)
+
+        # Wrapped the same way server.py wraps the executor's queue.
+        events = EventQueue()
+        queue = ThrottledProgressQueue(queue=events)
+        queue.set_loop(asyncio.get_running_loop())
+
+        executor = Executor(
+            id=ExecutionId("test-exec"),
+            chain=executor_setup["chain"],
+            send_broadcast_data=False,
+            options=executor_setup["options"],
+            loop=asyncio.get_running_loop(),
+            queue=queue,
+            pool=executor_setup["pool"],
+            storage_dir=executor_setup["storage_dir"],
+        )
+
+        await executor.run()
+        queue.flush()
+
+        progress = []
+        while not events.queue.empty():
+            event = events.queue.get_nowait()
+            if event["event"] == "node-progress":
+                progress.append(event["data"])
+
+        assert {"nodeId": "node1", "progress": 0.5} in [
+            {"nodeId": p["nodeId"], "progress": p["progress"]} for p in progress
+        ]
 
 
 class TestExecutorProgressControl:
