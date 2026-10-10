@@ -57,14 +57,20 @@ interface SentenceProps {
     type?: string;
     components?: Record<string, JSX.Element>;
 }
-const Sentence = memo(({ sentence, name, type, components }: SentenceProps) => (
-    <Trans
-        components={{ name: InputName, ...components }}
-        defaults={SENTENCES[sentence]}
-        i18nKey={`nodeDocumentation.conditionExplanation.${sentence}`}
-        values={{ name, type }}
-    />
-));
+const Sentence = memo(({ sentence, name, type, components }: SentenceProps) => {
+    // Passing the hook's t makes this re-render when the language changes;
+    // Trans on its own doesn't.
+    const { t } = useTranslation();
+    return (
+        <Trans
+            components={{ name: InputName, ...components }}
+            defaults={SENTENCES[sentence]}
+            i18nKey={`nodeDocumentation.conditionExplanation.${sentence}`}
+            t={t}
+            values={{ name, type }}
+        />
+    );
+});
 
 const renderPrimitive = (condition: PossiblePrimitive, options: RenderOptions): JSX.Element => {
     const { schema } = options;

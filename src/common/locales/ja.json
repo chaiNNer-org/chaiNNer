@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "言語（再起動が必要）",
+                "label": "言語",
                 "description": "chaiNNerのインターフェースの言語を選択してください。"
             },
             "chainAnimation": {

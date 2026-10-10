@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "Langue (nécessite un redémarrage)",
+                "label": "Langue",
                 "description": "Choisissez la langue pour l'interface de chaiNNer."
             },
             "chainAnimation": {

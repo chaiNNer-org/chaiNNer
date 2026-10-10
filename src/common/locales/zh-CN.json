@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "语言（需要重启）",
+                "label": "语言",
                 "description": "选择 chaiNNer 界面的语言。"
             },
             "chainAnimation": {

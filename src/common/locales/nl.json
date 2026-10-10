@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "Taal (herstart vereist)",
+                "label": "Taal",
                 "description": "Kies de taal voor de chaiNNer-interface."
             },
             "chainAnimation": {

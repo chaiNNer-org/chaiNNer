@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "Dil (yeniden başlatma gerekir)",
+                "label": "Dil",
                 "description": "chaiNNer arayüzü için dili seçin."
             },
             "chainAnimation": {

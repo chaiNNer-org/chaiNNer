@@ -15,9 +15,10 @@ import pt from 'javascript-time-ago/locale/pt.json';
 import ru from 'javascript-time-ago/locale/ru.json';
 import tr from 'javascript-time-ago/locale/tr.json';
 import zh from 'javascript-time-ago/locale/zh.json';
-import { memo, useEffect, useState } from 'react';
+import { memo, useLayoutEffect, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
 import { normalizeLanguage } from '../common/i18n';
+import { log } from '../common/log';
 import { ChainnerSettings } from '../common/settings/settings';
 import { AlertBoxProvider } from './contexts/AlertBoxContext';
 import { BackendProvider } from './contexts/BackendContext';
@@ -25,6 +26,7 @@ import { ContextMenuProvider } from './contexts/ContextMenuContext';
 import { HotkeysProvider } from './contexts/HotKeyContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { useAsyncEffect } from './hooks/useAsyncEffect';
+import { useSettings } from './hooks/useSettings';
 import { Main } from './main';
 import { ipcRenderer } from './safeIpc';
 import { darktheme } from './theme';
@@ -35,6 +37,16 @@ for (const locale of [en, de, es, fr, hi, it, ja, ko, nl, pl, pt, ru, tr, zh]) {
     TimeAgo.addLocale(locale);
 }
 TimeAgo.setDefaultLocale(en.locale);
+
+// Applies the language setting on start and whenever it changes. Components
+// using useTranslation re-render with the new language.
+const LanguageSync = memo(() => {
+    const { language } = useSettings();
+    useLayoutEffect(() => {
+        i18n.changeLanguage(normalizeLanguage(language)).catch(log.error);
+    }, [language]);
+    return null;
+});
 
 const LoadingComponent = memo(() => (
     <Box
@@ -78,18 +90,6 @@ export const App = memo(() => {
         []
     );
 
-    // Apply language setting
-    useEffect(() => {
-        if (settings?.language) {
-            i18n.changeLanguage(normalizeLanguage(settings.language)).catch(() => {
-                // Fallback to English if language fails to load
-                i18n.changeLanguage('en').catch(() => {
-                    // ignore
-                });
-            });
-        }
-    }, [settings?.language]);
-
     return (
         <ChakraProvider theme={darktheme}>
             <ColorModeScript initialColorMode={darktheme.config.initialColorMode} />
@@ -100,6 +100,7 @@ export const App = memo(() => {
                             <LoadingComponent />
                         ) : (
                             <SettingsProvider initialSettings={settings}>
+                                <LanguageSync />
                                 <BackendProvider
                                     pythonInfo={pythonInfo}
                                     url={url}

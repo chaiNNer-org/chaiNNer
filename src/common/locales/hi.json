@@ -120,7 +120,7 @@
                 }
             },
             "language": {
-                "label": "भाषा (पुनः आरंभ आवश्यक)",
+                "label": "भाषा",
                 "description": "chaiNNer इंटरफेस के लिए भाषा चुनें।"
             },
             "chainAnimation": {
