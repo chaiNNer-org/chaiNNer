@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Annuleren",
             "openLogsFolder": "Logmap openen",
             "exitApplication": "Applicatie afsluiten",
             "copyToClipboard": "Kopiëren naar klembord"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Annuleren",
         "close": "Sluiten",
-        "open": "Openen",
         "settings": "Instellingen"
     },
     "error": {
@@ -173,10 +171,6 @@
                 "label": "Controleer op updates bij opstarten",
                 "description": "Schakelt het controleren op updates bij opstarten in/uit."
             },
-            "experimentalFeatures": {
-                "label": "Experimentele functies inschakelen",
-                "description": "Schakel experimentele functies in om ze uit te proberen voordat ze voltooid zijn."
-            },
             "hardwareAcceleration": {
                 "label": "Hardwareversnelling inschakelen (herstart vereist)",
                 "description": "Schakel GPU-rendering in voor de GUI. Gebruik voorzichtig, omdat dit de GPU-prestaties voor beeldverwerking ernstig kan verminderen."
@@ -237,8 +231,8 @@
     "favorites": {
         "title": "Favorieten",
         "noFavorites": "Geen favorieten.",
-        "addFavoritesTooltip": "Voeg favorieten toe door met de rechtermuisknop op knooppunten te klikken en 'Toevoegen aan favorieten' te selecteren.",
-        "addFavoritesTooltipExpanded": "Voeg favorieten toe door met de muis over knooppunten te bewegen en op het pictogram <star/> te klikken, of door met de rechtermuisknop te klikken en 'Toevoegen aan favorieten' te selecteren.",
+        "addFavoritesTooltip": "Voeg favorieten toe door met de rechtermuisknop op knooppunten te klikken en “Toevoegen aan favorieten” te selecteren.",
+        "addFavoritesTooltipExpanded": "Voeg favorieten toe door met de muis over knooppunten te bewegen en op het pictogram <star/> te klikken, of door met de rechtermuisknop te klikken en “Toevoegen aan favorieten” te selecteren.",
         "addToFavorites": "Toevoegen aan favorieten",
         "removeFromFavorites": "Verwijderen uit favorieten"
     },
@@ -365,7 +359,6 @@
         "delete": "Verwijderen"
     },
     "nodeSelector": {
-        "favorites": "Favorieten",
         "missingDependencies": "Ontbrekende afhankelijkheden.",
         "unableToImport": "Kan knooppunt(en) niet importeren.",
         "clickToInstall": "Klik om de afhankelijkheidsmanager te openen om {{packageName}} te installeren.",

@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "キャンセル",
             "openLogsFolder": "ログフォルダを開く",
             "exitApplication": "アプリケーションを終了",
             "copyToClipboard": "クリップボードにコピー"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "キャンセル",
         "close": "閉じる",
-        "open": "開く",
         "settings": "設定"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "起動時にアップデートをチェック",
                 "description": "起動時のアップデートチェックを切り替えます。"
-            },
-            "experimentalFeatures": {
-                "label": "実験的機能を有効にする",
-                "description": "開発中の実験的機能を有効にして、先行して試せるようにします。"
             },
             "hardwareAcceleration": {
                 "label": "ハードウェアアクセラレーションを有効にする（再起動が必要）",
@@ -365,7 +359,6 @@
         "delete": "削除"
     },
     "nodeSelector": {
-        "favorites": "お気に入り",
         "missingDependencies": "不足している依存関係。",
         "unableToImport": "ノードをインポートできません。",
         "clickToInstall": "クリックして依存関係マネージャーを開き、{{packageName}}をインストールします。",

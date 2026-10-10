@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "ठीक है",
-            "cancel": "रद्द करें",
             "openLogsFolder": "लॉग फ़ोल्डर खोलें",
             "exitApplication": "एप्लिकेशन से बाहर निकलें",
             "copyToClipboard": "क्लिपबोर्ड में कॉपी करें"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "रद्द करें",
         "close": "बंद करें",
-        "open": "खोलें",
         "settings": "सेटिंग्स"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "स्टार्टअप पर अपडेट जांचें",
                 "description": "स्टार्टअप पर अपडेट जांच को टॉगल करता है।"
-            },
-            "experimentalFeatures": {
-                "label": "प्रयोगात्मक सुविधाएं सक्षम करें",
-                "description": "पूरा होने से पहले प्रयोगात्मक सुविधाओं को आज़माने के लिए सक्षम करें।"
             },
             "hardwareAcceleration": {
                 "label": "हार्डवेयर त्वरण सक्षम करें (पुनः आरंभ आवश्यक)",
@@ -365,7 +359,6 @@
         "delete": "हटाएं"
     },
     "nodeSelector": {
-        "favorites": "पसंदीदा",
         "missingDependencies": "लापता निर्भरताएं।",
         "unableToImport": "नोड(स) को आयात नहीं किया जा सकता।",
         "clickToInstall": "{{packageName}} इंस्टॉल करने के लिए निर्भरता प्रबंधक खोलने के लिए क्लिक करें।",

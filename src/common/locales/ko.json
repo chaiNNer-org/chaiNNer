@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "확인",
-            "cancel": "취소",
             "openLogsFolder": "로그 폴더 열기",
             "exitApplication": "애플리케이션 종료",
             "copyToClipboard": "클립보드에 복사"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "취소",
         "close": "닫기",
-        "open": "열기",
         "settings": "설정"
     },
     "error": {
@@ -172,10 +170,6 @@
             "checkForUpdates": {
                 "label": "시작 시 업데이트 확인",
                 "description": "시작 시 업데이트 확인을 전환합니다."
-            },
-            "experimentalFeatures": {
-                "label": "실험적 기능 활성화",
-                "description": "완료되기 전에 실험적 기능을 시도해볼 수 있도록 활성화합니다."
             },
             "hardwareAcceleration": {
                 "label": "하드웨어 가속 활성화 (재시작 필요)",
@@ -365,7 +359,6 @@
         "delete": "삭제"
     },
     "nodeSelector": {
-        "favorites": "즐겨찾기",
         "missingDependencies": "누락된 의존성.",
         "unableToImport": "노드를 가져올 수 없습니다.",
         "clickToInstall": "클릭하여 의존성 관리자를 열고 {{packageName}}을(를) 설치하세요.",
