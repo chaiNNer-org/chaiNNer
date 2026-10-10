@@ -37,15 +37,7 @@ from events import (
 # Logger will be initialized when AppContext is created
 # For now, use a fallback logger
 from logger import logger, setup_logger
-from process import (
-    Executor,
-    NodeExecutionError,
-    RegularOutput,
-)
-from process_common import ExecutionId, NodeOutput
-from process_new import (
-    Executor as NewExecutor,
-)
+from process import ExecutionId, Executor, NodeExecutionError, NodeOutput
 from progress_controller import Aborted
 from response import (
     already_running_response,
@@ -65,8 +57,8 @@ class AppContext:
         log_dir = Path(self.config.logs_dir) if self.config.logs_dir else None
         logger = setup_logger("worker", log_dir=log_dir, dev_mode=self.config.dev_mode)
 
-        self.executor: Executor | NewExecutor | None = None
-        self.individual_executors: dict[ExecutionId, Executor | NewExecutor] = {}
+        self.executor: Executor | None = None
+        self.individual_executors: dict[ExecutionId, Executor] = {}
         self.cache: dict[NodeId, NodeOutput] = {}
         self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)
 
@@ -198,7 +190,6 @@ class RunRequest(TypedDict):
     data: list[JsonNode]
     options: JsonExecutionOptions
     sendBroadcastData: bool
-    useExperimentalFeatures: bool | None
 
 
 @app.route("/run", methods=["POST"])
@@ -249,31 +240,17 @@ async def run(request: Request):
         throttled_queue = ThrottledProgressQueue(queue=ctx.queue)
         throttled_queue.set_loop(app.loop)
 
-        use_new_executor = full_data.get("useExperimentalFeatures", False)
-        if use_new_executor:
-            executor = NewExecutor(
-                id=executor_id,
-                chain=chain,
-                send_broadcast_data=full_data["sendBroadcastData"],
-                options=ExecutionOptions.parse(full_data["options"]),
-                loop=app.loop,
-                queue=throttled_queue,
-                pool=ctx.pool,
-                storage_dir=ctx.storage_dir,
-                parent_cache=OutputCache(static_data=ctx.cache.copy()),
-            )
-        else:
-            executor = Executor(
-                id=executor_id,
-                chain=chain,
-                send_broadcast_data=full_data["sendBroadcastData"],
-                options=ExecutionOptions.parse(full_data["options"]),
-                loop=app.loop,
-                queue=throttled_queue,
-                pool=ctx.pool,
-                storage_dir=ctx.storage_dir,
-                parent_cache=OutputCache(static_data=ctx.cache.copy()),
-            )
+        executor = Executor(
+            id=executor_id,
+            chain=chain,
+            send_broadcast_data=full_data["sendBroadcastData"],
+            options=ExecutionOptions.parse(full_data["options"]),
+            loop=app.loop,
+            queue=throttled_queue,
+            pool=ctx.pool,
+            storage_dir=ctx.storage_dir,
+            parent_cache=OutputCache(static_data=ctx.cache.copy()),
+        )
         try:
             ctx.executor = executor
             await executor.run()
@@ -345,22 +322,13 @@ async def run_individual(request: Request):
         ctx.cache.pop(node_id, None)
 
         schema_data = api.registry.nodes.get(full_data["schemaId"])
+
         if schema_data is None:
             raise ValueError(
                 f"Invalid node {full_data['schemaId']} attempted to run individually"
             )
 
         node_data, _ = schema_data
-        if node_data.kind == "collector":
-            raise ValueError(
-                f"Collector nodes cannot be run individually "
-                f"(node {full_data['schemaId']})"
-            )
-        if node_data.kind == "transformer":
-            raise ValueError(
-                f"Transformer nodes cannot be run individually "
-                f"(node {full_data['schemaId']})"
-            )
         if node_data.kind == "generator":
             node = GeneratorNode(node_id, full_data["schemaId"])
         elif node_data.kind == "regularNode":
@@ -369,12 +337,9 @@ async def run_individual(request: Request):
             raise ValueError(
                 f"Invalid node kind {node_data.kind} attempted to run individually"
             )
-
-        # build 1-node chain
         chain = Chain()
         chain.add_node(node)
 
-        # set provided inputs
         for index, i in enumerate(full_data["inputs"]):
             chain.inputs.set(node_id, node.data.inputs[index].id, i)
 
@@ -390,62 +355,37 @@ async def run_individual(request: Request):
 
         execution_id = ExecutionId("individual-executor " + node_id)
 
-        use_new_executor = full_data.get("useExperimentalFeatures", False)
-        if use_new_executor:
-            executor = NewExecutor(
-                id=execution_id,
-                chain=chain,
-                send_broadcast_data=True,
-                options=ExecutionOptions.parse(full_data["options"]),
-                loop=app.loop,
-                queue=throttled_queue,
-                storage_dir=ctx.storage_dir,
-                pool=ctx.pool,
-            )
-        else:
-            executor = Executor(
-                id=execution_id,
-                chain=chain,
-                send_broadcast_data=True,
-                options=ExecutionOptions.parse(full_data["options"]),
-                loop=app.loop,
-                queue=throttled_queue,
-                storage_dir=ctx.storage_dir,
-                pool=ctx.pool,
-            )
+        executor = Executor(
+            id=execution_id,
+            chain=chain,
+            send_broadcast_data=True,
+            options=ExecutionOptions.parse(full_data["options"]),
+            loop=app.loop,
+            queue=throttled_queue,
+            storage_dir=ctx.storage_dir,
+            pool=ctx.pool,
+        )
 
         with run_individual_counter:
             try:
-                # kill previous one for the same id
                 if execution_id in ctx.individual_executors:
+                    # kill the previous executor (if any)
                     old_executor = ctx.individual_executors[execution_id]
                     old_executor.kill()
 
                 ctx.individual_executors[execution_id] = executor
-
-                # Execute the individual node
-                if use_new_executor:
-                    assert isinstance(executor, NewExecutor)
-                    output = await executor.run_individual_node(node)
-
-                    # keep current behavior: cache only non-generator results
-                    if node_data.kind != "generator" and output is not None:
-                        ctx.cache[node_id] = RegularOutput(output)
+                if node_data.kind == "generator":
+                    assert isinstance(node, GeneratorNode)
+                    output = await executor.process_generator_node(node)
+                elif node_data.kind == "regularNode":
+                    assert isinstance(node, FunctionNode)
+                    output = await executor.process_regular_node(node)
                 else:
-                    assert isinstance(executor, Executor)
-                    if node_data.kind == "generator":
-                        assert isinstance(node, GeneratorNode)
-                        output = await executor.process_generator_node(node)
-                    elif node_data.kind == "regularNode":
-                        assert isinstance(node, FunctionNode)
-                        output = await executor.process_regular_node(node)
-                    else:
-                        raise ValueError(
-                            f"Invalid node kind {node_data.kind} attempted to run individually"
-                        )
-                    if not isinstance(node, GeneratorNode):
-                        ctx.cache[node_id] = output
-
+                    raise ValueError(
+                        f"Invalid node kind {node_data.kind} attempted to run individually"
+                    )
+                if not isinstance(node, GeneratorNode):
+                    ctx.cache[node_id] = output
             except Aborted:
                 pass
             finally:

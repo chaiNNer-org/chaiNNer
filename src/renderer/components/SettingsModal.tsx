@@ -486,7 +486,6 @@ const AdvancedSettings = memo(() => {
     const [checkForUpdatesOnStartup, setCheckForUpdatesOnStartup] = useMutSetting(
         'checkForUpdatesOnStartup'
     );
-    const [experimentalFeatures, setExperimentalFeatures] = useMutSetting('experimentalFeatures');
     const [hardwareAcceleration, setHardwareAcceleration] = useMutSetting('hardwareAcceleration');
     const [allowMultipleInstances, setAllowMultipleInstances] =
         useMutSetting('allowMultipleInstances');
@@ -509,20 +508,6 @@ const AdvancedSettings = memo(() => {
                     ),
                 }}
                 value={checkForUpdatesOnStartup}
-            />
-            <ToggleSetting
-                setValue={setExperimentalFeatures}
-                setting={{
-                    label: t(
-                        'settings.advanced.experimentalFeatures.label',
-                        'Enable experimental features'
-                    ),
-                    description: t(
-                        'settings.advanced.experimentalFeatures.description',
-                        'Enable experimental features to try them out before they are finished.'
-                    ),
-                }}
-                value={experimentalFeatures}
             />
             <ToggleSetting
                 setValue={setHardwareAcceleration}
