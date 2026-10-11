@@ -15,6 +15,7 @@ export const NumberInput = memo(
     ({
         value,
         setValue,
+        resetValue,
         input,
         isConnected,
         isLocked,
@@ -29,6 +30,9 @@ export const NumberInput = memo(
 
         useEffect(() => {
             setInputString((prev) => {
+                if (value === undefined && input.optional) {
+                    return '';
+                }
                 const asNumber = parseFloat(prev);
                 if (
                     !Number.isNaN(asNumber) &&
@@ -40,7 +44,7 @@ export const NumberInput = memo(
 
                 return prev;
             });
-        }, [value]);
+        }, [value, input.optional]);
 
         useEffect(() => {
             if (value === undefined && !input.optional) {
@@ -104,6 +108,7 @@ export const NumberInput = memo(
                         setInput={setValue}
                         setInputString={setInputString}
                         unit={unit}
+                        onClear={input.optional ? resetValue : undefined}
                         onContextMenu={menu.onContextMenu}
                     />
                 </HStack>

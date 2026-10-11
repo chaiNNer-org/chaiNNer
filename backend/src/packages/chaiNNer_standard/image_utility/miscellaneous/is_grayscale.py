@@ -29,7 +29,9 @@ def is_grayscale_node(img: np.ndarray, tolerance: int = 0) -> bool:
     if img.ndim == 2 or img.shape[2] == 1:
         return True
 
-    threshold = tolerance / 255.0
+    # The epsilon absorbs float32 rounding, e.g. |128/255 - 127/255| is slightly
+    # more than 1/255 in float32.
+    threshold = tolerance / 255.0 + 1e-6
 
     diff_rg = np.abs(img[:, :, 0] - img[:, :, 1])
     diff_rb = np.abs(img[:, :, 0] - img[:, :, 2])

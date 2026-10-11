@@ -117,4 +117,6 @@ def convenient_upscale(
 
             return np.dstack((black_up, alpha))
 
-    return make_op(progress)(as_target_channels(img, model_in_nc, True))
+    return as_target_channels(
+        make_op(progress)(as_target_channels(img, model_in_nc, True)), in_img_c, True
+    )
