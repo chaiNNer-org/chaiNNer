@@ -6,11 +6,10 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import tensorrt as trt
-from cuda.bindings import runtime as cudart
 
 from logger import logger
 
-from .memory import get_cuda_compute_capability, get_cuda_device_name
+from .memory import get_cuda_compute_capability, get_cuda_device_name, set_cuda_device
 from .model import TensorRTEngine, TensorRTEngineInfo
 
 
@@ -124,7 +123,7 @@ def build_engine_from_onnx(
         A TensorRTEngine instance
     """
     # Set the CUDA device
-    cudart.cudaSetDevice(gpu_index)
+    set_cuda_device(gpu_index)
 
     trt_logger = trt.Logger(trt.Logger.WARNING)
 
@@ -236,6 +235,17 @@ def build_engine_from_onnx(
     gpu_name = get_cuda_device_name(gpu_index)
     logger.info("Built engine for %s (%s)", gpu_name, gpu_arch)
 
+    # Record the accepted input shapes. A fixed engine accepts exactly one shape:
+    # the profile shape for a dynamic ONNX model, or the model's own static shape.
+    min_shape = (1, input_channels, config.min_shape[0], config.min_shape[1])
+    opt_shape = (1, input_channels, config.opt_shape[0], config.opt_shape[1])
+    max_shape = (1, input_channels, config.max_shape[0], config.max_shape[1])
+    if not config.use_dynamic_shapes:
+        if not has_dynamic and len(input_shape) >= 4:
+            opt_shape = (1, input_channels, input_shape[2], input_shape[3])
+        min_shape = opt_shape
+        max_shape = opt_shape
+
     # Create engine info
     info = TensorRTEngineInfo(
         precision=config.precision,
@@ -244,16 +254,10 @@ def build_engine_from_onnx(
         scale=scale,
         gpu_architecture=gpu_arch,
         tensorrt_version=trt.__version__,
-        has_dynamic_shapes=has_dynamic or config.use_dynamic_shapes,
-        min_shape=(1, input_channels, config.min_shape[0], config.min_shape[1])
-        if config.use_dynamic_shapes
-        else None,
-        opt_shape=(1, input_channels, config.opt_shape[0], config.opt_shape[1])
-        if config.use_dynamic_shapes
-        else None,
-        max_shape=(1, input_channels, config.max_shape[0], config.max_shape[1])
-        if config.use_dynamic_shapes
-        else None,
+        has_dynamic_shapes=config.use_dynamic_shapes,
+        min_shape=min_shape,
+        opt_shape=opt_shape,
+        max_shape=max_shape,
     )
 
     return TensorRTEngine(bytes(serialized_engine), info)
@@ -268,7 +272,7 @@ def load_engine_from_bytes(
 
     Returns the runtime and deserialized engine.
     """
-    cudart.cudaSetDevice(gpu_index)
+    set_cuda_device(gpu_index)
 
     trt_logger = trt.Logger(trt.Logger.WARNING)
     runtime = trt.Runtime(trt_logger)

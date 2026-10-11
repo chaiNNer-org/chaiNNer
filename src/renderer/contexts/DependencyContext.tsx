@@ -275,9 +275,10 @@ const PackageView = memo(
                                         </Button>
                                     )}
 
+                                    {/* Disabled packages can still be uninstalled, e.g. after switching GPUs */}
                                     <Button
                                         colorScheme="red"
-                                        isDisabled={isRunningShell || isDisabled}
+                                        isDisabled={isRunningShell}
                                         isLoading={isRunningShell && isInstalling}
                                         leftIcon={<DeleteIcon />}
                                         size="sm"
