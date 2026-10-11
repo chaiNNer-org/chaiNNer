@@ -9,6 +9,7 @@ import { getLogsFolder } from '../platform';
 import { BrowserWindowWithSafeIpc } from '../safeIpc';
 import { openSaveFile } from '../SaveFile';
 import { getCpuInfo, getGpuInfo } from '../systemInfo';
+import { showOpenDialog } from './dialogs';
 
 export interface MenuData {
     openRecentRev: readonly string[];
@@ -120,7 +121,7 @@ export const setMainMenu = ({ mainWindow, menuData, enabled = false }: MainMenuA
                         const {
                             canceled,
                             filePaths: [filepath],
-                        } = await dialog.showOpenDialog(mainWindow, {
+                        } = await showOpenDialog(mainWindow, {
                             title: 'Open Chain File',
                             defaultPath,
                             filters: [{ name: 'Chain', extensions: ['chn'] }],
