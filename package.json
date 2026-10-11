@@ -121,7 +121,7 @@
     "bezier-js": "^6.1.4",
     "chakra-ui-markdown-renderer": "^4.1.0",
     "chokidar": "^3.5.3",
-    "electron-log": "^5.1.2",
+    "electron-log": "^5.4.4",
     "electron-squirrel-startup": "^1.0.0",
     "elkjs": "^0.8.2",
     "eventsource": "^2.0.2",

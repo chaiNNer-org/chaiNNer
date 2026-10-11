@@ -28,6 +28,7 @@ import { getRootDir, installDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { SaveData, SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
+import { showOpenDialog } from './dialogs';
 import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
@@ -120,14 +121,14 @@ const registerEventHandlerPreSetup = (
 
     // dialogs
     ipcMain.handle('dir-select', (event, dirPath) =>
-        dialog.showOpenDialog(mainWindow, {
+        showOpenDialog(mainWindow, {
             defaultPath: dirPath,
             properties: ['openDirectory', 'createDirectory'],
         })
     );
 
     ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
-        dialog.showOpenDialog(mainWindow, {
+        showOpenDialog(mainWindow, {
             filters: [...filters, { name: 'All Files', extensions: ['*'] }],
             defaultPath: dirPath,
             properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
