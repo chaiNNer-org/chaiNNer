@@ -51,6 +51,8 @@ interface AdvancedNumberInputProps {
     inputString: string;
     setInputString: (input: string) => void;
     setInput: (value: number) => void;
+    /** If given, committing an empty input calls this instead of using the default value. */
+    onClear?: () => void;
 
     onContextMenu?: MouseEventHandler<HTMLElement> | undefined;
     inputWidth?: string;
@@ -76,6 +78,7 @@ export const AdvancedNumberInput = memo(
         inputString,
         setInputString,
         setInput,
+        onClear,
 
         onContextMenu,
         inputWidth,
@@ -84,7 +87,9 @@ export const AdvancedNumberInput = memo(
 
         alignSelf,
     }: AdvancedNumberInputProps) => {
+        const isCleared = onClear !== undefined && !inputString.trim();
         const getNumericValue = (): number | undefined => {
+            if (isCleared) return undefined;
             const rawNumber = inputString.trim()
                 ? parseNumberString(inputString)
                 : defaultValue ?? 0;
@@ -132,6 +137,10 @@ export const AdvancedNumberInput = memo(
         const onBlur = () => {
             cancelAutoCommit();
             if (noRepeatOnBlur) return;
+            if (isCleared) {
+                onClear();
+                return;
+            }
             const value = getNumericValue();
             if (value !== undefined) {
                 // Make sure the input value has been altered so onChange gets correct value if adjustment needed
@@ -141,6 +150,10 @@ export const AdvancedNumberInput = memo(
         const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
             cancelAutoCommit();
             if (e.key === 'Enter') {
+                if (isCleared) {
+                    onClear();
+                    return;
+                }
                 const value = getNumericValue();
                 if (value !== undefined) {
                     setValue(value);

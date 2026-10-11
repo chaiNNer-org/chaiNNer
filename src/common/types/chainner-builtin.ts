@@ -290,7 +290,8 @@ export const regexFindImpl = (
 ): string => {
     const match = regex.captures(text);
     if (!match) {
-        throw new Error('No match found.');
+        // the node outputs an empty string and sets Found to false
+        return '';
     }
 
     const replacements = new Map<string, string>();
