@@ -169,6 +169,15 @@ def _max_split(
         tile_count_y = math.ceil(h / max_tile_size[1])
         tile_size_x = math.ceil(w / tile_count_x)
         tile_size_y = math.ceil(h / tile_count_y)
+        # Models with an internal Reorg only scale by an exact integer factor
+        # for even input sizes, they drop a pixel row/column otherwise. Tiles are
+        # padded on both sides, so an odd tile size would make the upscaled tile
+        # not an exact multiple of the input and _max_split would fail its
+        # assertions. Rounding up to even keeps every tile even, as long as the
+        # image itself is even, which is the case for these models anyway.
+        # For models with an exact integer scale this changes nothing.
+        tile_size_x += tile_size_x % 2
+        tile_size_y += tile_size_y % 2
         total_tiles = tile_count_x * tile_count_y
 
         logger.debug(
