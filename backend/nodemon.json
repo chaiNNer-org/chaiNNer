@@ -25,6 +25,5 @@
     "env": {
         "NODE_ENV": "development"
     },
-    "verbose": true,
-    "stdout": false
+    "verbose": true
 }

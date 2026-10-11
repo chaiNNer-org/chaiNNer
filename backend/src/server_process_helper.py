@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import atexit
+import contextlib
 import os
 import re
 import socket
@@ -10,6 +11,7 @@ import sys
 import threading
 import time
 from collections.abc import Iterable
+from typing import Literal, TextIO
 
 import aiohttp
 from sanic import HTTPResponse, Request
@@ -31,7 +33,11 @@ def _port_in_use(port: int):
 
 SANIC_LOG_REGEX = re.compile(r"^\s*\[[^\[\]]*\] \[\d*\] \[(\w*)\] (.*)")
 
-ENV = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+ENV = {
+    **os.environ,
+    "PYTHONIOENCODING": "utf-8",
+    "CHAINNER_PROCESS_TYPE": "worker",
+}
 
 
 class _WorkerProcess:
@@ -42,36 +48,36 @@ class _WorkerProcess:
         # Check if dev mode is enabled
         dev_mode = "--dev" in flags
 
+        # The worker's output is always piped and drained by the reader threads.
+        # An unread pipe fills up and blocks the worker on its next log call.
         self._process = subprocess.Popen(
             [python_location, server_file, *flags],
             shell=False,
             stdin=None,
-            stdout=subprocess.PIPE if dev_mode else None,
-            stderr=subprocess.PIPE if dev_mode else None,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             encoding="utf-8",
+            errors="replace",
             env=ENV,
         )
         self._stop_event = threading.Event()
         self._dev_mode = dev_mode
 
-        # Create a separate thread to read and print the output of the
-        # subprocess
-        # In dev mode, we pipe stdout/stderr and prefix with [Worker]
-        stdout_target = self._read_worker_stdout if dev_mode else self._read_stdout
-        stderr_target = self._read_worker_stderr if dev_mode else self._read_stderr
-        stdout_name = "worker stdout reader" if dev_mode else "stdout reader"
-        stderr_name = "worker stderr reader" if dev_mode else "stderr reader"
-
+        # Read and print the output of the subprocess on separate threads.
+        # In dev mode, both streams go to stdout with a [Worker] prefix.
+        # Otherwise, they pass through to the host's own stdout/stderr.
         self._stdout_thread = threading.Thread(
-            target=stdout_target,
+            target=self._read_stream,
+            args=("stdout", sys.stdout),
             daemon=True,
-            name=stdout_name,
+            name="worker stdout reader",
         )
         self._stdout_thread.start()
         self._stderr_thread = threading.Thread(
-            target=stderr_target,
+            target=self._read_stream,
+            args=("stderr", sys.stdout if dev_mode else sys.stderr),
             daemon=True,
-            name=stderr_name,
+            name="worker stderr reader",
         )
         self._stderr_thread.start()
 
@@ -116,77 +122,33 @@ class _WorkerProcess:
                         stream_name,
                     )
 
-    def _read_stdout(self):
+    def _read_stream(self, stream_name: Literal["stdout", "stderr"], out: TextIO):
+        """Read one of the worker's output streams line by line and print it to `out`."""
         p = self._process
-        if p is None or p.stdout is None:
+        if p is None:
+            return
+        stream = p.stdout if stream_name == "stdout" else p.stderr
+        if stream is None:
             return
 
         stopped = False
-        for _ in p.stdout:
+        for line in stream:
             stopped = self._stop_event.is_set()
             if stopped:
                 break
-            # Worker handles its own logging - we don't capture stdout
+            text = f"[Worker] {line.rstrip()}\n" if self._dev_mode else line
+            # Keep draining the pipe even if the host's stream can't take the line.
+            # UnicodeEncodeError is a ValueError.
+            with contextlib.suppress(OSError, ValueError):
+                out.write(text)
+                out.flush()
 
-        cause = "stop event" if stopped else "stdout ending"
-        logger.debug("Stopped reading worker stdout due to %s", cause)
+        cause = "stop event" if stopped else f"{stream_name} ending"
+        logger.debug("Stopped reading worker %s due to %s", stream_name, cause)
 
-        self._handle_worker_termination("stdout")
-
-    def _read_stderr(self):
-        p = self._process
-        if p is None or p.stderr is None:
-            return
-
-        stopped = False
-        for _ in p.stderr:
-            stopped = self._stop_event.is_set()
-            if stopped:
-                break
-            # Worker handles its own logging - we don't capture stderr
-
-        cause = "stop event" if stopped else "stderr ending"
-        logger.debug("Stopped reading worker stderr due to %s", cause)
-
-        self._handle_worker_termination("stderr")
-
-    def _read_worker_stdout(self):
-        """Read and print worker stdout with [Worker] prefix in dev mode."""
-        p = self._process
-        if p is None or p.stdout is None:
-            return
-
-        stopped = False
-        for line in p.stdout:
-            stopped = self._stop_event.is_set()
-            if stopped:
-                break
-            # Print worker stdout with [Worker] prefix
-            print(f"[Worker] {line.rstrip()}", flush=True)
-
-        cause = "stop event" if stopped else "worker stdout ending"
-        logger.debug("Stopped reading worker stdout due to %s", cause)
-
-        self._handle_worker_termination("worker stdout")
-
-    def _read_worker_stderr(self):
-        """Read and print worker stderr with [Worker] prefix in dev mode."""
-        p = self._process
-        if p is None or p.stderr is None:
-            return
-
-        stopped = False
-        for line in p.stderr:
-            stopped = self._stop_event.is_set()
-            if stopped:
-                break
-            # Print worker stderr with [Worker] prefix
-            print(f"[Worker] {line.rstrip()}", flush=True)
-
-        cause = "stop event" if stopped else "worker stderr ending"
-        logger.debug("Stopped reading worker stderr due to %s", cause)
-
-        self._handle_worker_termination("worker stderr")
+        # Both streams end when the worker exits; report that once.
+        if stream_name == "stdout":
+            self._handle_worker_termination(f"worker {stream_name}")
 
 
 class WorkerServer:

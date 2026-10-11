@@ -2,6 +2,8 @@ import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 import { app } from 'electron/main';
 import { existsSync } from 'fs';
 import path from 'path';
+import { createInterface } from 'readline';
+import { Readable } from 'stream';
 import { getBackend } from '../../common/Backend';
 import { PythonInfo } from '../../common/common-types';
 import { log } from '../../common/log';
@@ -24,6 +26,45 @@ const getBackendPath = lazy((): string => {
     log.error('Unable to find backend path from the following candidates:', candidates);
     throw new Error('Unable to find backend path');
 });
+
+// e.g. "[12:34:56] [1234] [INFO] message"
+const BACKEND_LOG_LINE = /^\s*\[[^[\]]*\] \[\d*\] \[(\w+)\] (.*)$/;
+
+/**
+ * Logs the output of the backend process line by line.
+ *
+ * The backend writes DEBUG and INFO records to its own log files, so those are dropped here.
+ * Warnings, errors, and anything that isn't a log record (tracebacks, startup errors,
+ * `print`s) are logged.
+ */
+const logBackendOutput = (stream: Readable, unformattedLevel: 'info' | 'error') => {
+    createInterface({ input: stream, crlfDelay: Infinity }).on('line', (line) => {
+        const match = BACKEND_LOG_LINE.exec(line);
+        if (!match) {
+            if (line.trim()) {
+                log[unformattedLevel](`Backend: ${line}`);
+            }
+            return;
+        }
+
+        const [, level, message] = match;
+        switch (level) {
+            case 'DEBUG':
+            case 'INFO':
+                break;
+            case 'WARNING':
+                log.warn(`Backend: ${message}`);
+                break;
+            case 'ERROR':
+            case 'CRITICAL':
+                log.error(`Backend: ${message}`);
+                break;
+            default:
+                log[unformattedLevel](`Backend: ${message}`);
+                break;
+        }
+    });
+};
 
 interface BaseBackendProcess {
     readonly owned: boolean;
@@ -98,12 +139,14 @@ export class OwnedBackendProcess implements BaseBackendProcess {
         const backend = spawn(options.python.python, args, {
             env: {
                 ...sanitizedEnv,
+                PYTHONIOENCODING: 'utf-8',
                 ...options.env,
             },
         });
 
-        // Backend handles its own logging - we don't capture stdout/stderr
-        // Each process logs to its own files independently
+        // The pipes must always be read. Otherwise the backend blocks once they fill up.
+        logBackendOutput(backend.stdout, 'info');
+        logBackendOutput(backend.stderr, 'error');
 
         return backend;
     }

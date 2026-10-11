@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import threading
+import time
 
 import pytest
 
@@ -14,8 +16,23 @@ from events import (
     EventQueue,
     ExecutionErrorEvent,
     NodeFinishEvent,
+    NodeProgressUpdateEvent,
     NodeStartEvent,
+    ThrottledProgressQueue,
 )
+
+
+def _progress_event(node_id: str, progress: float) -> NodeProgressUpdateEvent:
+    return {
+        "event": "node-progress",
+        "data": {
+            "nodeId": NodeId(node_id),
+            "progress": progress,
+            "index": 0,
+            "total": 0,
+            "eta": 0,
+        },
+    }
 
 
 def test_event_queue_creation():
@@ -130,6 +147,63 @@ async def test_event_consumer_filter():
 
     # Queue should be empty now
     assert queue.queue.empty()
+
+
+@pytest.mark.asyncio
+async def test_throttled_progress_from_worker_thread_arrives_while_node_runs():
+    """Progress sent from a worker thread is delivered before the node ends."""
+    events = EventQueue()
+    queue = ThrottledProgressQueue(queue=events, flush_interval=0.01)
+    loop = asyncio.get_running_loop()
+    queue.set_loop(loop)
+
+    steps = [0.25, 0.5, 0.75]
+    delivered = threading.Event()
+
+    def run_node() -> list[bool]:
+        # Wait for each progress event to reach the consumer before continuing,
+        # the way a long-running node keeps running after set_progress().
+        acks: list[bool] = []
+        for progress in steps:
+            time.sleep(0.03)  # longer than flush_interval
+            delivered.clear()
+            queue.put(_progress_event("node1", progress))
+            acks.append(delivered.wait(timeout=2))
+        return acks
+
+    node = loop.run_in_executor(None, run_node)
+
+    received: list[float] = []
+    while len(received) < len(steps):
+        event = await asyncio.wait_for(events.get(), timeout=5)
+        assert event["event"] == "node-progress"
+        received.append(event["data"]["progress"])  # type: ignore
+        delivered.set()
+
+    assert await node == [True, True, True]
+    assert received == steps
+
+
+@pytest.mark.asyncio
+async def test_throttled_progress_flushes_before_node_finish():
+    """Pending progress from a worker thread is sent before node-finish."""
+    events = EventQueue()
+    queue = ThrottledProgressQueue(queue=events, flush_interval=10)
+    loop = asyncio.get_running_loop()
+    queue.set_loop(loop)
+
+    progress = _progress_event("node1", 0.5)
+    await loop.run_in_executor(None, queue.put, progress)
+
+    finish: NodeFinishEvent = {
+        "event": "node-finish",
+        "data": {"nodeId": NodeId("node1"), "executionTime": 1.0},
+    }
+    queue.put(finish)
+
+    assert events.queue.get_nowait() == progress
+    assert events.queue.get_nowait() == finish
+    assert events.queue.empty()
 
 
 def test_chain_start_event_structure():
