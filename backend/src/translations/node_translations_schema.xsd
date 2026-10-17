@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:element name="translations">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="language" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="name" type="xs:string" />
+                            <xs:element name="description" type="xs:string" />
+                            <xs:element name="inputs">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="input">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="label" type="xs:string" />
+                                                    <xs:element name="description" type="xs:string" />
+                                                </xs:sequence>
+                                                <xs:attribute name="id" type="xs:integer"
+                                                    use="required" />
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="outputs">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="output" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="label" type="xs:string" />
+                                                    <xs:element name="description" type="xs:string" />
+                                                </xs:sequence>
+                                                <xs:attribute name="id" type="xs:integer"
+                                                    use="required" />
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attribute name="code" use="required" />
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+            <xs:attribute name="id" use="required" />
+        </xs:complexType>
+    </xs:element>
+</xs:schema>
