@@ -601,12 +601,22 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             return;
         }
 
-        mainWindow.once('ready-to-show', () => {
+        let shown = false;
+        const showWindow = () => {
+            if (shown || mainWindow.isDestroyed()) return;
+            shown = true;
             mainWindow.show();
             if (settings.lastWindowSize.maximized) {
                 mainWindow.maximize();
             }
-        });
+        };
+        mainWindow.once('ready-to-show', showWindow);
+        // Under native Wayland, 'ready-to-show' sometimes never fires for a window created
+        // with `show: false`, so the window would stay hidden forever.
+        // https://github.com/electron/electron/issues/48859
+        if (process.platform === 'linux') {
+            mainWindow.webContents.once('did-finish-load', showWindow);
+        }
 
         // and load the index.html of the app.
         if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
