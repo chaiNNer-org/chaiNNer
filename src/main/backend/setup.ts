@@ -9,6 +9,7 @@ import { getBackendStorageFolder, getLogsFolder } from '../platform';
 import { checkPythonPaths } from '../python/checkPythonPaths';
 import { getIntegratedPython, getIntegratedPythonExecutable } from '../python/integratedPython';
 import { BackendProcess, BorrowedBackendProcess, OwnedBackendProcess } from './process';
+import { readSettings } from '../setting-storage';
 
 const getValidPort = async () => {
     log.info('Attempting to check for a port...');
@@ -200,11 +201,14 @@ const getPythonInfo = async (
 
 const spawnBackend = (port: number, pythonInfo: PythonInfo) => {
     try {
+        const settings = readSettings();
+
         const backend = OwnedBackendProcess.spawn({
             port,
             python: pythonInfo,
             storageDir: getBackendStorageFolder(),
             logsDir: getLogsFolder(),
+            language: settings.language || 'en',
         });
 
         return backend;
