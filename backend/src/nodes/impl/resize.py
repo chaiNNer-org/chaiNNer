@@ -24,6 +24,8 @@ class ResizeFilter(Enum):
     HANN = 9
     LAGRANGE = 10
     GAUSS = 11
+    MKS2013 = 12
+    MKS2021 = 13
 
 
 _FILTER_MAP: dict[ResizeFilter, NativeResizeFilter] = {
@@ -39,6 +41,8 @@ _FILTER_MAP: dict[ResizeFilter, NativeResizeFilter] = {
     ResizeFilter.HANN: NativeResizeFilter.Hann,
     ResizeFilter.LAGRANGE: NativeResizeFilter.Lagrange,
     ResizeFilter.GAUSS: NativeResizeFilter.Gauss,
+    ResizeFilter.MKS2013: NativeResizeFilter.MKS2013,
+    ResizeFilter.MKS2021: NativeResizeFilter.MKS2021, 
 }
 
 
