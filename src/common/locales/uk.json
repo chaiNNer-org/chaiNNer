@@ -6,7 +6,7 @@
             "exitApplication": "Вийти із застосунку",
             "copyToClipboard": "Скопіювати у буфер обміну"
         },
-        "stackTrace": "Трасування стаку",
+        "stackTrace": "Трасування стека",
         "title": {
             "systemInformation": "Інформація про систему"
         }
@@ -38,7 +38,7 @@
         "updateAvailableAria": "Доступне оновлення",
         "updateChangelog": "Журнал змін",
         "updateAvailableTitle": "Доступне оновлення ({{version}})",
-        "updateAvailableMessage": "Вам доступне оновлення на версію {{version}}. Бажаєте переглянути журнал змін?",
+        "updateAvailableMessage": "Вам доступне оновлення до версії {{version}}. Бажаєте переглянути журнал змін?",
         "viewReleaseOnGitHub": "Переглянути реліз на GitHub",
         "downloadFromWebsite": "Завантажити з chaiNNer.app",
         "ignoreUpdate": "Ігнорувати оновлення",
@@ -51,7 +51,7 @@
             "copyFullDirectoryPath": "Скопіювати повний шлях до папки",
             "openInFileExplorer": "Відкрити у провіднику",
             "selectDirectory": "Вибрати папку...",
-            "clickToSelect": "Натисніть аби обрати..."
+            "clickToSelect": "Натисніть, аби вибрати..."
         },
         "extractValueIntoNode": "Витягнути значення у вузол",
         "file": {
@@ -60,10 +60,10 @@
             "copyFullFilePath": "Скопіювати повний шлях до файлу",
             "openInFileExplorer": "Відкрити у провіднику",
             "selectFile": "Виберіть файл...",
-            "clickToSelectFile": "Натисніть аби вибрати файл..."
+            "clickToSelectFile": "Натисніть, аби вибрати файл..."
         },
         "number": {
-            "copyText": "Скопіювати номер",
+            "copyText": "Скопіювати число",
             "paste": "Вставити"
         },
         "text": {
@@ -83,7 +83,7 @@
     "outputs": {
         "largeImage": {
             "imageNotAvailable": "Зображення недоступне.",
-            "imagePreviewFailed": "Прев'ю зображення не вдалося завантажити, ймовірно через непідтримуваний тип файлу."
+            "imagePreviewFailed": "Прев'ю зображення не вдалося завантажити, ймовірно, через непідтримуваний тип файлу."
         },
         "model": {
             "modelNotAvailable": "Інформація про модель недоступна."
@@ -105,7 +105,7 @@
                 "options": {
                     "dark": "Темна",
                     "light": "Світла",
-                    "system": "Система",
+                    "system": "Системна",
                     "charcoal": "Charcoal",
                     "coffee": "Coffee",
                     "blueberry": "Blueberry",
@@ -123,7 +123,7 @@
             },
             "chainAnimation": {
                 "label": "Анімація ланцюга",
-                "description": "Вмикає анімації що відображають стан обробки ланцюга."
+                "description": "Вмикає анімації, що відображають стан обробки ланцюга."
             },
             "minimap": {
                 "label": "Міні-карта",
@@ -172,22 +172,22 @@
                 "description": "Перемикає перевірку на оновлення при запуску програми."
             },
             "hardwareAcceleration": {
-                "label": "Увімкнути Апаратне прискорення (потребує перезапуску)",
-                "description": "Вмикає рендеринг інтерфейсу на GPU. Використовуйте з обережністю, так як це може викликати деградацію продуктивності при обробці зображення."
+                "label": "Увімкнути апаратне прискорення (потребує перезапуску)",
+                "description": "Вмикає рендеринг інтерфейсу на GPU. Використовуйте з обережністю, оскільки може спричинити втрату продуктивності при обробці зображення."
             },
             "allowMultipleInstances": {
-                "label": "Дозволити роботу декілька процесів",
-                "description": "Вмикає роботу декількох процесів chaiNNer. Не рекомендовано, але якщо ваш ланцюг не використує усю кількість системних ресурсів, це може бути корисним для запуску паралельних процесів."
+                "label": "Дозволити роботу декількох процесів",
+                "description": "Вмикає роботу декількох процесів chaiNNer. Не рекомендовано, але якщо ваш ланцюг не використовує усю кількість системних ресурсів, це може бути корисним для запуску паралельних процесів."
             }
         },
         "noOptionsFound": "Варіантів не знайдено.",
-        "clearCache": "Очистити Кеш"
+        "clearCache": "Очистити кеш"
     },
     "setup": {
         "checkingPort": "Перевірка на доступні порти...",
         "checkingPython": "Перевірка системного середовища на валідний Python...",
         "downloadingPython": "Завантаження вбудованого Python...",
-        "extractingPython": "Витягнення завантажених файлів...",
+        "extractingPython": "Розпакування завантажених файлів...",
         "loading": "Завантаження...",
         "startingBackend": "Запуск процесів бекенду..."
     },
@@ -204,7 +204,7 @@
         "executionTook": "Виконання тривало орієнтовно {{duration}}."
     },
     "linkedInputs": {
-        "currentlyLinked": "Значення {{inputs}} наразі прив'язано до того ж значення. Натисніть аби прибрати прив'язку.",
+        "currentlyLinked": "Значення {{inputs}} наразі прив'язано до того ж значення. Натисніть, аби прибрати прив'язку.",
         "clickToLink": "Натисніть тут, щоб прив'язати {{inputs}} до того ж значення."
     },
     "languages": {
@@ -231,23 +231,23 @@
     },
     "favorites": {
         "title": "Улюблені",
-        "noFavorites": "Відсутні улюблені.",
+        "noFavorites": "Улюблені відсутні.",
         "addFavoritesTooltip": "Додайте улюблені правою кнопкою миші по вузлі і вибравши «Додати в улюблені»",
-        "addFavoritesTooltipExpanded": "Додайте в улюблені навівшись на вузол та натиснувши на іконку <star/> або натиснувши праву кнопку та вибравши «Додати в улюблені».",
+        "addFavoritesTooltipExpanded": "Додайте в улюблені навівши курсор на вузол та натиснувши на іконку <star/>, або натиснувши праву кнопку миші та обравши «Додати в улюблені».",
         "addToFavorites": "Додати в улюблені",
         "removeFromFavorites": "Видалити з улюблених"
     },
     "documentation": {
         "title": "Документація вузлів",
-        "openDocumentation": "Відкрити Документацію"
+        "openDocumentation": "Відкрити документацію"
     },
     "dependencyManager": {
         "title": "Менеджер залежностей",
         "manageDependencies": "Керувати залежностями",
         "updatesAvailable": "Доступні оновлення",
         "updatesAvailableDescription_one": "У вас є {{count}} пакунок з доступним оновленням залежностей.",
-        "updatesAvailableDescription_few": "У вас є {{count}} пакунка доступним оновленням залежностей.",
-        "updatesAvailableDescription_many": "У вас є {{count}} пакунків з доступним оновленням залежностей.",
+        "updatesAvailableDescription_few": "У вас є {{count}} пакунки з доступними оновленнями залежностей.",
+        "updatesAvailableDescription_many": "У вас є {{count}} пакунків з доступними оновленнями залежностей.",
         "updatesAvailableDescription_other": "У вас є {{count}} пакунка з доступними оновленнями залежностей.",
         "openDependencyManager": "Менеджер залежностей",
         "packages": "Пакунки",
@@ -274,16 +274,16 @@
         "commandCopiedDescription": "Відкрийте зовнішній термінал, вставте команду і запустіть. Щойно процес завершиться, вручну перезапустіть chaiNNer.",
         "uninstallTitle": "Видалити",
         "uninstallMessage": "Ви дійсно бажаєте видалити {{name}}?",
-        "unsavedChanges": "Не збережені зміни",
+        "unsavedChanges": "Незбережені зміни",
         "unsavedChangesMessage": "Ви можете втратити ваші незбережені зміни видаливши {{name}}.\n\nВи впевнені що бажаєте видалити {{name}}?",
         "cancel": "Скасувати",
         "installing": "Встановлення {{name}}...",
         "uninstalling": "Видалення {{name}}...",
         "copyPythonPath": "Скопіювати шлях до Python у буфер обміну",
         "pythonPath": "Шлях до Python:",
-        "installAllPackages": "{{operations}} усі пакети ({{size}})",
-        "package_one": "пакет",
-        "package_few": "пакунків",
+        "installAllPackages": "{{operations}} усі пакунки ({{size}})",
+        "package_one": "пакунок",
+        "package_few": "пакунки",
         "package_many": "пакунків",
         "package_other": "пакунків",
         "brackets": {
@@ -326,7 +326,7 @@
     },
     "breakpoint": {
         "removeBreakpoint": "Видалити точку згину",
-        "removeEdge": "Видалити край"
+        "removeEdge": "Видалити з'єднання"
     },
     "tooltips": {
         "addNodesToCanvas": "Аби додати вузол до робочої області двічі клацніть по ньому або перетягніть.",
@@ -342,7 +342,7 @@
         "enable": "Увімкнути",
         "disable": "Вимкнути",
         "skip": "Пропустити",
-        "unlock": "Роблокувати",
+        "unlock": "Розблокувати",
         "lock": "Заблокувати",
         "refreshPreview": "Оновити попередній перегляд",
         "delete": "Видалити",
@@ -350,9 +350,9 @@
     },
     "nodesMenu": {
         "copy": "Скопіювати",
-        "duplicate": "Продублювати",
+        "duplicate": "Дублювати",
         "resetNodes": "Скинути вузли",
-        "resetInputs": "Скинути Вводи",
+        "resetInputs": "Скинути вводи",
         "resetConnections": "Скинути з'єднання",
         "resetAll": "Скинути усе",
         "enableAll": "Увімкнути усе",
@@ -366,15 +366,15 @@
     "nodeSelector": {
         "missingDependencies": "Відсутні залежності.",
         "unableToImport": "Не вдалося імпортувати вузол(ли).",
-        "clickToInstall": "Натисніть аби відкрити менеджер залежностей для встановлення {{packageName}}.",
+        "clickToInstall": "Натисніть, щоб відкрити менеджер залежностей для встановлення {{packageName}}.",
         "criticalImportError": "Критична помилка імпорту викликана залежністю у пакеті: {{packageName}}.",
         "nodes": "Вузли"
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "condition": "Condition:",
+            "condition": "Умови:",
             "allConditions": "Усі з наступних умов повинні бути виконані:",
-            "anyCondition": "Принаймні один з наступних вимог повинні бути виконані:",
+            "anyCondition": "Принаймні одна з наступних умов повинна бути виконана:",
             "enumIs": "<name>{{name}}</name> є <options/>.",
             "enumIsNot": "<name>{{name}}</name> не є <options/>.",
             "enumIsOneOf": "<name>{{name}}</name> є одним з <options/>.",
@@ -394,8 +394,8 @@
             "inputs": "Вводи",
             "noInputs": "Цей вузол не має вводів.",
             "outputs": "Виводи",
-            "noOutputs": "Цей вузол немає виводів.",
-            "seeAlso": "Гляньте також",
+            "noOutputs": "Цей вузол не має виводів.",
+            "seeAlso": "Див. також",
             "character_one": "символ",
             "character_few": "символа",
             "character_many": "символів",
