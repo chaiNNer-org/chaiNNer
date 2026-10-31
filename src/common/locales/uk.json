@@ -4,7 +4,7 @@
             "ok": "ОК",
             "openLogsFolder": "Відкрити папку логів",
             "exitApplication": "Вийти із застосунку",
-            "copyToClipboard": "Скопіювати в буфер обміну"
+            "copyToClipboard": "Скопіювати у буфер обміну"
         },
         "stackTrace": "Трасування стаку",
         "title": {
@@ -28,12 +28,12 @@
     "header": {
         "alpha": "Альфа",
         "pause": "Павза",
-        "pauseButton": "Клавіша павзи",
+        "pauseButton": "Кнопка павзи",
         "resume": "Продовжити",
         "run": "Запустити",
-        "runButton": "Клавіша запуску",
+        "runButton": "Кнопка запуску",
         "stop": "Зупинити",
-        "stopButton": "Клавіша зупинки",
+        "stopButton": "Кнопка зупинки",
         "updateAvailable": "Доступне оновлення ({{version}})",
         "updateAvailableAria": "Доступне оновлення",
         "updateChangelog": "Журнал змін",
@@ -45,13 +45,13 @@
         "viewUpdate": "Переглянути оновлення"
     },
     "inputs": {
-        "copyInputOverrideId": "Скопіювати ID вводу перепису",
+        "copyInputOverrideId": "Скопіювати ID перезаписаного вводу",
         "directory": {
             "clear": "Очистити",
-            "copyFullDirectoryPath": "Скопівати повний шлях",
-            "openInFileExplorer": "Відкити у провіднику",
-            "selectDirectory": "Вибрати шлях...",
-            "clickToSelect": "Натисніть аби вибрати..."
+            "copyFullDirectoryPath": "Скопіювати повний шлях до папки",
+            "openInFileExplorer": "Відкрити у провіднику",
+            "selectDirectory": "Вибрати папку...",
+            "clickToSelect": "Натисніть аби обрати..."
         },
         "extractValueIntoNode": "Витягнути значення у вузол",
         "file": {
@@ -73,7 +73,7 @@
         },
         "addInput": "Додати ввід",
         "colorCompare": {
-            "old": "старе",
+            "old": "Старе",
             "new": "Нове"
         },
         "rgbHex": {
@@ -160,7 +160,7 @@
             },
             "systemPythonLocation": {
                 "label": "Розташування системного Python (опціонально)",
-                "description": "В разі потреби, використовуйте конретний бінарник python замість старндарного, що викликається командами 'python3' чи 'python'. Корисно, якщо у вас є декілька версій і ви бажаєте вибрати якусь конкретну.",
+                "description": "В разі потреби, використовуйте конкретний бінарник python замість стандартного, що викликається командами 'python3' чи 'python'. Корисно, якщо у вас є декілька версій і ви бажаєте вибрати якусь конкретну.",
                 "placeholder": "Вибрати файл...",
                 "clear": "Очистити",
                 "pickFile": "Вибрати розташування системного python"
@@ -173,7 +173,7 @@
             },
             "hardwareAcceleration": {
                 "label": "Увімкнути Апаратне прискорення (потребує перезапуску)",
-                "description": "Вмикає рендеринг інтерфейсу на GPU. Використовуйте з обережністю, так як це може викликати деградація продуктивності при обробці зображення."
+                "description": "Вмикає рендеринг інтерфейсу на GPU. Використовуйте з обережністю, так як це може викликати деградацію продуктивності при обробці зображення."
             },
             "allowMultipleInstances": {
                 "label": "Дозволити роботу декілька процесів",
@@ -192,12 +192,12 @@
         "startingBackend": "Запуск процесів бекенду..."
     },
     "typeTags": {
-        "optional": "опціонально"
+        "optional": "Опціонально"
     },
     "groups": {
         "seed": {
-            "randomSeed": "Випадкове насіння",
-            "randomSeedAria": "Випадкове насіння"
+            "randomSeed": "Випадкове зерно",
+            "randomSeedAria": "Випадкове зерно"
         }
     },
     "timer": {
@@ -246,6 +246,8 @@
         "manageDependencies": "Керувати залежностями",
         "updatesAvailable": "Доступні оновлення",
         "updatesAvailableDescription_one": "У вас є {{count}} пакунок з доступним оновленням залежностей.",
+        "updatesAvailableDescription_few": "У вас є {{count}} пакунка доступним оновленням залежностей.",
+        "updatesAvailableDescription_many": "У вас є {{count}} пакунків з доступним оновленням залежностей.",
         "updatesAvailableDescription_other": "У вас є {{count}} пакунка з доступними оновленнями залежностей.",
         "openDependencyManager": "Менеджер залежностей",
         "packages": "Пакунки",
@@ -268,7 +270,7 @@
         "normal": "Стандартний",
         "manualCopy": "Ручний/Копіювання",
         "consoleOutput": "Вивід консолі:",
-        "commandCopied": "Команду скопіювано у буфер обміну",
+        "commandCopied": "Команду скопіювано до буфера обміну",
         "commandCopiedDescription": "Відкрийте зовнішній термінал, вставте команду і запустіть. Щойно процес завершиться, вручну перезапустіть chaiNNer.",
         "uninstallTitle": "Видалити",
         "uninstallMessage": "Ви дійсно бажаєте видалити {{name}}?",
@@ -281,7 +283,9 @@
         "pythonPath": "Шлях до Python:",
         "installAllPackages": "{{operations}} усі пакети ({{size}})",
         "package_one": "пакет",
-        "package_other": "пакетів",
+        "package_few": "пакунків",
+        "package_many": "пакунків",
+        "package_other": "пакунків",
         "brackets": {
             "open": "[",
             "close": "]"
@@ -303,7 +307,7 @@
         "enable": "Увімкнути",
         "disable": "Вимкнути",
         "skip": "Пропустити",
-        "eta": "ОЧЗ:",
+        "eta": "Залишилося:",
         "outdated": "Застаріле",
         "paused": "На павзі",
         "finished": "Завершено"
@@ -318,10 +322,10 @@
         "koFiButton": "Підтримайте chaiNNer"
     },
     "edge": {
-        "removeEdge": "Видалити край кнопки"
+        "removeEdge": "Видалити з'єднання"
     },
     "breakpoint": {
-        "removeBreakpoint": "Видалити зупинку",
+        "removeBreakpoint": "Видалити точку згину",
         "removeEdge": "Видалити край"
     },
     "tooltips": {
@@ -356,7 +360,7 @@
         "delete": "Видалити"
     },
     "edgeMenu": {
-        "addBreakpoint": "Додати зупинку",
+        "addBreakpoint": "Додати точку згину",
         "delete": "Видалити"
     },
     "nodeSelector": {
@@ -381,7 +385,7 @@
             "typeIsNotOfType": "<name>{{name}}</name> не є типом <type/>."
         },
         "nodeDocs": {
-            "optional": "опціонально",
+            "optional": "Опціонально",
             "sequenced": "(Впорядковано)",
             "supportedFileTypes": "Підтримувані типи файлів:",
             "primaryInputDescription": "Цей ввід є основним для підтримуваних типів файлів. Це означає, що ви можете перетягнути підтримувані файли в chaiNNer, і програма автоматично створить вузол із заповненим цим вводом.",
@@ -393,6 +397,8 @@
             "noOutputs": "Цей вузол немає виводів.",
             "seeAlso": "Гляньте також",
             "character_one": "символ",
+            "character_few": "символа",
+            "character_many": "символів",
             "character_other": "символів"
         },
         "nodesList": {
