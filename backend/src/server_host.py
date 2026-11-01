@@ -57,6 +57,8 @@ class AppContext:
             worker_flags.append("--trace")
         if self.config.dev_mode:
             worker_flags.append("--dev")
+        if self.config.language:
+            worker_flags.extend(["--language", self.config.language])
 
         self._worker: Final[WorkerServer] = WorkerServer(worker_flags)
         self.pool: Final[ThreadPoolExecutor] = ThreadPoolExecutor(max_workers=4)

@@ -60,6 +60,13 @@ class ServerConfig:
     Usage: `--dev`
     """
 
+    language: str
+    """
+    Language code for node translations (e.g., 'en', 'es', 'fr').
+
+    Usage: `--language es`
+    """
+
     @staticmethod
     def parse_argv() -> ServerConfig:
         parser = argparse.ArgumentParser(description="ChaiNNer's server.")
@@ -105,6 +112,12 @@ class ServerConfig:
             action="store_true",
             help="Run in development mode.",
         )
+        parser.add_argument(
+            "--language",
+            type=str,
+            default="en",
+            help="Language code for node translations (e.g., 'en', 'es', 'fr'). Default: en",
+        )
 
         parsed = parser.parse_args()
 
@@ -117,4 +130,5 @@ class ServerConfig:
             logs_dir=parsed.logs_dir or None,
             trace=parsed.trace,
             dev_mode=parsed.dev,
+            language=parsed.language,
         )
