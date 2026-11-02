@@ -12,6 +12,7 @@ import pl from './locales/pl.json';
 import ptBR from './locales/pt-BR.json';
 import ru from './locales/ru.json';
 import tr from './locales/tr.json';
+import uk from './locales/uk.json';
 import zhCN from './locales/zh-CN.json';
 
 const resources = {
@@ -27,6 +28,7 @@ const resources = {
     nl: { translation: nl },
     pl: { translation: pl },
     tr: { translation: tr },
+    uk: { translation: uk },
     hi: { translation: hi },
     'pt-BR': { translation: ptBR },
 };
