@@ -1,0 +1,403 @@
+{
+    "alert": {
+        "button": {
+            "ok": "OK",
+            "openLogsFolder": "Mở thư mục nhật ký",
+            "exitApplication": "Thoát ứng dụng",
+            "copyToClipboard": "Sao chép vào bảng nhớ tạm"
+        },
+        "stackTrace": "Dấu vết ngăn xếp",
+        "title": {
+            "systemInformation": "Thông tin hệ thống"
+        }
+    },
+    "common": {
+        "cancel": "Hủy",
+        "close": "Đóng",
+        "settings": "Cài đặt"
+    },
+    "error": {
+        "error": "Lỗi",
+        "message": {
+            "criticalBackend": "Đã xảy ra lỗi nghiêm trọng khi xử lý dữ liệu nút do backend trả về."
+        },
+        "title": {
+            "unableToProcessNodes": "Không thể xử lý các nút của backend."
+        }
+    },
+    "header": {
+        "alpha": "Alpha",
+        "pause": "Tạm dừng",
+        "pauseButton": "Nút tạm dừng",
+        "resume": "Tiếp tục",
+        "run": "Chạy",
+        "runButton": "Nút chạy",
+        "stop": "Dừng",
+        "stopButton": "Nút dừng",
+        "updateAvailable": "Có bản cập nhật ({{version}})",
+        "updateAvailableAria": "Có bản cập nhật",
+        "updateChangelog": "Nhật ký thay đổi của bản cập nhật",
+        "updateAvailableTitle": "Có bản cập nhật ({{version}})",
+        "updateAvailableMessage": "Đã có bản cập nhật lên phiên bản {{version}}. Bạn có muốn xem nhật ký thay đổi không?",
+        "viewReleaseOnGitHub": "Xem bản phát hành trên GitHub",
+        "downloadFromWebsite": "Tải xuống từ chaiNNer.app",
+        "ignoreUpdate": "Bỏ qua bản cập nhật",
+        "viewUpdate": "Xem bản cập nhật"
+    },
+    "inputs": {
+        "copyInputOverrideId": "Sao chép ID ghi đè đầu vào",
+        "directory": {
+            "clear": "Xóa",
+            "copyFullDirectoryPath": "Sao chép đường dẫn đầy đủ của thư mục",
+            "openInFileExplorer": "Mở trong trình quản lý tệp",
+            "selectDirectory": "Chọn thư mục…",
+            "clickToSelect": "Nhấp để chọn…"
+        },
+        "extractValueIntoNode": "Tách giá trị ra thành nút",
+        "file": {
+            "clear": "Xóa",
+            "copyFileName": "Sao chép tên tệp",
+            "copyFullFilePath": "Sao chép đường dẫn đầy đủ của tệp",
+            "openInFileExplorer": "Mở trong trình quản lý tệp",
+            "selectFile": "Chọn tệp…",
+            "clickToSelectFile": "Nhấp để chọn tệp…"
+        },
+        "number": {
+            "copyText": "Sao chép số",
+            "paste": "Dán"
+        },
+        "text": {
+            "copyText": "Sao chép văn bản",
+            "paste": "Dán",
+            "invalidCharacter": "Ký tự không hợp lệ “{{character}}” (U+{{codePoint}})."
+        },
+        "addInput": "Thêm đầu vào",
+        "colorCompare": {
+            "old": "cũ",
+            "new": "mới"
+        },
+        "rgbHex": {
+            "hex": "Hex"
+        }
+    },
+    "outputs": {
+        "largeImage": {
+            "imageNotAvailable": "Không có hình ảnh.",
+            "imagePreviewFailed": "Không tải được bản xem trước hình ảnh, có thể do loại tệp không được hỗ trợ."
+        },
+        "model": {
+            "modelNotAvailable": "Không có dữ liệu mô hình."
+        }
+    },
+    "settings": {
+        "title": "Cài đặt",
+        "restartChaiNNer": "Khởi động lại chaiNNer",
+        "tabs": {
+            "appearance": "Giao diện",
+            "environment": "Môi trường",
+            "python": "Python",
+            "advanced": "Nâng cao"
+        },
+        "appearance": {
+            "colorTheme": {
+                "label": "Chủ đề màu",
+                "description": "Chọn chủ đề cho giao diện của chaiNNer.",
+                "options": {
+                    "dark": "Tối",
+                    "light": "Sáng",
+                    "system": "Hệ thống",
+                    "charcoal": "Xám than",
+                    "coffee": "Cà phê",
+                    "blueberry": "Việt quất",
+                    "dusk": "Hoàng hôn",
+                    "oled": "OLED",
+                    "cyberpunk": "Cyberpunk",
+                    "mixer": "Mixer3D",
+                    "notreal": "NotRealEngine",
+                    "comfort": "ComfortUI"
+                }
+            },
+            "language": {
+                "label": "Ngôn ngữ",
+                "description": "Chọn ngôn ngữ cho giao diện của chaiNNer."
+            },
+            "chainAnimation": {
+                "label": "Hiệu ứng động của chuỗi",
+                "description": "Bật hiệu ứng động thể hiện trạng thái xử lý của chuỗi."
+            },
+            "minimap": {
+                "label": "Bản đồ thu nhỏ",
+                "description": "Bật bản đồ thu nhỏ của chuỗi hiện tại ở góc dưới bên phải trình chỉnh sửa nút."
+            },
+            "snapToGrid": {
+                "label": "Bám theo lưới",
+                "description": "Bật tính năng bám lưới cho nút."
+            },
+            "snapToGridAmount": {
+                "label": "Khoảng cách bám lưới",
+                "description": "Khoảng cách của lưới khi bám."
+            },
+            "viewportExportPadding": {
+                "label": "Lề khi xuất khung nhìn ra PNG",
+                "description": "Độ rộng lề khi xuất khung nhìn ra tệp PNG."
+            }
+        },
+        "environment": {
+            "startupTemplate": {
+                "label": "Mẫu khởi động",
+                "description": "Đặt mẫu chuỗi được dùng mặc định khi chaiNNer khởi động.",
+                "placeholder": "Chọn tệp…",
+                "clear": "Xóa",
+                "pickFile": "Chọn tệp mẫu khởi động"
+            },
+            "selectChain": "Chọn chuỗi"
+        },
+        "python": {
+            "general": "Chung",
+            "useSystemPython": {
+                "label": "Dùng Python của hệ thống (cần khởi động lại)",
+                "description": "Dùng Python của hệ thống cho việc xử lý của chaiNNer thay vì Python đi kèm (không khuyến nghị)"
+            },
+            "systemPythonLocation": {
+                "label": "Vị trí Python của hệ thống (không bắt buộc)",
+                "description": "Nếu muốn, bạn có thể dùng một tệp thực thi Python cụ thể thay cho tệp mặc định được gọi bằng “python3” hoặc “python”. Tùy chọn này hữu ích khi bạn cài nhiều phiên bản Python và muốn chọn một phiên bản cụ thể.",
+                "placeholder": "Chọn tệp…",
+                "clear": "Xóa",
+                "pickFile": "Chọn vị trí Python của hệ thống"
+            }
+        },
+        "advanced": {
+            "checkForUpdates": {
+                "label": "Kiểm tra cập nhật khi khởi động",
+                "description": "Bật/tắt việc kiểm tra cập nhật khi khởi động."
+            },
+            "hardwareAcceleration": {
+                "label": "Bật tăng tốc phần cứng (cần khởi động lại)",
+                "description": "Bật kết xuất bằng GPU cho giao diện. Hãy thận trọng, vì tùy chọn này có thể làm giảm đáng kể hiệu năng GPU khi xử lý hình ảnh."
+            },
+            "allowMultipleInstances": {
+                "label": "Cho phép chạy nhiều phiên bản cùng lúc",
+                "description": "Cho phép chạy nhiều phiên bản chaiNNer cùng lúc. Không khuyến nghị, nhưng nếu chuỗi của bạn chưa tận dụng hết tài nguyên hệ thống thì tùy chọn này có thể giúp chạy nhiều tác vụ song song."
+            }
+        },
+        "noOptionsFound": "Không tìm thấy tùy chọn nào.",
+        "clearCache": "Xóa bộ nhớ đệm"
+    },
+    "setup": {
+        "checkingPort": "Đang tìm cổng còn trống…",
+        "checkingPython": "Đang kiểm tra môi trường hệ thống để tìm Python hợp lệ…",
+        "downloadingPython": "Đang tải xuống Python tích hợp…",
+        "extractingPython": "Đang giải nén các tệp đã tải xuống…",
+        "loading": "Đang tải…",
+        "startingBackend": "Đang khởi động tiến trình backend…"
+    },
+    "typeTags": {
+        "optional": "không bắt buộc"
+    },
+    "groups": {
+        "seed": {
+            "randomSeed": "Seed ngẫu nhiên",
+            "randomSeedAria": "Seed ngẫu nhiên"
+        }
+    },
+    "timer": {
+        "executionTook": "Đã thực thi trong khoảng {{duration}}."
+    },
+    "linkedInputs": {
+        "currentlyLinked": "Giá trị của {{inputs}} hiện đang được liên kết với cùng một giá trị. Nhấp vào đây để hủy liên kết này.",
+        "clickToLink": "Nhấp vào đây để liên kết {{inputs}} với cùng một giá trị."
+    },
+    "languages": {
+        "english": "English",
+        "spanish": "Español",
+        "german": "Deutsch",
+        "french": "Français",
+        "italian": "Italiano",
+        "japanese": "日本語",
+        "chinese": "中文",
+        "russian": "Русский",
+        "korean": "한국어",
+        "dutch": "Nederlands",
+        "polish": "Polski",
+        "turkish": "Türkçe",
+        "ukrainian": "Українська",
+        "vietnamese": "Tiếng Việt",
+        "hindi": "हिन्दी",
+        "brazilianPortuguese": "Português (Brasil)"
+    },
+    "search": {
+        "placeholder": "Tìm kiếm…",
+        "missingNodes": "Thiếu nút? Nhấp để mở trình quản lý phụ thuộc!",
+        "noCompatibleNodes": "Không tìm thấy nút tương thích nào."
+    },
+    "favorites": {
+        "title": "Mục yêu thích",
+        "noFavorites": "Chưa có mục yêu thích.",
+        "addFavoritesTooltip": "Thêm mục yêu thích bằng cách nhấp chuột phải vào nút và chọn “Thêm vào mục yêu thích”.",
+        "addFavoritesTooltipExpanded": "Thêm mục yêu thích bằng cách di chuột lên nút và nhấp vào biểu tượng <star/>, hoặc nhấp chuột phải và chọn “Thêm vào mục yêu thích”.",
+        "addToFavorites": "Thêm vào mục yêu thích",
+        "removeFromFavorites": "Gỡ khỏi mục yêu thích"
+    },
+    "documentation": {
+        "title": "Tài liệu nút",
+        "openDocumentation": "Mở tài liệu"
+    },
+    "dependencyManager": {
+        "title": "Trình quản lý phụ thuộc",
+        "manageDependencies": "Quản lý phụ thuộc",
+        "updatesAvailable": "Có bản cập nhật",
+        "updatesAvailableDescription_one": "Có bản cập nhật phụ thuộc cho {{count}} gói.",
+        "updatesAvailableDescription_other": "Có bản cập nhật phụ thuộc cho {{count}} gói.",
+        "openDependencyManager": "Mở trình quản lý phụ thuộc",
+        "packages": "Gói",
+        "features": "Tính năng",
+        "refresh": "Làm mới",
+        "install": "Cài đặt",
+        "update": "Cập nhật",
+        "uninstall": "Gỡ cài đặt",
+        "close": "Đóng",
+        "missing": "Còn thiếu",
+        "outdated": "Lỗi thời",
+        "unavailable": "Không khả dụng",
+        "enabled": "Đã bật",
+        "disabled": "Đã tắt",
+        "python": "Python",
+        "system": "Hệ thống",
+        "integrated": "Tích hợp",
+        "advanced": "Nâng cao",
+        "installationMode": "Chế độ cài đặt",
+        "normal": "Thông thường",
+        "manualCopy": "Thủ công/Sao chép",
+        "consoleOutput": "Đầu ra bảng điều khiển:",
+        "commandCopied": "Đã sao chép lệnh vào bảng nhớ tạm",
+        "commandCopiedDescription": "Hãy mở một cửa sổ terminal bên ngoài, dán lệnh và chạy. Khi lệnh chạy xong, hãy tự khởi động lại chaiNNer.",
+        "uninstallTitle": "Gỡ cài đặt",
+        "uninstallMessage": "Bạn có chắc muốn gỡ cài đặt {{name}} không?",
+        "unsavedChanges": "Thay đổi chưa lưu",
+        "unsavedChangesMessage": "Bạn có thể mất các thay đổi chưa lưu khi gỡ cài đặt {{name}}.\n\nBạn có chắc muốn gỡ cài đặt {{name}} không?",
+        "cancel": "Hủy",
+        "installing": "Đang cài đặt {{name}}…",
+        "uninstalling": "Đang gỡ cài đặt {{name}}…",
+        "copyPythonPath": "Sao chép đường dẫn Python vào bảng nhớ tạm",
+        "pythonPath": "Đường dẫn Python:",
+        "installAllPackages": "{{operations}} tất cả các gói ({{size}})",
+        "package_one": "gói",
+        "package_other": "gói",
+        "brackets": {
+            "open": "[",
+            "close": "]"
+        }
+    },
+    "note": {
+        "editMode": "Chế độ chỉnh sửa",
+        "editContent": "Chỉnh sửa nội dung",
+        "markdownMode": "Chế độ Markdown",
+        "viewMarkdown": "Xem Markdown"
+    },
+    "node": {
+        "disableHint": "Mẹo: Dùng Ctrl+Click để chuyển qua lại giữa các tùy chọn.",
+        "note": {
+            "placeholder": "Nội dung ghi chú"
+        },
+        "implementationError": "Lỗi triển khai",
+        "implementationErrorMessage": "Không thể xác định thông tin chính của nút {{nodeName}} ({{schemaId}}).",
+        "enable": "Bật",
+        "disable": "Tắt",
+        "skip": "Bỏ qua",
+        "eta": "Dự kiến xong:",
+        "outdated": "Đã cũ",
+        "paused": "Đã tạm dừng",
+        "finished": "Đã xong"
+    },
+    "color": {
+        "resetToOld": "Khôi phục màu cũ",
+        "acceptNew": "Chấp nhận màu mới"
+    },
+    "support": {
+        "koFiTooltip": "Ủng hộ chaiNNer trên Ko-fi",
+        "koFiAria": "Ủng hộ chaiNNer",
+        "koFiButton": "Ủng hộ chaiNNer"
+    },
+    "edge": {
+        "removeEdge": "Nút gỡ bỏ đường nối"
+    },
+    "breakpoint": {
+        "removeBreakpoint": "Gỡ bỏ điểm dừng",
+        "removeEdge": "Gỡ bỏ đường nối"
+    },
+    "tooltips": {
+        "addNodesToCanvas": "Nhấp đúp hoặc kéo thả để thêm nút vào khung vẽ.",
+        "collapseExpandCategories": "Thu gọn/Mở rộng danh mục"
+    },
+    "nodeMenu": {
+        "copy": "Sao chép",
+        "duplicate": "Nhân bản",
+        "resetNode": "Đặt lại nút",
+        "resetInputs": "Đặt lại đầu vào",
+        "resetConnections": "Đặt lại kết nối",
+        "resetAll": "Đặt lại tất cả",
+        "enable": "Bật",
+        "disable": "Tắt",
+        "skip": "Bỏ qua",
+        "unlock": "Mở khóa",
+        "lock": "Khóa",
+        "refreshPreview": "Làm mới bản xem trước",
+        "delete": "Xóa",
+        "openDocumentation": "Mở tài liệu"
+    },
+    "nodesMenu": {
+        "copy": "Sao chép",
+        "duplicate": "Nhân bản",
+        "resetNodes": "Đặt lại các nút",
+        "resetInputs": "Đặt lại đầu vào",
+        "resetConnections": "Đặt lại kết nối",
+        "resetAll": "Đặt lại tất cả",
+        "enableAll": "Bật tất cả",
+        "disableAll": "Tắt tất cả",
+        "delete": "Xóa"
+    },
+    "edgeMenu": {
+        "addBreakpoint": "Thêm điểm dừng",
+        "delete": "Xóa"
+    },
+    "nodeSelector": {
+        "missingDependencies": "Thiếu phụ thuộc.",
+        "unableToImport": "Không thể nhập nút.",
+        "clickToInstall": "Nhấp để mở trình quản lý phụ thuộc và cài đặt {{packageName}}.",
+        "criticalImportError": "Đã xảy ra lỗi nhập nghiêm trọng với một phụ thuộc trong gói: {{packageName}}.",
+        "nodes": "Nút"
+    },
+    "nodeDocumentation": {
+        "conditionExplanation": {
+            "condition": "Điều kiện:",
+            "allConditions": "Phải đáp ứng tất cả các điều kiện sau:",
+            "anyCondition": "Phải đáp ứng ít nhất một trong các điều kiện sau:",
+            "enumIs": "<name>{{name}}</name> là <options/>.",
+            "enumIsNot": "<name>{{name}}</name> không phải là <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> là một trong <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> không phải là một trong <options/>.",
+            "typeIs": "<name>{{name}}</name> là {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> không phải là {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> có kiểu <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> không có kiểu <type/>."
+        },
+        "nodeDocs": {
+            "optional": "không bắt buộc",
+            "sequenced": "(Tuần tự)",
+            "supportedFileTypes": "Loại tệp được hỗ trợ:",
+            "primaryInputDescription": "Đây là đầu vào chính cho các loại tệp được hỗ trợ. Nghĩa là bạn có thể kéo thả các tệp được hỗ trợ vào chaiNNer, và chaiNNer sẽ tự động tạo một nút với đầu vào này đã được điền sẵn.",
+            "options": "Tùy chọn:",
+            "type": "Kiểu:",
+            "inputs": "Đầu vào",
+            "noInputs": "Nút này không có đầu vào.",
+            "outputs": "Đầu ra",
+            "noOutputs": "Nút này không có đầu ra.",
+            "seeAlso": "Xem thêm",
+            "character_one": "ký tự",
+            "character_other": "ký tự"
+        },
+        "nodesList": {
+            "noNodesFound": "Không tìm thấy nút nào"
+        }
+    }
+}

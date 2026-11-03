@@ -14,6 +14,7 @@ import pl from 'javascript-time-ago/locale/pl.json';
 import pt from 'javascript-time-ago/locale/pt.json';
 import ru from 'javascript-time-ago/locale/ru.json';
 import tr from 'javascript-time-ago/locale/tr.json';
+import vi from 'javascript-time-ago/locale/vi.json';
 import zh from 'javascript-time-ago/locale/zh.json';
 import { memo, useLayoutEffect, useState } from 'react';
 import { PythonInfo } from '../common/common-types';
@@ -33,7 +34,7 @@ import { darktheme } from './theme';
 import './i18n';
 
 // One per shipped UI language; pt-BR and zh-CN resolve to pt and zh.
-for (const locale of [en, de, es, fr, hi, it, ja, ko, nl, pl, pt, ru, tr, zh]) {
+for (const locale of [en, de, es, fr, hi, it, ja, ko, nl, pl, pt, ru, tr, vi, zh]) {
     TimeAgo.addLocale(locale);
 }
 TimeAgo.setDefaultLocale(en.locale);
