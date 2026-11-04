@@ -739,6 +739,7 @@ class NcnnModelWrapper:
         nf = 0
         fp = "fp32"
         pixel_shuffle = 1
+        reorg_factor = 1
         found_first_conv = False
         current_conv = None
 
@@ -755,6 +756,12 @@ class NcnnModelWrapper:
             elif layer.op_type == "PixelShuffle":
                 scale *= checked_cast(int, layer.params[0].value)
                 pixel_shuffle *= checked_cast(int, layer.params[0].value)
+            elif layer.op_type == "Reorg" and found_first_conv is not True:
+                # Reorg folds a scale x scale block of pixels into the channel
+                # dimension. Some 2x models use it as their first layer, and without
+                # accounting for it they are read as having scale^2 times too many
+                # input channels and scale times too large a scale.
+                reorg_factor *= checked_cast(int, layer.params[0].value)
             elif layer.op_type in (
                 "Convolution",
                 "Convolution1D",
@@ -781,6 +788,10 @@ class NcnnModelWrapper:
         )
 
         out_nc = checked_cast(int, current_conv.params[0].value) // pixel_shuffle**2
+
+        if reorg_factor > 1 and in_nc % (reorg_factor**2) == 0:
+            in_nc //= reorg_factor**2
+            scale /= reorg_factor
 
         assert scale >= 1, "Models with scale less than 1x not supported"
         assert scale % 1 == 0, f"Model not supported, scale {scale} is not an integer"

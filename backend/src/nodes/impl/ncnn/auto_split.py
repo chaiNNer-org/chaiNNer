@@ -94,4 +94,19 @@ def ncnn_auto_split(
                 # Re-raise the exception if not an OOM error
                 raise
 
-    return auto_split(img, upscale, tiler, progress=progress)
+    # Models with an internal Reorg only scale by an exact integer factor for even
+    # input sizes, so an odd image is padded with a row/column of edge pixels and
+    # the result is cropped back to the expected size.
+    h, w = img.shape[:2]
+    pad_h, pad_w = h % 2, w % 2
+    if pad_h or pad_w:
+        logger.debug(f"Padding {w}x{h} image to an even size for NCNN upscaling.")
+        img = np.pad(img, ((0, pad_h), (0, pad_w), (0, 0)), mode="edge")
+
+    result = auto_split(img, upscale, tiler, progress=progress)
+
+    if pad_h or pad_w:
+        scale = result.shape[0] // img.shape[0]
+        result = result[: h * scale, : w * scale]
+
+    return result
