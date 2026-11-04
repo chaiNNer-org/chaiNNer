@@ -65,6 +65,8 @@ def ResizeFilterInput() -> DropDownInput:
             ResizeFilter.BOX: "Area (Box)",
             ResizeFilter.CATROM: "Cubic",
             ResizeFilter.BSPLINE: "B-Spline",
+            ResizeFilter.MKS2013: "MKS-2013",
+            ResizeFilter.MKS2021: "MKS-2021",
         },
     )
 
