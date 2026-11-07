@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import os
 import platform
 from collections.abc import Callable, Iterable
@@ -8,7 +9,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pillow_avif  # type: ignore # noqa: F401
-from PIL import Image
+from PIL import Image, ImageCms
 
 from logger import logger
 from nodes.impl.dds.texconv import dds_to_png_texconv
@@ -83,6 +84,33 @@ def _read_cv(path: Path) -> np.ndarray | None:
     return img
 
 
+def _apply_icc_profile(im: Image.Image) -> Image.Image:
+    icc_data = im.info.get("icc_profile")
+    if not icc_data:
+        return im
+
+    try:
+        src_profile = ImageCms.ImageCmsProfile(io.BytesIO(icc_data))
+        srgb_profile = ImageCms.createProfile("sRGB")
+
+        has_alpha = "A" in im.mode or im.mode == "LA"
+        target_mode = "RGBA" if has_alpha else "RGB"
+        if im.mode != target_mode:
+            im = im.convert(target_mode)
+
+        im = ImageCms.profileToProfile(
+            im,
+            src_profile,
+            srgb_profile,
+            renderingIntent=ImageCms.Intent.PERCEPTUAL,
+            outputMode=target_mode,
+        )
+    except Exception as e:
+        logger.warning("Failed to apply ICC profile, using raw values: %s", e)
+
+    return im
+
+
 def _read_pil(path: Path) -> np.ndarray | None:
     if get_ext(path) not in get_pil_formats():
         # not supported
@@ -93,6 +121,8 @@ def _read_pil(path: Path) -> np.ndarray | None:
         # convert color palette to actual colors
         im = im.convert(im.palette.mode)
 
+    im = _apply_icc_profile(im)
+
     img = np.array(im)
     _, _, c = get_h_w_c(img)
     if c == 3:
@@ -100,6 +130,23 @@ def _read_pil(path: Path) -> np.ndarray | None:
     elif c == 4:
         img = cv2.cvtColor(img, cv2.COLOR_RGBA2BGRA)
     return img
+
+
+def _read_cv_with_icc(path: Path) -> np.ndarray | None:
+    if get_ext(path) not in get_opencv_formats():
+        return None
+
+    try:
+        probe = Image.open(path)
+        has_icc = bool(probe.info.get("icc_profile"))
+        probe.close()
+    except Exception:
+        has_icc = False
+
+    if has_icc:
+        return _read_pil(path)
+
+    return _read_cv(path)
 
 
 def _read_dds(path: Path) -> np.ndarray | None:
@@ -133,7 +180,7 @@ def _for_ext(ext: str | Iterable[str], decoder: _Decoder) -> _Decoder:
 
 _decoders: list[tuple[str, _Decoder]] = [
     ("pil-jpeg", _for_ext([".jpg", ".jpeg"], _read_pil)),
-    ("cv", _read_cv),
+    ("cv-icc", _read_cv_with_icc),
     ("texconv-dds", _read_dds),
     ("pil", _read_pil),
 ]
