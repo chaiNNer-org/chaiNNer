@@ -19,6 +19,7 @@ import { ChainnerSettings } from '../../common/settings/settings';
 import { CriticalError } from '../../common/ui/error';
 import { Progress, ProgressController, ProgressToken, SubProgress } from '../../common/ui/progress';
 import { assertNever } from '../../common/util';
+import { getPngFromClipboard } from '../util';
 import { OpenArguments, parseArgs } from '../arguments';
 import { BackendProcess } from '../backend/process';
 import { setupBackend } from '../backend/setup';
@@ -37,7 +38,7 @@ const documentsDir = app.getPath('documents');
 const initiateSaveDialog = async (
     mainWindow: BrowserWindowWithSafeIpc,
     saveData: SaveData,
-    defaultPath: string | undefined
+    defaultPath: string | undefined,
 ): Promise<FileSaveResult> => {
     const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
         title: 'Save Chain File',
@@ -63,7 +64,7 @@ const initiateSaveDialog = async (
 const registerEventHandlerPreSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
     args: OpenArguments,
-    settings: ChainnerSettings
+    settings: ChainnerSettings,
 ) => {
     // Synchronous handlers for preload script
     ipcMain.on('get-app-version-sync', (event) => {
@@ -124,7 +125,7 @@ const registerEventHandlerPreSetup = (
         showOpenDialog(mainWindow, {
             defaultPath: dirPath,
             properties: ['openDirectory', 'createDirectory'],
-        })
+        }),
     );
 
     ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
@@ -132,7 +133,7 @@ const registerEventHandlerPreSetup = (
             filters: [...filters, { name: 'All Files', extensions: ['*'] }],
             defaultPath: dirPath,
             properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
-        })
+        }),
     );
 
     // file IO
@@ -145,7 +146,7 @@ const registerEventHandlerPreSetup = (
                 log.error(error);
                 throw error;
             }
-        }
+        },
     );
 
     ipcMain.handle('file-save-json', async (event, saveData, savePath) => {
@@ -257,7 +258,7 @@ const registerEventHandlerPreSetup = (
     // Handle filesystem
     ipcMain.handle('fs-read-file', async (event, p, options) => fs.readFile(p, options));
     ipcMain.handle('fs-write-file', async (event, p, content, options) =>
-        fs.writeFile(p, content, options)
+        fs.writeFile(p, content, options),
     );
     ipcMain.handle('fs-exists', async (event, p) => {
         try {
@@ -279,22 +280,38 @@ const registerEventHandlerPreSetup = (
     ipcMain.handle('clipboard-writeText', (event, text) => clipboard.writeText(text));
     ipcMain.handle('clipboard-readText', () => clipboard.readText());
     ipcMain.handle('clipboard-writeBuffer', (event, format, buffer, type) =>
-        clipboard.writeBuffer(format, buffer, type)
+        clipboard.writeBuffer(format, buffer, type),
     );
     ipcMain.handle('clipboard-writeBuffer-fromString', (event, format, json, type) =>
-        clipboard.writeBuffer(format, Buffer.from(json), type)
+        clipboard.writeBuffer(format, Buffer.from(json), type),
     );
     ipcMain.handle('clipboard-readBuffer', (event, format) => clipboard.readBuffer(format));
     ipcMain.handle('clipboard-readBuffer-toString', (event, format) =>
-        Buffer.from(clipboard.readBuffer(format)).toString()
+        Buffer.from(clipboard.readBuffer(format)).toString(),
     );
     ipcMain.handle('clipboard-availableFormats', () => clipboard.availableFormats());
     ipcMain.handle('clipboard-readHTML', () => clipboard.readHTML());
     ipcMain.handle('clipboard-readRTF', () => clipboard.readRTF());
     ipcMain.handle('clipboard-readImage-and-store', async () => {
+        const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
+
+        // Try to read raw PNG bytes from the clipboard first to preserve the RGB
+        // values of transparent pixels. Electron's NativeImage goes through
+        // bitmap/DIB conversion which does not reliably preserve these values.
+        // See https://github.com/chaiNNer-org/chaiNNer/issues/1511
+        const pngData = getPngFromClipboard(['image/png', 'PNG', 'public.png'], (format) =>
+            clipboard.readBuffer(format),
+        );
+
+        if (pngData) {
+            await fs.writeFile(imgPath, pngData);
+            return imgPath;
+        }
+
+        // Fallback: use NativeImage for clipboard entries without a PNG stream
+        // (e.g. screenshots, JPEG-sourced images)
         const clipboardData = clipboard.readImage();
         const imgData = clipboardData.toPNG();
-        const imgPath = path.join(os.tmpdir(), `chaiNNer-clipboard-${uuid4()}.png`);
         await fs.writeFile(imgPath, imgData);
         return imgPath;
     });
@@ -314,7 +331,7 @@ const registerEventHandlerPreSetup = (
 
 const registerEventHandlerPostSetup = (
     mainWindow: BrowserWindowWithSafeIpc,
-    backend: BackendProcess
+    backend: BackendProcess,
 ) => {
     ipcMain.handle('owns-backend', () => backend.owned);
     ipcMain.handle('get-backend-url', () => backend.url);
@@ -326,7 +343,7 @@ const registerEventHandlerPostSetup = (
                 type: 'error',
                 title: 'Unexpected Error',
                 message: `The Python backend encountered an unexpected error. ChaiNNer will now exit. Error: ${String(
-                    error
+                    error,
                 )}`,
             });
             app.exit(1);
@@ -376,7 +393,7 @@ const registerEventHandlerPostSetup = (
     const handleUnsavedChanges = (
         event: Electron.Event,
         onSave: () => void,
-        onDontSave?: () => void
+        onDontSave?: () => void,
     ) => {
         const choice = dialog.showMessageBoxSync(mainWindow, {
             type: 'question',
@@ -412,7 +429,7 @@ const registerEventHandlerPostSetup = (
                 },
                 () => {
                     restartChainner();
-                }
+                },
             );
         } else {
             restartChainner();
@@ -435,7 +452,7 @@ const registerEventHandlerPostSetup = (
 const createBackend = async (
     token: ProgressToken,
     args: OpenArguments,
-    settings: ChainnerSettings
+    settings: ChainnerSettings,
 ) => {
     log.info(`chaiNNer Version: ${version}`);
 
@@ -444,13 +461,13 @@ const createBackend = async (
         settings.useSystemPython,
         settings.systemPythonLocation,
         getRootDir(),
-        args.remoteBackend
+        args.remoteBackend,
     );
 };
 
 const setupProgressListeners = (
     mainWindow: BrowserWindow,
-    progressController: ProgressController
+    progressController: ProgressController,
 ) => {
     let progressFinished = false;
     let lastProgress: Progress | undefined;
@@ -570,7 +587,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
         const backend = await createBackend(
             SubProgress.slice(progressController, 0, 0.25),
             args,
-            settings
+            settings,
         );
         registerEventHandlerPostSetup(mainWindow, backend);
 
@@ -623,7 +640,7 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
         } else {
             await mainWindow.loadFile(
-                path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+                path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`),
             );
         }
     } catch (error) {
