@@ -4,8 +4,9 @@ import math
 from concurrent.futures import ThreadPoolExecutor
 
 import cv2
-import navi
 import numpy as np
+
+import navi
 from nodes.impl.image_utils import create_border
 from nodes.impl.upscale.basic_upscale import PaddingType
 from nodes.properties.inputs import ImageInput, PaddingTypeInput, SliderInput
@@ -48,7 +49,7 @@ def _hbao_pass(
     Returns:
         2-D float32 array in [0, 1] where 1.0 is fully unoccluded.
     """
-    H, W = hmap.shape
+    h, w = hmap.shape
     ao_accum = np.zeros_like(hmap)
     angles = np.linspace(0, 2 * np.pi, num_samples, endpoint=False)
     steps = [0.2, 0.4, 0.7, 1.0]
@@ -56,12 +57,8 @@ def _hbao_pass(
     # Base coordinate grids reused for every remap call in this pass.
     # cv2.remap(src, map_x, map_y) samples src at (map_x[y,x], map_y[y,x]),
     # so map_x holds column indices and map_y holds row indices.
-    row_base = np.repeat(
-        np.arange(H, dtype=np.float32).reshape(H, 1), W, axis=1
-    )
-    col_base = np.repeat(
-        np.arange(W, dtype=np.float32).reshape(1, W), H, axis=0
-    )
+    row_base = np.repeat(np.arange(h, dtype=np.float32).reshape(h, 1), w, axis=1)
+    col_base = np.repeat(np.arange(w, dtype=np.float32).reshape(1, w), h, axis=0)
 
     for angle in angles:
         dx, dy = float(np.cos(angle)), float(np.sin(angle))
@@ -98,7 +95,7 @@ def _hbao_pass(
         return np.ones_like(hmap)
 
     occlusion = ao_accum / ao_max  # [0, 1]: 1 = most occluded area in pass
-    return 1.0 - occlusion         # invert: 1 = unoccluded, 0 = most occluded
+    return 1.0 - occlusion  # invert: 1 = unoccluded, 0 = most occluded
 
 
 def height_to_ao(
@@ -111,7 +108,7 @@ def height_to_ao(
     """
     Generate a multi-scale AO map from a 2-D height map.
 
-    Three passes run at fine (x2 px), medium (x10 px), and coarse (x40 px)
+    Three passes run at fine (2 px), medium (10 px), and coarse (40 px)
     radii scaled by `radius_scale`. Each pass is auto-ranged to [0, 1]
     independently so that detail at every scale contributes meaningfully.
     The passes are blended as a weighted average and then `strength` is
@@ -146,8 +143,7 @@ def height_to_ao(
 
     # Weighted average of independently auto-ranged passes
     combined = sum(
-        weight * pass_ao
-        for weight, pass_ao in zip(weights, pass_results, strict=True)
+        weight * pass_ao for weight, pass_ao in zip(weights, pass_results, strict=True)
     )
 
     # Apply strength as a linear contrast stretch anchored at 1.0 (unoccluded).
@@ -162,7 +158,7 @@ def height_to_ao(
     name="Height Map to AO",
     description=[
         "Generate an ambient occlusion (AO) map from a height map using a multi-scale horizon-based approach (HBAO).",
-        "Three radius passes — fine (×2 px), medium (×10 px), and coarse (×40 px) — are blended as a weighted average so that both fine surface details and broad concavities contribute to the final result. All radii are scaled by the **Radius Scale** parameter.",
+        "Three radius passes — fine (2 px), medium (10 px), and coarse (40 px) — are blended as a weighted average so that both fine surface details and broad concavities contribute to the final result. All radii are scaled by the **Radius Scale** parameter.",
         "### Seamless Tiling",
         "Set **Padding** to *Wrap (Tile)* when baking AO for a tiling texture. The node pads the image by the coarsest ray radius on all sides before processing and crops back afterwards, so rays at the image boundary wrap correctly instead of reflecting into empty space.",
         "### Algorithm",
@@ -205,7 +201,7 @@ def height_to_ao(
             slider_step=0.1,
             step=0.5,
         ).with_docs(
-            "Uniformly scales all three sample radii (fine: ×2 px, medium: ×10 px, coarse: ×40 px). "
+            "Uniformly scales all three sample radii (fine: 2 px, medium: 10 px, coarse: 40 px). "
             "Increase for softer, wider shadows across larger features; "
             "decrease for tighter occlusion limited to fine surface details.",
             hint=True,

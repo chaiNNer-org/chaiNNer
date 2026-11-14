@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import math
 
-import navi
 import numpy as np
 import torch
 import torch.nn.functional as F  # noqa: N812
 
+import navi
 from api import NodeContext
 from nodes.groups import if_enum_group
 from nodes.impl.image_utils import create_border
@@ -20,7 +20,7 @@ from nodes.impl.upscale.auto_split_tiles import (
     parse_tile_size_input,
 )
 from nodes.impl.upscale.basic_upscale import PaddingType
-from nodes.impl.upscale.tiler import MaxTileSize, NoTiling
+from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import (
     ImageInput,
     NumberInput,
@@ -43,7 +43,7 @@ def _hbao_pass(
     device: torch.device,
 ) -> torch.Tensor:
     """
-    GPU-vectorized HBAO pass. All num_samples × 4 sub-steps are dispatched
+    GPU-vectorized HBAO pass. All num_samples * 4 sub-steps are dispatched
     as a single batched F.grid_sample call, so the GPU processes every
     direction and distance simultaneously.
 
@@ -56,30 +56,31 @@ def _hbao_pass(
     Returns:
         (H, W) float32 tensor in [0, 1] where 1.0 = fully unoccluded.
     """
-    _B, _C, H, W = hmap.shape
-    S = 4
-    N = num_samples
-    total = N * S
+    # Shape comments below use N = num_samples, S = num_steps, (H, W) = (h, w).
+    h, w = hmap.shape[-2:]
+    num_steps = 4
+    n = num_samples
+    total = n * num_steps
 
-    steps = torch.tensor([0.2, 0.4, 0.7, 1.0], device=device)       # (S,)
-    attenuations = (1.0 - steps) ** falloff_exp                       # (S,)
-    distances = radius * steps                                         # (S,)
+    steps = torch.tensor([0.2, 0.4, 0.7, 1.0], device=device)  # (S,)
+    attenuations = (1.0 - steps) ** falloff_exp  # (S,)
+    distances = radius * steps  # (S,)
 
-    angles = torch.linspace(0, 2 * math.pi, N + 1, device=device)[:N]
+    angles = torch.linspace(0, 2 * math.pi, n + 1, device=device)[:n]
     dx = torch.cos(angles)  # (N,)
     dy = torch.sin(angles)  # (N,)
 
     # Per-(angle, step) shifts in normalised [-1, 1] coords (align_corners=True).
     # A pixel shift of -d maps to a normalised shift of -2*d/(dim-1).
     # The sign matches scipy/cv2: output[y,x] = input[y - dy*d, x - dx*d].
-    shift_x = -(dx[:, None] * distances[None, :]) * (2.0 / max(W - 1, 1))  # (N, S)
-    shift_y = -(dy[:, None] * distances[None, :]) * (2.0 / max(H - 1, 1))  # (N, S)
+    shift_x = -(dx[:, None] * distances[None, :]) * (2.0 / max(w - 1, 1))  # (N, S)
+    shift_y = -(dy[:, None] * distances[None, :]) * (2.0 / max(h - 1, 1))  # (N, S)
     shift_x = shift_x.reshape(total)  # (N*S,)
     shift_y = shift_y.reshape(total)  # (N*S,)
 
     # Base coordinate grid in [-1, 1]: shape (H, W)
-    base_x = torch.linspace(-1, 1, W, device=device).unsqueeze(0).expand(H, W)
-    base_y = torch.linspace(-1, 1, H, device=device).unsqueeze(1).expand(H, W)
+    base_x = torch.linspace(-1, 1, w, device=device).unsqueeze(0).expand(h, w)
+    base_y = torch.linspace(-1, 1, h, device=device).unsqueeze(1).expand(h, w)
 
     # Broadcast shifts onto the grid: (N*S, H, W)
     grid_x = base_x.unsqueeze(0) + shift_x[:, None, None]
@@ -89,7 +90,8 @@ def _hbao_pass(
     # Single GPU dispatch: sample all N*S offsets at once
     hmap_batch = hmap.expand(total, -1, -1, -1)  # (N*S, 1, H, W) — no copy
     sampled = F.grid_sample(
-        hmap_batch, grid,
+        hmap_batch,
+        grid,
         mode="bilinear",
         padding_mode="reflection",
         align_corners=True,
@@ -99,16 +101,16 @@ def _hbao_pass(
     diff = sampled - hmap_2d.unsqueeze(0)  # (N*S, H, W)
 
     # Upward slope only; attenuate by step distance
-    dist_flat = distances.unsqueeze(0).expand(N, S).reshape(total)   # (N*S,)
-    att_flat = attenuations.unsqueeze(0).expand(N, S).reshape(total)  # (N*S,)
+    dist_flat = distances.unsqueeze(0).expand(n, num_steps).reshape(total)  # (N*S,)
+    att_flat = attenuations.unsqueeze(0).expand(n, num_steps).reshape(total)  # (N*S,)
 
     slope = torch.clamp(diff, min=0.0) / (dist_flat[:, None, None] + 1e-3)
     ao_accum = (slope * att_flat[:, None, None]).sum(0)  # (H, W)
-    ao_accum /= N * S
+    ao_accum /= total
 
     ao_max = ao_accum.max().item()
     if ao_max < 1e-10:
-        return torch.ones(H, W, device=device)
+        return torch.ones(h, w, device=device)
 
     occlusion = ao_accum / ao_max
     return 1.0 - occlusion
@@ -127,7 +129,7 @@ def _height_to_ao(
 
     combined = sum(
         w * _hbao_pass(hmap, r, num_samples, falloff, device)
-        for w, r in zip(weights, radii)
+        for w, r in zip(weights, radii, strict=True)
     )
 
     return 1.0 - torch.clamp((1.0 - combined) * strength, 0.0, 1.0)
@@ -144,7 +146,7 @@ def _height_to_ao(
         "### Tiling / VRAM",
         "**Tile Size** splits the image into overlapping chunks to keep VRAM usage bounded. Each chunk includes a border equal to the coarsest ray radius so rays never cross a tile boundary mid-computation. *Auto* starts at 1024 px and automatically halves on out-of-memory. Larger tiles are faster but use more VRAM; *No Tiling* processes the whole image at once and will crash if VRAM is insufficient.",
         "### Algorithm",
-        "Three radius passes — fine (×2 px), medium (×10 px), coarse (×40 px) — are blended at 0.5 / 0.3 / 0.2. Within each pass, all **Samples** directions × 4 sub-steps are sampled in one `grid_sample` call. Each pass is independently auto-ranged to [0, 1] so detail at every scale is always visible.",
+        "Three radius passes — fine (2 px), medium (10 px), coarse (40 px), each multiplied by **Radius Scale** — are blended at 0.5 / 0.3 / 0.2. Within each pass, all **Samples** directions and 4 sub-steps are sampled in one `grid_sample` call. Each pass is independently auto-ranged to [0, 1] so detail at every scale is always visible.",
         "### Parameters",
         "**Strength** is a linear contrast control anchored at white (unoccluded). At 1.0 the full auto-ranged result is used. Values above 1.0 deepen shadows; values below 1.0 lighten towards grey.",
         "**Radius Scale** uniformly scales all three radii. Increase for broader shadows across large features; decrease for tight detail occlusion.",
@@ -199,7 +201,7 @@ def _height_to_ao(
             slider_step=0.1,
             step=0.5,
         ).with_docs(
-            "Uniformly scales all three sample radii (fine: ×2 px, medium: ×10 px, coarse: ×40 px). "
+            "Uniformly scales all three sample radii (fine: 2 px, medium: 10 px, coarse: 40 px). "
             "Increase for softer, wider shadows across larger features; "
             "decrease for tighter occlusion limited to fine surface details.",
             hint=True,
@@ -283,9 +285,7 @@ def height_to_ao_node(
         def process_tile(tile_np: np.ndarray, _region: Region) -> np.ndarray | Split:
             try:
                 tile_2d = tile_np.squeeze().astype(np.float32)
-                tensor = (
-                    torch.from_numpy(tile_2d).unsqueeze(0).unsqueeze(0).to(device)
-                )
+                tensor = torch.from_numpy(tile_2d).unsqueeze(0).unsqueeze(0).to(device)
                 ao = _height_to_ao(
                     tensor, strength, radius_scale, int(samples), falloff, device
                 )
