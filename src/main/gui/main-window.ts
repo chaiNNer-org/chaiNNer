@@ -28,6 +28,7 @@ import { getRootDir, installDir } from '../platform';
 import { BrowserWindowWithSafeIpc, ipcMain } from '../safeIpc';
 import { SaveData, SaveFile, openSaveFile } from '../SaveFile';
 import { writeSettings } from '../setting-storage';
+import { showOpenDialog } from './dialogs';
 import { MenuData, setMainMenu } from './menu';
 
 const version = app.getVersion() as Version;
@@ -120,14 +121,14 @@ const registerEventHandlerPreSetup = (
 
     // dialogs
     ipcMain.handle('dir-select', (event, dirPath) =>
-        dialog.showOpenDialog(mainWindow, {
+        showOpenDialog(mainWindow, {
             defaultPath: dirPath,
             properties: ['openDirectory', 'createDirectory'],
         })
     );
 
     ipcMain.handle('file-select', (event, filters, allowMultiple = false, dirPath = undefined) =>
-        dialog.showOpenDialog(mainWindow, {
+        showOpenDialog(mainWindow, {
             filters: [...filters, { name: 'All Files', extensions: ['*'] }],
             defaultPath: dirPath,
             properties: allowMultiple ? ['openFile', 'multiSelections'] : ['openFile'],
@@ -176,6 +177,13 @@ const registerEventHandlerPreSetup = (
 
     ipcMain.handle('open-url', (event, url) => shell.openExternal(url));
     ipcMain.handle('open-save-file', async (event, p) => openSaveFile(p));
+    ipcMain.handle('open-dropped-save-file', async (event, p) => {
+        // Renderer-to-renderer messaging was removed in Electron 28, so the renderer asks the main
+        // process to open the file and the result is pushed back over `file-open`, matching how
+        // files opened via the OS or the menu are delivered.
+        const result = await openSaveFile(p);
+        mainWindow.webContents.send('file-open', result);
+    });
 
     // Set the progress bar on the taskbar. 0-1 = progress, > 1 = indeterminate, -1 = none
     ipcMain.on('set-progress-bar', (event, progress) => {
@@ -593,12 +601,22 @@ export const createMainWindow = async (args: OpenArguments, settings: ChainnerSe
             return;
         }
 
-        mainWindow.once('ready-to-show', () => {
+        let shown = false;
+        const showWindow = () => {
+            if (shown || mainWindow.isDestroyed()) return;
+            shown = true;
             mainWindow.show();
             if (settings.lastWindowSize.maximized) {
                 mainWindow.maximize();
             }
-        });
+        };
+        mainWindow.once('ready-to-show', showWindow);
+        // Under native Wayland, 'ready-to-show' sometimes never fires for a window created
+        // with `show: false`, so the window would stay hidden forever.
+        // https://github.com/electron/electron/issues/48859
+        if (process.platform === 'linux') {
+            mainWindow.webContents.once('did-finish-load', showWindow);
+        }
 
         // and load the index.html of the app.
         if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {

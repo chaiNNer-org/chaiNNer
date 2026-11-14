@@ -71,25 +71,3 @@ R = TypeVar("R")
 class Collector(Generic[N, R]):
     on_iterate: Callable[[N], None]
     on_complete: Callable[[], R]
-
-
-I_in = TypeVar("I_in")
-O_out = TypeVar("O_out")
-
-
-@dataclass
-class Transformer(Generic[I_in, O_out]):
-    """
-    A transformer processes input sequences and yields output items.
-
-    The supplier function captures input sequence(s) via closure and yields
-    output items when called. This mirrors Generator.supplier.
-    """
-
-    supplier: Callable[[], Iterable[O_out | Exception]]
-    expected_length: int | None = None
-    metadata: object | None = None
-
-    def with_metadata(self, metadata: object):
-        self.metadata = metadata
-        return self

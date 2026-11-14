@@ -85,7 +85,11 @@ class SafeMathEvaluator:
             op_func = self.operators.get(type(node.op))
             if op_func is None:
                 raise ValueError(f"Operator {type(node.op).__name__} is not supported")
-            return op_func(left, right)
+            result = op_func(left, right)
+            # e.g. a negative number to a fractional power
+            if isinstance(result, complex):
+                raise ValueError("The result is not a real number")
+            return result
         elif isinstance(node, ast.UnaryOp):
             operand = self.eval_node(node.operand)
             op_func = self.operators.get(type(node.op))
@@ -136,7 +140,9 @@ class SafeMathEvaluator:
         ).with_id(0),
         optional_list_group(
             *[
-                NumberInput(letter, min=None, max=None, precision="unlimited", step=1)
+                NumberInput(
+                    letter.lower(), min=None, max=None, precision="unlimited", step=1
+                )
                 .with_id(1 + i)
                 .make_optional()
                 for i, letter in enumerate(ALPHABET)

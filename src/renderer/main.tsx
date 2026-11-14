@@ -27,7 +27,6 @@ const nodeTypes: NodeTypes & Record<NodeKind, unknown> = {
     regularNode: Node,
     generator: Node,
     collector: Node,
-    transformer: Node,
     breakPoint: BreakPoint,
 };
 const edgeTypes: EdgeTypes = {

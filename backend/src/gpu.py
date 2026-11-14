@@ -52,6 +52,13 @@ class NvDevice:
         except Exception:
             return nv.NVML_DEVICE_ARCH_UNKNOWN
 
+    @cached_property
+    def compute_capability(self) -> tuple[int, int] | None:
+        try:
+            return nv.nvmlDeviceGetCudaComputeCapability(self.handle)
+        except Exception:
+            return None
+
     @property
     def supports_fp16(self):
         arch = self.architecture
@@ -108,6 +115,13 @@ class NvInfo:
             ):
                 return True
         return False
+
+    @cached_property
+    def driver_major_version(self) -> int | None:
+        try:
+            return int(nv.nvmlSystemGetDriverVersion().split(".")[0])
+        except Exception:
+            return None
 
 
 def _try_nvml_init():

@@ -2,12 +2,11 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Annulla",
-            "openLogsFolder": "Apri Cartella Log",
-            "exitApplication": "Esci dall'Applicazione",
-            "copyToClipboard": "Copia negli Appunti"
+            "openLogsFolder": "Apri cartella dei log",
+            "exitApplication": "Esci dall'applicazione",
+            "copyToClipboard": "Copia negli appunti"
         },
-        "stackTrace": "Traccia dello Stack",
+        "stackTrace": "Traccia dello stack",
         "title": {
             "systemInformation": "Informazioni di sistema"
         }
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Annulla",
         "close": "Chiudi",
-        "open": "Apri",
         "settings": "Impostazioni"
     },
     "error": {
@@ -39,18 +37,18 @@
         "updateAvailable": "Aggiornamento disponibile ({{version}})",
         "updateAvailableAria": "Aggiornamento disponibile",
         "updateChangelog": "Registro modifiche aggiornamento",
-        "updateAvailableTitle": "Aggiornamento Disponibile ({{version}})",
+        "updateAvailableTitle": "Aggiornamento disponibile ({{version}})",
         "updateAvailableMessage": "È disponibile un aggiornamento per la versione {{version}}. Vuoi visualizzare il registro delle modifiche?",
         "viewReleaseOnGitHub": "Visualizza release su GitHub",
         "downloadFromWebsite": "Scarica da chaiNNer.app",
-        "ignoreUpdate": "Ignora Aggiornamento",
-        "viewUpdate": "Visualizza Aggiornamento"
+        "ignoreUpdate": "Ignora aggiornamento",
+        "viewUpdate": "Visualizza aggiornamento"
     },
     "inputs": {
-        "copyInputOverrideId": "Copia ID Override Input",
+        "copyInputOverrideId": "Copia ID di override dell'input",
         "directory": {
             "clear": "Cancella",
-            "copyFullDirectoryPath": "Copia Percorso Completo Directory",
+            "copyFullDirectoryPath": "Copia percorso completo della directory",
             "openInFileExplorer": "Apri in Esplora File",
             "selectDirectory": "Seleziona una directory...",
             "clickToSelect": "Clicca per selezionare..."
@@ -58,22 +56,22 @@
         "extractValueIntoNode": "Estrai valore nel nodo",
         "file": {
             "clear": "Cancella",
-            "copyFileName": "Copia Nome File",
-            "copyFullFilePath": "Copia Percorso Completo File",
+            "copyFileName": "Copia nome file",
+            "copyFullFilePath": "Copia percorso completo del file",
             "openInFileExplorer": "Apri in Esplora File",
             "selectFile": "Seleziona un file...",
             "clickToSelectFile": "Clicca per selezionare un file..."
         },
         "number": {
-            "copyText": "Copia Numero",
+            "copyText": "Copia numero",
             "paste": "Incolla"
         },
         "text": {
-            "copyText": "Copia Testo",
+            "copyText": "Copia testo",
             "paste": "Incolla",
             "invalidCharacter": "Carattere non valido '{{character}}' (U+{{codePoint}})."
         },
-        "addInput": "Aggiungi Input",
+        "addInput": "Aggiungi input",
         "colorCompare": {
             "old": "vecchio",
             "new": "nuovo"
@@ -85,7 +83,7 @@
     "outputs": {
         "largeImage": {
             "imageNotAvailable": "Immagine non disponibile.",
-            "imagePreviewFailed": "L'anteprima dell'immagine non è riuscita a caricarsi, probabilmente tipo di file non supportato."
+            "imagePreviewFailed": "Impossibile caricare l'anteprima dell'immagine, probabilmente il tipo di file non è supportato."
         },
         "model": {
             "modelNotAvailable": "Dati del modello non disponibili."
@@ -102,7 +100,7 @@
         },
         "appearance": {
             "colorTheme": {
-                "label": "Tema Colore",
+                "label": "Tema colori",
                 "description": "Scegli il tema per l'aspetto di chaiNNer.",
                 "options": {
                     "dark": "Scuro",
@@ -120,7 +118,7 @@
                 }
             },
             "language": {
-                "label": "Lingua (richiede riavvio)",
+                "label": "Lingua",
                 "description": "Scegli la lingua per l'interfaccia di chaiNNer."
             },
             "chainAnimation": {
@@ -146,13 +144,13 @@
         },
         "environment": {
             "startupTemplate": {
-                "label": "Template di Avvio",
+                "label": "Template di avvio",
                 "description": "Imposta un template di catena da usare di default quando chaiNNer si avvia.",
                 "placeholder": "Seleziona un file...",
                 "clear": "Cancella",
                 "pickFile": "Scegli file template di avvio"
             },
-            "selectChain": "Seleziona Catena"
+            "selectChain": "Seleziona catena"
         },
         "python": {
             "general": "Generale",
@@ -162,7 +160,7 @@
             },
             "systemPythonLocation": {
                 "label": "Posizione Python di sistema (opzionale)",
-                "description": "Se desiderato, usa un binario Python specifico piuttosto che quello predefinito invocato da 'python3' o 'python'. Questo è utile se hai multiple versioni di Python installate e vuoi sceglierne una specifica.",
+                "description": "Se vuoi, usa un eseguibile Python specifico invece di quello predefinito invocato da 'python3' o 'python'. È utile se hai più versioni di Python installate e vuoi sceglierne una.",
                 "placeholder": "Seleziona un file...",
                 "clear": "Cancella",
                 "pickFile": "Scegli posizione Python di sistema"
@@ -173,13 +171,9 @@
                 "label": "Controlla aggiornamenti all'avvio",
                 "description": "Attiva il controllo degli aggiornamenti all'avvio."
             },
-            "experimentalFeatures": {
-                "label": "Abilita funzionalità sperimentali",
-                "description": "Abilita funzionalità sperimentali per provarle prima che siano finite."
-            },
             "hardwareAcceleration": {
                 "label": "Abilita accelerazione hardware (richiede riavvio)",
-                "description": "Abilita il rendering GPU per la GUI. Usa con cautela, poiché può diminuire severamente le prestazioni GPU per l'elaborazione delle immagini."
+                "description": "Abilita il rendering GPU per l'interfaccia. Usa con cautela, poiché può ridurre drasticamente le prestazioni della GPU nell'elaborazione delle immagini."
             },
             "allowMultipleInstances": {
                 "label": "Consenti istanze multiple simultanee",
@@ -192,7 +186,7 @@
     "setup": {
         "checkingPort": "Controllo porta disponibile...",
         "checkingPython": "Controllo ambiente di sistema per Python valido...",
-        "downloadingPython": "Download Python Integrato...",
+        "downloadingPython": "Download di Python integrato...",
         "extractingPython": "Estrazione file scaricati...",
         "loading": "Caricamento...",
         "startingBackend": "Avvio processo backend..."
@@ -203,34 +197,26 @@
     "groups": {
         "seed": {
             "randomSeed": "Seed casuale",
-            "randomSeedAria": "Seed Casuale"
+            "randomSeedAria": "Seed casuale"
         }
     },
     "node": {
         "disableHint": "Suggerimento: Usa Ctrl+Click per scorrere le opzioni.",
         "note": {
-            "placeholder": "Testo Nota"
+            "placeholder": "Testo nota"
         },
-        "implementationError": "Errore di Implementazione",
+        "implementationError": "Errore di implementazione",
         "implementationErrorMessage": "Impossibile determinare le informazioni chiave per il nodo {{nodeName}} ({{schemaId}}).",
         "enable": "Abilita",
         "disable": "Disabilita",
         "skip": "Salta",
-        "eta": "ETA:",
-        "outdated": "Obsoleto"
-    },
-    "logo": {
-        "background": "sfondo",
-        "front": "anteriore"
+        "eta": "Fine stimata:",
+        "outdated": "Obsoleto",
+        "paused": "In pausa",
+        "finished": "Completato"
     },
     "timer": {
-        "executionTook": "L'esecuzione ha richiesto circa {{duration}}.",
-        "hour_one": "ora",
-        "hour_other": "ore",
-        "minute_one": "minuto",
-        "minute_other": "minuti",
-        "second_one": "secondo",
-        "second_other": "secondi"
+        "executionTook": "L'esecuzione ha richiesto circa {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "I valori di {{inputs}} sono attualmente collegati allo stesso valore. Clicca qui per annullare questo collegamento.",
@@ -242,7 +228,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -250,7 +235,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -261,29 +245,26 @@
     },
     "favorites": {
         "title": "Preferiti",
-        "noFavorites": "Nessun Preferito.",
-        "addFavoritesTooltip": "Aggiungi Preferiti cliccando con il tasto destro sui nodi e selezionando Aggiungi ai Preferiti.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Aggiungi Preferiti passando il mouse sui nodi e cliccando sull'icona",
-            "afterIcon": ", o cliccando con il tasto destro e selezionando Aggiungi ai Preferiti."
-        },
-        "addToFavorites": "Aggiungi ai Preferiti",
-        "removeFromFavorites": "Rimuovi dai Preferiti"
+        "noFavorites": "Nessun preferito.",
+        "addFavoritesTooltip": "Aggiungi preferiti cliccando con il tasto destro sui nodi e selezionando Aggiungi ai preferiti.",
+        "addFavoritesTooltipExpanded": "Aggiungi preferiti passando il mouse sui nodi e cliccando sull'icona <star/>, o cliccando con il tasto destro e selezionando Aggiungi ai preferiti.",
+        "addToFavorites": "Aggiungi ai preferiti",
+        "removeFromFavorites": "Rimuovi dai preferiti"
     },
     "documentation": {
-        "title": "Documentazione Nodi",
-        "openDocumentation": "Apri Documentazione"
+        "title": "Documentazione dei nodi",
+        "openDocumentation": "Apri documentazione"
     },
     "dependencyManager": {
-        "title": "Gestore Dipendenze",
-        "manageDependencies": "Gestisci Dipendenze",
-        "updatesAvailable": "Aggiornamenti Disponibili",
+        "title": "Gestore dipendenze",
+        "manageDependencies": "Gestisci dipendenze",
+        "updatesAvailable": "Aggiornamenti disponibili",
         "updatesAvailableDescription_one": "C'è {{count}} pacchetto con aggiornamenti di dipendenze disponibili.",
         "updatesAvailableDescription_other": "Ci sono {{count}} pacchetti con aggiornamenti di dipendenze disponibili.",
-        "openDependencyManager": "Apri Gestore Dipendenze",
+        "openDependencyManager": "Apri gestore dipendenze",
         "packages": "Pacchetti",
         "features": "Funzionalità",
-        "refresh": "Aggiorna",
+        "refresh": "Ricarica",
         "install": "Installa",
         "update": "Aggiorna",
         "uninstall": "Disinstalla",
@@ -308,11 +289,11 @@
         "unsavedChanges": "Modifiche non salvate",
         "unsavedChangesMessage": "Potresti perdere le tue modifiche non salvate disinstallando {{name}}.\n\nSei sicuro di voler disinstallare {{name}}?",
         "cancel": "Annulla",
-        "installing": "Installazione {{name}}...",
-        "uninstalling": "Disinstallazione {{name}}...",
+        "installing": "Installazione di {{name}}...",
+        "uninstalling": "Disinstallazione di {{name}}...",
         "copyPythonPath": "Copia percorso Python negli appunti",
         "pythonPath": "Il percorso Python è:",
-        "installAllPackages": "{{operations}} Tutti i Pacchetti ({{size}})",
+        "installAllPackages": "{{operations}} tutti i pacchetti ({{size}})",
         "package_one": "pacchetto",
         "package_other": "pacchetti",
         "brackets": {
@@ -321,25 +302,25 @@
         }
     },
     "note": {
-        "editMode": "Modalità Modifica",
-        "editContent": "Modifica Contenuto",
+        "editMode": "Modalità modifica",
+        "editContent": "Modifica contenuto",
         "markdownMode": "Modalità Markdown",
         "viewMarkdown": "Visualizza Markdown"
     },
     "color": {
-        "resetToOld": "Ripristina al colore precedente",
+        "resetToOld": "Ripristina il colore precedente",
         "acceptNew": "Accetta nuovo colore"
     },
     "edge": {
-        "removeEdge": "Pulsante rimuovi bordo"
+        "removeEdge": "Pulsante rimuovi connessione"
     },
     "breakpoint": {
-        "removeBreakpoint": "Rimuovi Punto di Interruzione",
-        "removeEdge": "Rimuovi Bordo"
+        "removeBreakpoint": "Rimuovi punto di interruzione",
+        "removeEdge": "Rimuovi connessione"
     },
     "tooltips": {
         "addNodesToCanvas": "Fai doppio clic o trascina e rilascia per aggiungere nodi alla tela.",
-        "collapseExpandCategories": "Comprimi/Espandi Categorie"
+        "collapseExpandCategories": "Comprimi/espandi categorie"
     },
     "support": {
         "koFiTooltip": "Supporta chaiNNer su Ko-fi",
@@ -349,36 +330,35 @@
     "nodeMenu": {
         "copy": "Copia",
         "duplicate": "Duplica",
-        "resetNode": "Ripristina Nodo",
-        "resetInputs": "Ripristina Input",
-        "resetConnections": "Ripristina Connessioni",
-        "resetAll": "Ripristina Tutto",
+        "resetNode": "Ripristina nodo",
+        "resetInputs": "Ripristina input",
+        "resetConnections": "Ripristina connessioni",
+        "resetAll": "Ripristina tutto",
         "enable": "Abilita",
         "disable": "Disabilita",
         "skip": "Salta",
         "unlock": "Sblocca",
         "lock": "Blocca",
-        "refreshPreview": "Aggiorna Anteprima",
+        "refreshPreview": "Aggiorna anteprima",
         "delete": "Elimina",
-        "openDocumentation": "Apri Documentazione"
+        "openDocumentation": "Apri documentazione"
     },
     "nodesMenu": {
         "copy": "Copia",
         "duplicate": "Duplica",
-        "resetNodes": "Ripristina Nodi",
-        "resetInputs": "Ripristina Input",
-        "resetConnections": "Ripristina Connessioni",
-        "resetAll": "Ripristina Tutto",
-        "enableAll": "Abilita Tutto",
-        "disableAll": "Disabilita Tutto",
+        "resetNodes": "Ripristina nodi",
+        "resetInputs": "Ripristina input",
+        "resetConnections": "Ripristina connessioni",
+        "resetAll": "Ripristina tutto",
+        "enableAll": "Abilita tutto",
+        "disableAll": "Disabilita tutto",
         "delete": "Elimina"
     },
     "edgeMenu": {
-        "addBreakpoint": "Aggiungi Punto di Interruzione",
+        "addBreakpoint": "Aggiungi punto di interruzione",
         "delete": "Elimina"
     },
     "nodeSelector": {
-        "favorites": "Preferiti",
         "missingDependencies": "Dipendenze mancanti.",
         "unableToImport": "Impossibile importare nodo/i.",
         "clickToInstall": "Clicca per aprire il gestore dipendenze e installare {{packageName}}.",
@@ -387,14 +367,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "è",
-            "isNot": "non è",
-            "oneOf": "uno di",
-            "ofType": "di tipo",
-            "allOf": "Tutti di",
-            "atLeastOneOf": "Almeno uno di",
-            "followingConditions": "devono essere soddisfatte le seguenti condizioni:",
-            "condition": "Condizione:"
+            "condition": "Condizione:",
+            "allConditions": "Devono essere soddisfatte tutte le seguenti condizioni:",
+            "anyCondition": "Deve essere soddisfatta almeno una delle seguenti condizioni:",
+            "enumIs": "<name>{{name}}</name> è <options/>.",
+            "enumIsNot": "<name>{{name}}</name> non è <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> è uno dei seguenti valori: <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> non è nessuno dei seguenti valori: <options/>.",
+            "typeIs": "<name>{{name}}</name> è {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> non è {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> è di tipo <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> non è di tipo <type/>."
         },
         "nodeDocs": {
             "optional": "opzionale",

@@ -16,7 +16,12 @@ from nodes.impl.upscale.auto_split_tiles import (
     TileSize,
 )
 from nodes.impl.upscale.convenient_upscale import convenient_upscale
-from nodes.impl.upscale.tiler import BoundedTileSize, NoTiling, Tiler
+from nodes.impl.upscale.tiler import (
+    BoundedTileSize,
+    ExactTileSize,
+    NoTiling,
+    Tiler,
+)
 from nodes.properties.inputs import (
     BoolInput,
     ImageInput,
@@ -61,7 +66,11 @@ def create_tiler_for_engine(
     if info.max_shape is not None:
         max_size = (info.max_shape[3], info.max_shape[2])  # (width, height)
 
-    if tile_size == NO_TILING:
+    if min_size is not None and min_size == max_size:
+        # Fixed-shape engine - every tile must be exactly the engine's input size
+        # (type validation ensures the image matches it when No Tiling is selected)
+        return ExactTileSize(min_size)
+    elif tile_size == NO_TILING:
         # No tiling - use the whole image (type validation ensures it fits within bounds)
         return NoTiling()
     elif tile_size == MAX_TILE_SIZE:

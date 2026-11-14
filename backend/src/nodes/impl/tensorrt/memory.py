@@ -139,6 +139,18 @@ def check_cuda_available() -> bool:
         return False
 
 
+def set_cuda_device(device_id: int = 0) -> None:
+    """Set the current CUDA device, raising if it cannot be used."""
+    err = cudart.cudaSetDevice(device_id)[0]
+    if err.value != 0:
+        err_string = cudart.cudaGetErrorString(err)[1].decode("utf-8")
+        raise RuntimeError(
+            f"Failed to use CUDA device {device_id}: {err_string}. "
+            "TensorRT requires an NVIDIA GPU with compute capability 7.5 (Turing) or newer"
+            " and driver version 580 or newer."
+        )
+
+
 def get_cuda_device_name(device_id: int = 0) -> str:
     """Get the name of a CUDA device."""
     try:

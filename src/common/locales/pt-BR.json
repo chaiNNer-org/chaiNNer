@@ -2,12 +2,11 @@
     "alert": {
         "button": {
             "ok": "OK",
-            "cancel": "Cancelar",
-            "openLogsFolder": "Abrir Pasta de Logs",
-            "exitApplication": "Sair da Aplicação",
-            "copyToClipboard": "Copiar para Área de Transferência"
+            "openLogsFolder": "Abrir pasta de logs",
+            "exitApplication": "Sair do aplicativo",
+            "copyToClipboard": "Copiar para a área de transferência"
         },
-        "stackTrace": "Rastreamento de Pilha",
+        "stackTrace": "Rastreamento de pilha",
         "title": {
             "systemInformation": "Informações do sistema"
         }
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Cancelar",
         "close": "Fechar",
-        "open": "Abrir",
         "settings": "Configurações"
     },
     "error": {
@@ -39,44 +37,41 @@
         "updateAvailable": "Atualização disponível ({{version}})",
         "updateAvailableAria": "Atualização disponível",
         "updateChangelog": "Log de alterações da atualização",
-        "updateAvailableTitle": "Atualização Disponível ({{version}})",
+        "updateAvailableTitle": "Atualização disponível ({{version}})",
         "updateAvailableMessage": "Há uma atualização disponível para a versão {{version}}. Gostaria de ver o log de alterações?",
         "viewReleaseOnGitHub": "Ver lançamento no GitHub",
         "downloadFromWebsite": "Baixar do chaiNNer.app",
-        "ignoreUpdate": "Ignorar Atualização",
-        "viewUpdate": "Ver Atualização"
+        "ignoreUpdate": "Ignorar atualização",
+        "viewUpdate": "Ver atualização"
     },
     "inputs": {
-        "copyInputOverrideId": "Copiar ID de Substituição de Entrada",
-        "inputOverrideId": "ID de Substituição de Entrada",
-        "inputOverrideIdCopied": "ID de substituição de entrada copiado para a área de transferência",
-        "inputOverrideIdTooltip": "Identificador único para esta entrada. Usado para substituir entrada na cadeia.",
+        "copyInputOverrideId": "Copiar ID de substituição de entrada",
         "directory": {
             "clear": "Limpar",
-            "copyFullDirectoryPath": "Copiar Caminho Completo do Diretório",
-            "openInFileExplorer": "Abrir no Explorador de Arquivos",
+            "copyFullDirectoryPath": "Copiar caminho completo do diretório",
+            "openInFileExplorer": "Abrir no explorador de arquivos",
             "selectDirectory": "Selecionar um diretório...",
             "clickToSelect": "Clique para selecionar..."
         },
-        "extractValueIntoNode": "Extrair valor para o nó",
+        "extractValueIntoNode": "Extrair valor para um novo nó",
         "file": {
             "clear": "Limpar",
-            "copyFileName": "Copiar Nome do Arquivo",
-            "copyFullFilePath": "Copiar Caminho Completo do Arquivo",
-            "openInFileExplorer": "Abrir no Explorador de Arquivos",
+            "copyFileName": "Copiar nome do arquivo",
+            "copyFullFilePath": "Copiar caminho completo do arquivo",
+            "openInFileExplorer": "Abrir no explorador de arquivos",
             "selectFile": "Selecionar um arquivo...",
             "clickToSelectFile": "Clique para selecionar um arquivo..."
         },
         "number": {
-            "copyText": "Copiar Número",
+            "copyText": "Copiar número",
             "paste": "Colar"
         },
         "text": {
-            "copyText": "Copiar Texto",
+            "copyText": "Copiar texto",
             "paste": "Colar",
             "invalidCharacter": "Caractere inválido '{{character}}' (U+{{codePoint}})."
         },
-        "addInput": "Adicionar Entrada",
+        "addInput": "Adicionar entrada",
         "colorCompare": {
             "old": "antigo",
             "new": "novo"
@@ -88,7 +83,7 @@
     "outputs": {
         "largeImage": {
             "imageNotAvailable": "Imagem não disponível.",
-            "imagePreviewFailed": "Falha ao carregar a pré-visualização da imagem, provavelmente tipo de arquivo não suportado."
+            "imagePreviewFailed": "Falha ao carregar a pré-visualização da imagem; provavelmente o tipo de arquivo não é suportado."
         },
         "model": {
             "modelNotAvailable": "Dados do modelo não disponíveis."
@@ -105,7 +100,7 @@
         },
         "appearance": {
             "colorTheme": {
-                "label": "Tema de Cores",
+                "label": "Tema de cores",
                 "description": "Escolha o tema para a aparência do chaiNNer.",
                 "options": {
                     "dark": "Escuro",
@@ -123,7 +118,7 @@
                 }
             },
             "language": {
-                "label": "Idioma (requer reinicialização)",
+                "label": "Idioma",
                 "description": "Escolha o idioma para a interface do chaiNNer."
             },
             "chainAnimation": {
@@ -143,19 +138,19 @@
                 "description": "A quantidade para alinhar à grade."
             },
             "viewportExportPadding": {
-                "label": "Preenchimento de exportação PNG da viewport",
-                "description": "A quantidade de preenchimento para a exportação PNG da viewport."
+                "label": "Preenchimento de exportação PNG da área de visualização",
+                "description": "A quantidade de preenchimento para a exportação PNG da área de visualização."
             }
         },
         "environment": {
             "startupTemplate": {
-                "label": "Modelo de Inicialização",
+                "label": "Modelo de inicialização",
                 "description": "Definir um modelo de cadeia para usar por padrão quando o chaiNNer iniciar.",
                 "placeholder": "Selecionar um arquivo...",
                 "clear": "Limpar",
                 "pickFile": "Escolher arquivo de modelo de inicialização"
             },
-            "selectChain": "Selecionar Cadeia"
+            "selectChain": "Selecionar cadeia"
         },
         "python": {
             "general": "Geral",
@@ -173,15 +168,11 @@
         },
         "advanced": {
             "checkForUpdates": {
-                "label": "Verificar Atualizações na Inicialização",
+                "label": "Verificar atualizações na inicialização",
                 "description": "Alterna a verificação de atualizações na inicialização."
             },
-            "experimentalFeatures": {
-                "label": "Habilitar recursos experimentais",
-                "description": "Habilitar recursos experimentais para experimentá-los antes de serem finalizados."
-            },
             "hardwareAcceleration": {
-                "label": "Habilitar Aceleração de Hardware (requer reinicialização)",
+                "label": "Habilitar aceleração de hardware (requer reinicialização)",
                 "description": "Habilitar renderização GPU para a GUI. Use com cuidado, pois pode diminuir severamente o desempenho da GPU para processamento de imagens."
             },
             "allowMultipleInstances": {
@@ -190,12 +181,12 @@
             }
         },
         "noOptionsFound": "Nenhuma opção encontrada.",
-        "clearCache": "Limpar Cache"
+        "clearCache": "Limpar cache"
     },
     "setup": {
         "checkingPort": "Verificando porta disponível...",
-        "checkingPython": "Verificando ambiente do sistema para Python válido...",
-        "downloadingPython": "Baixando Python Integrado...",
+        "checkingPython": "Procurando um Python válido no ambiente do sistema...",
+        "downloadingPython": "Baixando Python integrado...",
         "extractingPython": "Extraindo arquivos baixados...",
         "loading": "Carregando...",
         "startingBackend": "Iniciando processo backend..."
@@ -206,21 +197,11 @@
     "groups": {
         "seed": {
             "randomSeed": "Semente aleatória",
-            "randomSeedAria": "Semente Aleatória"
+            "randomSeedAria": "Semente aleatória"
         }
     },
-    "logo": {
-        "background": "fundo",
-        "front": "frente"
-    },
     "timer": {
-        "executionTook": "A execução levou aproximadamente {{duration}}.",
-        "hour_one": "hora",
-        "hour_other": "horas",
-        "minute_one": "minuto",
-        "minute_other": "minutos",
-        "second_one": "segundo",
-        "second_other": "segundos"
+        "executionTook": "A execução levou aproximadamente {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "Os valores de {{inputs}} estão atualmente vinculados ao mesmo valor. Clique aqui para desfazer este vínculo.",
@@ -232,7 +213,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +220,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -251,29 +230,26 @@
     },
     "favorites": {
         "title": "Favoritos",
-        "noFavorites": "Nenhum Favorito.",
-        "addFavoritesTooltip": "Adicione Favoritos clicando com o botão direito nos nós e selecionando Adicionar aos Favoritos.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Adicione Favoritos passando o mouse sobre os nós e clicando no",
-            "afterIcon": "ícone, ou clicando com o botão direito e selecionando Adicionar aos Favoritos."
-        },
-        "addToFavorites": "Adicionar aos Favoritos",
-        "removeFromFavorites": "Remover dos Favoritos"
+        "noFavorites": "Nenhum favorito.",
+        "addFavoritesTooltip": "Adicione favoritos clicando com o botão direito nos nós e selecionando Adicionar aos favoritos.",
+        "addFavoritesTooltipExpanded": "Adicione favoritos passando o mouse sobre os nós e clicando no ícone <star/>, ou clicando com o botão direito e selecionando Adicionar aos favoritos.",
+        "addToFavorites": "Adicionar aos favoritos",
+        "removeFromFavorites": "Remover dos favoritos"
     },
     "documentation": {
-        "title": "Documentação do Nó",
-        "openDocumentation": "Abrir Documentação"
+        "title": "Documentação do nó",
+        "openDocumentation": "Abrir documentação"
     },
     "dependencyManager": {
-        "title": "Gerenciador de Dependências",
-        "manageDependencies": "Gerenciar Dependências",
-        "updatesAvailable": "Atualizações Disponíveis",
+        "title": "Gerenciador de dependências",
+        "manageDependencies": "Gerenciar dependências",
+        "updatesAvailable": "Atualizações disponíveis",
         "updatesAvailableDescription_one": "Há {{count}} pacote com atualizações de dependência disponíveis.",
         "updatesAvailableDescription_other": "Há {{count}} pacotes com atualizações de dependência disponíveis.",
-        "openDependencyManager": "Abrir Gerenciador de Dependências",
+        "openDependencyManager": "Abrir gerenciador de dependências",
         "packages": "Pacotes",
         "features": "Recursos",
-        "refresh": "Atualizar",
+        "refresh": "Recarregar",
         "install": "Instalar",
         "update": "Atualizar",
         "uninstall": "Desinstalar",
@@ -295,14 +271,14 @@
         "commandCopiedDescription": "Abra um terminal externo, cole o comando e execute-o. Quando terminar de executar, reinicie o chaiNNer manualmente.",
         "uninstallTitle": "Desinstalar",
         "uninstallMessage": "Tem certeza de que deseja desinstalar {{name}}?",
-        "unsavedChanges": "Alterações Não Salvas",
+        "unsavedChanges": "Alterações não salvas",
         "unsavedChangesMessage": "Você pode perder suas alterações não salvas desinstalando {{name}}.\n\nTem certeza de que deseja desinstalar {{name}}?",
         "cancel": "Cancelar",
         "installing": "Instalando {{name}}...",
         "uninstalling": "Desinstalando {{name}}...",
-        "copyPythonPath": "Copiar caminho Python para a área de transferência",
-        "pythonPath": "O caminho Python é:",
-        "installAllPackages": "{{operations}} Todos os Pacotes ({{size}})",
+        "copyPythonPath": "Copiar caminho do Python para a área de transferência",
+        "pythonPath": "O caminho do Python é:",
+        "installAllPackages": "{{operations}} todos os pacotes ({{size}})",
         "package_one": "pacote",
         "package_other": "pacotes",
         "brackets": {
@@ -311,23 +287,25 @@
         }
     },
     "note": {
-        "editMode": "Modo de Edição",
-        "editContent": "Editar Conteúdo",
+        "editMode": "Modo de edição",
+        "editContent": "Editar conteúdo",
         "markdownMode": "Modo Markdown",
         "viewMarkdown": "Ver Markdown"
     },
     "node": {
         "disableHint": "Dica: Use Ctrl+Clique para alternar entre opções.",
         "note": {
-            "placeholder": "Texto da Nota"
+            "placeholder": "Texto da nota"
         },
-        "implementationError": "Erro de Implementação",
+        "implementationError": "Erro de implementação",
         "implementationErrorMessage": "Não é possível determinar informações-chave para o nó {{nodeName}} ({{schemaId}}).",
         "enable": "Habilitar",
         "disable": "Desabilitar",
         "skip": "Pular",
-        "eta": "ETA:",
-        "outdated": "Desatualizado"
+        "eta": "Tempo restante:",
+        "outdated": "Desatualizado",
+        "paused": "Pausado",
+        "finished": "Concluído"
     },
     "color": {
         "resetToOld": "Redefinir para cor antiga",
@@ -342,46 +320,45 @@
         "removeEdge": "Botão remover aresta"
     },
     "breakpoint": {
-        "removeBreakpoint": "Remover Ponto de Interrupção",
-        "removeEdge": "Remover Aresta"
+        "removeBreakpoint": "Remover ponto de interrupção",
+        "removeEdge": "Remover aresta"
     },
     "tooltips": {
         "addNodesToCanvas": "Clique duas vezes ou arraste e solte para adicionar nós à tela.",
-        "collapseExpandCategories": "Recolher/Expandir Categorias"
+        "collapseExpandCategories": "Recolher/expandir categorias"
     },
     "nodeMenu": {
         "copy": "Copiar",
         "duplicate": "Duplicar",
-        "resetNode": "Redefinir Nó",
-        "resetInputs": "Redefinir Entradas",
-        "resetConnections": "Redefinir Conexões",
-        "resetAll": "Redefinir Tudo",
+        "resetNode": "Redefinir nó",
+        "resetInputs": "Redefinir entradas",
+        "resetConnections": "Redefinir conexões",
+        "resetAll": "Redefinir tudo",
         "enable": "Habilitar",
         "disable": "Desabilitar",
         "skip": "Pular",
         "unlock": "Desbloquear",
         "lock": "Bloquear",
-        "refreshPreview": "Atualizar Pré-visualização",
+        "refreshPreview": "Atualizar pré-visualização",
         "delete": "Excluir",
-        "openDocumentation": "Abrir Documentação"
+        "openDocumentation": "Abrir documentação"
     },
     "nodesMenu": {
         "copy": "Copiar",
         "duplicate": "Duplicar",
-        "resetNodes": "Redefinir Nós",
-        "resetInputs": "Redefinir Entradas",
-        "resetConnections": "Redefinir Conexões",
-        "resetAll": "Redefinir Tudo",
-        "enableAll": "Habilitar Todos",
-        "disableAll": "Desabilitar Todos",
+        "resetNodes": "Redefinir nós",
+        "resetInputs": "Redefinir entradas",
+        "resetConnections": "Redefinir conexões",
+        "resetAll": "Redefinir tudo",
+        "enableAll": "Habilitar todos",
+        "disableAll": "Desabilitar todos",
         "delete": "Excluir"
     },
     "edgeMenu": {
-        "addBreakpoint": "Adicionar Ponto de Interrupção",
+        "addBreakpoint": "Adicionar ponto de interrupção",
         "delete": "Excluir"
     },
     "nodeSelector": {
-        "favorites": "Favoritos",
         "missingDependencies": "Dependências ausentes.",
         "unableToImport": "Não é possível importar nó(s).",
         "clickToInstall": "Clique para abrir o gerenciador de dependências para instalar {{packageName}}.",
@@ -390,14 +367,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "é",
-            "isNot": "não é",
-            "oneOf": "um de",
-            "ofType": "do tipo",
-            "allOf": "Todos",
-            "atLeastOneOf": "Pelo menos um de",
-            "followingConditions": "as seguintes condições devem ser atendidas:",
-            "condition": "Condição:"
+            "condition": "Condição:",
+            "allConditions": "Todas as seguintes condições devem ser atendidas:",
+            "anyCondition": "Pelo menos uma das seguintes condições deve ser atendida:",
+            "enumIs": "<name>{{name}}</name> é <options/>.",
+            "enumIsNot": "<name>{{name}}</name> não é <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> é um de <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> não é nenhum de <options/>.",
+            "typeIs": "<name>{{name}}</name> é {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> não é {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> é do tipo <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> não é do tipo <type/>."
         },
         "nodeDocs": {
             "optional": "opcional",

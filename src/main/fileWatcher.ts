@@ -14,7 +14,9 @@ const watcher = new FSWatcher({
     disableGlobbing: true,
     awaitWriteFinish: true,
     ignoreInitial: true,
-    persistent: false,
+    // Must stay true. For non-persistent watchers, chokidar 3 attaches no 'error' listener
+    // to the underlying fs.watch, so a watch failure becomes an uncaught exception.
+    persistent: true,
 });
 
 const sendEvent = (window: BrowserWindowWithSafeIpc, eventType: EventType, path: string) => {

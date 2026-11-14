@@ -6,7 +6,6 @@ import {
     FunctionDefinition,
     FunctionInputAssignmentError,
     FunctionInstance,
-    FunctionSequenceAssignmentError,
 } from '../types/function';
 import { nullType } from '../types/util';
 import { EMPTY_MAP } from '../util';
@@ -21,16 +20,6 @@ const assignmentErrorEquals = (
         a.inputId === b.inputId &&
         isSameType(a.assignedType, b.assignedType) &&
         isSameType(a.inputType, b.inputType)
-    );
-};
-const sequenceErrorEquals = (
-    a: FunctionSequenceAssignmentError,
-    b: FunctionSequenceAssignmentError
-): boolean => {
-    return (
-        a.inputId === b.inputId &&
-        isSameType(a.assignedSequenceType, b.assignedSequenceType) &&
-        isSameType(a.sequenceType, b.sequenceType)
     );
 };
 const mapEqual = <K, V extends NonNullable<unknown>>(
@@ -65,7 +54,6 @@ const instanceEqual = (a: FunctionInstance, b: FunctionInstance): boolean => {
     if (!mapEqual(a.outputSequence, b.outputSequence, isSameType)) return false;
 
     if (!arrayEqual(a.inputErrors, b.inputErrors, assignmentErrorEquals)) return false;
-    if (!arrayEqual(a.sequenceErrors, b.sequenceErrors, sequenceErrorEquals)) return false;
 
     return true;
 };
@@ -103,24 +91,14 @@ export class TypeState {
         const functions = new Map<string, FunctionInstance>();
         const evaluationErrors = new Map<string, EvaluationError>();
 
-        interface SourceTypeInfo {
-            type: NonNeverType;
-            sequence: NonNeverType | undefined;
-        }
-        const getSourceType = (id: string, inputId: InputId): SourceTypeInfo | undefined => {
+        const getSourceType = (id: string, inputId: InputId): NonNeverType | undefined => {
             const edge = edges.get(id, inputId);
             if (edge) {
                 const sourceNode = nodesMap.get(edge.source);
                 if (sourceNode) {
                     // eslint-disable-next-line @typescript-eslint/no-use-before-define
                     const functionInstance = addNode(sourceNode);
-                    const type = functionInstance?.outputs.get(edge.outputId);
-                    if (type) {
-                        return {
-                            type,
-                            sequence: functionInstance?.outputSequence.get(edge.outputId),
-                        };
-                    }
+                    return functionInstance?.outputs.get(edge.outputId);
                 }
             }
             return undefined;
@@ -143,7 +121,7 @@ export class TypeState {
             try {
                 instance = FunctionInstance.fromPartialInputs(
                     definition,
-                    (id) => {
+                    (id): NonNeverType | undefined => {
                         const edgeSource = getSourceType(n.id, id);
                         if (edgeSource) {
                             return edgeSource;
@@ -154,12 +132,12 @@ export class TypeState {
                         if (inputValue !== undefined) {
                             const foo = definition.inputDataAdapters.get(id)?.(inputValue);
                             if (foo !== undefined) {
-                                return { type: foo, sequence: undefined };
+                                return foo;
                             }
                         }
 
                         if (inputValue === undefined && definition.inputNullable.has(id)) {
-                            return { type: nullType, sequence: undefined };
+                            return nullType;
                         }
 
                         return undefined;

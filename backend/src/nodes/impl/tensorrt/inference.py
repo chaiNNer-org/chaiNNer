@@ -6,9 +6,8 @@ import types
 
 import numpy as np
 import tensorrt as trt
-from cuda.bindings import runtime as cudart
 
-from .memory import CudaMemoryManager
+from .memory import CudaMemoryManager, set_cuda_device
 from .model import TensorRTEngine
 
 
@@ -38,7 +37,7 @@ class TensorRTSession:
         if self._is_loaded:
             return
 
-        cudart.cudaSetDevice(self.gpu_index)
+        set_cuda_device(self.gpu_index)
 
         trt_logger = trt.Logger(trt.Logger.WARNING)
         self._runtime = trt.Runtime(trt_logger)
@@ -110,27 +109,36 @@ class TensorRTSession:
         if not self._is_loaded:
             raise RuntimeError("Session not loaded. Call load() first.")
 
-        input_name, output_name, _, _ = self._get_binding_info()
-
-        # Get actual input shape
-        batch, channels, height, width = input_array.shape
+        input_name, output_name, engine_input_shape, _ = self._get_binding_info()
 
         # Set input shape for dynamic inputs
-        if self.engine.has_dynamic_shapes:
-            self._context.set_input_shape(input_name, (batch, channels, height, width))
+        input_shape = tuple(input_array.shape)
+        if -1 in engine_input_shape:
+            if not self._context.set_input_shape(input_name, input_shape):
+                min_shape, _, max_shape = self._trt_engine.get_tensor_profile_shape(
+                    input_name, 0
+                )
+                raise ValueError(
+                    f"Input shape {input_shape} is not supported by this TensorRT engine."
+                    f" Supported shapes range from {tuple(min_shape)} to {tuple(max_shape)}."
+                )
+        elif input_shape != engine_input_shape:
+            raise ValueError(
+                f"Input shape {input_shape} is not supported by this TensorRT engine."
+                f" The engine only supports {engine_input_shape}."
+            )
 
         # Get output shape (may depend on input shape for dynamic models)
         output_shape = self._context.get_tensor_shape(output_name)
 
-        # Determine precision
-        is_fp16 = self.engine.precision == "fp16"
-        dtype = np.float16 if is_fp16 else np.float32
-
-        # Ensure input is contiguous and correct dtype
-        input_array = np.ascontiguousarray(input_array.astype(dtype))
+        # Convert the input to the engine's input dtype, which can differ from the
+        # build precision (e.g. an FP32 ONNX model built with FP16 keeps FP32 I/O)
+        input_dtype = self._trt_engine.get_tensor_dtype(input_name)
+        output_dtype = self._trt_engine.get_tensor_dtype(output_name)
+        input_array = _to_host_array(input_array, input_dtype)
 
         # Allocate output array
-        output_array = np.zeros(output_shape, dtype=dtype)
+        output_array = np.zeros(output_shape, dtype=_host_dtype(output_dtype))
 
         # Allocate device memory
         assert self._memory_manager is not None
@@ -164,7 +172,32 @@ class TensorRTSession:
             self._memory_manager.remove_buffer(input_buffer)
             self._memory_manager.remove_buffer(output_buffer)
 
-        return output_array.astype(np.float32)
+        return _from_host_array(output_array, output_dtype)
+
+
+def _host_dtype(dtype: trt.DataType) -> type[np.generic]:
+    """The numpy dtype of a host buffer for a TensorRT tensor dtype."""
+    # numpy has no bfloat16, so BF16 tensors are stored as their raw 16 bits
+    if dtype == trt.DataType.BF16:
+        return np.uint16
+    return trt.nptype(dtype)
+
+
+def _to_host_array(array: np.ndarray, dtype: trt.DataType) -> np.ndarray:
+    """Convert an array into a contiguous host buffer for a TensorRT tensor dtype."""
+    if dtype == trt.DataType.BF16:
+        # BF16 is the upper 16 bits of FP32. Round to nearest even.
+        bits = np.ascontiguousarray(array, dtype=np.float32).view(np.uint32)
+        bits = bits + (0x7FFF + ((bits >> 16) & 1))
+        return (bits >> 16).astype(np.uint16)
+    return np.ascontiguousarray(array, dtype=trt.nptype(dtype))
+
+
+def _from_host_array(array: np.ndarray, dtype: trt.DataType) -> np.ndarray:
+    """Convert a host buffer of a TensorRT tensor dtype into a float32 array."""
+    if dtype == trt.DataType.BF16:
+        return (array.astype(np.uint32) << 16).view(np.float32)
+    return array.astype(np.float32)
 
 
 # Session cache to avoid repeatedly loading engines

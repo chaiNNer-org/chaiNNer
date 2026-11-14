@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "确定",
-            "cancel": "取消",
             "openLogsFolder": "打开日志文件夹",
             "exitApplication": "退出应用程序",
             "copyToClipboard": "复制到剪贴板"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "取消",
         "close": "关闭",
-        "open": "打开",
         "settings": "设置"
     },
     "error": {
@@ -41,7 +39,7 @@
         "updateChangelog": "更新变更日志",
         "updateAvailableTitle": "更新可用 ({{version}})",
         "updateAvailableMessage": "版本 {{version}} 有可用更新。您想查看变更日志吗？",
-        "viewReleaseOnGitHub": "在 GitHub 上查看发布",
+        "viewReleaseOnGitHub": "在 GitHub 上查看发行版",
         "downloadFromWebsite": "从 chaiNNer.app 下载",
         "ignoreUpdate": "忽略更新",
         "viewUpdate": "查看更新"
@@ -120,7 +118,7 @@
                 }
             },
             "language": {
-                "label": "语言（需要重启）",
+                "label": "语言",
                 "description": "选择 chaiNNer 界面的语言。"
             },
             "chainAnimation": {
@@ -140,8 +138,8 @@
                 "description": "对齐到网格的量。"
             },
             "viewportExportPadding": {
-                "label": "视口PNG导出填充",
-                "description": "视口PNG导出的填充量。"
+                "label": "视口 PNG 导出边距",
+                "description": "视口 PNG 导出的边距大小。"
             }
         },
         "environment": {
@@ -173,29 +171,25 @@
                 "label": "启动时检查更新",
                 "description": "切换启动时的更新检查。"
             },
-            "experimentalFeatures": {
-                "label": "启用实验性功能",
-                "description": "启用实验性功能以在完成前试用它们。"
-            },
             "hardwareAcceleration": {
                 "label": "启用硬件加速（需要重启）",
                 "description": "为 GUI 启用 GPU 渲染。请谨慎使用，因为它可能会严重降低图像处理的 GPU 性能。"
             },
             "allowMultipleInstances": {
                 "label": "允许多个并发实例",
-                "description": "启用 chaiNNer 的多个并发实例。这不推荐，但如果您的链没有使用足够的系统资源，您可能会发现同时运行事物很有用。"
+                "description": "启用 chaiNNer 的多个并发实例。不建议这样做，但如果您的链没有充分利用系统资源，同时运行多个任务可能会有帮助。"
             }
         },
         "noOptionsFound": "未找到选项。",
         "clearCache": "清除缓存"
     },
     "setup": {
-        "checkingPort": "检查可用端口...",
-        "checkingPython": "检查系统环境中的有效 Python...",
-        "downloadingPython": "下载集成 Python...",
-        "extractingPython": "提取下载的文件...",
+        "checkingPort": "正在检查可用端口...",
+        "checkingPython": "正在检查系统环境中的有效 Python...",
+        "downloadingPython": "正在下载集成 Python...",
+        "extractingPython": "正在解压下载的文件...",
         "loading": "加载中...",
-        "startingBackend": "启动后端进程..."
+        "startingBackend": "正在启动后端进程..."
     },
     "typeTags": {
         "optional": "可选"
@@ -207,7 +201,7 @@
         }
     },
     "node": {
-        "disableHint": "提示：使用 Ctrl+点击循环选项。",
+        "disableHint": "提示：按住 Ctrl 点击可循环切换选项。",
         "note": {
             "placeholder": "注释文本"
         },
@@ -217,20 +211,12 @@
         "disable": "禁用",
         "skip": "跳过",
         "eta": "预计时间：",
-        "outdated": "过时"
-    },
-    "logo": {
-        "background": "背景",
-        "front": "前景"
+        "outdated": "过时",
+        "paused": "已暂停",
+        "finished": "已完成"
     },
     "timer": {
-        "executionTook": "执行大约花费了 {{duration}}。",
-        "hour_one": "小时",
-        "hour_other": "小时",
-        "minute_one": "分钟",
-        "minute_other": "分钟",
-        "second_one": "秒",
-        "second_other": "秒"
+        "executionTook": "执行大约花费了 {{duration}}。"
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}} 的值当前链接到相同的值。点击此处取消此链接。",
@@ -242,7 +228,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -250,7 +235,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -263,10 +247,7 @@
         "title": "收藏夹",
         "noFavorites": "无收藏。",
         "addFavoritesTooltip": "右键点击节点并选择添加到收藏夹来添加收藏。",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "通过悬停在节点上并点击图标来添加收藏，",
-            "afterIcon": "或右键点击并选择添加到收藏夹。"
-        },
+        "addFavoritesTooltipExpanded": "将鼠标悬停在节点上并点击 <star/> 图标，或右键点击并选择“添加到收藏夹”来添加收藏。",
         "addToFavorites": "添加到收藏夹",
         "removeFromFavorites": "从收藏夹中移除"
     },
@@ -298,7 +279,7 @@
         "integrated": "集成",
         "advanced": "高级",
         "installationMode": "安装模式",
-        "normal": "正常",
+        "normal": "标准",
         "manualCopy": "手动/复制",
         "consoleOutput": "控制台输出：",
         "commandCopied": "命令已复制到剪贴板",
@@ -348,7 +329,7 @@
     },
     "nodeMenu": {
         "copy": "复制",
-        "duplicate": "复制",
+        "duplicate": "创建副本",
         "resetNode": "重置节点",
         "resetInputs": "重置输入",
         "resetConnections": "重置连接",
@@ -364,7 +345,7 @@
     },
     "nodesMenu": {
         "copy": "复制",
-        "duplicate": "复制",
+        "duplicate": "创建副本",
         "resetNodes": "重置节点",
         "resetInputs": "重置输入",
         "resetConnections": "重置连接",
@@ -378,7 +359,6 @@
         "delete": "删除"
     },
     "nodeSelector": {
-        "favorites": "收藏夹",
         "missingDependencies": "缺少依赖。",
         "unableToImport": "无法导入节点。",
         "clickToInstall": "点击打开依赖管理器并安装 {{packageName}}。",
@@ -387,20 +367,23 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "是",
-            "isNot": "不是",
-            "oneOf": "之一",
-            "ofType": "类型",
-            "allOf": "全部",
-            "atLeastOneOf": "至少一个",
-            "followingConditions": "必须满足以下条件：",
-            "condition": "条件："
+            "condition": "条件：",
+            "allConditions": "必须满足以下全部条件：",
+            "anyCondition": "必须满足以下至少一个条件：",
+            "enumIs": "<name>{{name}}</name> 为 <options/>。",
+            "enumIsNot": "<name>{{name}}</name> 不为 <options/>。",
+            "enumIsOneOf": "<name>{{name}}</name> 为 <options/> 之一。",
+            "enumIsNotOneOf": "<name>{{name}}</name> 不为 <options/> 中的任何一个。",
+            "typeIs": "<name>{{name}}</name> 是 {{type}}。",
+            "typeIsNot": "<name>{{name}}</name> 不是 {{type}}。",
+            "typeIsOfType": "<name>{{name}}</name> 的类型为 <type/>。",
+            "typeIsNotOfType": "<name>{{name}}</name> 的类型不为 <type/>。"
         },
         "nodeDocs": {
             "optional": "可选",
-            "sequenced": "（序列化）",
+            "sequenced": "（序列）",
             "supportedFileTypes": "支持的文件类型：",
-            "primaryInputDescription": "此输入是其支持文件类型的主要输入。这意味着您可以将支持的文件拖放到 chaiNNer 中，它将自动创建一个具有此输入填充的节点。",
+            "primaryInputDescription": "此输入是其支持文件类型的主要输入。这意味着您可以将支持的文件拖放到 chaiNNer 中，chaiNNer 会自动创建一个已填好此输入的节点。",
             "options": "选项：",
             "type": "类型：",
             "inputs": "输入",

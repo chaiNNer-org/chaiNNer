@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "확인",
-            "cancel": "취소",
             "openLogsFolder": "로그 폴더 열기",
             "exitApplication": "애플리케이션 종료",
             "copyToClipboard": "클립보드에 복사"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "취소",
         "close": "닫기",
-        "open": "열기",
         "settings": "설정"
     },
     "error": {
@@ -48,9 +46,6 @@
     },
     "inputs": {
         "copyInputOverrideId": "입력 재정의 ID 복사",
-        "inputOverrideId": "입력 재정의 ID",
-        "inputOverrideIdCopied": "입력 재정의 ID가 클립보드에 복사되었습니다",
-        "inputOverrideIdTooltip": "이 입력에 대한 고유 식별자입니다. 체인에서 입력을 재정의하는 데 사용됩니다.",
         "directory": {
             "clear": "지우기",
             "copyFullDirectoryPath": "전체 디렉토리 경로 복사",
@@ -123,7 +118,7 @@
                 }
             },
             "language": {
-                "label": "언어 (재시작 필요)",
+                "label": "언어",
                 "description": "chaiNNer 인터페이스의 언어를 선택하세요."
             },
             "chainAnimation": {
@@ -136,7 +131,7 @@
             },
             "snapToGrid": {
                 "label": "그리드에 맞추기",
-                "description": "노드 그리드 스냅을 활성화합니다."
+                "description": "노드를 그리드에 맞추도록 합니다."
             },
             "snapToGridAmount": {
                 "label": "그리드 맞춤 양",
@@ -176,13 +171,9 @@
                 "label": "시작 시 업데이트 확인",
                 "description": "시작 시 업데이트 확인을 전환합니다."
             },
-            "experimentalFeatures": {
-                "label": "실험적 기능 활성화",
-                "description": "완료되기 전에 실험적 기능을 시도해볼 수 있도록 활성화합니다."
-            },
             "hardwareAcceleration": {
                 "label": "하드웨어 가속 활성화 (재시작 필요)",
-                "description": "GUI를 위한 GPU 렌더링을 활성화합니다. 이미지 처리에 GPU 성능을 심각하게 저하시킬 수 있으므로 주의해서 사용하세요."
+                "description": "GUI를 위한 GPU 렌더링을 활성화합니다. 이미지 처리 시 GPU 성능이 크게 저하될 수 있으므로 주의해서 사용하세요."
             },
             "allowMultipleInstances": {
                 "label": "여러 동시 인스턴스 허용",
@@ -209,22 +200,12 @@
             "randomSeedAria": "랜덤 시드"
         }
     },
-    "logo": {
-        "background": "배경",
-        "front": "전면"
-    },
     "timer": {
-        "executionTook": "실행에 약 {{duration}}이 걸렸습니다.",
-        "hour_one": "시간",
-        "hour_other": "시간",
-        "minute_one": "분",
-        "minute_other": "분",
-        "second_one": "초",
-        "second_other": "초"
+        "executionTook": "실행에 약 {{duration}} 걸렸습니다."
     },
     "linkedInputs": {
         "currentlyLinked": "{{inputs}}의 값이 현재 같은 값에 연결되어 있습니다. 이 링크를 취소하려면 여기를 클릭하세요.",
-        "clickToLink": "{{inputs}}를 같은 값에 연결하려면 여기를 클릭하세요."
+        "clickToLink": "{{inputs}}을(를) 같은 값에 연결하려면 여기를 클릭하세요."
     },
     "languages": {
         "english": "English",
@@ -232,7 +213,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +220,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -253,10 +232,7 @@
         "title": "즐겨찾기",
         "noFavorites": "즐겨찾기가 없습니다.",
         "addFavoritesTooltip": "노드를 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "노드 위에 마우스를 올리고",
-            "afterIcon": "아이콘을 클릭하거나 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요."
-        },
+        "addFavoritesTooltipExpanded": "노드에 마우스를 올리고 <star/> 아이콘을 클릭하거나, 마우스 오른쪽 버튼으로 클릭하고 '즐겨찾기에 추가'를 선택하여 즐겨찾기를 추가하세요.",
         "addToFavorites": "즐겨찾기에 추가",
         "removeFromFavorites": "즐겨찾기에서 제거"
     },
@@ -268,8 +244,8 @@
         "title": "의존성 관리자",
         "manageDependencies": "의존성 관리",
         "updatesAvailable": "사용 가능한 업데이트",
-        "updatesAvailableDescription_one": "사용 가능한 의존성 업데이트가 있는 {{count}}개의 패키지가 있습니다.",
-        "updatesAvailableDescription_other": "사용 가능한 의존성 업데이트가 있는 {{count}}개의 패키지가 있습니다.",
+        "updatesAvailableDescription_one": "{{count}}개 패키지에 사용 가능한 의존성 업데이트가 있습니다.",
+        "updatesAvailableDescription_other": "{{count}}개 패키지에 사용 가능한 의존성 업데이트가 있습니다.",
         "openDependencyManager": "의존성 관리자 열기",
         "packages": "패키지",
         "features": "기능",
@@ -327,7 +303,9 @@
         "disable": "비활성화",
         "skip": "건너뛰기",
         "eta": "예상 시간:",
-        "outdated": "오래됨"
+        "outdated": "오래됨",
+        "paused": "일시정지됨",
+        "finished": "완료됨"
     },
     "color": {
         "resetToOld": "이전 색상으로 재설정",
@@ -381,27 +359,29 @@
         "delete": "삭제"
     },
     "nodeSelector": {
-        "favorites": "즐겨찾기",
         "missingDependencies": "누락된 의존성.",
         "unableToImport": "노드를 가져올 수 없습니다.",
-        "clickToInstall": "{{packageName}}을(를) 설치하려면 의존성 관리자를 열려면 클릭하세요.",
+        "clickToInstall": "클릭하여 의존성 관리자를 열고 {{packageName}}을(를) 설치하세요.",
         "criticalImportError": "패키지 {{packageName}}의 의존성에서 치명적인 가져오기 오류가 발생했습니다.",
         "nodes": "노드"
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "입니다",
-            "isNot": "아닙니다",
-            "oneOf": "중 하나",
-            "ofType": "타입",
-            "allOf": "모두",
-            "atLeastOneOf": "최소 하나",
-            "followingConditions": "다음 조건이 충족되어야 합니다:",
-            "condition": "조건:"
+            "condition": "조건:",
+            "allConditions": "다음 조건을 모두 충족해야 합니다:",
+            "anyCondition": "다음 조건 중 하나 이상을 충족해야 합니다:",
+            "enumIs": "<name>{{name}}</name>이(가) <options/>입니다.",
+            "enumIsNot": "<name>{{name}}</name>이(가) <options/>이(가) 아닙니다.",
+            "enumIsOneOf": "<name>{{name}}</name>이(가) <options/> 중 하나입니다.",
+            "enumIsNotOneOf": "<name>{{name}}</name>이(가) <options/> 중 어느 것도 아닙니다.",
+            "typeIs": "<name>{{name}}</name>의 타입이 {{type}}입니다.",
+            "typeIsNot": "<name>{{name}}</name>의 타입이 {{type}}이(가) 아닙니다.",
+            "typeIsOfType": "<name>{{name}}</name>의 타입이 <type/>입니다.",
+            "typeIsNotOfType": "<name>{{name}}</name>의 타입이 <type/>이(가) 아닙니다."
         },
         "nodeDocs": {
             "optional": "선택사항",
-            "sequenced": "(순차적)",
+            "sequenced": "(시퀀스)",
             "supportedFileTypes": "지원되는 파일 형식:",
             "primaryInputDescription": "이 입력은 지원되는 파일 형식에 대한 주요 입력입니다. 이는 지원되는 파일을 chaiNNer로 드래그 앤 드롭할 수 있으며, 이 입력이 자동으로 채워진 노드를 생성한다는 의미입니다.",
             "options": "옵션:",

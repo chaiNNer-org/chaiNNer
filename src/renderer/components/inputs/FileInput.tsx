@@ -18,7 +18,7 @@ import { MdContentCopy, MdFolder } from 'react-icons/md';
 import { useContext } from 'use-context-selector';
 import { log } from '../../../common/log';
 import { AlertBoxContext } from '../../contexts/AlertBoxContext';
-import { getSingleFileWithExtension } from '../../helpers/dataTransfer';
+import { getFilePath, getSingleFileWithExtension } from '../../helpers/dataTransfer';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import { useInputRefactor } from '../../hooks/useInputRefactor';
 import { useLastDirectory } from '../../hooks/useLastDirectory';
@@ -95,7 +95,7 @@ export const FileInput = memo(
                         description: `Only one file is accepted by ${label}.`,
                     });
                 } else {
-                    const ext = path.extname(event.dataTransfer.files[0].path);
+                    const ext = path.extname(getFilePath(event.dataTransfer.files[0]));
                     sendToast({
                         status: 'error',
                         description: `${label} does not accept ${ext} files.`,

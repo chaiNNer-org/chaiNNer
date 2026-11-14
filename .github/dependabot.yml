@@ -1,0 +1,27 @@
+# Dependabot security updates are enabled in the repository settings; this
+# file only groups them, so each run opens one PR per ecosystem instead of one
+# per package. `open-pull-requests-limit: 0` keeps routine version updates
+# off (security updates ignore that limit).
+version: 2
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+      open-pull-requests-limit: 0
+      groups:
+          npm-security:
+              applies-to: security-updates
+              patterns:
+                  - '*'
+
+    - package-ecosystem: pip
+      directory: /
+      schedule:
+          interval: weekly
+      open-pull-requests-limit: 0
+      groups:
+          pip-security:
+              applies-to: security-updates
+              patterns:
+                  - '*'

@@ -23,11 +23,6 @@ interface SafeIpcRenderer extends Electron.IpcRenderer {
     ): this;
     send<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
     sendSync<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
-    sendTo<C extends keyof SendChannels>(
-        webContentsId: number,
-        channel: C,
-        ...args: ChannelArgs<C>
-    ): void;
     sendToHost<C extends keyof SendChannels>(channel: C, ...args: ChannelArgs<C>): void;
 }
 
@@ -62,6 +57,5 @@ export const ipcRenderer = {
     },
     send: (...args) => window.unsafeIpcRenderer.send(...args),
     sendSync: (...args) => window.unsafeIpcRenderer.sendSync(...args) as void,
-    sendTo: (...args) => window.unsafeIpcRenderer.sendTo(...args),
     sendToHost: (...args) => window.unsafeIpcRenderer.sendToHost(...args),
 } as SafeIpcRenderer;

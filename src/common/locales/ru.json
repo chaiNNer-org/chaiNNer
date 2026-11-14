@@ -2,7 +2,6 @@
     "alert": {
         "button": {
             "ok": "ОК",
-            "cancel": "Отмена",
             "openLogsFolder": "Открыть папку логов",
             "exitApplication": "Выйти из приложения",
             "copyToClipboard": "Копировать в буфер обмена"
@@ -15,7 +14,6 @@
     "common": {
         "cancel": "Отмена",
         "close": "Закрыть",
-        "open": "Открыть",
         "settings": "Настройки"
     },
     "error": {
@@ -47,10 +45,7 @@
         "viewUpdate": "Просмотреть обновление"
     },
     "inputs": {
-        "copyInputOverrideId": "Копировать ID переопределения ввода",
-        "inputOverrideId": "ID переопределения ввода",
-        "inputOverrideIdCopied": "ID переопределения ввода скопирован в буфер обмена",
-        "inputOverrideIdTooltip": "Уникальный идентификатор для этого ввода. Используется для переопределения ввода в цепочке.",
+        "copyInputOverrideId": "Копировать ID переопределения входа",
         "directory": {
             "clear": "Очистить",
             "copyFullDirectoryPath": "Копировать полный путь к папке",
@@ -76,7 +71,7 @@
             "paste": "Вставить",
             "invalidCharacter": "Недопустимый символ '{{character}}' (U+{{codePoint}})."
         },
-        "addInput": "Добавить ввод",
+        "addInput": "Добавить вход",
         "colorCompare": {
             "old": "старый",
             "new": "новый"
@@ -123,7 +118,7 @@
                 }
             },
             "language": {
-                "label": "Язык (требует перезапуска)",
+                "label": "Язык",
                 "description": "Выберите язык для интерфейса chaiNNer."
             },
             "chainAnimation": {
@@ -176,10 +171,6 @@
                 "label": "Проверять обновления при запуске",
                 "description": "Включает проверку обновлений при запуске."
             },
-            "experimentalFeatures": {
-                "label": "Включить экспериментальные функции",
-                "description": "Включить экспериментальные функции, чтобы попробовать их до завершения разработки."
-            },
             "hardwareAcceleration": {
                 "label": "Включить аппаратное ускорение (требует перезапуска)",
                 "description": "Включить GPU-рендеринг для GUI. Используйте с осторожностью, так как это может значительно снизить производительность GPU для обработки изображений."
@@ -205,22 +196,12 @@
     },
     "groups": {
         "seed": {
-            "randomSeed": "Случайное семя",
-            "randomSeedAria": "Случайное семя"
+            "randomSeed": "Случайный сид",
+            "randomSeedAria": "Случайный сид"
         }
     },
-    "logo": {
-        "background": "фон",
-        "front": "передний план"
-    },
     "timer": {
-        "executionTook": "Выполнение заняло приблизительно {{duration}}.",
-        "hour_one": "час",
-        "hour_other": "часов",
-        "minute_one": "минута",
-        "minute_other": "минут",
-        "second_one": "секунда",
-        "second_other": "секунд"
+        "executionTook": "Время выполнения: примерно {{duration}}."
     },
     "linkedInputs": {
         "currentlyLinked": "Значения {{inputs}} в настоящее время связаны с одним и тем же значением. Нажмите здесь, чтобы отменить эту связь.",
@@ -232,7 +213,6 @@
         "german": "Deutsch",
         "french": "Français",
         "italian": "Italiano",
-        "portuguese": "Português",
         "japanese": "日本語",
         "chinese": "中文",
         "russian": "Русский",
@@ -240,7 +220,6 @@
         "dutch": "Nederlands",
         "polish": "Polski",
         "turkish": "Türkçe",
-        "arabic": "العربية",
         "hindi": "हिन्दी",
         "brazilianPortuguese": "Português (Brasil)"
     },
@@ -252,11 +231,8 @@
     "favorites": {
         "title": "Избранное",
         "noFavorites": "Нет избранного.",
-        "addFavoritesTooltip": "Добавляйте в избранное, щелкая правой кнопкой мыши по узлам и выбирая 'Добавить в избранное'.",
-        "addFavoritesTooltipExpanded": {
-            "beforeIcon": "Добавляйте в избранное, наводя курсор на узлы и нажимая на",
-            "afterIcon": "иконку, или щелкая правой кнопкой мыши и выбирая 'Добавить в избранное'."
-        },
+        "addFavoritesTooltip": "Добавляйте в избранное, щелкая правой кнопкой мыши по узлам и выбирая «Добавить в избранное».",
+        "addFavoritesTooltipExpanded": "Добавляйте в избранное, наводя курсор на узел и нажимая значок <star/>, или щелкая правой кнопкой мыши и выбирая «Добавить в избранное».",
         "addToFavorites": "Добавить в избранное",
         "removeFromFavorites": "Удалить из избранного"
     },
@@ -269,7 +245,9 @@
         "manageDependencies": "Управление зависимостями",
         "updatesAvailable": "Доступны обновления",
         "updatesAvailableDescription_one": "Есть {{count}} пакет с доступными обновлениями зависимостей.",
-        "updatesAvailableDescription_other": "Есть {{count}} пакетов с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_few": "Есть {{count}} пакета с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_many": "Есть {{count}} пакетов с доступными обновлениями зависимостей.",
+        "updatesAvailableDescription_other": "Есть {{count}} пакета с доступными обновлениями зависимостей.",
         "openDependencyManager": "Открыть менеджер зависимостей",
         "packages": "Пакеты",
         "features": "Функции",
@@ -280,11 +258,11 @@
         "close": "Закрыть",
         "missing": "Отсутствует",
         "outdated": "Устарел",
-        "unavailable": "Недоступен",
-        "enabled": "Включен",
-        "disabled": "Отключен",
+        "unavailable": "Недоступна",
+        "enabled": "Включена",
+        "disabled": "Отключена",
         "python": "Python",
-        "system": "Система",
+        "system": "Системный",
         "integrated": "Встроенный",
         "advanced": "Дополнительно",
         "installationMode": "Режим установки",
@@ -300,11 +278,13 @@
         "cancel": "Отмена",
         "installing": "Установка {{name}}...",
         "uninstalling": "Удаление {{name}}...",
-        "copyPythonPath": "Копировать путь Python в буфер обмена",
-        "pythonPath": "Путь Python:",
-        "installAllPackages": "{{operations}} Все пакеты ({{size}})",
+        "copyPythonPath": "Копировать путь к Python в буфер обмена",
+        "pythonPath": "Путь к Python:",
+        "installAllPackages": "{{operations}} все пакеты ({{size}})",
         "package_one": "пакет",
-        "package_other": "пакетов",
+        "package_few": "пакета",
+        "package_many": "пакетов",
+        "package_other": "пакета",
         "brackets": {
             "open": "[",
             "close": "]"
@@ -327,7 +307,9 @@
         "disable": "Отключить",
         "skip": "Пропустить",
         "eta": "Ожидаемое время:",
-        "outdated": "Устарел"
+        "outdated": "Устарел",
+        "paused": "Приостановлено",
+        "finished": "Завершено"
     },
     "color": {
         "resetToOld": "Сбросить к старому цвету",
@@ -381,7 +363,6 @@
         "delete": "Удалить"
     },
     "nodeSelector": {
-        "favorites": "Избранное",
         "missingDependencies": "Отсутствуют зависимости.",
         "unableToImport": "Не удалось импортировать узел(ы).",
         "clickToInstall": "Нажмите, чтобы открыть менеджер зависимостей для установки {{packageName}}.",
@@ -390,14 +371,17 @@
     },
     "nodeDocumentation": {
         "conditionExplanation": {
-            "is": "является",
-            "isNot": "не является",
-            "oneOf": "одним из",
-            "ofType": "типа",
-            "allOf": "Все",
-            "atLeastOneOf": "По крайней мере один из",
-            "followingConditions": "должны быть выполнены следующие условия:",
-            "condition": "Условие:"
+            "condition": "Условие:",
+            "allConditions": "Должны выполняться все следующие условия:",
+            "anyCondition": "Должно выполняться хотя бы одно из следующих условий:",
+            "enumIs": "<name>{{name}}</name> имеет значение <options/>.",
+            "enumIsNot": "<name>{{name}}</name> не имеет значения <options/>.",
+            "enumIsOneOf": "<name>{{name}}</name> имеет одно из значений <options/>.",
+            "enumIsNotOneOf": "<name>{{name}}</name> не имеет ни одного из значений <options/>.",
+            "typeIs": "<name>{{name}}</name> — это {{type}}.",
+            "typeIsNot": "<name>{{name}}</name> — это не {{type}}.",
+            "typeIsOfType": "<name>{{name}}</name> имеет тип <type/>.",
+            "typeIsNotOfType": "<name>{{name}}</name> не имеет типа <type/>."
         },
         "nodeDocs": {
             "optional": "необязательно",
@@ -412,7 +396,9 @@
             "noOutputs": "У этого узла нет выходов.",
             "seeAlso": "См. также",
             "character_one": "символ",
-            "character_other": "символов"
+            "character_few": "символа",
+            "character_many": "символов",
+            "character_other": "символа"
         },
         "nodesList": {
             "noNodesFound": "Узлы не найдены"

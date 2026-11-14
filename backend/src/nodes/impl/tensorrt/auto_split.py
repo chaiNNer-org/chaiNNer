@@ -76,7 +76,6 @@ def tensorrt_auto_split(
         Upscaled image in HWC format
     """
     session = get_tensorrt_session(engine, gpu_index)
-    is_fp16 = engine.precision == "fp16"
 
     def upscale(img: np.ndarray, _: object):
         if progress is not None:
@@ -86,11 +85,9 @@ def tensorrt_auto_split(
                 progress.suspend()
 
         try:
-            # Convert to appropriate precision
-            lr_img = img.astype(np.float16) if is_fp16 else img.astype(np.float32)
-
-            # Convert RGB to BGR (most models expect BGR)
-            lr_img = _flip_r_b_channels(lr_img)
+            # Convert RGB to BGR (most models expect BGR).
+            # The session converts to the engine's input dtype.
+            lr_img = _flip_r_b_channels(img)
 
             # Convert to NCHW batched format
             lr_img = _into_batched_form(lr_img)

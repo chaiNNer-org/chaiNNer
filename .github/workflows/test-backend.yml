@@ -27,8 +27,8 @@ jobs:
             matrix:
                 python-version: ['3.10', '3.11']
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-python@v4
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.python-version }}
                   cache: 'pip'
@@ -38,12 +38,12 @@ jobs:
     backend-type-check-test:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-python@v4
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
               with:
                   python-version: '3.10'
                   cache: 'pip'
-            - uses: actions/cache@v3
+            - uses: actions/cache@v4
               with:
                   path: ~/.cache/chainner_pip
                   key: chainner-pip-cache-3.10
@@ -60,11 +60,11 @@ jobs:
     backend-name-check-test:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-python@v4
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
               with:
                   python-version: '3.10'
-            - uses: actions/cache@v3
+            - uses: actions/cache@v4
               with:
                   path: ~/.cache/chainner_pip
                   key: chainner-pip-cache-3.10
@@ -78,12 +78,12 @@ jobs:
             matrix:
                 python-version: ['3.10', '3.11']
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-python@v4
+            - uses: actions/checkout@v4
+            - uses: actions/setup-python@v5
               with:
                   python-version: ${{ matrix.python-version }}
                   cache: 'pip'
-            - uses: actions/cache@v3
+            - uses: actions/cache@v4
               with:
                   path: ~/.cache/chainner_pip
                   key: chainner-pip-cache-${{ matrix.python-version }}

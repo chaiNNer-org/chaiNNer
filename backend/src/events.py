@@ -223,21 +223,22 @@ class ThrottledProgressQueue(EventConsumer):
             now = time.monotonic()
             elapsed = now - self._last_flush_time
 
-            if elapsed >= self.flush_interval:
-                # Time to flush immediately
-                self._flush_locked()
-            elif not self._flush_scheduled and self._loop is not None:
-                # Schedule a flush for later
-                # Use call_soon_threadsafe since this may be called from worker threads
+            if self._loop is None:
+                if elapsed >= self.flush_interval:
+                    self._flush_locked()
+            elif not self._flush_scheduled:
+                # Flushes always run on the event loop thread. This may be called
+                # from worker threads, and the underlying asyncio.Queue is not
+                # thread-safe: a put from another thread doesn't wake the loop.
                 self._flush_scheduled = True
-                delay = self.flush_interval - elapsed
-                self._loop.call_soon_threadsafe(
-                    lambda d=delay: self._schedule_delayed_flush(d)
-                )
+                delay = max(0.0, self.flush_interval - elapsed)
+                self._loop.call_soon_threadsafe(self._schedule_delayed_flush, delay)
 
     def _schedule_delayed_flush(self, delay: float) -> None:
         """Schedule a delayed flush. Must be called from the event loop thread."""
-        if self._loop is not None:
+        if delay <= 0:
+            self._scheduled_flush()
+        elif self._loop is not None:
             self._loop.call_later(delay, self._scheduled_flush)
 
     def _scheduled_flush(self) -> None:
@@ -260,7 +261,10 @@ class ThrottledProgressQueue(EventConsumer):
         self._last_flush_time = time.monotonic()
 
     def _flush_now(self) -> None:
-        """Immediately flush any pending progress events."""
+        """
+        Immediately flush any pending progress events.
+        Must be called from the event loop thread.
+        """
         with self._lock:
             self._flush_locked()
 

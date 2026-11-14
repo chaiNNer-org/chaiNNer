@@ -314,10 +314,13 @@ const AlertBoxDialog = memo(
                         <HStack width="full">
                             <IconButton
                                 _hover={{ background: 'var(--chakra-colors-whiteAlpha-300)' }}
-                                aria-label="Copy to Clipboard"
+                                aria-label={i18n.t(
+                                    'alert.button.copyToClipboard',
+                                    'Copy to Clipboard'
+                                )}
                                 background="transparent"
                                 icon={<CopyIcon />}
-                                title="Copy to Clipboard"
+                                title={i18n.t('alert.button.copyToClipboard', 'Copy to Clipboard')}
                                 onClick={() => {
                                     navigator.clipboard
                                         .writeText(copyText.toString())

@@ -66,14 +66,6 @@ export const DropDown = memo(
                         <option
                             disabled
                             key={optionElements.length}
-                            style={{ fontSize: '30%' }}
-                            value={`--pad-${pseudoValue}`}
-                        >
-                            {' '}
-                        </option>,
-                        <option
-                            disabled
-                            key={optionElements.length + 1}
                             style={{
                                 fontSize: '110%',
                                 fontWeight: 'bold',
