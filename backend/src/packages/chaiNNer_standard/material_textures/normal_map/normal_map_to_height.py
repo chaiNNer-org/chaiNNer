@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import navi
 import numpy as np
+
+import navi
 from nodes.properties.inputs import BoolInput, ImageInput
 from nodes.properties.outputs import ImageOutput
 
@@ -28,7 +29,8 @@ from .. import normal_map_group
         ImageInput("Normal Map", channels=[3, 4]),
         BoolInput("Invert Green", default=False)
         .with_docs(
-            "Invert the green (Y) channel before processing. Enable this for DirectX normal maps, disable for OpenGL normal maps.",
+            "Invert the green (Y) channel before processing. Enable this for DirectX normal maps, disable for OpenGL normal maps."
+            "\n\nNormal maps made by chaiNNer's **Normal Map Generator** use the DirectX convention unless its *Invert G* option is checked.",
             hint=True,
         )
         .with_id(1),
@@ -61,10 +63,12 @@ def normal_map_to_height_node(
 
     # Extract gradients from normal map
     # Note: OpenCV uses BGR, so Blue=2, Green=1, Red=0
-    # In normal maps: R=X, G=Y, B=Z
-    # So we want: dx from Red (index 2 in BGR), dy from Green (index 1 in BGR)
-    dx = normal[:, :, 2]  # Red channel = X gradient
-    dy = normal[:, :, 1]  # Green channel = Y gradient
+    # A surface normal is proportional to (-dh/dx, -dh/dy_up, 1). Image rows
+    # grow downwards, so for an OpenGL (Y+) normal map:
+    #   dh/dx   = -R
+    #   dh/drow = +G
+    dx = -normal[:, :, 2]  # Red channel = negated X gradient
+    dy = normal[:, :, 1]  # Green channel = Y gradient (rows pointing down)
 
     # Invert green channel if specified (DirectX vs OpenGL convention)
     if invert_green:
