@@ -15,45 +15,50 @@ from nodes.utils.utils import Padding
 
 from .. import conversion_group
 
+# Base radii (px) of the fine, medium and coarse passes and their blend weights.
+_RADII = (2.0, 10.0, 40.0)
+_WEIGHTS = (0.5, 0.3, 0.2)
+# Sub-steps along each ray as fractions of the radius. Attenuation is
+# (1 - step) ** falloff, so the contribution fades to zero at the full radius;
+# a step at 1.0 would always have zero weight and is therefore omitted.
+_STEPS = (0.2, 0.4, 0.7)
 
-def _hbao_pass(
+
+def _occlusion_pass(
     hmap: np.ndarray,
     radius: float,
+    height_scale: float,
     num_samples: int,
     falloff_exp: float,
 ) -> np.ndarray:
     """
-    Compute one HBAO pass at a fixed radius, returning a per-pixel occlusion
-    value in [0, 1] where 0.0 = fully occluded and 1.0 = fully unoccluded.
+    Horizon-based occlusion of one pass.
 
-    Rays are cast in `num_samples` evenly-spaced angular directions. Each ray
-    tests three sub-steps (at 20 %, 40 % and 70 % of `radius`) to improve
-    horizon detection. The slope at each sample point is attenuated by
-    (1 - step) ** falloff_exp so that closer geometry casts stronger shadows;
-    the contribution reaches zero at the full radius, so no step is taken there.
+    Rays are cast in `num_samples` evenly-spaced directions. Along each ray,
+    the heights at the `_STEPS` sub-steps are turned into elevation angles
+    (height difference * `height_scale` / distance). Every time a sub-step
+    raises the horizon above the highest angle seen so far along that ray
+    (starting at the flat horizon), the increase in sin(elevation) is added,
+    weighted by (1 - step) ** falloff_exp. The result is averaged over
+    directions.
 
-    The raw accumulation is normalised against its own maximum value rather
-    than against the theoretical maximum. This is necessary because height map
-    slopes (height_delta / pixel_distance) are very small for inputs normalised
-    to [0, 1], so a fixed denominator would leave the result indistinguishably
-    close to white. Per-pass auto-ranging ensures the full [0, 1] output range
-    is always used while keeping each scale independent.
+    The value depends only on each pixel's neighbourhood, so crops and tiles
+    of an image produce the same result as the whole image.
 
     Args:
         hmap: 2-D float32 height map in [0, 1].
         radius: Distance in pixels at which a sample's contribution reaches 0.
+        height_scale: Height in pixels of a height map value of 1.0.
         num_samples: Number of evenly-spaced angular ray directions.
         falloff_exp: Exponent for the distance-based attenuation curve.
             Higher values concentrate contribution at the closest steps.
 
     Returns:
-        2-D float32 array in [0, 1] where 1.0 is fully unoccluded.
+        2-D float32 array in [0, 1], 0 = unoccluded, 1 = fully occluded.
     """
     h, w = hmap.shape
-    ao_accum = np.zeros_like(hmap)
+    accum = np.zeros_like(hmap)
     angles = np.linspace(0, 2 * np.pi, num_samples, endpoint=False)
-    # A step at 1.0 would always get (1 - 1.0) ** falloff_exp == 0 weight.
-    steps = [0.2, 0.4, 0.7]
 
     # Base coordinate grids reused for every remap call in this pass.
     # cv2.remap(src, map_x, map_y) samples src at (map_x[y,x], map_y[y,x]),
@@ -63,41 +68,33 @@ def _hbao_pass(
 
     for angle in angles:
         dx, dy = float(np.cos(angle)), float(np.sin(angle))
-        for s in steps:
+        # sin of the highest elevation seen so far along this ray
+        horizon = np.zeros_like(hmap)
+        for s in _STEPS:
             d = radius * s
             # Shift hmap by (dy*d, dx*d) with mirrored borders:
             # output[y,x] = input[y - dy*d, x - dx*d]
             map_x = col_base - dx * d
             map_y = row_base - dy * d
-            offset = cv2.remap(
+            sample = cv2.remap(
                 hmap, map_x, map_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT
             )
 
-            diff = offset - hmap
+            # Elevation of the sample above the current pixel, as sin(angle)
+            tan = (sample - hmap) * (height_scale / d)
+            sin = tan / np.sqrt(1.0 + tan * tan)
 
-            # Upward slope only — a lower neighbour cannot occlude the sky
-            slope = np.maximum(0.0, diff) / (d + 1e-3)
+            # Only a sample above the current horizon adds occlusion
+            gain = np.maximum(sin - horizon, 0.0)
+            accum += gain * ((1.0 - s) ** falloff_exp)
+            horizon = np.maximum(horizon, sin)
 
-            # Contribution decays as the step fraction approaches 1.0
-            attenuation = (1.0 - s) ** falloff_exp
-
-            ao_accum += slope * attenuation
-
-    # Auto-range: the absolute slope values for a [0, 1] normalised height map
-    # are very small, so normalising by a fixed constant
-    # produces values indistinguishably close to 1 (white). Instead we scale by
-    # the actual image maximum so the pass always spans the full [0, 1] range.
-    ao_max = float(ao_accum.max())
-    if ao_max < 1e-10:
-        # Completely flat input — no occlusion possible
-        return np.ones_like(hmap)
-
-    occlusion = ao_accum / ao_max  # [0, 1]: 1 = most occluded area in pass
-    return 1.0 - occlusion  # invert: 1 = unoccluded, 0 = most occluded
+    return accum / num_samples
 
 
 def height_to_ao(
     hmap: np.ndarray,
+    height_scale: float,
     strength: float,
     radius_scale: float,
     num_samples: int,
@@ -107,47 +104,40 @@ def height_to_ao(
     Generate a multi-scale AO map from a 2-D height map.
 
     Three passes run at fine (2 px), medium (10 px), and coarse (40 px)
-    radii scaled by `radius_scale`. Each pass is auto-ranged to [0, 1]
-    independently so that detail at every scale contributes meaningfully.
-    The passes are blended as a weighted average and then `strength` is
-    applied as a linear contrast stretch: it scales how dark the occluded
-    regions become while leaving fully unoccluded (value = 1.0) areas intact.
+    radii scaled by `radius_scale`, and are blended with weights 0.5, 0.3
+    and 0.2. `strength` then multiplies the combined occlusion.
 
     Args:
         hmap: 2-D float32 height map in [0, 1].
-        strength: AO contrast multiplier. 1.0 uses the full auto-ranged output;
-            values > 1 deepen shadows (clipping to black at >1/strength);
-            values < 1 lighten the effect towards grey.
+        height_scale: Height in pixels of a height map value of 1.0.
+        strength: Occlusion multiplier; values > 1 deepen shadows
+            (clipping to black), values < 1 lighten them.
         radius_scale: Uniform scale factor applied to all three radii.
         num_samples: Number of angular ray directions per pass.
         falloff: Exponent for per-sample distance attenuation.
 
     Returns:
-        2-D float32 AO map in [0, 1].
+        2-D float32 AO map in [0, 1], 1 = unoccluded.
     """
-    # Three spatial scales and their additive blend weights (must sum to 1)
-    radii = [2.0 * radius_scale, 10.0 * radius_scale, 40.0 * radius_scale]
-    weights = [0.5, 0.3, 0.2]
-
     # Run all three passes concurrently. cv2.remap and NumPy's array operations
     # release the GIL, so the passes overlap instead of running back to back.
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    with ThreadPoolExecutor(max_workers=len(_RADII)) as executor:
         futures = [
-            executor.submit(_hbao_pass, hmap, radius, num_samples, falloff)
-            for radius in radii
+            executor.submit(
+                _occlusion_pass,
+                hmap,
+                r * radius_scale,
+                height_scale,
+                num_samples,
+                falloff,
+            )
+            for r in _RADII
         ]
-        pass_results = [f.result() for f in futures]
+        occlusion = sum(
+            weight * f.result() for weight, f in zip(_WEIGHTS, futures, strict=True)
+        )
 
-    # Weighted average of independently auto-ranged passes
-    combined = sum(
-        weight * pass_ao for weight, pass_ao in zip(weights, pass_results, strict=True)
-    )
-
-    # Apply strength as a linear contrast stretch anchored at 1.0 (unoccluded).
-    # (1 - combined) is the raw occlusion amount; scaling it by strength and
-    # clipping to [0, 1] deepens shadows without touching fully-lit areas.
-    ao = 1.0 - np.clip((1.0 - combined) * strength, 0.0, 1.0)
-    return ao
+    return 1.0 - np.clip(occlusion * strength, 0.0, 1.0)
 
 
 @conversion_group.register(
@@ -159,9 +149,10 @@ def height_to_ao(
         "### Seamless Tiling",
         "Set **Padding** to *Wrap (Tile)* when baking AO for a tiling texture. The node pads the image by the coarsest ray radius on all sides before processing and crops back afterwards, so rays at the image boundary wrap correctly instead of reflecting into empty space.",
         "### Algorithm",
-        "For each pixel, rays are cast in **Samples** evenly-spaced directions. Along each ray, three sub-steps (at 20%, 40% and 70% of the radius) measure how much the surrounding height surface rises above the current pixel; contributions fade to zero at the full radius. Higher and closer elevations produce stronger occlusion. Each pass is normalised to its own data range so that detail at every spatial scale is always visible, regardless of how subtle the absolute height differences are.",
+        "For each pixel, rays are cast in **Samples** evenly-spaced directions. Along each ray, three sub-steps (at 20%, 40% and 70% of the radius) convert the surrounding height into an elevation angle using **Height Scale**. Occlusion grows each time the horizon rises along the ray, and contributions fade to zero at the full radius. Each pixel's result depends only on its surroundings, so crops and tiles of a texture give the same AO.",
         "### Parameters",
-        "**Strength** is a linear contrast control anchored at white (unoccluded). At 1.0 the result uses the full auto-ranged output. Values above 1.0 deepen shadows, clipping the darkest areas to black. Values below 1.0 lighten the effect towards grey.",
+        "**Height Scale** sets how tall the surface is: the height in pixels of a white (1.0) height map value. This is the main control for how strong the AO is.",
+        "**Strength** multiplies the computed occlusion. Values above 1.0 deepen shadows, clipping the darkest areas to black. Values below 1.0 lighten them.",
         "**Radius Scale** uniformly scales all three sample radii. Increase for broader, softer shadows; decrease for tight, fine-detail occlusion.",
         "**Samples** sets the number of ray directions. More samples produce smoother results at the cost of longer processing times.",
         "**Falloff** controls how quickly each sample's shadow contribution decays with distance. Higher values concentrate occlusion close to the occluding geometry.",
@@ -176,6 +167,19 @@ def height_to_ao(
             hint=True,
         ),
         SliderInput(
+            "Height Scale",
+            min=1,
+            max=500,
+            default=20,
+            precision=1,
+            unit="px",
+            scale="log",
+        ).with_docs(
+            "How tall the surface is: the height in pixels of a white (1.0) value in the height map. "
+            "Higher values make bumps steeper and the AO darker; lower values make the surface flatter.",
+            hint=True,
+        ),
+        SliderInput(
             "Strength",
             min=0,
             max=5,
@@ -184,8 +188,7 @@ def height_to_ao(
             slider_step=0.1,
             step=0.5,
         ).with_docs(
-            "Linear contrast multiplier for the AO effect. "
-            "At 1.0 the auto-ranged result is used as-is. "
+            "Multiplier for the computed occlusion. "
             "Increase to deepen shadows; decrease for a subtler effect.",
             hint=True,
         ),
@@ -243,18 +246,19 @@ def height_to_ao(
 def height_to_ao_node(
     img: np.ndarray,
     padding: PaddingType,
+    height_scale: float,
     strength: float,
     radius_scale: float,
     samples: float,
     falloff: float,
 ) -> np.ndarray:
     # Pad by the coarsest ray radius so boundary rays don't hit the image edge.
-    pad_size = math.ceil(40.0 * radius_scale)
+    pad_size = math.ceil(max(_RADII) * radius_scale)
     if padding != PaddingType.NONE:
         img = create_border(img, padding.to_border_type(), Padding.all(pad_size))
 
-    hmap = img.squeeze().astype(np.float32)
-    ao = height_to_ao(hmap, strength, radius_scale, int(samples), falloff)
+    hmap = (img[:, :, 0] if img.ndim == 3 else img).astype(np.float32)
+    ao = height_to_ao(hmap, height_scale, strength, radius_scale, int(samples), falloff)
 
     if padding != PaddingType.NONE:
         ao = ao[pad_size:-pad_size, pad_size:-pad_size]
