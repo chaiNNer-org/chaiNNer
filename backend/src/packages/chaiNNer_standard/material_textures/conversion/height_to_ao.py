@@ -27,10 +27,10 @@ def _hbao_pass(
     value in [0, 1] where 0.0 = fully occluded and 1.0 = fully unoccluded.
 
     Rays are cast in `num_samples` evenly-spaced angular directions. Each ray
-    tests four sub-steps (at 20 %, 40 %, 70 %, 100 % of `radius`) to improve
-    horizon detection. The slope at each sample point is attenuated by a
-    power-law based on the normalised step distance so that closer geometry
-    casts stronger shadows.
+    tests three sub-steps (at 20 %, 40 % and 70 % of `radius`) to improve
+    horizon detection. The slope at each sample point is attenuated by
+    (1 - step) ** falloff_exp so that closer geometry casts stronger shadows;
+    the contribution reaches zero at the full radius, so no step is taken there.
 
     The raw accumulation is normalised against its own maximum value rather
     than against the theoretical maximum. This is necessary because height map
@@ -41,7 +41,7 @@ def _hbao_pass(
 
     Args:
         hmap: 2-D float32 height map in [0, 1].
-        radius: Maximum sample radius in pixels.
+        radius: Distance in pixels at which a sample's contribution reaches 0.
         num_samples: Number of evenly-spaced angular ray directions.
         falloff_exp: Exponent for the distance-based attenuation curve.
             Higher values concentrate contribution at the closest steps.
@@ -52,7 +52,8 @@ def _hbao_pass(
     h, w = hmap.shape
     ao_accum = np.zeros_like(hmap)
     angles = np.linspace(0, 2 * np.pi, num_samples, endpoint=False)
-    steps = [0.2, 0.4, 0.7, 1.0]
+    # A step at 1.0 would always get (1 - 1.0) ** falloff_exp == 0 weight.
+    steps = [0.2, 0.4, 0.7]
 
     # Base coordinate grids reused for every remap call in this pass.
     # cv2.remap(src, map_x, map_y) samples src at (map_x[y,x], map_y[y,x]),
@@ -64,7 +65,7 @@ def _hbao_pass(
         dx, dy = float(np.cos(angle)), float(np.sin(angle))
         for s in steps:
             d = radius * s
-            # Replicate scipy.ndimage.shift(hmap, (dy*d, dx*d), mode="reflect"):
+            # Shift hmap by (dy*d, dx*d) with mirrored borders:
             # output[y,x] = input[y - dy*d, x - dx*d]
             map_x = col_base - dx * d
             map_y = row_base - dy * d
@@ -82,11 +83,8 @@ def _hbao_pass(
 
             ao_accum += slope * attenuation
 
-    # Average over samples and steps to get a per-pixel mean slope
-    ao_accum /= num_samples * len(steps)
-
     # Auto-range: the absolute slope values for a [0, 1] normalised height map
-    # are very small (typically 0.001-0.05), so normalising by a fixed constant
+    # are very small, so normalising by a fixed constant
     # produces values indistinguishably close to 1 (white). Instead we scale by
     # the actual image maximum so the pass always spans the full [0, 1] range.
     ao_max = float(ao_accum.max())
@@ -131,9 +129,8 @@ def height_to_ao(
     radii = [2.0 * radius_scale, 10.0 * radius_scale, 40.0 * radius_scale]
     weights = [0.5, 0.3, 0.2]
 
-    # Run all three passes concurrently. scipy and numpy release the GIL during
-    # their C-level operations, so threads achieve true parallelism here and the
-    # wall-clock time is roughly that of the single slowest (coarsest) pass.
+    # Run all three passes concurrently. cv2.remap and NumPy's array operations
+    # release the GIL, so the passes overlap instead of running back to back.
     with ThreadPoolExecutor(max_workers=3) as executor:
         futures = [
             executor.submit(_hbao_pass, hmap, radius, num_samples, falloff)
@@ -162,7 +159,7 @@ def height_to_ao(
         "### Seamless Tiling",
         "Set **Padding** to *Wrap (Tile)* when baking AO for a tiling texture. The node pads the image by the coarsest ray radius on all sides before processing and crops back afterwards, so rays at the image boundary wrap correctly instead of reflecting into empty space.",
         "### Algorithm",
-        "For each pixel, rays are cast in **Samples** evenly-spaced directions. Along each ray, four sub-steps measure how much the surrounding height surface rises above the current pixel. Higher and closer elevations produce stronger occlusion. Each pass is normalised to its own data range so that detail at every spatial scale is always visible, regardless of how subtle the absolute height differences are.",
+        "For each pixel, rays are cast in **Samples** evenly-spaced directions. Along each ray, three sub-steps (at 20%, 40% and 70% of the radius) measure how much the surrounding height surface rises above the current pixel; contributions fade to zero at the full radius. Higher and closer elevations produce stronger occlusion. Each pass is normalised to its own data range so that detail at every spatial scale is always visible, regardless of how subtle the absolute height differences are.",
         "### Parameters",
         "**Strength** is a linear contrast control anchored at white (unoccluded). At 1.0 the result uses the full auto-ranged output. Values above 1.0 deepen shadows, clipping the darkest areas to black. Values below 1.0 lighten the effect towards grey.",
         "**Radius Scale** uniformly scales all three sample radii. Increase for broader, softer shadows; decrease for tight, fine-detail occlusion.",
