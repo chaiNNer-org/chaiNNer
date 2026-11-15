@@ -21,7 +21,7 @@ from nodes.properties.inputs import ImageFileInput
 from nodes.properties.outputs import DirectoryOutput, FileNameOutput, LargeImageOutput
 from nodes.utils.utils import get_h_w_c, split_file_path
 
-from .. import io_group
+from ... import io_group
 
 _Decoder = Callable[[Path], np.ndarray | None]
 """

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<translations xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../../translations/node_translations_schema.xsd"
+    id="chainner:image:load">
+    <language code="en">
+        <name>Load Image</name>
+        <description>Load image from specified file. This node will output the loaded image, the
+            directory of the image file, and the name of the image file (without file extension).</description>
+        <inputs>
+            <input id="0">
+                <label>Image Path</label>
+                <description>Select the path of an image file.</description>
+            </input>
+        </inputs>
+        <outputs>
+            <output id="0">
+                <label>Image</label>
+                <description>The node will display a preview of the selected image as well as type
+                    information for it. Connect this output to the input of another node to pass the
+                    image to it.</description>
+            </output>
+            <output id="1">
+                <label>Directory</label>
+                <description>The directory containing the image file</description>
+            </output>
+            <output id="2">
+                <label>Name</label>
+                <description>The name of the image file without extension</description>
+            </output>
+        </outputs>
+    </language>
+    <language code="nl">
+        <name>Laad Afbeelding</name>
+        <description>Laad een afbeelding vanaf het opgegeven bestand. Deze node zal de geladen
+            afbeelding, de map van het afbeeldingsbestand en de naam van het afbeeldingsbestand
+            (zonder bestandsextensie) weergeven.</description>
+        <inputs>
+            <input id="0">
+                <label>Afbeeldingspad</label>
+                <description>Selecteer het pad van een afbeeldingsbestand.</description>
+            </input>
+        </inputs>
+        <outputs>
+            <output id="0">
+                <label>Afbeelding</label>
+                <description>De node toont een voorbeeld van de geselecteerde afbeelding, evenals
+                    type-informatie ervoor. Verbind deze uitgang met de ingang van een andere node
+                    om de afbeelding door te geven.</description>
+            </output>
+            <output id="1">
+                <label>Map</label>
+                <description>De map die het afbeeldingsbestand bevat</description>
+            </output>
+            <output id="2">
+                <label>Naam</label>
+                <description>De naam van het afbeeldingsbestand zonder extensie</description>
+            </output>
+        </outputs>
+    </language>
+</translations>
