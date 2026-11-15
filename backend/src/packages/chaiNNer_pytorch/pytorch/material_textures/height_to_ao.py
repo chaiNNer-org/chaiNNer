@@ -80,9 +80,7 @@ def _occlusion_pass(
     hmap_2d = hmap[0, 0]
     num_steps = len(AO_STEPS)
 
-    steps = torch.tensor(AO_STEPS, device=device)
-    distances = radius * steps  # (S,)
-    attenuation = ((1.0 - steps) ** falloff_exp).view(1, num_steps, 1, 1)
+    distances = torch.tensor(AO_STEPS, device=device) * radius  # (S,)
 
     angles = torch.linspace(0, 2 * math.pi, num_samples + 1, device=device)[
         :num_samples
@@ -123,13 +121,13 @@ def _occlusion_pass(
         tan = (sampled - hmap_2d) * height_scale / distances.view(1, num_steps, 1, 1)
         sin = tan * torch.rsqrt(1.0 + tan * tan)
 
-        # Horizon before each step: highest elevation seen so far, starting at 0.
-        horizon = torch.cummax(sin, dim=1).values.clamp(min=0.0)
-        prev_horizon = torch.cat(
-            [torch.zeros_like(horizon[:, :1]), horizon[:, :-1]], dim=1
-        )
-        gain = torch.clamp(sin - prev_horizon, min=0.0) * attenuation
-        accum += gain.sum(dim=(0, 1))
+        # Walk outwards along each ray; only a sample above the current horizon
+        # (highest elevation so far, starting flat) adds occlusion.
+        horizon = torch.zeros(n, h, w, device=device)
+        for j, step in enumerate(AO_STEPS):
+            gain = torch.clamp(sin[:, j] - horizon, min=0.0)
+            accum += gain.sum(dim=0) * ((1.0 - step) ** falloff_exp)
+            horizon = torch.maximum(horizon, sin[:, j])
 
     return accum / num_samples
 
