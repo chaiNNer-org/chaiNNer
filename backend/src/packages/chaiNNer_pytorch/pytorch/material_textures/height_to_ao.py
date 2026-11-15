@@ -10,6 +10,11 @@ import torch.nn.functional as F  # noqa: N812
 import navi
 from api import NodeContext
 from nodes.groups import if_enum_group
+from nodes.impl.ambient_occlusion import (
+    AO_RADII,
+    AO_STEPS,
+    combine_ao_passes,
+)
 from nodes.impl.image_utils import create_border
 from nodes.impl.pytorch.utils import safe_cuda_cache_empty
 from nodes.impl.upscale.auto_split import Split, auto_split
@@ -22,6 +27,7 @@ from nodes.impl.upscale.auto_split_tiles import (
 from nodes.impl.upscale.basic_upscale import PaddingType
 from nodes.impl.upscale.tiler import MaxTileSize
 from nodes.properties.inputs import (
+    BoolInput,
     ImageInput,
     NumberInput,
     PaddingTypeInput,
@@ -34,15 +40,8 @@ from nodes.utils.utils import Padding, Region
 from ...settings import get_settings
 from .. import material_textures_group
 
-# Base radii (px) of the fine, medium and coarse passes and their blend weights.
-_RADII = (2.0, 10.0, 40.0)
-_WEIGHTS = (0.5, 0.3, 0.2)
-# Sub-steps along each ray as fractions of the radius. Attenuation is
-# (1 - step) ** falloff, so the contribution fades to zero at the full radius;
-# a step at 1.0 would always have zero weight and is therefore omitted.
-_STEPS = (0.2, 0.4, 0.7)
 # Directions sampled per grid_sample call. Bounds peak memory to
-# O(_DIRECTION_CHUNK * len(_STEPS) * H * W) regardless of the Samples setting.
+# O(_DIRECTION_CHUNK * len(AO_STEPS) * H * W) regardless of the Samples setting.
 _DIRECTION_CHUNK = 8
 
 
@@ -57,7 +56,7 @@ def _occlusion_pass(
     """
     Horizon-based occlusion of one pass.
 
-    For each direction, the heights at the `_STEPS` sub-steps are turned into
+    For each direction, the heights at the `AO_STEPS` sub-steps are turned into
     elevation angles (height difference * `height_scale` / distance). Every
     time a sub-step raises the horizon above the highest angle seen so far
     along that ray (starting at the flat horizon), the increase in
@@ -79,9 +78,9 @@ def _occlusion_pass(
     """
     h, w = hmap.shape[-2:]
     hmap_2d = hmap[0, 0]
-    num_steps = len(_STEPS)
+    num_steps = len(AO_STEPS)
 
-    steps = torch.tensor(_STEPS, device=device)
+    steps = torch.tensor(AO_STEPS, device=device)
     distances = radius * steps  # (S,)
     attenuation = ((1.0 - steps) ** falloff_exp).view(1, num_steps, 1, 1)
 
@@ -135,24 +134,24 @@ def _occlusion_pass(
     return accum / num_samples
 
 
-def _height_to_ao(
+def _raw_occlusion(
     hmap: torch.Tensor,
     height_scale: float,
-    strength: float,
     radius_scale: float,
     num_samples: int,
     falloff: float,
     device: torch.device,
 ) -> torch.Tensor:
-    """(H, W) AO map in [0, 1], 1 = unoccluded."""
-    occlusion = sum(
-        weight
-        * _occlusion_pass(
-            hmap, r * radius_scale, height_scale, num_samples, falloff, device
-        )
-        for weight, r in zip(_WEIGHTS, _RADII, strict=True)
+    """(H, W, 3) raw occlusion, one channel per pass (fine, medium, coarse)."""
+    return torch.stack(
+        [
+            _occlusion_pass(
+                hmap, r * radius_scale, height_scale, num_samples, falloff, device
+            )
+            for r in AO_RADII
+        ],
+        dim=-1,
     )
-    return 1.0 - torch.clamp(occlusion * strength, 0.0, 1.0)
 
 
 def _as_2d(img: np.ndarray) -> np.ndarray:
@@ -172,8 +171,9 @@ def _as_2d(img: np.ndarray) -> np.ndarray:
         "### Algorithm",
         "Three radius passes — fine (2 px), medium (10 px), coarse (40 px), each multiplied by **Radius Scale** — are blended at 0.5 / 0.3 / 0.2. Within each pass, every **Samples** direction is sampled at 20%, 40% and 70% of the radius. Each sample's height difference is converted to an elevation angle using **Height Scale**, and occlusion grows as the horizon rises along the ray. Contributions fade to zero at the full radius.",
         "### Parameters",
-        "**Height Scale** sets how tall the surface is: the height in pixels of a white (1.0) height map value. This is the main control for how strong the AO is.",
-        "**Strength** multiplies the computed occlusion. Values above 1.0 deepen shadows; values below 1.0 lighten them.",
+        "**Auto Level** (on by default) scales each pass so the most occluded area of the image is fully dark, giving a consistent look across textures with very different height ranges. Turn it off to use the occlusion exactly as computed from **Height Scale**; the result then depends only on each pixel's surroundings, so crops of a texture match the full texture.",
+        "**Height Scale** sets how tall the surface is: the height in pixels of a white (1.0) height map value. With **Auto Level** off it is the main control for how strong the AO is; with it on it shapes the contrast, with higher values flattening the shading.",
+        "**Strength** multiplies the occlusion. Values above 1.0 deepen shadows; values below 1.0 lighten them.",
         "**Radius Scale** uniformly scales all three radii. Increase for broader shadows across large features; decrease for tight detail occlusion.",
         "**Samples** sets the number of ray directions. More samples reduce banding at the cost of processing time.",
         "**Falloff** controls how quickly shadow contribution decays along each ray. Higher values concentrate occlusion near occluding edges.",
@@ -203,29 +203,36 @@ def _as_2d(img: np.ndarray) -> np.ndarray:
                 unit="px",
             ),
         ),
+        BoolInput("Auto Level", default=True).with_docs(
+            "Scale the AO so the most occluded area of the image is fully dark. "
+            "Gives a consistent look across textures without tuning. "
+            "Turn off to use the occlusion exactly as computed from **Height Scale**.",
+            hint=True,
+        ),
         SliderInput(
             "Height Scale",
             min=1,
             max=500,
-            default=20,
+            default=16,
             precision=1,
             unit="px",
             scale="log",
         ).with_docs(
             "How tall the surface is: the height in pixels of a white (1.0) value in the height map. "
-            "Higher values make bumps steeper and the AO darker; lower values make the surface flatter.",
+            "Higher values make bumps steeper. With **Auto Level** off this sets how dark the AO is; "
+            "with it on, higher values flatten the shading.",
             hint=True,
         ),
         SliderInput(
             "Strength",
             min=0,
-            max=5,
+            max=10,
             default=1,
             precision=2,
             slider_step=0.1,
             step=0.5,
         ).with_docs(
-            "Multiplier for the computed occlusion. "
+            "Multiplier for the occlusion. "
             "Increase to deepen shadows; decrease for a subtler effect.",
             hint=True,
         ),
@@ -287,6 +294,7 @@ def height_to_ao_node(
     padding: PaddingType,
     tile_size: TileSize,
     custom_tile_size: int,
+    auto_level: bool,
     height_scale: float,
     strength: float,
     radius_scale: float,
@@ -303,7 +311,7 @@ def height_to_ao_node(
 
     # Pad by the coarsest ray radius so boundary rays don't hit the image edge.
     # This also serves as the overlap for tiled processing (same distance).
-    pad_size = math.ceil(max(_RADII) * radius_scale)
+    pad_size = math.ceil(max(AO_RADII) * radius_scale)
     if padding != PaddingType.NONE:
         img = create_border(img, padding.to_border_type(), Padding.all(pad_size))
 
@@ -316,16 +324,10 @@ def height_to_ao_node(
         try:
             tile_2d = _as_2d(tile_np).astype(np.float32)
             tensor = torch.from_numpy(tile_2d)[None, None].to(device)
-            ao = _height_to_ao(
-                tensor,
-                height_scale,
-                strength,
-                radius_scale,
-                num_samples,
-                falloff,
-                device,
+            raw = _raw_occlusion(
+                tensor, height_scale, radius_scale, num_samples, falloff, device
             )
-            return ao.detach().cpu().numpy()[:, :, np.newaxis]  # (H, W, 1)
+            return raw.detach().cpu().numpy()  # (H, W, 3)
         except RuntimeError as e:
             # Same OOM detection as nodes/impl/pytorch/auto_split.py; also covers
             # CPU ("can't allocate memory") and torch.cuda.OutOfMemoryError.
@@ -335,9 +337,10 @@ def height_to_ao_node(
                 return Split()
             raise
 
-    ao = _as_2d(auto_split(img, process_tile, tiler, overlap=pad_size))
-
+    # Tiles return raw per-pass occlusion; levelling and blending happen once on
+    # the stitched, cropped result so every tile is treated the same.
+    passes = auto_split(img, process_tile, tiler, overlap=pad_size)
     if padding != PaddingType.NONE:
-        ao = ao[pad_size:-pad_size, pad_size:-pad_size]
+        passes = passes[pad_size:-pad_size, pad_size:-pad_size]
 
-    return ao
+    return combine_ao_passes(passes, auto_level, strength)
